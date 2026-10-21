@@ -1,0 +1,92 @@
+\begin{tikzpicture}[
+  box/.style={
+    draw=ipnvino, rounded corners=1.5mm, line width=0.6pt,
+    text width=4.4cm, align=center, inner sep=5pt, font=\footnotesize,
+    execute at begin node={\hyphenpenalty=10000\relax}
+  },
+  human/.style={box, fill=ipnvino!6},
+  tech/.style={box, fill=black!3},
+  group/.style={draw=black!45, rounded corners=2mm, line width=0.6pt},
+  tag/.style={font=\footnotesize\itshape, text=black!70, inner sep=2pt},
+  flow/.style={-{Stealth[length=2mm]}, line width=0.6pt}
+]
+  % Exact dependencies: each revision is immutable and selected exactly.
+  \node[box, minimum height=1.45cm] (src) at (-5.4,0) {
+    \textbf{Fuentes temporales}\\
+    Resoluciones y notificaciones declaradas; resultados de audiencia
+  };
+  \node[box, minimum height=1.45cm] (prof) at (0,0) {
+    \textbf{Perfil de plazo}\\
+    \texttt{DPRF1}, global o del expediente; publicado por el Owner
+  };
+  \node[box, minimum height=1.45cm] (cal) at (5.4,0) {
+    \textbf{Calendario jurisdiccional}\\
+    \texttt{JCAL1}, cat\'alogo global publicado por el Owner
+  };
+  \draw[group] ([xshift=-2mm,yshift=6mm]src.north west)
+    rectangle ([xshift=2mm,yshift=-2mm]cal.south east);
+  \node[tag, anchor=north west] at ([xshift=-1mm,yshift=5.5mm]src.north west)
+    {Dependencias con revisiones exactas};
+
+  % Evaluation layer.
+  \node[box, below=13mm of prof] (eval) {
+    \textbf{Evaluaci\'on del perfil}\\
+    Entrada \texttt{DEVI1}: selecci\'on, calendario, cantidad, aplicabilidad y condiciones\\
+    Resultado \texttt{DRES1}: candidata, traza y bloqueos
+  };
+  % Durable technical reevaluation.
+  \node[tech] (events) at (cal |- eval) {
+    \textbf{Eventos de cambio}\\
+    \texttt{deadline\_source\_events}, confirmados con cada revisi\'on nueva
+  };
+  \node[tech, below=10mm of events] (disp) {
+    \textbf{Despachador durable}\\
+    Expande cada evento en trabajos por plazo y asigna la conciliaci\'on del legado
+  };
+  \node[tech, below=6mm of disp] (work) {
+    \textbf{Consumidor durable}\\
+    Servicio de reevaluaci\'on sin cuenta humana: revisi\'on t\'ecnica V2,
+    resultado sin cambios o intento fallido
+  };
+  \draw[group] ([xshift=-2mm,yshift=5mm]disp.north west)
+    rectangle ([xshift=2mm,yshift=-2mm]work.south east);
+  \node[tag, anchor=north east] at ([xshift=1mm,yshift=4.5mm]disp.north east)
+    {secuencial en \texttt{serve}};
+
+  % Human operations, between evaluation and the persisted deadline.
+  \node[human] (ops) at (src |- disp) {
+    \textbf{Operaciones humanas}\\
+    Owner o Litigante asignado; autor tomado de la sesi\'on\\
+    En alta y correcci\'on: conservar o seguir cada dependencia presente
+  };
+
+  % Persisted deadline with its history.
+  \node[box, fill=white, line width=0.9pt] (dl) at (prof |- work) {
+    \textbf{Plazo persistente del expediente}\\
+    Revisiones inmutables con autor, recibo y auditor\'ia\\
+    Historial V1 conservado; V2 con pol\'iticas, estado de revisi\'on y observaciones
+  };
+
+  % Consumers of the persisted deadline.
+  \node[box, below=13mm of dl, xshift=-2.7cm] (agenda) {
+    \textbf{Agenda combinada}\\
+    Activo, V2 aceptado, instante final y dependencias vigentes
+  };
+  \node[box, below=13mm of dl, xshift=2.7cm] (alerts) {
+    \textbf{Alertas personales}\\
+    Al responsable vigente: proximidad, vencimiento sin atenci\'on,
+    revisi\'on requerida y cambio de fecha pr\'oximo
+  };
+
+  % Flows.
+  \draw[flow] ([yshift=-2mm]prof.south) -- node[tag, right] {revisiones seleccionadas} (eval);
+  \draw[flow] ([yshift=-2mm]cal.south) -- node[tag, right] {cada revisi\'on nueva} (events);
+  \draw[flow] (ops.north) |- node[tag, pos=0.4, right] {alta y correcci\'on} (eval.west);
+  \draw[flow] (eval) -- node[tag, right, align=left] {captura en\\la revisi\'on} (dl);
+  \draw[flow] (ops.south) |- node[tag, pos=0.4, right] {atenci\'on y retiro} (dl.west);
+  \draw[flow] (events) -- ([yshift=5mm]disp.north);
+  \draw[flow] (disp) -- (work);
+  \draw[flow] (work) -- (dl);
+  \draw[flow] (dl.south) -- ++(0,-5mm) -| node[tag, pos=0.75, left] {vencimiento operativo} (agenda.north);
+  \draw[flow] (dl.south) -- ++(0,-5mm) -| node[tag, pos=0.75, right] {responsable vigente} (alerts.north);
+\end{tikzpicture}

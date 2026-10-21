@@ -1,6 +1,7 @@
 \subsection{Informes durables de expedientes}\label{sec:impl-informes}
 
-La implementación local compone la solicitud autenticada, la persistencia
+Las dos modalidades de informe, estado de expedientes y actividad atribuida,
+comparten la solicitud autenticada, la persistencia
 transaccional, el cifrado de capturas y artefactos, el renderizado acotado y la
 consulta desde Qadra. \texttt{CaseReportWorkflow} delimita el puerto de aplicación;
 HTTP expone solicitud, listado propio, detalle, selector de litigantes, acuse y
@@ -17,26 +18,32 @@ expedientes; no elimina del resumen a otros litigantes asignados a esos mismos
 casos. La captura conserva filtros, instante de observación, identificadores,
 revisiones administrativas, asignaciones y carga derivada. Repetir una operación
 con sus mismos filtros devuelve el trabajo original; cambiar los filtros con
-el mismo identificador produce conflicto. La interfaz conserva esa identidad
-ante una respuesta incierta y permite reintentar explícitamente.
+el mismo identificador produce conflicto. Ante una respuesta incierta, Qadra
+conserva esa identidad con los filtros exactos; un informe listado no confirma
+la solicitud, y sólo repetir explícitamente el mismo comando, sin consulta previa
+del listado, obtiene del servidor el trabajo original como resultado durable
+(fila Informes de la \cref{tab:impl-qadra-vistas}).
 
 \paragraph{Atribución de actividad.}
 La modalidad de actividad reutiliza las rutas, permisos, cola, captura cifrada,
 renderizado y avisos del informe de estado. La solicitud distingue el tipo
 \texttt{litigator\_activity} y un intervalo del instante de operación, independiente
 del intervalo de creación de expedientes. Cambiar de tipo o filtros bajo una
-identidad de operación existente produce conflicto. La representación HTTP,
-el almacenamiento y los bytes canónicos de los informes de estado conservan
-su forma; la actividad utiliza una captura de versión dos y dominios canónicos
-separados para la solicitud y el resultado.
+identidad de operación existente produce conflicto. Los informes de estado
+omiten ese tipo en HTTP y conservan sus filtros de creación y de litigante
+asignado, su almacenamiento y sus bytes canónicos; la actividad utiliza una
+captura de versión dos y dominios canónicos separados para la solicitud y el
+resultado (\cref{tab:anexo-canones}).
 
-La migración \rutarepo{migrations/0043_document_upload_origins.sql} conserva el
-origen de cada carga documental nueva en la misma transacción que el documento
-y su auditoría. Registra documento, expediente, UUID y correo capturado del autor,
-instante de registro y secuencia del evento de carga. Las versiones de contenido
-y las clasificaciones posteriores no crean otro origen. Los registros antiguos
-sin ese origen permanecen identificados como cobertura incompleta; no se les
-atribuye retrospectivamente una cuenta por coincidencia de correo.
+{\emergencystretch=3em La atribución de las cargas documentales se apoya en la migración
+\rutarepo{migrations/0043_document_upload_origins.sql} (\cref{tab:anexo-migraciones}),
+que conserva el origen de cada carga documental nueva en la misma transacción
+que el documento y su auditoría. Registra documento, expediente, UUID y correo
+capturado del autor, instante de registro y secuencia del evento de carga. Las
+versiones de contenido y las clasificaciones posteriores no crean otro origen.
+Los registros antiguos sin ese origen permanecen identificados como cobertura
+documental incompleta del informe; no se les atribuye retrospectivamente una
+cuenta por coincidencia de correo.\par}
 
 La agregación se delimita a tres cantidades por expediente y autor: documentos
 originales cargados, actuaciones originales registradas y plazos atendidos.
@@ -91,7 +98,8 @@ primera lectura del aviso; consultar el detalle o descargar no lo sustituye.
 \paragraph{Estimaci\'on inicial y aviso por correo.}
 La solicitud conserva una predicci\'on opcional del tiempo total hasta disponer
 de ambos formatos; repetir la operaci\'on no la reemplaza. El estimador utiliza
-los \'ultimos 64 informes completados del mismo tipo y alcance de autorizaci\'on.
+los \'ultimos 64 informes completados en un solo intento del mismo tipo y
+alcance de autorizaci\'on.
 Exige al menos tres observaciones con servicio positivo y volumen de expedientes
 dentro del 25\% del solicitado. Escala cada duraci\'on por la raz\'on entre el
 volumen solicitado m\'as uno y el volumen observado m\'as uno, y toma la mediana.
@@ -103,10 +111,10 @@ tampoco se extrapola cuando falta historial comparable.
 Una predicci\'on inicial estrictamente mayor de 2000 milisegundos incorpora una
 intenci\'on de correo a la misma transacci\'on que publica PDF, CSV, disponibilidad,
 aviso interno y auditor\'ia. Exactamente 2000 milisegundos, un valor ausente y
-un resultado fallido no crean esa intenci\'on. Los informes anteriores sin
-predicci\'on no generan correo retrospectivo. La migraci\'on
+un resultado fallido no crean esa intenci\'on. La migraci\'on
 \rutarepo{migrations/0047_case_report_readiness.sql} conserva estimaciones y
-entregas; un fallo del canal no retira los artefactos disponibles.
+entregas; los informes registrados sin predicci\'on no generan correo
+retrospectivo, y un fallo del canal no retira los artefactos disponibles.
 
 Un consumidor opcional comparte el almac\'en de informes y la parada supervisada.
 Su primer reclamo fija destinatario, mensaje gen\'erico y UUID de entrega; los
@@ -131,9 +139,9 @@ vez. Estas decisiones se delimitan en
 \rutarepo{docs/adr/0076-report-estimates-and-ready-email.md}.
 
 \paragraph{Presupuestos del renderizador.}
-El adaptador Linux invoca una entrada privada del mismo ejecutable confiable por
-cada formato. Recibe la captura en memoria sellada, con entorno vacío, sin los
-descriptores heredados de los servicios y con un protocolo de salida ligado al
+Para generar el PDF y el CSV de cada informe, el adaptador Linux invoca, por
+cada formato, una entrada privada del mismo ejecutable confiable. Recibe la
+captura en memoria sellada, con entorno vacío, sin los descriptores heredados de los servicios y con un protocolo de salida ligado al
 informe y al digest. El proceso padre controla el grupo hijo y su terminación.
 Los límites por formato son quince segundos de CPU, 512 MiB de espacio virtual
 y veinte segundos de tiempo de pared. El crecimiento de archivos regulares y
@@ -156,7 +164,7 @@ texto latino de izquierda a derecha con las mismas opciones. Las líneas se
 componen por separado para respetar sus extremos y sus ligaduras;
 no se rebajan los presupuestos para aceptar un artefacto.
 
-\paragraph{Presentación y alcance de la entrega.}
+\paragraph{Presentación en Qadra y alcance.}
 Qadra permite filtrar, solicitar, actualizar el estado, consultar trabajos,
 acusar avisos y descargar un formato. Distingue espera, captura, renderizado,
 reintento, disponibilidad y fallo; no estima porcentajes ni garantiza fechas de
@@ -179,14 +187,13 @@ captura, tamaño y digest con el detalle autorizado.
 El contrato \rutarepo{docs/case-reports-api.md} y la operación de respaldo en
 \rutarepo{docs/database-operations.md} describen estas fronteras. La decisión
 \rutarepo{docs/adr/0060-durable-authorized-case-reports.md} documenta las decisiones de autorización,
-persistencia y publicación conjunta verificadas en la aceptación integrada. La composición local
-no acredita por sí sola un despliegue, una campaña global aprobada, efectividad
-jurídica, firma personal o constancia emitida por un PSC. La atribución y el
-catálogo finito de actividad se delimitan en
-\rutarepo{docs/adr/0073-author-attributed-activity-reports.md}. La estimaci\'on
-y el correo de la \cref{tab:cu-16} tienen implementaci\'on local. La validaci\'on
-independiente acredit\'o el criterio de precisi\'on en el ensayo descrito en la
-\cref{sec:pruebas-informes}; la activaci\'on operativa del correo mantiene un
-cierre separado. Las pruebas de esos mecanismos y la aceptaci\'on reproducida
-de las tres cantidades de actividad se distinguen de una evaluaci\'on de \'exito
+persistencia y publicación conjunta, cuya aceptación integrada se presenta en la
+\cref{sec:pruebas-informes}. La composición del servidor no acredita por sí sola
+un despliegue, una campaña global aprobada, efectividad jurídica, firma personal
+o constancia emitida por un PSC. La atribución y el catálogo finito de actividad
+se delimitan en \rutarepo{docs/adr/0073-author-attributed-activity-reports.md}.
+La estimaci\'on y el correo implementan el flujo alterno de la \cref{tab:cu-16};
+la instalaci\'on productiva habilita ese canal mediante Resend. La validaci\'on de la precisi\'on, las pruebas de esos mecanismos y la aceptaci\'on
+reproducida de las tres cantidades de actividad se presentan en la
+\cref{sec:pruebas-informes} y se distinguen de una evaluaci\'on de \'exito
 jur\'idico o de usabilidad con personas.

@@ -1,15 +1,15 @@
 % =====================================================================
-%  anexo-e-matriz.tex — Matriz de pruebas y evidencia de ejecución
+%  anexo-e-matriz.tex - Matriz de pruebas y evidencia de ejecucion
 % =====================================================================
 \chapter{Matriz de pruebas y evidencia de ejecución}\label{anexo:matriz}
 
-Este anexo presenta el inventario de pruebas del prototipo y la evidencia reproducida el 12 de septiembre de 2026, documentada en \rutarepo{docs/verification-report.md}. La matriz relaciona escenarios técnicos positivos y negativos con los archivos que los implementan y complementa los resultados del Capítulo~\ref{cap:pruebas}. Los conteos del inventario y la tabla histórica de cobertura pertenecen a ese corte; la calibración de Argon2id y la transcripción CLI anterior conservan su fecha histórica. Se informa el alcance técnico comprobado, sin inferir de una corrida en verde cumplimiento jurídico ni preparación para producción.
+Este anexo complementa los resultados del Capítulo~\ref{cap:pruebas} con la trazabilidad entre escenarios técnicos positivos y negativos y los archivos que los implementan. Primero presenta el inventario de pruebas por crate del corte reproducido el 12 de septiembre de 2026, documentado en \rutarepo{docs/verification-report.md}; los conteos del inventario y la tabla histórica de cobertura pertenecen a ese corte. Después agrupa la trazabilidad por dominio, en el orden de los capítulos de implementación y pruebas, y cierra con la evidencia de ejecución de los cortes históricos, la reproducción de la calibración de credenciales y la operación privada del despliegue. La calibración de Argon2id y la transcripción CLI del 12 de julio conservan su fecha histórica. Se informa el alcance técnico comprobado, sin inferir de una corrida en verde cumplimiento jurídico ni preparación para producción.
 
 \section{Nota metodológica}\label{sec:matriz-nota}
 
 El inventario del corte del 12 de septiembre contiene \textbf{520 funciones de prueba}: el corte ejecutó 519 satisfactoriamente, sin fallos, y mantuvo una ignorada (\texttt{\#[ignore]}) correspondiente al proveedor externo de sellado. El adaptador externo se ejercita contra un sustituto HTTP local; la prueba del servicio comercial no forma parte de la evidencia reproducida. La suite también utiliza PostgreSQL y Redis locales reales en entornos desechables.
 
-Los nombres conductuales en \texttt{snake\_case} describen la expectativa comprobada. La matriz agrupa funciones por crate y archivo, incluidos módulos auxiliares bajo \texttt{tests/}, y cita casos representativos por fila. Una función puede ejecutar varios vectores, roles o fallos: el conteo de funciones no equivale al de escenarios ni a una demostración exhaustiva de seguridad. El inventario por servicio no sustituye la matriz funcional de los 17 casos de uso; esta permanece parcial mientras falten los módulos procesales, el ciclo completo de identidad, la operación del despacho y su validación con usuarios. Los resultados se reproducen con el entorno aislado descrito en la \cref{sec:matriz-corrida}.
+Los nombres conductuales en \texttt{snake\_case} describen la expectativa comprobada. La matriz agrupa funciones por crate y archivo, incluidos módulos auxiliares bajo \texttt{tests/}, y cita casos representativos por fila. Una función puede ejecutar varios vectores, roles o fallos: el conteo de funciones no equivale al de escenarios ni a una demostración exhaustiva de seguridad. El inventario por servicio no sustituye la matriz funcional de los 17 casos de uso, que permanece parcial (\cref{sec:pruebas-criterios-exito}): las secciones de trazabilidad por dominio relacionan las pruebas de identidad, gestión procesal y operación del despacho, pero no constituyen por sí solas un caso positivo y uno negativo de cada flujo funcional, y la validación con usuarios sigue pendiente. Los resultados se reproducen con el entorno aislado descrito en la \cref{sec:matriz-corrida}.
 
 La estrategia por capa sigue la arquitectura hexagonal: en \texttt{domain} las pruebas usan dobles deterministas escritos a mano (el crate no depende de ninguna biblioteca criptográfica); en \texttt{application} usan mocks o fakes de los puertos para probar la orquestación y la propagación de errores; en \texttt{infrastructure} ejercitan los adaptadores con criptografía real y herramientas del sistema; en \texttt{web} verifican el contrato HTTP sobre un workflow inyectado; y en \texttt{bin} ejecutan el binario compilado \texttt{despacho-cli} como subproceso. La \cref{tab:matriz-tipos} define la taxonomía de tipos empleada en la matriz y sus abreviaturas.
 
@@ -270,37 +270,17 @@ La matriz incorpora pruebas de autorización vigente, atomicidad, migración y p
 
 Los casos de mutación incluyen documentos, firmas, certificados, paquetes cifrados, ZIP y auditoría. Su rechazo demuestra el comportamiento sobre los artefactos y alteraciones ensayados; no equivale a probar todas las entradas posibles. De igual modo, 10\,000 nonces distintos en la prueba correspondiente son evidencia sobre esa muestra, no una garantía matemática de ausencia de colisiones futuras.
 
-\section{Trazabilidad de consultas documentales e interfaz}\label{sec:matriz-consultas}
+\section{Trazabilidad de identidad y cuentas}\label{sec:matriz-grupo-identidad}
 
-El contrato de listado y detalle por expediente se comprueba mediante archivos separados de los conteos históricos de la \cref{tab:matriz-resumen}. \rutarepo{crates/application/tests/document_query.rs} fija límites y normalización de parámetros. \rutarepo{crates/application/tests/case_document_queries.rs} comprueba el permiso \texttt{ReadDocument}, la denegación de Cliente y la propagación del actor, expediente y momento de auditoría.
+Esta sección relaciona la administración de miembros y la revocación durable de cuentas con las pruebas que las comprueban.
 
-\rutarepo{crates/infrastructure/tests/postgres_document_queries.rs} contiene los escenarios de paginación después de filtrar, búsqueda literal y estado sellado; comprueba que el detalle usa una proyección de metadatos sin decodificar material cifrado. También define accesos con pertenencia retirada, cambios de rol o cuenta inactiva, errores indistinguibles para asociaciones ajenas e inexistentes y fallo de auditoría antes de devolver resultados. Su ejecución requiere \rutarepo{DOCUMENT_TEST_DATABASE_URL} sobre una base desechable.
+\input{chapters/anexo-e-miembros}
 
-\rutarepo{crates/web/tests/document_queries.rs} comprueba el DTO, los parámetros admitidos y los errores HTTP. Los escenarios con respuestas simuladas en \rutarepo{web/tests/browser/} permiten aislar formularios, navegación por expediente y acciones documentales. El escenario real de \rutarepo{web/tests/live/document-workflow.spec.mjs}, ejecutado mediante \rutarepo{scripts/web-demo.sh}, aprobó el 14 de septiembre: autenticación con segundo factor, creación de expediente, carga, consulta, firma y sello, verificación, descarga de ZIP y recuperación del documento después de cerrar sesión y recargar. Se compararon los bytes del ZIP con el original y se comprobó que a 390 píxeles no hubiera desbordamiento horizontal. Este escenario utiliza API, PostgreSQL, Redis y OpenSSL reales y se contabiliza por separado de las 539 pruebas Rust. La inspección visual del sistema de diseño y la evaluación de usabilidad con usuarios constituyen comprobaciones adicionales y no se infieren de la cantidad de pruebas automáticas.
+\section{Trazabilidad de expedientes y participantes}\label{sec:matriz-grupo-expedientes}
 
-\section{Trazabilidad de versiones inmutables}\label{sec:matriz-versiones}
+Esta sección reúne la trazabilidad del directorio de participantes, de la administración penal y de las identidades representadas con perfiles tipificados.
 
-{\emergencystretch=3em Las pruebas de parámetros y orquestación residen en \rutarepo{crates/application/tests/document_versions.rs}, \rutarepo{crates/application/tests/case_document_versions.rs} y \rutarepo{crates/application/tests/case_document_version_actions.rs}. Comprueban límites de página y cursor, conflicto previo a la preparación, agotamiento del contador, reautenticación y conservación de la instantánea exacta durante las acciones explícitas y sus alias. \rutarepo{crates/application/tests/document_version_crypto.rs} exige una solicitud de DEK por contenido preparado y el AAD del UUID y versión elegidos.\par}
-
-{\emergencystretch=3em En infraestructura, \rutarepo{crates/infrastructure/tests/postgres_document_versions.rs} relaciona historial, filtros sobre la cabeza y anexados concurrentes con la conservación del sello anterior. \rutarepo{crates/infrastructure/tests/document_version_insert_concurrency.rs} enfrenta inserciones SQL y comprueba que el bloqueo de secuencia observa el commit o rollback del predecesor. \rutarepo{crates/infrastructure/tests/document_version_failures.rs} inyecta fallos de persistencia, auditoría y confirmación diferida. Los casos límite de contador y cambios de rol se encuentran en \rutarepo{crates/infrastructure/tests/document_version_edges.rs}.\par}
-
-{\emergencystretch=3em La preservación de filas al migrar y al repetir las migraciones se comprueba en \rutarepo{crates/infrastructure/tests/document_version_migration.rs}; la integridad estructural y de inventario al abrir, en \rutarepo{crates/infrastructure/tests/document_version_schema.rs}. \rutarepo{crates/infrastructure/tests/legacy_document_versions.rs} conserva un origen cuyo primer número disponible es 7, añade el 8 y reconcilia la evidencia original. \rutarepo{crates/infrastructure/tests/document_version_encryption.rs} utiliza AES-GCM real, compara DEK y vaults y rechaza sustituciones entre contextos.\par}
-
-{\emergencystretch=3em El contrato externo está cubierto por \rutarepo{crates/web/tests/document_versions.rs}. La demostración HTTP y de restauración añade \rutarepo{scripts/api-version-demo.sh}; la selección y carga desde Qadra se comprueban en \rutarepo{web/tests/browser/versions.spec.mjs}, con el recorrido real en \rutarepo{web/tests/live/document-workflow.spec.mjs}. Los resultados de esas ejecuciones se registran en \rutarepo{docs/verification-report.md}. Los archivos de prueba definen escenarios reproducibles, mientras los conteos y porcentajes corresponden exclusivamente a las ejecuciones identificadas en este anexo.\par}
-
-\section{Trazabilidad de clasificación documental}\label{sec:matriz-clasificacion}
-
-{\emergencystretch=3em El dominio fija normalización, límites, orden, codificación y contador en \rutarepo{crates/domain/tests/document_metadata.rs}. La aplicación comprueba filtros, cursores, digest mediante puerto y nombres de eventos en \rutarepo{crates/application/tests/document_metadata_query.rs}; lectura e historia, en \rutarepo{crates/application/tests/case_document_metadata.rs}. \rutarepo{crates/application/tests/classified_document_upload.rs} exige los dos permisos, reautenticación de la misma identidad y una sola operación transaccional de carga clasificada.\par}
-
-{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/postgres_document_metadata.rs} conserva estado sin clasificación, revisiones sucesoras y correo histórico. \rutarepo{crates/infrastructure/tests/document_metadata_queries.rs} combina ambas cabezas y filtros literales; \rutarepo{crates/infrastructure/tests/document_metadata_authorization.rs} cubre ámbito, pertenencia y Cliente denegado. Los fallos de fila, auditoría, commit y decodificación se definen en \rutarepo{crates/infrastructure/tests/document_metadata_failures.rs}; las competencias y revocación durante espera, en \rutarepo{crates/infrastructure/tests/document_metadata_concurrency.rs}.\par}
-
-{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/document_metadata_migration.rs} compara canon y SHA-256 entre Rust, PostgreSQL y OpenSSL, conserva las filas previas y repite la migración sin inventar revisiones. \rutarepo{crates/infrastructure/tests/document_metadata_schema.rs} comprueba codificación UTF-8, restricciones, triggers, privilegios y continuidad del inventario. El contrato HTTP y sus entradas estrictas se encuentran en \rutarepo{crates/web/tests/document_metadata.rs}; los límites y fallos de transporte de la carga multipart, en \rutarepo{crates/web/tests/document_metadata_upload.rs}.\par}
-
-{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/document_metadata_restore.rs} reproduce el respaldo y restauración con \texttt{pg\_dump} y \texttt{pg\_restore}, las funciones bajo \texttt{search\_path} vacío y la conservación de restricciones y acceso operativo. \rutarepo{crates/infrastructure/tests/legacy_document_metadata.rs} mantiene la reconciliación del origen tras clasificar. La interfaz cuenta con \rutarepo{web/tests/metadata.test.mjs} y los escenarios de edición, filtros, carga y estado bajo \rutarepo{web/tests/browser/}; el recorrido real reside en \rutarepo{web/tests/live/document-classification.spec.mjs}.\par}
-
-Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-audited-document-classification.md}. La clasificación no forma parte de los bytes cifrados ni del paquete de evidencia de una versión. Las ejecuciones globales y de navegador se registran por separado de la definición de escenarios y conservan la identificación histórica de cada medición.
-
-\section{Trazabilidad del directorio de participantes}\label{sec:matriz-participantes}
+\subsection{Trazabilidad del directorio de participantes}\label{sec:matriz-participantes}
 
 {\raggedright Los valores, la revisión positiva, los permisos y el canon se definen en \rutarepo{crates/domain/src/participants/} y se ejercitan en \rutarepo{crates/domain/tests/participants.rs}. La orquestación y los cursores se verifican en \rutarepo{crates/application/tests/participant_workflow.rs} y \rutarepo{crates/application/tests/participant_query.rs}. El estado organizativo tiene su puerto propio; los dobles de prueba exigen una llamada transaccional sin lectura exterior seguida de reemplazo.\par}
 
@@ -308,11 +288,11 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 {\raggedright La migración y protección del esquema se contrastan en \rutarepo{crates/infrastructure/tests/participant_migration.rs}, \rutarepo{crates/infrastructure/tests/participant_schema.rs} y \rutarepo{crates/infrastructure/tests/participant_sql_invariants.rs}. Los ensayos verifican canon Rust/SQL/OpenSSL, primer estado activo, máximo del contador y privilegios de ejecución. \rutarepo{crates/infrastructure/tests/participant_restore.rs} reproduce funciones con \texttt{search\_path} vacío, respaldo y restauración completos y reapertura restringida. \rutarepo{crates/infrastructure/tests/legacy_participants.rs} comprueba que la primera importación exige el directorio vacío y que la reconciliación conserva participantes añadidos posteriormente.\par}
 
-{\raggedright El contrato HTTP se ejercita en \rutarepo{crates/web/tests/participant_api.rs} y \rutarepo{crates/web/tests/participant_validation.rs}. Las pruebas del cliente y los escenarios de estado, filtros y conflictos residen en \rutarepo{web/tests/participants.test.mjs} y los archivos \texttt{participant-*} de \rutarepo{web/tests/browser/}. El recorrido contra servicios reales está en \rutarepo{web/tests/live/case-participants.spec.mjs}. La demostración integrada se extiende mediante \rutarepo{scripts/api-participant-demo.sh}; el respaldo compara raíces, revisiones, procedencia y auditoría junto con la evidencia documental.\par}
+{\raggedright El contrato HTTP se ejercita en \rutarepo{crates/web/tests/participant_api.rs} y \rutarepo{crates/web/tests/participant_validation.rs}. Las pruebas del cliente y los escenarios de estado, filtros y conflictos residen en \rutarepo{web/apps/qadra/tests/participants.test.mjs} y los archivos \texttt{participant-*} de \rutarepo{web/apps/qadra/tests/browser/}. El recorrido contra servicios reales está en \rutarepo{web/apps/qadra/tests/live/case-participants.spec.mjs}. La demostración integrada se extiende mediante \rutarepo{scripts/api-participant-demo.sh}; el respaldo compara raíces, revisiones, procedencia y auditoría junto con la evidencia documental.\par}
 
 {\raggedright La especificación y sus límites corresponden a \rutarepo{docs/adr/0021-audited-case-participants.md}. El nombre y el rol son valores manuales; las pruebas automáticas no comprueban identidad jurídica, FIREL, duplicidad de persona verificada ni la condición procesal del expediente. La aceptación del caso de uso permanece parcial.\par}
 
-\section{Trazabilidad de la administración penal}\label{sec:matriz-administracion}
+\subsection{Trazabilidad de la administración penal}\label{sec:matriz-administracion}
 
 {\raggedright \rutarepo{crates/domain/tests/case_administration.rs} comprueba valores, controles antes del recorte, información multilineal, delitos ordenados y revisiones tipadas. \rutarepo{crates/domain/tests/case_administration_canonical.rs} fija los bytes de los tres vectores CADM1. \rutarepo{crates/application/tests/case_administration_query.rs} y \rutarepo{crates/application/tests/case_administration_workflow.rs} comprueban límites, cursores, permisos, proyecciones y propagación de actor y reloj; \rutarepo{crates/application/tests/case_workflow.rs} conserva la compatibilidad básica.\par}
 
@@ -326,17 +306,59 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 {\raggedright \rutarepo{scripts/api-case-administration-demo.sh}, integrado por \rutarepo{scripts/api-migration-demo.sh}, comprueba permisos, altas, revisión esperada, cierre, lectura autorizada, identificadores, etapa inicial, reconciliación y restore. La preparación del destino legacy usa baselines administrativas explícitas con hechos originales; no borra revisiones ni eventos de origen. El respaldo posterior conserva todas las tablas e historias y los ZIP anteriores.\par}
 
-{\raggedright \rutarepo{web/tests/case-administration.test.mjs} y \rutarepo{web/tests/browser/case-administration-races.spec.mjs}, \rutarepo{web/tests/browser/case-administration-uncertain.spec.mjs} y \rutarepo{web/tests/browser/case-administration-state.spec.mjs} comprueban normalización, filtros, permisos, conflictos explícitos, respuesta incierta y resultados tardíos. \rutarepo{web/tests/live/case-administration.spec.mjs}, ejecutado por \rutarepo{scripts/web-demo.sh}, recorre alta completa, perfiles pendientes, edición concurrente, cierre, evidencia, reapertura, reingreso y revocación con servicios reales. Sus resultados se cuentan por separado de Rust en la \cref{sec:pruebas-administracion}; no acreditan transiciones procesales, identidad jurídica ni usabilidad.\par}
-
-\input{chapters/anexo-e-contenido-documental}
-
-\input{chapters/anexo-e-etapas}
+{\raggedright \rutarepo{web/apps/qadra/tests/case-administration.test.mjs} y \rutarepo{web/apps/qadra/tests/browser/case-administration-races.spec.mjs}, \rutarepo{web/apps/qadra/tests/browser/case-administration-uncertain.spec.mjs} y \rutarepo{web/apps/qadra/tests/browser/case-administration-state.spec.mjs} comprueban normalización, filtros, permisos, conflictos explícitos, respuesta incierta y resultados tardíos. \rutarepo{web/apps/qadra/tests/live/case-administration.spec.mjs}, ejecutado por \rutarepo{scripts/web-demo.sh}, recorre alta completa, perfiles pendientes, edición concurrente, cierre, evidencia, reapertura, reingreso y revocación con servicios reales. Sus resultados se cuentan por separado de Rust en la \cref{sec:pruebas-administracion}; no acreditan transiciones procesales, identidad jurídica ni usabilidad.\par}
 
 \input{chapters/anexo-e-participantes-tipificados}
 
+\section{Trazabilidad del repositorio documental}\label{sec:matriz-grupo-documentos}
+
+Esta sección reúne la trazabilidad de las consultas documentales, las versiones inmutables, la clasificación, la entrega del contenido original con sus incidentes y la firma documental individual.
+
+\subsection{Trazabilidad de consultas documentales e interfaz}\label{sec:matriz-consultas}
+
+El contrato de listado y detalle por expediente se comprueba mediante archivos separados de los conteos históricos de la \cref{tab:matriz-resumen}. \rutarepo{crates/application/tests/document_query.rs} fija límites y normalización de parámetros. \rutarepo{crates/application/tests/case_document_queries.rs} comprueba el permiso \texttt{ReadDocument}, la denegación de Cliente y la propagación del actor, expediente y momento de auditoría.
+
+\rutarepo{crates/infrastructure/tests/postgres_document_queries.rs} contiene los escenarios de paginación después de filtrar, búsqueda literal y estado sellado; comprueba que el detalle usa una proyección de metadatos sin decodificar material cifrado. También define accesos con pertenencia retirada, cambios de rol o cuenta inactiva, errores indistinguibles para asociaciones ajenas e inexistentes y fallo de auditoría antes de devolver resultados. Su ejecución requiere \rutarepo{DOCUMENT_TEST_DATABASE_URL} sobre una base desechable.
+
+\rutarepo{crates/web/tests/document_queries.rs} comprueba el DTO, los parámetros admitidos y los errores HTTP. Los escenarios con respuestas simuladas en \rutarepo{web/apps/qadra/tests/browser/} permiten aislar formularios, navegación por expediente y acciones documentales. El escenario real de \rutarepo{web/apps/qadra/tests/live/document-workflow.spec.mjs}, ejecutado mediante \rutarepo{scripts/web-demo.sh}, aprobó el 14 de septiembre: autenticación con segundo factor, creación de expediente, carga, consulta, firma y sello, verificación, descarga de ZIP y recuperación del documento después de cerrar sesión y recargar. Se compararon los bytes del ZIP con el original y se comprobó que a 390 píxeles no hubiera desbordamiento horizontal. Este escenario utiliza API, PostgreSQL, Redis y OpenSSL reales y se contabiliza por separado de las 539 pruebas Rust. La inspección visual del sistema de diseño y la evaluación de usabilidad con usuarios constituyen comprobaciones adicionales y no se infieren de la cantidad de pruebas automáticas.
+
+\subsection{Trazabilidad de versiones inmutables}\label{sec:matriz-versiones}
+
+{\emergencystretch=3em Las pruebas de parámetros y orquestación residen en \rutarepo{crates/application/tests/document_versions.rs}, \rutarepo{crates/application/tests/case_document_versions.rs} y \rutarepo{crates/application/tests/case_document_version_actions.rs}. Comprueban límites de página y cursor, conflicto previo a la preparación, agotamiento del contador, reautenticación y conservación de la instantánea exacta durante las acciones explícitas y sus alias. \rutarepo{crates/application/tests/document_version_crypto.rs} exige una solicitud de DEK por contenido preparado y el AAD del UUID y versión elegidos.\par}
+
+{\emergencystretch=3em En infraestructura, \rutarepo{crates/infrastructure/tests/postgres_document_versions.rs} relaciona historial, filtros sobre la cabeza y anexados concurrentes con la conservación del sello anterior. \rutarepo{crates/infrastructure/tests/document_version_insert_concurrency.rs} enfrenta inserciones SQL y comprueba que el bloqueo de secuencia observa el commit o rollback del predecesor. \rutarepo{crates/infrastructure/tests/document_version_failures.rs} inyecta fallos de persistencia, auditoría y confirmación diferida. Los casos límite de contador y cambios de rol se encuentran en \rutarepo{crates/infrastructure/tests/document_version_edges.rs}.\par}
+
+{\emergencystretch=3em La preservación de filas al migrar y al repetir las migraciones se comprueba en \rutarepo{crates/infrastructure/tests/document_version_migration.rs}; la integridad estructural y de inventario al abrir, en \rutarepo{crates/infrastructure/tests/document_version_schema.rs}. \rutarepo{crates/infrastructure/tests/legacy_document_versions.rs} conserva un origen cuyo primer número disponible es 7, añade el 8 y reconcilia la evidencia original. \rutarepo{crates/infrastructure/tests/document_version_encryption.rs} utiliza AES-GCM real, compara DEK y vaults y rechaza sustituciones entre contextos.\par}
+
+{\emergencystretch=3em El contrato externo está cubierto por \rutarepo{crates/web/tests/document_versions.rs}. La demostración HTTP y de restauración añade \rutarepo{scripts/api-version-demo.sh}; la selección y carga desde Qadra se comprueban en \rutarepo{web/apps/qadra/tests/browser/versions.spec.mjs}, con el recorrido real en \rutarepo{web/apps/qadra/tests/live/document-workflow.spec.mjs}. Los resultados de esas ejecuciones se registran en \rutarepo{docs/verification-report.md} y se resumen en la \cref{sec:matriz-evidencia}. Los archivos de prueba definen escenarios reproducibles, mientras los conteos y porcentajes corresponden exclusivamente a las ejecuciones identificadas en este anexo.\par}
+
+\subsection{Trazabilidad de clasificación documental}\label{sec:matriz-clasificacion}
+
+{\emergencystretch=3em El dominio fija normalización, límites, orden, codificación y contador en \rutarepo{crates/domain/tests/document_metadata.rs}. La aplicación comprueba filtros, cursores, digest mediante puerto y nombres de eventos en \rutarepo{crates/application/tests/document_metadata_query.rs}; lectura e historia, en \rutarepo{crates/application/tests/case_document_metadata.rs}. \rutarepo{crates/application/tests/classified_document_upload.rs} exige los dos permisos, reautenticación de la misma identidad y una sola operación transaccional de carga clasificada.\par}
+
+{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/postgres_document_metadata.rs} conserva estado sin clasificación, revisiones sucesoras y correo histórico. \rutarepo{crates/infrastructure/tests/document_metadata_queries.rs} combina ambas cabezas y filtros literales; \rutarepo{crates/infrastructure/tests/document_metadata_authorization.rs} cubre ámbito, pertenencia y Cliente denegado. Los fallos de fila, auditoría, commit y decodificación se definen en \rutarepo{crates/infrastructure/tests/document_metadata_failures.rs}; las competencias y revocación durante espera, en \rutarepo{crates/infrastructure/tests/document_metadata_concurrency.rs}.\par}
+
+{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/document_metadata_migration.rs} compara canon y SHA-256 entre Rust, PostgreSQL y OpenSSL, conserva las filas previas y repite la migración sin inventar revisiones. \rutarepo{crates/infrastructure/tests/document_metadata_schema.rs} comprueba codificación UTF-8, restricciones, triggers, privilegios y continuidad del inventario. El contrato HTTP y sus entradas estrictas se encuentran en \rutarepo{crates/web/tests/document_metadata.rs}; los límites y fallos de transporte de la carga multipart, en \rutarepo{crates/web/tests/document_metadata_upload.rs}.\par}
+
+{\emergencystretch=3em \rutarepo{crates/infrastructure/tests/document_metadata_restore.rs} reproduce el respaldo y restauración con \texttt{pg\_dump} y \texttt{pg\_restore}, las funciones bajo \texttt{search\_path} vacío y la conservación de restricciones y acceso operativo. \rutarepo{crates/infrastructure/tests/legacy_document_metadata.rs} mantiene la reconciliación del origen tras clasificar. La interfaz cuenta con \rutarepo{web/apps/qadra/tests/metadata.test.mjs} y los escenarios de edición, filtros, carga y estado bajo \rutarepo{web/apps/qadra/tests/browser/}; el recorrido real reside en \rutarepo{web/apps/qadra/tests/live/document-classification.spec.mjs}.\par}
+
+Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-audited-document-classification.md}. La clasificación no forma parte de los bytes cifrados ni del paquete de evidencia de una versión. Las ejecuciones globales y de navegador se registran por separado de la definición de escenarios y conservan la identificación histórica de cada medición.
+
+\input{chapters/anexo-e-contenido-documental}
+
+\input{chapters/anexo-e-firma-individual}
+
+\section{Trazabilidad de etapas y audiencias}\label{sec:matriz-grupo-actuaciones}
+
+Esta sección relaciona con sus pruebas las etapas procesales y la admisión de sus soportes, así como la programación de audiencias junto con las convocatorias y medidas cautelares declaradas.
+
+\input{chapters/anexo-e-etapas}
+
 \input{chapters/anexo-e-audiencias}
 
-\input{chapters/anexo-e-resultados-plazos-derivados}
+\section{Trazabilidad del cómputo de plazos}\label{sec:matriz-grupo-plazos}
+
+Esta sección sigue las capas del cálculo de plazos: fuentes temporales, perfiles con su registro de cambios, plazos persistentes con la agenda combinada y el registro conjunto de un resultado con su plazo.
 
 \input{chapters/anexo-e-desencadenantes}
 
@@ -344,15 +366,25 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 \input{chapters/anexo-e-plazos-persistentes}
 
-\input{chapters/anexo-e-alertas}
+\input{chapters/anexo-e-resultados-plazos-derivados}
+
+\section{Trazabilidad de recursos procesales}\label{sec:matriz-grupo-recursos}
+
+Esta sección reúne la trazabilidad de los recursos declarados, sus asociaciones con actividades existentes y la creación contextual de plazos.
 
 \input{chapters/anexo-e-recursos-procesales}
 
 \input{chapters/anexo-e-asociaciones-recursos}
 
-\input{chapters/anexo-e-miembros}
+\subsection{Trazabilidad de la creación contextual de plazos}\label{anexo:plazo-contextual}
 
-\input{chapters/anexo-e-firma-individual}
+Las \cref{sec:impl-plazo-contextual,sec:pruebas-plazo-contextual} delimitan la creación conjunta y su verificación. El contrato \rutarepo{docs/resource-deadlines-api.md} y la decisión \rutarepo{docs/adr/0057-atomic-resource-deadline-creation.md} fijan las capturas, el recibo compuesto y las condiciones de repetición. \rutarepo{scripts/api-contextual-deadline-demo.py} incorpora la aceptación HTTP y la comparación tras restaurar; \rutarepo{web/apps/qadra/tests/live/resource-activities-contextual-real.spec.mjs} describe el recorrido con servicios reales. La existencia de estos guiones no acredita su ejecución: los resultados se registran por campaña en el informe de verificación. El alcance conserva una fuente temporal explícita y no completa la activación jurídica automática ni el catálogo de audiencias de recursos.
+
+\input{chapters/anexo-e-alertas}
+
+\section{Trazabilidad de la supervisión operativa}\label{sec:matriz-grupo-supervision}
+
+Esta sección relaciona el tablero operativo, los informes de expedientes y la consulta de actividad con sus pruebas.
 
 \input{chapters/anexo-e-tablero}
 
@@ -362,11 +394,13 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 \section{Evidencia de ejecución}\label{sec:matriz-evidencia}
 
+Las secciones de trazabilidad definen escenarios; esta sección reúne resultados de ejecuciones identificadas. Comienza con los recorridos de navegador de versiones, clasificación y directorio (\cref{sec:matriz-versiones,sec:matriz-clasificacion,sec:matriz-participantes}) y continúa con los resultados Rust, la cobertura por crate, la calibración, las demostraciones y la integración continua.
+
 Para versiones, el navegador aprobó 28 pruebas unitarias, 32 con respuestas HTTP simuladas y un escenario contra servicios reales. Este último confirmó selección histórica, bytes distintos en la versión 2, ZIP de la versión 1 idéntico al inicial y persistencia de ambas después de autenticar de nuevo, sin errores JavaScript. El escenario se ejecutó con \rutarepo{scripts/web-demo.sh}; su conteo no se suma al de pruebas Rust.
 
-La entrega posterior de clasificación aprobó 34 pruebas unitarias de interfaz, 47 escenarios con respuestas simuladas y dos recorridos reales. El nuevo escenario prueba carga atómica, cambios concurrentes con borrador conservado, comparación explícita, limpieza como revisión cinco, historia del autor y recuperación tras reingreso. Reclasificar y vaciar campos conservan los ZIP de las dos versiones; la comprobación de versiones previa sigue vigente. La interfaz reutiliza componentes y estilos Qadra sin atribuir a estas ejecuciones una evaluación de usabilidad con personal del despacho.
+La clasificación aprobó 34 pruebas unitarias de interfaz, 47 escenarios con respuestas simuladas y dos recorridos reales. Su escenario real propio prueba carga atómica, cambios concurrentes con borrador conservado, comparación explícita, limpieza como revisión cinco, historia del autor y recuperación tras reingreso. Reclasificar y vaciar campos conservan los ZIP de las dos versiones; la comprobación de versiones del párrafo anterior sigue vigente. La interfaz reutiliza componentes y estilos Qadra sin atribuir a estas ejecuciones una evaluación de usabilidad con personal del despacho.
 
-{\looseness=-1 El directorio registra 38 pruebas unitarias, 65 escenarios simulados y tres recorridos reales, con formato y compilación aprobados. El recorrido nuevo confirma edición y archivo concurrentes, revisión explícita del conflicto, reactivación, reingreso, lectura histórica por Paralegal y denegación de Cliente. La revocación retira valores visibles; el ZIP documental anterior se conserva. El ensayo alcanza ocho revisiones de una ficha y se distingue del inventario de dos fichas y seis revisiones de la demostración API. Los tiempos observados de 24.6 segundos para escenarios simulados y 39.4 para recorridos reales describen la ejecución de pruebas, no latencia del producto ni una medición de carga.\par}
+{\looseness=-1 El directorio registra 38 pruebas unitarias, 65 escenarios simulados y tres recorridos reales, con formato y compilación aprobados. El recorrido propio del directorio confirma edición y archivo concurrentes, revisión explícita del conflicto, reactivación, reingreso, lectura histórica por Paralegal y denegación de Cliente. La revocación retira valores visibles; el ZIP documental anterior se conserva. El ensayo alcanza ocho revisiones de una ficha y se distingue del inventario de dos fichas y seis revisiones de la demostración API. Los tiempos observados de 24.6 segundos para escenarios simulados y 39.4 para recorridos reales describen la ejecución de pruebas, no latencia del producto ni una medición de carga.\par}
 
 \subsection{Resumen de la corrida}\label{sec:matriz-corrida}
 
@@ -376,11 +410,13 @@ El ensayo del 14 de septiembre, que incorpora listado, detalle y filtros documen
 
 El ensayo posterior de versiones inmutables del 14 de septiembre aprobó \textbf{577 pruebas, 0 fallos y 1 ignorada externa}, con persistencia real aislada. Formato, compilación y Clippy aprobaron. La demostración HTTP añadió contenido con control de cabeza esperada, rechazó alias ambiguos y preservó el ZIP de la primera versión; el respaldo y restauración conservaron ambas versiones y exportaciones. Este resultado amplía el alcance técnico sin sustituir las cifras históricas de consultas ni el inventario del 12 de septiembre.
 
-La entrega de clasificación del mismo día registra \textbf{644 pruebas Rust aprobadas, 0 fallos y 1 ignorada externa}. La demostración API conserva el prefijo importado de 51 eventos y respalda cinco raíces, seis versiones documentales y tres revisiones organizativas; restaurar mantiene filas, UUID y correo histórico, e igualdad de los ZIP de las versiones 1 y 2. Las cifras de 539 y 577 pruebas se conservan como resultados históricos de consultas y versiones, respectivamente.
+El corte de clasificación del mismo día registra \textbf{644 pruebas Rust aprobadas, 0 fallos y 1 ignorada externa}. La demostración API conserva el prefijo importado de 51 eventos y respalda cinco raíces, seis versiones documentales y tres revisiones organizativas; restaurar mantiene filas, UUID y correo histórico, e igualdad de los ZIP de las versiones 1 y 2. Las cifras de 539 y 577 pruebas se conservan como resultados históricos de consultas y versiones, respectivamente.
 
 El corte del directorio del 14 de septiembre registra \textbf{704 pruebas Rust aprobadas, 0 fallos y 1 ignorada externa}. La demostración API conserva dos participantes con seis revisiones, cinco raíces documentales, seis versiones y tres revisiones de clasificación después de restaurar. Los autores, fechas y valores históricos coinciden, al igual que los ZIP de evidencia. El prefijo importado sigue identificado como 51 eventos de cuatro documentos; no representa la cantidad final de eventos.
 
-\rutarepo{scripts/test-backends.sh} prepara PostgreSQL y Redis desechables y bases independientes. Configura \rutarepo{IDENTITY_TEST_DATABASE_URL}, \rutarepo{CASE_TEST_DATABASE_URL}, \rutarepo{DOCUMENT_TEST_DATABASE_URL} e \rutarepo{IDENTITY_TEST_REDIS_URL}; la base de identidad queda reservada para probar el alta inicial sobre usuarios vacíos. Si faltan estas variables, algunas pruebas retornan sin ejercitar el adaptador: esa salida no cuenta como evidencia de integración real. Los comandos reproducibles desde la raíz son:
+El corte de administración penal del 14 de septiembre aprobó \textbf{770 pruebas Rust, cero fallos y una externa ignorada}, con 66 pruebas adicionales respecto del directorio. La demostración API restauró cinco expedientes, once revisiones administrativas y dos registros iniciales, conservando las seis versiones documentales, tres revisiones de clasificación y seis revisiones de participantes. El prefijo importado de cuatro documentos tiene 63 eventos. Son mediciones de este corte; los conteos anteriores se conservan como historia. La \cref{sec:pruebas-administracion} describe el alcance y sus límites.
+
+{\emergencystretch=3em Todos estos cortes usan el entorno aislado de la \cref{sec:pruebas-backends}. \rutarepo{scripts/test-backends.sh} prepara PostgreSQL y Redis desechables y bases independientes. Configura \rutarepo{IDENTITY_TEST_DATABASE_URL}, \rutarepo{CASE_TEST_DATABASE_URL}, \rutarepo{DOCUMENT_TEST_DATABASE_URL} e \rutarepo{IDENTITY_TEST_REDIS_URL}; la base de identidad queda reservada para probar el alta inicial sobre usuarios vacíos. Si faltan estas variables, algunas pruebas retornan sin ejercitar el adaptador: esa salida no cuenta como evidencia de integración real. Los comandos reproducibles desde la raíz son:\par}
 
 \begin{lstlisting}[numbers=none]
 bash scripts/test-backends.sh
@@ -392,40 +428,175 @@ bash scripts/demo.sh
 bash scripts/api-demo.sh
 \end{lstlisting}
 
-El corte de administración penal aprobó \textbf{770 pruebas Rust, cero fallos y una externa ignorada}, con 66 pruebas adicionales respecto del directorio. La demostración API restauró cinco expedientes, once revisiones administrativas y dos registros iniciales, conservando las seis versiones documentales, tres revisiones de clasificación y seis revisiones de participantes. El prefijo importado de cuatro documentos tiene 63 eventos. Son mediciones de este corte; los conteos anteriores se conservan como historia. La \cref{sec:pruebas-administracion} describe el alcance y sus límites.
-
 \subsection{Cobertura de líneas por crate}\label{sec:matriz-cobertura}
 
-La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral de integración continua mediante el script versionado \texttt{scripts/coverage-gate.sh}: los tres crates que concentran la lógica criptográfica (\texttt{domain}, \texttt{application}, \texttt{infrastructure}) deben mantener una cobertura igual o mayor al 90\,\%, en cumplimiento de RNF-13 (y con margen sobre el umbral del 80\,\% que fija el criterio de éxito de OE-6). Los crates \texttt{bin} y \texttt{web} se reportan sin umbral por tratarse de fronteras de entrada y composición, cuyo valor se complementa con pruebas de contrato y demostraciones E2E. La \cref{tab:matriz-cobertura} presenta la medición del 12 de septiembre: 8\,026 de 8\,845 líneas, equivalentes a 90.7\,\% global. Los tres umbrales obligatorios aprobaron.
+La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umbral de integración continua mediante el script versionado \texttt{scripts/coverage-gate.sh}: los tres crates que concentran la lógica criptográfica (\texttt{domain}, \texttt{application}, \texttt{infrastructure}) deben mantener una cobertura igual o mayor al 90\,\%, en cumplimiento de RNF-13 (y con margen sobre el umbral del 80\,\% que fija el criterio de éxito de OE-6). Los crates \texttt{bin} y \texttt{web} se reportan sin umbral por tratarse de fronteras de entrada y composición, cuyo valor se complementa con pruebas de contrato y demostraciones E2E. Esta subsección conserva los desgloses por crate de los cortes del 12 al 15 de septiembre de 2026; la evolución global de los cortes del 12 al 16 de septiembre y el desglose del 16 de septiembre se presentan en las \cref{tab:pruebas-cobertura-evolucion,tab:pruebas-cobertura-audiencias}. La \cref{tab:pruebas-cobertura} presenta la medición del 12 de septiembre: 8\,026 de 8\,845 líneas, equivalentes a 90.7\,\% global. Los tres umbrales obligatorios aprobaron.
 
 \begin{table}[H]
   \centering
-  \caption{Cobertura de líneas por crate medida con \texttt{cargo-llvm-cov} y umbral aplicado en integración continua.}
-  \label{tab:matriz-cobertura}
-  \begin{tabularx}{\linewidth}{@{}l R{2.6cm} R{2.2cm} R{2.4cm} X@{}}
+  \caption[Cobertura por crate del 12 de septiembre de 2026]{Cobertura de líneas por crate medida con \texttt{cargo-llvm-cov} el 12 de septiembre de 2026 y umbral aplicado en integración continua.}
+  \label{tab:pruebas-cobertura}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
     \toprule
-    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas totales} & \textbf{Cobertura} & \textbf{Umbral} \\
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
-    \texttt{domain} & 1\,045 & 1\,079 & 96.8\,\% & $\geq$ 90\,\% \\
-    \texttt{application} & 2\,073 & 2\,212 & 93.7\,\% & $\geq$ 90\,\% \\
-    \texttt{infrastructure} & 3\,496 & 3\,785 & 92.4\,\% & $\geq$ 90\,\% \\
-    \texttt{bin} & 834 & 1\,086 & 76.8\,\% & sin umbral (informativo) \\
-    \texttt{web} & 578 & 683 & 84.6\,\% & sin umbral (informativo) \\
+    \texttt{domain}         & 1\,045 & 1\,079 & 96.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,073 & 2\,212 & 93.7\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 3\,496 & 3\,785 & 92.4\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 578 & 683 & 84.6\,\% & informativo \\
     \midrule
-    Total del workspace & 8\,026 & 8\,845 & 90.7\,\% & --- \\
+    \textbf{Workspace}      & \textbf{8\,026} & \textbf{8\,845} & \textbf{90.7\,\%} & --- \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
 La medición del 14 de septiembre de 2026 registró 8\,256 líneas cubiertas de 9\,071, equivalentes a 91.0\,\% global. Los resultados por crate fueron 96.8\,\% en \texttt{domain}, 93.9\,\% en \texttt{application}, 92.5\,\% en \texttt{infrastructure}, 76.8\,\% en \texttt{bin} y 86.4\,\% en \texttt{web}; aprobaron los tres umbrales obligatorios. Los numeradores y denominadores se presentan en la \cref{tab:pruebas-cobertura-consultas}. Esta ejecución incluyó las 539 pruebas Rust aprobadas, con una ignorada externa y servicios de persistencia aislados.
 
+\begin{table}[H]
+  \centering
+  \caption[Cobertura de consultas documentales]{Cobertura de líneas reproducida el 14 de septiembre de 2026 con consultas documentales.}
+  \label{tab:pruebas-cobertura-consultas}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,045 & 1\,079 & 96.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,138 & 2\,277 & 93.9\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 3\,602 & 3\,892 & 92.5\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 637 & 737 & 86.4\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{8\,256} & \textbf{9\,071} & \textbf{91.0\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 La ejecución instrumentada de versiones inmutables del mismo día aprobó 577 pruebas, con una externa ignorada, y cubrió 8\,908 de 9\,719 líneas: 91.7\,\% global. El detalle por crate y los tres umbrales aprobados aparecen en la \cref{tab:pruebas-cobertura-versiones}. Estas cifras describen el nuevo alcance; no reemplazan las 539 pruebas y 91.0\,\% del ensayo de consultas.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del 14 de septiembre de 2026 con versiones documentales inmutables.}
+  \label{tab:pruebas-cobertura-versiones}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,045 & 1\,079 & 96.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,319 & 2\,452 & 94.6\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 3\,889 & 4\,175 & 93.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 821 & 927 & 88.6\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{8\,908} & \textbf{9\,719} & \textbf{91.7\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 La clasificación registra 9\,854 de 10\,670 líneas cubiertas, equivalentes a 92.4\,\% global. El desglose se presenta en la \cref{tab:pruebas-cobertura-clasificacion}, con los tres umbrales obligatorios aprobados. El resultado pertenece a la ejecución instrumentada de 644 pruebas y no sustituye los denominadores históricos.
 
+\begin{table}[H]
+  \centering
+  \caption[Cobertura de clasificación documental]{Cobertura de líneas del 14 de septiembre de 2026 con clasificación documental auditada.}
+  \label{tab:pruebas-cobertura-clasificacion}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,146 & 1\,180 & 97.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,426 & 2\,559 & 94.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 4\,358 & 4\,646 & 93.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
+    \texttt{web}            & 1\,090 & 1\,199 & 90.9\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{9\,854} & \textbf{10\,670} & \textbf{92.4\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 La cobertura del directorio registra 10\,994 de 11\,838 líneas, equivalentes a 92.9\,\% global, sobre 704 pruebas aprobadas y una externa ignorada. Los tres umbrales obligatorios aprobaron; la \cref{tab:pruebas-cobertura-participantes} presenta numeradores y denominadores por crate. Esta medición conserva separados los resultados anteriores.
 
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del 14 de septiembre de 2026 con directorio de participantes.}
+  \label{tab:pruebas-cobertura-participantes}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,279 & 1\,313 & 97.4\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,632 & 2\,765 & 95.2\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 4\,888 & 5\,193 & 94.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,093 & 76.3\,\% & informativo \\
+    \texttt{web}            & 1\,361 & 1\,474 & 92.3\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{10\,994} & \textbf{11\,838} & \textbf{92.9\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 La administración penal cubre 12\,613 de 13\,506 líneas, equivalentes a 93.4\,\% global, con 770 pruebas aprobadas y una externa ignorada. Los tres umbrales del 90\,\% aprobaron. La \cref{tab:pruebas-cobertura-administracion} detalla los resultados por crate, separados de todas las mediciones históricas.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura del 14 de septiembre de 2026 con administración penal auditada.}
+  \label{tab:pruebas-cobertura-administracion}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,497 & 1\,531 & 97.8\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 2\,817 & 2\,950 & 95.5\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 5\,739 & 6\,066 & 94.6\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 834 & 1\,096 & 76.1\,\% & informativo \\
+    \texttt{web}            & 1\,726 & 1\,863 & 92.6\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{12\,613} & \textbf{13\,506} & \textbf{93.4\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El corte de etapas del 15 de septiembre de 2026 aprobó 933 pruebas, con una externa ignorada, también bajo instrumentación. Cubrió 15\,817 de 17\,064 líneas, equivalentes a 92.7\,\% global, con los tres umbrales obligatorios aprobados y sin excluir parsers ni infraestructura. La \cref{tab:pruebas-cobertura-etapas} presenta el desglose por crate; la \cref{sec:pruebas-etapas} describe el alcance del corte.
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas del registro procesal y admisión documental, 15 de septiembre de 2026.}
+  \label{tab:pruebas-cobertura-etapas}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 1\,859 & 1\,893 & 98.2\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 3\,294 & 3\,430 & 96.0\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 7\,699 & 8\,354 & 92.2\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 836 & 1\,116 & 74.9\,\% & informativo \\
+    \texttt{web}            & 2\,129 & 2\,271 & 93.7\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{15\,817} & \textbf{17\,064} & \textbf{92.7\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La primera campaña instrumentada de identidades y participantes tipificados, del mismo día, aprobó 1066 pruebas con una externa ignorada y cubrió 21\,968 de 23\,773 líneas, equivalentes a 92.4\,\% global, con los tres umbrales obligatorios aprobados. La \cref{tab:pruebas-cobertura-identidades} conserva esa primera medición. Su repetición de cierre cubrió 21\,967 líneas del mismo denominador: \texttt{infrastructure} registró 11\,211 de 12\,150 y los demás conteos por crate permanecieron iguales (\cref{sec:pruebas-participantes-tipificados}).
+
+\begin{table}[H]
+  \centering
+  \caption{Cobertura de líneas de identidades y perfiles, 15 de septiembre de 2026.}
+  \label{tab:pruebas-cobertura-identidades}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 2\,441 & 2\,513 & 97.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 4\,129 & 4\,342 & 95.1\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 11\,212 & 12\,150 & 92.3\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 911 & 1\,200 & 75.9\,\% & informativo \\
+    \texttt{web}            & 3\,275 & 3\,568 & 91.8\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{21\,968} & \textbf{23\,773} & \textbf{92.4\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 \subsection{Calibración de Argon2id en el hardware de referencia}\label{sec:matriz-argon}
 
@@ -435,27 +606,29 @@ El comando \texttt{auth calibrate} mide el costo real de un hash nuevo con la co
 
 \texttt{scripts/demo.sh} recorre la CLI; su transcripción versionada en \texttt{docs/demo-transcript.md} conserva las salidas históricas explicadas en el Anexo~\ref{anexo:verificacion}. El guion volvió a terminar sin errores el 12 de septiembre. \texttt{scripts/api-demo.sh} prepara PKI, TSA, PostgreSQL y Redis temporales; comprueba cuatro roles, dos expedientes, acceso por asignación, denegación documental de Cliente y revocación usando la misma sesión. Los UUID ajenos e inexistentes tienen respuestas equivalentes y las rutas globales retiradas no ofrecen un camino alterno.
 
-El mismo guion invoca \rutarepo{scripts/api-concurrency-demo.sh}: dos procesos del servidor compiten por sellar la misma versión, obtienen \texttt{200} y \texttt{409}, conservan un único evento de sellado y entregan ZIP idénticos. Después, \rutarepo{scripts/api-migration-demo.sh} importa cuatro documentos, tres sellados, preserva exactamente 46 entradas históricas, repite la importación sin duplicación y restaura una copia de \texttt{pg\_dump} con \texttt{pg\_restore}. Compara el estado SQL y la evidencia byte por byte; reinicia sobre la base restaurada y verifica con OpenSSL firma, certificado/CRL y sello. Estas ejecuciones emplean datos generados, no documentación del usuario.
+El mismo guion invoca \rutarepo{scripts/api-concurrency-demo.sh}, en el que dos procesos del servidor compiten por sellar la misma versión, y \rutarepo{scripts/api-migration-demo.sh}, que importa cuatro documentos con 46 entradas históricas y restaura la base; sus resultados y comprobaciones se detallan en las \cref{sec:pruebas-atomicidad,sec:pruebas-migracion}. Estas ejecuciones emplean datos generados, no documentación del usuario.
 
-La batería también fija el orden entre revocación y commit, rollback de documento y auditoría ante fallos y reconciliación de marcadores y recibos. Los límites persisten: una respuesta confirmada antes de revocar puede terminar de transmitirse; PostgreSQL y Redis no forman una transacción distribuida; la limpieza de credenciales ante fallos depende de su caducidad si Redis tampoco responde. La validación histórica del firmante usa el instante del sello, mientras que la TSA mantiene la política actual de OpenSSL. No se midieron carga de producción ni usabilidad. La ausencia de anclaje externo de auditoría y de una constancia de PSC impide presentar estos ensayos como prueba de independencia temporal o cumplimiento jurídico.
+La batería también fija el orden entre revocación y commit, rollback de documento y auditoría ante fallos y reconciliación de marcadores y recibos. Sus límites ---transmisión de una respuesta ya confirmada antes de revocar, ausencia de una transacción distribuida entre PostgreSQL y Redis, limpieza de credenciales por caducidad cuando Redis tampoco responde y política actual de OpenSSL para la TSA frente a la validación del firmante en el instante del sello--- se precisan en las \cref{sec:pruebas-permisos,sec:pruebas-migracion}. No se midieron carga de producción ni usabilidad. La ausencia de anclaje externo de auditoría y de una constancia de PSC impide presentar estos ensayos como prueba de independencia temporal o cumplimiento jurídico.
 
 \subsection{Re-ejecución continua}\label{sec:matriz-ci}
 
-El flujo versionado \texttt{.github/workflows/ci.yml} define siete jobs para cada push y solicitud de integración. Los jobs de pruebas y cobertura crean PostgreSQL y Redis reales y configuran las cuatro variables del entorno aislado. La versión mínima soportada, Rust 1.88, es una comprobación obligatoria. La \cref{tab:matriz-ci} resume las comprobaciones de ese flujo. Las demostraciones se ejecutan mediante los guiones de la \cref{sec:matriz-demo}. La corrida del 12 de septiembre aprobó 519 pruebas y mantuvo una ignorada.
+El flujo versionado \rutarepo{.github/workflows/ci.yml} define nueve jobs. Se ejecuta en cada solicitud de integración, en cada push a \texttt{main} y cuando el flujo de despliegue lo reutiliza; una ejecución manual puede limitarse a la medición extendida del despachador, que omite los demás jobs. El job de pruebas crea PostgreSQL y Redis reales, configura las bases aisladas de identidad, expedientes y documentos, la conexión administrativa de operaciones de la CA y Redis, y publica la cobertura de su propia ejecución; el job de cobertura combina esas mediciones y aplica el umbral. La versión mínima soportada, Rust 1.88, es una comprobación obligatoria. La \cref{tab:matriz-ci} resume las comprobaciones de ese flujo. Las demostraciones se ejecutan mediante los guiones de la \cref{sec:matriz-demo}. La corrida del 12 de septiembre aprobó 519 pruebas y mantuvo una ignorada.
 
 \begin{table}[H]
   \centering
-  \caption{Jobs del flujo de integración continua que re-ejecutan la evidencia en cada cambio.}
+  \caption{Jobs del flujo de integración continua.}
   \label{tab:matriz-ci}
   \begin{tabularx}{\linewidth}{@{}l X@{}}
     \toprule
     \textbf{Job} & \textbf{Verificación} \\
     \midrule
-    \texttt{format} & Formato canónico del código con \texttt{rustfmt}. \\
+    \texttt{format} & Formato canónico del código con \texttt{rustfmt}, pruebas Python de los auxiliares de despliegue y de la CA, y alcance de la cancelación de campañas fallidas. \\
+    \texttt{deployment-backup} & Instantáneas Redis nativas de los respaldos de despliegue, su invalidación selectiva y reinicio. \\
     \texttt{lint} & \texttt{clippy} con advertencias promovidas a error (\texttt{-D warnings}). \\
-    \texttt{test} & \texttt{cargo test --workspace} con PostgreSQL, Redis y bases aisladas configuradas. \\
+    \texttt{test} & Pruebas del workspace instrumentadas con \texttt{cargo-llvm-cov}, repartidas en fragmentos, con PostgreSQL, Redis y bases aisladas; incluye ejemplos de documentación y comprobaciones Python de calendarios, corpus jurídico y recorridos de API con restauración. \\
+    \texttt{dispatch-measurement} & Medición extendida del despachador de plazos; sólo en ejecución manual con la entrada correspondiente. \\
     \texttt{msrv} & Comprobación del workspace con la versión mínima soportada del compilador (Rust 1.88); obligatoria. \\
-    \texttt{coverage} & Cobertura con \texttt{cargo-llvm-cov} y gate por crate de \texttt{scripts/coverage-gate.sh} (\cref{tab:matriz-cobertura}). \\
+    \texttt{coverage} & Combinación de la cobertura publicada por los fragmentos de prueba y gate por crate de \texttt{scripts/coverage-gate.sh} (\cref{tab:pruebas-cobertura}). \\
     \texttt{deny} & \texttt{cargo-deny}: avisos de seguridad de dependencias, licencias, duplicados y fuentes permitidas. \\
     \texttt{binary-size} & Tamaño del binario de release acotado a 25 MB (fitness function FF-5). \\
     \bottomrule
@@ -463,3 +636,5 @@ El flujo versionado \texttt{.github/workflows/ci.yml} define siete jobs para cad
 \end{table}
 
 \input{chapters/anexo-e-calibracion}
+
+\input{chapters/anexo-e-despliegue}

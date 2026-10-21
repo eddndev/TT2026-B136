@@ -1,0 +1,102 @@
+% Client session phases of Qadra and their effect on in-memory drafts.
+% Phases and transitions follow web/apps/qadra/src/lib/session-lifecycle.mjs;
+% draft effects follow web/apps/qadra/src/lib/draft-registry.mjs.
+% Layout: side columns are 4.2 cm wide so every title fits on one line,
+% the middle column is 3.8 cm wide, and the figure spans 16.7 cm.
+\begin{tikzpicture}[
+  phase/.style={
+    draw=ipnvino, rounded corners=1.5mm, line width=0.6pt,
+    text width=4.2cm, align=center, inner sep=4pt,
+    minimum height=2.3cm, font=\footnotesize,
+    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}
+  },
+  middle/.style={text width=3.8cm},
+  accepted/.style={minimum height=3.3cm},
+  event/.style={
+    phase, middle, draw=black!45, fill=black!3
+  },
+  note/.style={
+    draw=black!45, dashed, rounded corners=1.5mm, fill=black!3,
+    text width=7.9cm, align=flush left, inner sep=4pt, font=\footnotesize,
+    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}
+  },
+  flow/.style={-{Stealth[length=2mm]}, line width=0.6pt},
+  lab/.style={font=\footnotesize, align=center, inner sep=2pt}
+]
+  % Row 1: no session, authentication and expired session.
+  \node[phase] (out) at (-5.95,0) {
+    \textbf{Sin sesión} (\texttt{signed-out})\\[2pt]
+    Guarda cerrada;\\sin credencial\\[2pt]
+    Borradores: ninguno
+  };
+  \node[event] (mfa) at (0,0) {
+    \textbf{Contraseña o certificado}\\
+    \textbf{Owner, y MFA}\\[2pt]
+    Plazos confirmados\\con reloj monótono\\[2pt]
+    Misma cuenta:\\conserva las capturas\\
+    Otra cuenta: las descarta
+  };
+  \node[phase] (exp) at (5.95,0) {
+    \textbf{Vencida} (\texttt{expired})\\[2pt]
+    Guarda cerrada;\\credencial retirada\\[2pt]
+    Borradores: captura síncrona\\de los editores registrados
+  };
+  % Row 2: accepted session.
+  \node[phase, accepted, fill=ipnvino!6] (act) at (-5.95,-4.65) {
+    \textbf{Activa} (\texttt{active})\\[2pt]
+    Guarda abierta hasta\\el plazo confirmado\\[2pt]
+    Borradores: recuperación\\a petición, tras consultar\\de nuevo el destino
+  };
+  \node[phase, accepted, middle] (hid) at (0,-4.65) {
+    \textbf{Oculta} (\texttt{hidden})\\[2pt]
+    Guarda cerrada:\\admisión suspendida\\[2pt]
+    Borradores: sin cambios
+  };
+  \node[phase, accepted] (chk) at (5.95,-4.65) {
+    \textbf{Comprobación} (\texttt{checking})\\[2pt]
+    Guarda cerrada;\\consulta nueva del estado\\[2pt]
+    Error de red: cerrada\\hasta reintento o cierre\\[2pt]
+    Borradores: sin cambios
+  };
+  % Accepted-session frame.
+  \draw[dashed, black!45, rounded corners=2mm]
+    (-8.35,-2.8) rectangle (8.35,-7.3);
+  \node[lab, anchor=south west, text=black!70] at (-8.3,-7.27)
+    {Sesión aceptada};
+
+  % Authentication.
+  \draw[flow] (out.east) -- node[lab, above] {inicio} (mfa.west);
+  \draw[flow] (exp.west) -- node[lab, above] {reingreso} (mfa.east);
+  \draw[flow] (mfa.south west) -- node[lab, above left]
+    {pestaña\\visible} (act.north east);
+  \draw[flow] (mfa.south) -- node[lab, right] {pestaña oculta} (hid.north);
+
+  % Visibility cycle.
+  \draw[flow] (act.east) -- node[lab, above] {pestaña\\oculta} (hid.west);
+  \draw[flow] ([yshift=3mm]hid.east) -- node[lab, above] {pestaña\\visible}
+    ([yshift=3mm]chk.west);
+  \draw[flow] ([yshift=-3mm]chk.west) -- node[lab, below] {pestaña\\oculta}
+    ([yshift=-3mm]hid.east);
+  \draw[flow] (chk.south) -- ++(0,-0.4) -| node[lab, pos=0.25, below]
+    {estado confirmado} ([xshift=6mm]act.south);
+
+  % Exits from any accepted phase, from the frame up to the phase box.
+  \coordinate (exitl) at (-7.95,-2.8);
+  \coordinate (exitr) at (7.95,-2.8);
+  \draw[flow] (exitl) -- node[lab, right] {cierre voluntario:\\descarta borradores}
+    (exitl |- out.south);
+  \draw[flow] (exitr) -- node[lab, left] {plazo vencido, rechazo\\o estado inválido}
+    (exitr |- exp.south);
+
+  % Notes.
+  \node[note, anchor=north west] at (-8.35,-7.55) {
+    Guarda cerrada: Qadra rechaza localmente las solicitudes
+    protegidas; sólo la consulta de estado y la revocación de
+    una credencial vigente quedan exentas.
+  };
+  \node[note, anchor=north east] at (8.35,-7.55) {
+    Desmontada (\texttt{disposed}): al desmontarse la aplicación,
+    desde cualquier fase, descarta los borradores y retira la
+    credencial; la admisión queda cerrada.
+  };
+\end{tikzpicture}

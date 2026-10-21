@@ -1,0 +1,143 @@
+% =====================================================================
+%  04-arquitectura.tex - Estructura del workspace y andamiaje
+% =====================================================================
+
+\section{Estructura del workspace y andamiaje}\label{sec:impl-workspace}
+
+{\emergencystretch=2em El workspace de Cargo contiene cinco crates del backend bajo \rutarepo{crates/}: \texttt{domain}, \texttt{application}, \texttt{infrastructure}, \texttt{web} y \texttt{bin}, conforme a la estructura de \cref{sec:workspace-cargo}. La dirección de dependencias apunta al dominio: \texttt{domain} no depende de otro crate del workspace; \texttt{application} depende de \texttt{domain}; \texttt{infrastructure} y \texttt{web} dependen de las dos capas interiores; y \texttt{bin}, raíz de composición que produce \texttt{despacho-cli} y \texttt{qadra-ca}, depende de todas. Este último es el único crate que utiliza \texttt{anyhow} en la frontera del proceso. HTTP consume puertos de flujo de \texttt{application} definidos por dominio ---entre ellos \texttt{Identity\allowbreak Workflow}, \texttt{Case\allowbreak Workflow}, \texttt{Case\allowbreak Document\allowbreak Workflow} y \texttt{Participant\allowbreak Workflow}, junto con los de etapas, audiencias, plazos, recursos, alertas, tablero e informes---, sin conocer los adaptadores concretos. El sexto miembro, \texttt{browser-crypto}, compila a WebAssembly y no depende de esos cinco crates. La \cref{tab:impl-crates} sintetiza las responsabilidades; las pruebas unitarias viven en \texttt{src} y las de integración en \texttt{tests/}. La convención de mantenimiento limita a menos de 400 líneas cada archivo de código, según \texttt{CONTRIBUTING.md}.\par}
+
+\begin{table}[H]
+  \centering
+  \caption{Responsabilidades de los crates del workspace.}
+  \label{tab:impl-crates}
+  \begin{tabularx}{\linewidth}{@{}l X X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Responsabilidad} & \textbf{Elementos del flujo integrado} \\
+    \midrule
+    \texttt{domain} & Valores, reglas, puertos y errores; sin E/S & Identidad, expedientes, participantes, etapas, audiencias, plazos, recursos, alertas, firma, permisos, criptografía y auditoría. \\
+    \texttt{application} & Casos de uso y fronteras de persistencia & Autenticación, miembros, asignaciones, directorio, documentos por expediente, actividad procesal, plazos, alertas y supervisión. \\
+    \texttt{infrastructure} & Adaptadores de servicios y almacenamiento & PostgreSQL, Redis, cifrado, firma, TSA, ZIP, correo, admisión documental aislada e importación local. \\
+    \texttt{web} & Adaptador HTTP y DTO & Extracción de peticiones, rutas, errores y límites de concurrencia. \\
+    \texttt{bin} & Composición y comandos & Servidor, servicio de la CA, preparación de esquema, importación y herramientas offline. \\
+    \texttt{browser-\allowbreak crypto} & Criptograf\'ia local del navegador & Claves cifradas, solicitudes CSR y firmas de bytes preparados. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La regla de dependencias no descansa en la disciplina del equipo sino en dos mecanismos verificables. El primero es el propio grafo de Cargo: como se argumentó en el diseño (\cref{sec:workspace-cargo}), una importación prohibida produce un error de compilación, no una advertencia de revisión. El segundo es una prueba de arquitectura, \rutarepo{crates/bin/tests/architecture.rs}, que lee el manifiesto del crate \texttt{domain} y falla si este declara dependencia alguna de \texttt{application}, \texttt{infrastructure} o \texttt{web}; esta prueba protege contra la degradación gradual del manifiesto, que el compilador no reportaría mientras los símbolos prohibidos no se usen. Una segunda prueba estructural, \rutarepo{crates/bin/tests/port_coverage.rs}, recorre el workspace y exige que cada \texttt{pub trait} del dominio ---cada puerto--- tenga al menos un adaptador (\texttt{impl <Trait> for}) en \texttt{infrastructure} y al menos un mock generado con \texttt{mockall} en los tests; para detectar un escáner degradado, la prueba usa puertos centinela (\texttt{AuditLog}, \texttt{Document\allowbreak Hasher}, \texttt{KeyManager}) cuya ausencia delataría un análisis roto.
+
+La versión mínima soportada del compilador es Rust 1.88, declarada mediante \texttt{rust-version} en el \texttt{Cargo.toml} raíz y comprobada por un job obligatorio de integración continua. \rutarepo{docs/adr/0013-raise-msrv-for-security-fixes.md} fija ese piso, que sustituye al de Rust 1.78 registrado en \rutarepo{docs/adr/0001-msrv-and-dependency-pinning.md}, para adoptar correcciones de seguridad de \texttt{time} y de la familia PostgreSQL. Se conserva la familia de APIs construida alrededor de \texttt{der}~0.7 ---\texttt{x509-cert}~0.2, \texttt{cms}~0.2, \texttt{x509-tsp}~0.1 y \texttt{rsa}~0.9--- porque su sustitución exige una migración coordinada, no porque Rust 1.78 sea el requisito vigente. Las dependencias compartidas se declaran en \texttt{[workspace.dependencies]}. El perfil de release aplica \texttt{strip = true} y \texttt{lto = true}; en desarrollo se optimizan los núcleos \texttt{argon2}, \texttt{blake2}, \texttt{num-bigint-dig} y \texttt{rsa}, manteniendo información de depuración en el resto del workspace.
+
+El archivo de dependencias bloqueadas, \rutarepo{Cargo.lock}, fija \texttt{chacha20}~0.10.2 en sustitución de la versión 0.10.1 retirada del índice. La dependencia llega de forma transitiva a través del generador aleatorio del cliente PostgreSQL y no forma parte de los algoritmos del prototipo. RustCrypto documenta en esa versión la corrección del uso de una instrucción SSE4.1 en el backend SSE2 de las variantes de generador aleatorio y contador de 64 bits \cite{rustcrypto_chacha2026}. La comprobación de dependencias con ese archivo forma parte del corte reproducido del directorio de participantes (\cref{sec:pruebas-cortes-historicos}).
+
+La configuración se carga desde variables de entorno con \texttt{dotenvy} (archivo \texttt{.env} local, nunca versionado; la plantilla comentada \texttt{.env.example} sí lo está). La \cref{tab:impl-env} lista las variables de esa plantilla; las variables y opciones adicionales de \texttt{serve}, como \texttt{DOCUMENT\_QPDF\_LIBRARY} o \texttt{ALERT\_EMAIL\_FROM} y \texttt{ALERT\_LOGIN\_URL} para el correo de alertas, se documentan en \rutarepo{docs/database-operations.md}. Dos decisiones de manejo de secretos son transversales: la carga de configuración registra en la bitácora únicamente la \emph{presencia} de cada variable, jamás su valor; y todo material secreto leído del entorno o de la entrada estándar (la KEK, las credenciales del proveedor de sellado y del proveedor de correo, las contraseñas) aterriza en buffers \texttt{Zeroizing} que sobrescriben su contenido al liberarse, conforme al ADR \rutarepo{docs/adr/0003-zeroize-secret-material-in-domain.md}.
+
+\begin{table}[H]
+  \centering
+  \caption{Variables de entorno del prototipo (plantilla \texttt{.env.example}).}
+  \label{tab:impl-env}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Variable} & \textbf{Propósito} \\
+    \midrule
+    \texttt{RUST\_LOG} & Filtro de severidad de la telemetría (por defecto \texttt{info}). \\
+    \texttt{CINCEL\_BASE\_URL} & URL base del proveedor remoto de sellado de tiempo; opcional, porque \texttt{serve} usa la TSA local. \\
+    \texttt{CINCEL\_API\_KEY} & Credencial del proveedor de sellado (secreto; se llena localmente). \\
+    \texttt{DATABASE\_URL} & PostgreSQL para usuarios, expedientes, documentos y auditoría; conexión administrativa para aplicar las migraciones (\cref{tab:anexo-migraciones}) y rol restringido para servir. \\
+    \texttt{REDIS\_URL} & Cadena de conexión Redis para sesiones, desafíos y límites. \\
+    \texttt{KEK\_BASE64} & Clave de cifrado de claves: 32 bytes aleatorios en base64 (secreto). \\
+    \texttt{NEW\_KEK\_BASE64} & KEK de reemplazo; la lee únicamente \texttt{vault rotate-kek}. \\
+    \texttt{AUDIT\_LOG\_PATH} & Ruta de la bitácora offline; HTTP usa PostgreSQL (por defecto \texttt{audit-log.jsonl}). \\
+    \texttt{PKI\_CA\_DIR} & Directorio de trabajo de la CA interna (por defecto \texttt{pki-ca}). \\
+    \texttt{TSA\_DIR} & Directorio de trabajo de la TSA local (por defecto \texttt{pki-tsa}, junto al de la CA). \\
+    \texttt{TT\_PASSWORD\_RESET\_ENABLED} & Activa la recuperación de contraseña (por defecto \texttt{false}); al activarla exige todos los ajustes \texttt{TT\_PASSWORD\_RESET\_*} y \texttt{RESEND\_API\_KEY}. \\
+    \texttt{RESEND\_API\_KEY} & Credencial del proveedor de correo (secreto; comentada en la plantilla); la comparten los canales de correo configurados explícitamente y no habilita ninguno por sí sola. \\
+    \texttt{TT\_PASSWORD\_RESET\_*} & Ajustes comentados de la recuperación: remitente, URL pública, vigencia, máximo de pendientes, cuotas y ventanas de solicitud y consumo, y tiempos de Redis y correo. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La telemetría usa \texttt{tracing} y \texttt{tracing-subscriber} con filtro por entorno, materializando la observabilidad estructurada prevista en el diseño (\cref{sec:observabilidad}). Todos los diagnósticos se emiten por la salida de error estándar, de modo que la salida estándar queda limpia para resultados y tuberías de shell. La promesa de que ningún secreto aparece en los diagnósticos no es una convención: la prueba \rutarepo{crates/bin/tests/log_redaction.rs} ejecuta los flujos con el nivel de log más verboso e inspecciona lo emitido, fallando si algún material secreto conocido aparece en la salida de error.
+
+El workflow de integración continua, \rutarepo{.github/workflows/ci.yml}, ejecuta ocho jobs en cada push a la rama principal, en cada pull request y cuando el workflow de despliegue lo reutiliza (\cref{tab:impl-ci}); un noveno job, la medición extendida del despachador de plazos, sólo se ejecuta por invocación manual. La comprobación de MSRV es obligatoria y usa Rust 1.88. El job de pruebas reparte la suite en shards según los runners disponibles, prepara PostgreSQL y Redis desechables y separa las bases de identidad, expedientes y documentos, de modo que las pruebas de persistencia no se omiten por ausencia de configuración; el job de cobertura combina la cobertura de esos shards. El umbral de \rutarepo{scripts/coverage-gate.sh} exige 90\,\% de líneas por crate en \texttt{domain}, \texttt{application} e \texttt{infrastructure}; \texttt{bin} se reporta sin bloquear. Estos valores son criterios de aceptación configurados, no mediciones de una ejecución concreta. Otros tres workflows completan el andamiaje: \rutarepo{.github/workflows/web.yml} verifica las aplicaciones de navegador y el módulo \texttt{browser-crypto}, \rutarepo{.github/workflows/documents.yml} compila este documento y \rutarepo{.github/workflows/deploy.yml} empaqueta y despliega cada versión etiquetada (\cref{sec:impl-despliegue}).
+
+\begin{table}[H]
+  \centering
+  \caption{Jobs del workflow de integración continua.}
+  \label{tab:impl-ci}
+  \begin{tabularx}{\linewidth}{@{}l l X@{}}
+    \toprule
+    \textbf{Job} & \textbf{Herramienta} & \textbf{Criterio de aprobación} \\
+    \midrule
+    format & \texttt{cargo fmt} & Formato canónico en todo el workspace; pruebas de los auxiliares de despliegue y de la CA. \\
+    deployment-backup & \texttt{unittest} de Python & Instantáneas Redis nativas, invalidación y reinicio de los respaldos de despliegue. \\
+    lint & \texttt{cargo clippy} & Cero advertencias (\texttt{-D warnings}). \\
+    test & \texttt{cargo-llvm-cov} & Suite completa del workspace en verde, por shards y con cobertura instrumentada. \\
+    msrv & \texttt{cargo check} & Compila con Rust 1.88; comprobación obligatoria. \\
+    coverage & \texttt{coverage-gate.sh} & $\geq$ 90\,\% de líneas por crate criptográfico sobre la cobertura combinada. \\
+    deny & \texttt{cargo-deny} & Avisos, licencias, duplicados y fuentes en regla. \\
+    binary-size & \texttt{cargo build -{}-release} & \texttt{despacho-cli} $\leq$ 25~MB. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las fitness functions verifican automáticamente los atributos de calidad del diseño (\cref{sec:fitness-functions}) \cite{ford2023}. La \cref{tab:impl-fitness} muestra dónde vive cada una de las cinco en el repositorio; el umbral de cobertura por crate (FF-4) ocupa el lugar de la función que exigiría un span de \texttt{tracing} por handler HTTP. Esa comprobación no está implementada, aunque los handlers existen, y permanece como ampliación del diseño de calidad.
+
+\begin{table}[H]
+  \centering
+  \caption{Fitness functions implementadas y su ubicación en el repositorio.}
+  \label{tab:impl-fitness}
+  \begin{tabularx}{\linewidth}{@{}l L{6.4cm} X@{}}
+    \toprule
+    \textbf{Id} & \textbf{Propiedad verificada} & \textbf{Verificación implementada} \\
+    \midrule
+    FF-1 & El dominio no depende de capas externas & Grafo de Cargo en cada build y \rutarepo{crates/bin/tests/architecture.rs}. \\
+    FF-2 & Ningún log contiene material secreto & \rutarepo{crates/bin/tests/log_redaction.rs} al nivel de log más verboso. \\
+    FF-3 & Todo puerto tiene adaptador y mock & \rutarepo{crates/bin/tests/port_coverage.rs} con puertos centinela. \\
+    FF-4 & Cobertura $\geq$ 90\,\% en crates criptográficos & \rutarepo{scripts/coverage-gate.sh} sobre el reporte de \texttt{cargo-llvm-cov}. \\
+    FF-5 & Binario release $\leq$ 25~MB & Job \texttt{binary-size} del workflow de integración continua. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La política de dependencias revisa avisos, licencias, duplicados y fuentes del grafo. Se configura en \texttt{deny.toml} para \texttt{cargo-deny} y en \texttt{audit.toml} para \texttt{cargo-audit}. Permanece declarada la excepción RUSTSEC-2023-0071 \cite{rustsec2023_0071}, relativa a temporización en operaciones de clave privada del crate \texttt{rsa}, con el que firma el servidor (\cref{sec:impl-s4-firma}). El modelo de amenaza de \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md} supone firma local por CLI, con claves en disco y sin un oráculo de tiempo observable por red; esa premisa no describe la exposición HTTP del servidor. La autenticación y los límites de concurrencia acotan quién puede solicitar firmas y cuántas se ejecutan, pero no corrigen el canal lateral. El ADR prevé reevaluar la decisión cuando exista una versión de tiempo constante del crate y, si el riesgo se vuelve inaceptable antes, sustituir el firmante por \texttt{ring}. Antes de un despliegue público se requiere revisar el modelo de amenaza y resolver la elección del firmante. La API local no se presenta como una configuración de producción validada. El módulo del navegador no utiliza la API de firma privada de \texttt{rsa} (\cref{sec:impl-criptografia-local}).
+
+Las dos vistas siguientes concretan la estructura anterior: la primera separa el equipo del titular, la frontera pública, la aplicación, la persistencia privada y los servicios con autoridad propia; la segunda distribuye los puertos y adaptadores entre las capas del workspace.
+
+\subsection{Fronteras de confianza de la implementación}\label{sec:fronteras-confianza}
+
+El navegador accede a Qadra mediante HTTPS. La API autentica con sesiones
+opacas revocables almacenadas en Redis y aplica permisos por rol y expediente.
+La aplicaci\'on conserva las operaciones y su auditor\'ia en PostgreSQL mediante
+los adaptadores \texttt{postgres}/\texttt{tokio-postgres}; los archivos se
+protegen con cifrado autenticado. La clave privada que el titular selecciona
+para firmar localmente permanece en su equipo y se procesa en un worker
+Rust/WASM (\cref{sec:impl-criptografia-local}). La CA tiene portal, proceso y
+acceso administrativo separados (\cref{sec:impl-portal-ca}).
+La TSA local y el proveedor de correo cumplen funciones acotadas; ninguno
+convierte la confianza interna del prototipo en acreditaci\'on de identidad civil.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/trust-boundaries-current}
+  \caption{Fronteras de confianza, sesiones opacas y persistencia de la implementaci\'on.}
+  \label{fig:fronteras-confianza}
+\end{figure}
+
+\subsection{Arquitectura hexagonal con puertos y adaptadores}\label{sec:hexagonal-completa}
+
+Los transportes HTTP y CLI invocan los casos de uso; los binarios componen sus
+dependencias concretas. Los traits de persistencia y de flujo residen en
+\texttt{application}, mientras que \texttt{domain} define reglas y puertos
+criptogr\'aficos y de auditor\'ia. \texttt{infrastructure} implementa los
+adaptadores contra esas interfaces. La figura muestra ejemplos representativos,
+sin equiparar cada handler de entrada con un trait ni suponer un transporte
+WebSocket. Las flechas continuas muestran invocaci\'on o dependencia hacia el
+interior; las discontinuas indican implementaci\'on de puertos.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/ports-adapters-current}
+  \caption{Distribuci\'on de puertos entre application y domain, con adaptadores externos.}
+  \label{fig:hexagonal-completa}
+\end{figure}

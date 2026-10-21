@@ -154,19 +154,37 @@ chapters/
   01-introduccion.tex    Cap. 1
   02-marco-teorico.tex   Cap. 2
   03-analisis-diseno.tex Cap. 3 (incl. 3.7 Arquitectura, 3.11 Criptografía)
-  04-implementacion.tex  Cap. 4 Implementación del prototipo
-  05-pruebas.tex         Cap. 5 Pruebas y resultados
+  04-implementacion.tex  Cap. 4: introducción e \input de sus secciones por dominio
+    04-arquitectura, 04-servicios-criptograficos, 04-persistencia,
+    04-identidad, 04-expedientes, 04-documentos, 04-actuaciones,
+    04-plazos, 04-recursos, 04-alertas, 04-supervision,
+    04-interfaz-qadra, 04-cli, 04-despliegue, 04-decisiones
+  05-pruebas.tex         Cap. 5: introducción e \input de sus secciones por dominio
+    05-matriz, 05-criptografia, 05-verificacion-independiente,
+    05-transacciones, 05-identidad, 05-expedientes, 05-documentos,
+    05-actuaciones, 05-plazos, 05-recursos, 05-alertas,
+    05-supervision, 05-despliegue, 05-cobertura
   06-conclusiones.tex    Cap. 6 Conclusiones
-  anexos.tex             Anexo A
+  anexos.tex             Anexo A Catálogo de formatos canónicos y migraciones
   anexo-b-cli.tex        Anexo B Manual de la CLI
   anexo-c-verificacion.tex Anexo C Verificación independiente con OpenSSL
   anexo-d-pki.tex        Anexo D Scripts de la CA interna
-  anexo-e-matriz.tex     Anexo E Matriz de pruebas y evidencia
+  anexo-e-matriz.tex     Anexo E Matriz de pruebas, trazabilidad por dominio y evidencia
 references.bib           92 referencias (biblatex, estilo IEEE)
 figures/                 Imágenes (image*.png) y diagramas TikZ editables
 ```
 
 ## Convenciones (mantenibilidad)
+
+Los capítulos 4 y 5 y el anexo E se organizan por dominio, en el mismo orden:
+arquitectura y criptografía, persistencia, identidad, expedientes, documentos,
+etapas y audiencias, plazos, recursos, alertas y supervisión. Cada sección de
+dominio es un archivo que reúne sus apartados mediante `\input`. Un cambio
+funcional actualiza el apartado de su dominio, o añade uno dentro de esa
+sección; no se agregan secciones por entrega al final del capítulo. Las
+mediciones fechadas de cobertura se acumulan en la tabla de evolución de
+`05-cobertura.tex`, y las tablas por crate de cortes históricos se conservan en
+la evidencia de ejecución del anexo E.
 
 Los apartados de identidad y perfiles se separan en
 `chapters/03-participantes-tipificados.tex`,

@@ -1,4 +1,4 @@
-\section{Trazabilidad de administración de miembros}\label{anexo:miembros}
+\subsection{Trazabilidad de administración de miembros}\label{anexo:miembros}
 
 Esta matriz delimita la implementación de la \cref{sec:impl-miembros} y los ensayos de la \cref{sec:pruebas-miembros}. La actividad de una cuenta y su pertenencia a expedientes son estados distintos; ninguna ficha procesal otorga una identidad de acceso.
 
@@ -21,9 +21,7 @@ Esta matriz delimita la implementación de la \cref{sec:impl-miembros} y los ens
   Qadra & Filtros, asignación, cambio propio, conflicto, incertidumbre y descarte de respuestas tardías. & Once escenarios con HTTP controlado. \\
   Navegador real & Escritorio y móvil, expediente cerrado, token anterior rechazado tras reactivación y restricciones de rol, incluido Client. & Tres recorridos aprobados. \\
   API y restauración & Cuentas y asignaciones conservadas; tokens anteriores rechazados, MFA nuevo y evidencia documental exacta. & Campaña completa aprobada. \\
-  Cierre & CI global y compilación e inspección del PDF con estos resultados. & Pendientes en este corte. \\
+  Cierre & Formato, lint y versión mínima de Rust en la revisión de las campañas; CI global y compilación e inspección del PDF con estos resultados; integración del incremento con su cierre global. & Controles parciales aprobados; CI global y PDF pendientes en el corte del 19 de septiembre de 2026; integración en \rutarepo{docs/product-completion.md}. \\
 \end{longtable}
 
-La campaña real duró 418.426~s de comando y 40.1~s de Playwright, con 2553 fuentes estables. Los recorridos usaron 1440 y 390 píxeles; las cuatro capturas fueron inspeccionadas y resultaron legibles, sin desbordamientos ni solapamientos, conservando Qadra. No se atribuye una evaluación de usabilidad con personas.
-
-La aceptación API completa aprobó en 453.174~s con 2553 fuentes estables. Conservó proyecciones de cuentas y asignaciones, rechazó tokens anteriores y exigió MFA nuevo; comparó los ZIP de cuatro documentos importados y sus 70 eventos históricos idénticos. El inventario final conservó 19 raíces documentales, 25 versiones y un incidente. La restauración focal y esta aceptación integrada tienen evidencias separadas. El procedimiento de \rutarepo{docs/database-operations.md} exige cerrar el tráfico e invalidar sesiones y desafíos del Redis correcto antes de servir nuevamente; conserva reclamos TOTP y datos ajenos. El alcance no incluye invitaciones, recuperación de acceso ni autenticación por certificado.
+Las duraciones, la inspección visual de las capturas y el inventario conservado tras la restauración se reportan en la \cref{sec:pruebas-miembros}; la restauración focal de PostgreSQL y Redis y la aceptación API integrada tienen evidencias separadas. La restauración sigue el procedimiento de \rutarepo{docs/database-operations.md}, que exige cerrar el tráfico e invalidar sesiones y desafíos del Redis correcto antes de servir nuevamente, conservando reclamos TOTP y datos ajenos. Esta matriz no incluye invitaciones, recuperación de contraseña ni acceso por certificado, cuya verificación se presenta en las \cref{sec:pruebas-recuperacion-password,sec:pruebas-invitaciones,sec:pruebas-vinculo-certificado}.

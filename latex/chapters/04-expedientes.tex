@@ -1,0 +1,120 @@
+% =====================================================================
+%  04-expedientes.tex - Expedientes, administracion penal y participantes
+% =====================================================================
+
+\section{Expedientes, administración penal y participantes}\label{sec:impl-expedientes}
+
+El expediente es la unidad de aislamiento del despacho: delimita qué cuentas pueden consultar o modificar su información. Esta sección describe la pertenencia y el aislamiento, el perfil penal con revisiones administrativas y su cierre, y el directorio de participantes, donde coexisten fichas manuales y fichas tipificadas vinculadas a identidades representadas. Junto al directorio se reúnen los límites de la representación jurídica; para las fichas tipificadas se presentan además su canon y confirmación, la declaración personal firmada sobre una confianza publicada y la interacción en Qadra.
+
+\subsection{Expedientes, pertenencia y aislamiento}\label{sec:impl-http-expedientes}
+
+El dominio identifica cada expediente mediante \texttt{CaseId} y valida título y referencia con \texttt{Case\allowbreak Metadata}: ambos son obligatorios, se recortan espacios exteriores, se rechazan controles y se limitan a 200 y 100 caracteres, respectivamente. La referencia es una etiqueta libre, no un identificador único. PostgreSQL conserva una raíz inmutable con creador, fecha y metadatos originales; sus revisiones administrativas proporcionan título y referencia actuales. Las asignaciones regulan acceso y permanecen separadas de fichas de participantes, audiencias y plazos.
+
+\begin{table}[H]
+  \centering
+  \caption{Contrato HTTP de expedientes y asignaciones. Los parámetros \texttt{<case>} y \texttt{<user>} son UUID.}
+  \label{tab:impl-http-expedientes}
+  \begin{tabularx}{\linewidth}{@{}L{6.2cm} X@{}}
+    \toprule
+    \textbf{Ruta} & \textbf{Responsabilidad} \\
+    \midrule
+    \texttt{POST /api/v1/cases} & Owner o Litigante crean, quedan asignados y confirman R1 pendiente sin etapa; \texttt{201}. \\
+    \texttt{GET /api/v1/cases} & Lista únicamente metadatos visibles, con \texttt{limit} y \texttt{offset}. \\
+    \texttt{GET /api/v1/cases/<case>} & Devuelve metadatos si el actor es Owner o miembro vigente. \\
+    \texttt{PUT /api/v1/cases/\allowbreak <case>/members/<user>} & Owner asigna un usuario activo; operación idempotente, \texttt{204}. \\
+    \texttt{DELETE /api/v1/cases/\allowbreak <case>/members/<user>} & Owner retira pertenencia; operación idempotente, \texttt{204}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Owner ve todos los expedientes y administra asignaciones. Litigante puede crear un expediente, queda asignado automáticamente y pierde acceso si se retira esa asignación. La API básica conserva los cuatro campos de respuesta: UUID, título, referencia y creador. Cliente consulta esa proyección de sus expedientes asignados, sin perfil penal ni procedencia administrativa. Paralegal también dispone del índice y detalle del personal descritos en la \cref{sec:impl-http-administracion}. Las lecturas básicas revalidan actor y alcance y confirman auditoría antes de responder. La consulta filtra pertenencia antes de paginar; el límite predeterminado es 50, admite de 1 a 100 y el desplazamiento es no negativo. El orden es por UUID, sin promesa de una instantánea común entre páginas. Un expediente ajeno responde igual que uno inexistente: \texttt{404 case\_not\_found}.
+
+\subsection{Perfil penal y administración con revisiones}\label{sec:impl-http-administracion}
+
+El módulo \rutarepo{crates/domain/src/case_administration/} separa los valores editables, el estado organizativo y las revisiones positivas. Un perfil presente exige NUC, autoridad emisora, carpeta judicial, órgano emisor y delitos registrados. La referencia interna conserva su significado de etiqueta libre y no sustituye esos identificadores. Los valores son declaraciones manuales: no verifican competencia institucional, identidad, naturaleza jurídica de un delito ni culpabilidad. El contrato y sus límites se documentan en \rutarepo{docs/case-administration-api.md} y \rutarepo{docs/adr/0022-audited-penal-case-administration.md}.
+
+NUC y carpeta admiten hasta 100 escalares Unicode cada uno; sus autoridades, 200. La lista conserva entre uno y ocho delitos, de hasta 120 escalares por entrada, en el orden recibido. Rechaza duplicados literales después de recortar blancos exteriores. Información general admite hasta 1000 escalares y varias líneas: convierte CRLF a LF, rechaza CR aislado y los demás controles antes del recorte Unicode. Los otros textos rechazan todos los controles originales. Identificadores complementarios admite hasta 300 escalares; ambos campos opcionales vacíos quedan ausentes. Se conservan mayúsculas, acentos, forma Unicode y espacios interiores.
+
+El canon \texttt{CADM1} (\cref{tab:anexo-canones}) comienza con cinco bytes ASCII y un byte de estado, cero para activo o uno para cerrado. Continúa con título y referencia, una etiqueta de presencia del perfil y, cuando existe, NUC, autoridad, carpeta, órgano, cantidad y textos ordenados de delitos y los dos opcionales. Cada texto lleva su longitud UTF-8 en cuatro bytes en orden de mayor a menor peso; cada opcional usa etiqueta cero o uno y, si existe, longitud y contenido. El máximo es 12\,717 bytes. SHA-256 cubre únicamente esos valores: expediente, revisión, autor y fecha se vinculan mediante claves y recurso auditado. El canon es propio del prototipo; no modifica el AAD ni la evidencia criptográfica documental y no equivale a una firma individual.
+
+La raíz sin revisiones se presenta como R0, activa por compatibilidad, con perfil y procedencia ausentes. No existe una fila histórica cero. \texttt{Case\allowbreak Revision} representa únicamente valores de uno a $2^{32}-1$ y detecta agotamiento; la expectativa de escritura distingue expresamente una raíz sin historia de una revisión positiva. Toda alta básica por API confirma raíz, asignación del creador y R1 activa con perfil pendiente, junto con tres eventos. El alta penal completa añade el registro inicial de Investigación y confirma los cuatro eventos en la misma transacción. Ninguna operación devuelve una proyección reconstruida mediante un GET posterior al commit.
+
+El registro inicial conserva número de etapa uno y referencia exacta a la revisión administrativa uno. Su huella, instante y autor UUID/correo se obtienen de esa revisión inmutable; una edición posterior no los sustituye. La fecha expresa el registro de la operación, no la fecha acreditada de un acto judicial. Completar un perfil básico o legado conserva la etapa sin registrar. La adopción explícita y los avances ordinarios se registran mediante el flujo separado de la \cref{sec:impl-http-etapas}.
+
+\begin{table}[H]
+  \centering
+  \caption{Contrato HTTP de administración penal bajo \texttt{/api/v1}.}
+  \label{tab:impl-http-administracion}
+  \begin{tabularx}{\linewidth}{@{}L{5.4cm} X@{}}
+    \toprule
+    \textbf{Método y ruta} & \textbf{Resultado confirmado} \\
+    \midrule
+    \texttt{POST /penal-cases} & Alta completa activa, R1 y registro inicial; detalle con \texttt{201}. \\
+    \texttt{GET /case-administrations} & Índice compacto autorizado del personal, filtros y cursor UUID. \\
+    \texttt{GET /cases/<id>/}\allowbreak\texttt{administration} & Raíz, administración actual y registro inicial, cuando existe. \\
+    \texttt{PUT /cases/<id>/}\allowbreak\texttt{administration} & Reemplazo de título, referencia y perfil con revisión esperada. \\
+    \texttt{GET /cases/<id>/}\allowbreak\texttt{administration/history} & Revisiones positivas descendentes con cursor exclusivo. \\
+    \texttt{PUT /cases/<id>/}\allowbreak\texttt{administrative-status} & Cambio exclusivo de estado con revisión esperada. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Owner consulta y administra todos los expedientes. Litigante asignado consulta, edita y cambia estado; Paralegal asignado consulta. Cliente recibe denegación en estas seis operaciones y conserva solamente la API básica. El adaptador vuelve a cargar cuenta activa, rol y pertenencia en la transacción auditada (\cref{sec:impl-http-transacciones}); un UUID ajeno produce el mismo error que uno inexistente. Cada lectura, incluida una página vacía, confirma su evento antes de entregar datos.
+
+El índice selecciona la cabeza antes de filtrar por estado, perfil pendiente o completo, título como subcadena literal y NUC o carpeta por igualdad exacta. Distingue mayúsculas y no interpreta comodines. Ordena UUID ascendentemente y usa \texttt{after\_id}; el historial ordena revisiones en sentido descendente y usa \texttt{before\_revision}. Ambos límites admiten de 1 a 100, con 50 por defecto. Una fila adicional determina si hay siguiente página; sin ella, el cursor es nulo. El índice omite autoridades, delitos, textos extensos, huellas y correos históricos. El detalle conserva origen, valores actuales y procedencia; la historia registra UUID y correo capturados sin consultar el correo actual de la cuenta.
+
+La edición conserva estado y etapa y exige \texttt{expected\_revision}; una vez completo, el perfil no puede retirarse. El cambio exclusivo de estado lee y conserva los textos vigentes dentro de la transacción. Incluso repetir valores puede crear un sucesor. Una revisión obsoleta produce conflicto, sin reintento automático. NUC y carpeta son únicos por separado entre cabezas actuales de la instancia, incluidos los expedientes cerrados. Corregirlos libera los valores anteriores al confirmar y conserva su historia; el error no identifica el expediente que ocupa un valor. Esta regla de la instancia no acredita unicidad nacional.
+
+El cierre administrativo impide editar el perfil, cargar, añadir versiones, clasificar y sellar documentos, además de crear, editar, archivar o reactivar participantes y registrar adopciones o transiciones de etapa. Mantiene consultas, historias, verificación y exportación autorizadas; Owner conserva asignación y revocación. Las demás mutaciones solicitadas por usuarios en el expediente, como audiencias, resultados y medidas cautelares, plazos y perfiles de plazo del expediente, recursos procesales con sus vínculos y firma documental individual, aplican la misma comprobación; en cambio, el cierre no suprime el seguimiento técnico de plazos. Las \cref{sec:impl-audiencias,sec:implementacion-plazos-persistentes,sec:impl-recursos-declarados} describen sus particularidades. Reactivar el expediente no reactiva fichas archivadas ni modifica la etapa. Las mutaciones comprueban el cierre después de autorizar y resolver el recurso exacto, también al confirmar una preparación criptográfica anterior. Si el cierre confirma primero, esa preparación no produce nueva fila ni evento de éxito. El estado organizativo no concluye ni reabre un proceso judicial.
+
+Los cuerpos JSON de alta, edición y estado tienen límite de 64~KiB sobre el cuerpo completo. Rechazan campos desconocidos o repetidos, también dentro del perfil, y no aceptan autor, fecha, huella o etapa suministrados por el cliente. Las entradas mal formadas producen \texttt{400}; un cuerpo excesivo, \texttt{413}; los valores fuera del contrato, \texttt{422}. Revisión obsoleta o agotada, cierre, identificador ocupado y retirada de perfil completo producen \texttt{409}. La inconsistencia persistida se informa como error interno sin detalles de almacenamiento. Una respuesta perdida puede suceder después del commit: el cliente debe conservar los datos y reconciliar el estado autorizado antes de decidir otro envío (\cref{sec:impl-qadra-conciliacion}).
+
+\subsection{Directorio de participantes por expediente}\label{sec:impl-http-participantes}
+
+El directorio registra fichas con UUID propio y asociación inmutable a un expediente. Una ficha puede representar a una persona o autoridad mencionada por el despacho; no crea una cuenta ni una asignación de acceso. Coexisten dos familias de fichas: la manual, descrita en esta subsección, registra nombre y rol escritos y admite homónimos, incluso con el mismo rol; la tipificada vincula una identidad representada y un perfil mediante las reglas de la \cref{sec:impl-participantes-tipificados}. La cuenta autenticada que crea o modifica permanece separada de la persona representada. El contrato manual se documenta en \rutarepo{docs/adr/0021-audited-case-participants.md}.
+
+El valor de dominio \texttt{Participant\allowbreak Values} exige nombre y rol manual, de hasta 200 y 80 caracteres Unicode, respectivamente. Organización y estatus jurídico son opcionales, con máximos de 200 y 160. Rechaza caracteres de control en la entrada original antes de recortar espacios Unicode exteriores; una opción vacía queda ausente. Conserva espacios interiores, mayúsculas, acentos, puntuación y forma de normalización Unicode. El estado del directorio es \texttt{active} o \texttt{archived}: organiza la vista, sin cambiar el estatus jurídico ni el del expediente.
+
+Cada ficha comienza en revisión uno y estado activo. El tipo \texttt{Participant\allowbreak Revision} acepta de uno a $2^{32}-1$; no existe una revisión cero ni se inventa procedencia inicial. El reemplazo completo exige la revisión actual esperada y añade un sucesor, incluso si los valores coinciden. Archivar o reactivar usa un comando separado: lee la revisión actual y cambia únicamente el estado dentro de la misma transacción. Así conserva una edición de texto ya confirmada; si la revisión esperada quedó obsoleta, devuelve conflicto sin aplicar el cambio.
+
+El canon \texttt{PART1} codifica primero cinco bytes ASCII, después nombre y rol como longitud UTF-8 de cuatro bytes en orden de mayor a menor peso y su contenido. Cada opcional usa un byte cero si está ausente o uno seguido de longitud y contenido; el estado termina con cero para activo o uno para archivado. La longitud máxima es 2\,584 bytes. SHA-256 cubre estos valores, mientras el recurso de auditoría vincula expediente, ficha, revisión y digest. Esta huella no equivale a una firma individual ni acredita identidad jurídica.
+
+\texttt{Participant\allowbreak Service} autentica mediante el puerto de identidad; \texttt{Participant\allowbreak Store} delimita la persistencia. Owner administra todos los directorios, Litigante asignado administra y Paralegal asignado consulta. Cliente no tiene acceso, aunque pueda leer los metadatos básicos de su expediente. El adaptador PostgreSQL vuelve a consultar cuenta activa, rol y pertenencia dentro de la transacción auditada. También Owner debe proporcionar el expediente exacto de la ficha. Una ficha ausente o ajena devuelve el mismo error, antes de comprobar la revisión esperada.
+
+La raíz, la primera revisión y el evento de creación se confirman juntos. Cada sucesor conserva valores canónicos, digest, instante UTC y UUID y correo del mismo actor recargado durante la operación. El historial no reconstruye autores mediante sus perfiles actuales. La fecha conserva el instante de la operación; revisión y secuencia de auditoría ordenan las confirmaciones sin prometer marcas temporales estrictamente crecientes. Fallos de inserción, auditoría o commit revierten la mutación completa. La respuesta representa el estado confirmado por esa operación, sin una consulta posterior.
+
+{\emergencystretch=3em La \cref{tab:impl-http-participantes} usa el prefijo \rutarepo{/api/v1/cases/<case>/participants}. Las mutaciones manuales devuelven una respuesta plana: expediente, UUID, revisión, los cinco valores, \texttt{values\_digest}, \texttt{changed\_at} y \texttt{changed\_by}, este último con UUID y correo capturado; \texttt{canonical\_format} vale \texttt{part1} y \texttt{profile}, \texttt{subject}, \texttt{credential\_origin}, \texttt{submission\_digest} y \texttt{submission\_revision} quedan nulos. Lecturas, historia y estado admiten la unión de fichas manuales y tipificadas; el listado presenta una proyección compacta.\par}
+
+\begin{table}[H]
+  \centering
+  \caption{Contrato HTTP del directorio de participantes.}
+  \label{tab:impl-http-participantes}
+  \begin{tabularx}{\linewidth}{@{}L{4.3cm} X@{}}
+    \toprule
+    \textbf{Método y sufijo} & \textbf{Semántica} \\
+    \midrule
+    \texttt{POST} (sin sufijo) & Recibe cuatro textos, fija estado activo y devuelve la revisión uno con \texttt{201}. \\
+    \texttt{PUT /<id>} & Reemplaza textos y estado con \texttt{expected\_revision}; devuelve su revisión confirmada. \\
+    \texttt{PUT /<id>/}\allowbreak\texttt{directory-status} & Cambia solo estado con revisión esperada, preservando textos actuales. \\
+    \texttt{GET} (sin sufijo) & Consulta cabezas actuales con filtros y cursor exclusivo de UUID. \\
+    \texttt{GET /<id>} & Devuelve la revisión actual de la ficha autorizada. \\
+    \texttt{GET /<id>/history} & Devuelve revisiones históricas en orden descendente con cursor exclusivo. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El listado toma primero la última revisión de cada ficha manual o tipificada y, antes de paginar, combina nombre por subcadena literal, estado, tipo y perfil; estos dos últimos permiten consultar las variantes actuales. El filtro de rol manual por igualdad exacta solo devuelve fichas pendientes de tipificar, cuya cabeza sigue siendo manual. Una revisión manual antigua no reaparece por coincidir con un filtro. Nombre y rol distinguen mayúsculas y formas Unicode; los signos de comodín no expanden coincidencias. El estado predeterminado es activo y puede solicitarse archivado o ambos. La paginación ordena UUID de forma ascendente y utiliza \texttt{after\_id}; historia ordena revisiones de forma descendente con \texttt{before\_revision}. Ambos límites van de 1 a 100, con 50 por defecto. Una fila adicional determina \texttt{has\_more} y el cursor siguiente; sin ella, el cursor es nulo. No se calcula un total global ni se promete una instantánea compartida entre páginas.
+
+Cada lectura confirma su evento antes de devolver datos, incluso con una página vacía. Los eventos del contrato manual distinguen creación, reemplazo, cambio exclusivo de estado, listado, detalle e historia, sin copiar nombres ni etiquetas jurídicas al recurso de auditoría. Las escrituras manuales rechazan campos desconocidos o repetidos y limitan el JSON completo a 8~KiB, incluidos bytes posteriores al objeto. Cero en una revisión produce \texttt{422}; tipos incorrectos, UUID inválido o JSON mal formado producen \texttt{400}; un cuerpo excesivo, \texttt{413}. Los conflictos distinguen revisión obsoleta y contador agotado. La corrupción persistida se informa como error interno sin exponer detalles.
+
+La migración del directorio (\cref{tab:anexo-migraciones}) incorpora un directorio vacío a expedientes existentes; no convierte asignaciones de usuarios en participantes. PostgreSQL exige revisión inicial activa, secuencia contigua, canon y huella válidos, referencias al expediente y actor, y una relación diferida que impide confirmar una raíz sin revisión uno. El rol operativo puede leer e insertar, pero no actualizar, eliminar, truncar ni poseer los objetos protegidos. El arranque comprueba esquema, privilegios e inventario. Las funciones resuelven sus referencias en el esquema de instalación, también durante restauración con \texttt{search\_path} vacío. El respaldo conserva raíces, revisiones, procedencia y auditoría junto con documentos y evidencia. Estas medidas no detectan por sí solas una restauración administrativa antigua y coherente.
+
+\subsubsection{Límites de la representación jurídica}\label{sec:impl-participantes-limites}
+
+El rol de una ficha pendiente es una descripción manual, no una regla de autorización, y ninguna familia de fichas cambia los permisos de las cuentas. El artículo 105 del CNPP distingue sujetos del procedimiento y quienes tienen calidad de parte \cite{cnpp_consolidado2025}. Los perfiles tipificados (\cref{sec:impl-participantes-tipificados}) agregan datos específicos y controles internos de duplicidad, y la declaración interna (\cref{sec:impl-declaracion-participante}) comprueba una firma real, pero ninguno verifica identidad civil, nombramiento, cédula ni representación ante tribunales. Los artículos 6 y 7 del acuerdo FIREL del OAJ de 2026 regulan firma en su sistema electrónico y reconocimiento procesal para actuar por otra persona \cite{oaj_firel2026}; poseer un certificado no sustituye ese reconocimiento y la firma interna no acredita FIREL. La separación técnica entre directorio, acceso y firma conserva esa distinción.
+
+El acuerdo de expediente electrónico AG-POAJ-006/2026 abroga el Acuerdo General 12/2020 \cite{oaj_expediente2026}. El acuerdo FIREL AG-POAJ-016/2026 deroga las disposiciones de emisión, administración, renovación, revocación y uso del acuerdo conjunto 1/2013 en el ámbito de competencia del OAJ, sin declarar la abrogación íntegra de ese antecedente \cite{oaj_firel2026}. Estas fuentes describen los procedimientos judiciales a los que se refieren; no convierten el registro interno de una ficha en una actuación judicial.
+
+El caso de uso del directorio permanece parcial respecto de los criterios jurídicos: datos por tipo, identidad estable local, revisión de coincidencias y firma interna no equivalen a identidad civil comprobada, FIREL o representación acreditada, y el directorio no completa por sí solo esos criterios. El estado abierto del expediente es administrativo, no una certificación de condición procesal. Estas limitaciones se mantienen en la aceptación del producto, cuyo alcance se conserva en \rutarepo{docs/product-completion.md}; las políticas de datos personales, retención e interoperabilidad judicial requieren validación propia.
+
+\input{chapters/04-participantes-tipificados}

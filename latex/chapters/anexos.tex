@@ -1,42 +1,239 @@
-\chapter{Diagramas detallados de arquitectura}\label{anexo:A}
+\chapter{Catálogo de formatos canónicos y migraciones}\label{anexo:A}
 
-Este anexo detalla las fronteras de confianza y la distribuci\'on de puertos y
-adaptadores de la implementaci\'on. Las figuras complementan las vistas del
-Cap\'itulo 3 y separan el equipo del titular, la aplicaci\'on y sus servicios.
+Este anexo es un catálogo de referencia de las codificaciones binarias canónicas que el prototipo resume con SHA-256 o somete a firma, y de las familias de migraciones PostgreSQL que forman su esquema durable. El \cref{cap:implementacion} explica el diseño de cada dominio y el papel de sus huellas, recibos y capturas; aquí se enumeran los identificadores exactos y el archivo de código que define cada uno, de modo que un formato pueda localizarse sin recorrer la descripción funcional. Las rutas son relativas a la raíz del repositorio, omiten números de línea y señalan el codificador de producción, no sus pruebas.
 
-\section{Vista detallada de Fronteras de Confianza}\label{sec:fronteras-confianza}
+\section{Convenciones de codificación canónica}\label{sec:anexo-canones-convenciones}
 
-El navegador accede a Qadra mediante HTTPS. La API autentica con sesiones
-opacas revocables almacenadas en Redis y aplica permisos por rol y expediente.
-La aplicaci\'on conserva las operaciones y su auditor\'ia en PostgreSQL mediante
-los adaptadores \texttt{postgres}/\texttt{tokio-postgres}; los archivos se
-protegen con cifrado autenticado. La clave privada que el titular selecciona
-para firmar localmente permanece en su equipo y se procesa en un worker
-Rust/WASM. La CA tiene portal, proceso y acceso administrativo separados.
-La TSA local y el proveedor de correo cumplen funciones acotadas; ninguno
-convierte la confianza interna del prototipo en acreditaci\'on de identidad civil.
+Un canon es la secuencia de bytes que el servidor construye a partir de valores ya validados, nunca a partir del JSON recibido. Por lo general, su huella SHA-256 se conserva junto a los bytes y, según el papel del canon, fija los valores declarados de una revisión, el recibo de una operación ---actor, operación, revisión esperada y huellas de los valores---, la revisión preparada que el usuario confirma o la captura que vincula esa revisión con el instante de confirmación. En la mayoría de las familias el nombre refleja esa división: sin el sufijo de versión, el prefijo termina en \texttt{TX} o \texttt{TXN} en los recibos, en \texttt{PR} en las revisiones preparadas y en \texttt{CR}, \texttt{CP} o \texttt{GR} en las capturas individuales o de grupo.
 
-\begin{figure}[H]
-  \centering
-  \input{figures/trust-boundaries-current}
-  \caption{Fronteras de confianza, sesiones opacas y persistencia de la implementaci\'on.}
-  \label{fig:fronteras-confianza}
-\end{figure}
+Las familias comparten un repertorio común de convenciones. Todo canon comienza con un prefijo ASCII corto cuyo sufijo numérico es la versión del formato, como \texttt{HEAR1}, \texttt{DLTX2} o \texttt{AUDCTX01}; \texttt{PCRED1} se completa con dos bytes nulos hasta ocho. Los UUID ocupan sus 16 bytes crudos y las huellas SHA-256 sus 32 bytes. Los enteros tienen ancho fijo y orden de red (\emph{big-endian}): un byte para etiquetas y estados, u32 para revisiones de registros y versiones documentales, u64 para la revisión de cuenta y la generación de autenticación e i32 para desfases. Los instantes con nanosegundos siguen dos formas según la familia: i64 de segundos Unix seguido de u32 de nanosegundos, como en \texttt{CSTG1}, \texttt{PCTX1}, \texttt{RACP1}, \texttt{DRES1} o \texttt{DINC1}, o un único i128 de nanosegundos Unix en los recibos y capturas de recursos procesales, \texttt{HRDC1}, la evidencia de los estados de plazo y los informes. Los textos, en UTF-8, y los bloques anidados se preceden de su longitud en bytes: u32 en la mayoría de las familias y u64 en otras, como \texttt{HRDL1}, el recibo V2 de plazos (\texttt{DLTX2}), los recibos y fuentes de recursos procesales y los informes. Las colecciones se preceden de su cardinalidad y se escriben en un orden canónico: las etiquetas de \texttt{DMETA1} se ordenan, mientras que los delitos de \texttt{CADM1} conservan el orden declarado.
 
-\section{Arquitectura hexagonal con puertos y adaptadores}\label{sec:hexagonal-completa}
+La ausencia nunca se confunde con un valor vacío. Un campo opcional lleva un byte de presencia ---0 ausente, 1 presente seguido del valor---, de modo que un UUID nulo o una dirección no especificada que estén presentes no equivalen a su ausencia; \texttt{AUDCTX01} etiqueta además la dirección IP con 0, 4 o 6 según falte o sea IPv4 o IPv6. El desconocimiento motivado es una posibilidad distinta, con etiqueta propia y una razón textual. La polaridad de esa etiqueta pertenece a cada familia: el auxiliar genérico de \texttt{SUBJ1} y \texttt{PART2} y el nombre representado codifican 0 para lo conocido y 1 para lo desconocido; el contacto y la protección de la víctima en \texttt{PART2} usan una etiqueta de tres valores ---0 desconocido, 1 sin contacto registrado o sin protección declarada y 2 documentado---, y los hechos procesales usan 0 para lo desconocido y 1 para lo conocido. Por ello cada decodificador es específico de su prefijo. En los hechos procesales, los tiempos declarados conservan su precisión mediante una etiqueta ---desconocida, fecha, minuto o segundo--- y un desfase opcional, sin completar componentes ausentes.
 
-Los transportes HTTP y CLI invocan los casos de uso; los binarios componen sus
-dependencias concretas. Los traits de persistencia y de flujo residen en
-\texttt{application}, mientras que \texttt{domain} define reglas y puertos
-criptogr\'aficos y de auditor\'ia. \texttt{infrastructure} implementa los
-adaptadores contra esas interfaces. La figura muestra ejemplos representativos,
-sin equiparar cada handler de entrada con un trait ni suponer un transporte
-WebSocket. Las flechas continuas muestran invocaci\'on o dependencia hacia el
-interior; las discontinuas indican implementaci\'on de puertos.
+Cada formato tiene límites de tamaño y de cardinalidad que el decodificador aplica antes de interpretar los campos. \texttt{HEAR1} admite entre 27 y 10\,726 bytes y \texttt{SUBJ1} entre 7 y 5\,676; \texttt{DINP1}, entre 36 y 8\,881; y \texttt{DPRF1}, cuyo corpus de ejemplos es el más extenso, hasta 3\,261\,697 bytes como suma conservadora de sus campos. Las declaraciones vinculadas a certificados personales tienen longitud fija: 218 bytes \texttt{PCRED1}, 142 \texttt{DOCBIND1}, 258 \texttt{DOCSIGN1}, 150 \texttt{OWNCERT1} y 182 \texttt{OWNAUTH1}. La extensión \texttt{AUDCTX01} ocupa entre 12 y 60 bytes. Un grupo de decisión cautelar admite como máximo 32 medidas afectadas y una revisión de candidatos \texttt{PREV1}, 16 decisiones.
 
-\begin{figure}[H]
-  \centering
-  \input{figures/ports-adapters-current}
-  \caption{Distribuci\'on de puertos entre application y domain, con adaptadores externos.}
-  \label{fig:hexagonal-completa}
-\end{figure}
+El prefijo separa dominios: los mismos campos resumidos bajo prefijos distintos producen huellas distintas, y la huella de unos valores no puede presentarse como recibo o captura de otra familia. Las declaraciones de cuenta de longitud fija (\texttt{DOCBIND1}, \texttt{DOCSIGN1}, \texttt{OWNCERT1} y \texttt{OWNAUTH1}) añaden, tras el prefijo, un byte de propósito y otro de versión ---por ejemplo, registro 1 y retiro 2 en \texttt{OWNCERT1}---, por lo que un registro de certificado no sirve como desafío de acceso ni como consentimiento documental; \texttt{PCRED1} no lleva esos bytes y se distingue sólo por su prefijo completado. Un cambio de formato introduce un sufijo nuevo y conserva el anterior: \texttt{DLRV1} y \texttt{DLST1} siguen describiendo los plazos V1 cuando \texttt{DLRV2} y \texttt{DLST2} añaden el seguimiento V2, y \texttt{MDPR2}, \texttt{MMCR2} y \texttt{MDGR2} coexisten con sus antecesores. Los cánones compuestos incorporan otros completos, precedidos de su longitud, o su huella: \texttt{MDPR1} contiene los bytes íntegros de \texttt{MDTXN1} y su huella, y \texttt{MCVAL1} contiene un \texttt{MVAL1} en su formato original (\rutarepo{docs/adr/0071-declared-precautionary-hearings-and-measures.md}).
+
+PostgreSQL no depende de la huella calculada por la aplicación. Las tablas de revisiones guardan los bytes canónicos junto a su huella con restricciones \texttt{CHECK} que la recalculan con \texttt{sha256}, como en \rutarepo{migrations/0011_hearings.sql}, y para cuarenta prefijos las migraciones comprueban además el prefijo y, en varias familias, decodifican la estructura con independencia del código Rust; \rutarepo{migrations/0011_hearings_values.sql} lo hace para \texttt{HEAR1}. En el código, \rutarepo{crates/domain/src/procedural_facts/encoding.rs} reúne los auxiliares representativos ---texto con longitud u32, byte de presencia, declaración conocida o desconocida y tiempo declarado con precisión---; \rutarepo{crates/domain/src/audit/context.rs} documenta la extensión \texttt{AUDCTX01}, que se anexa a la codificación heredada del evento de auditoría sin alterar los bytes ni los hashes de los eventos sin contexto; y \rutarepo{crates/application/src/case_reports/canonical.rs} define el codificador de informes, con longitudes u64, enteros de ancho fijo y etiqueta obligatoria para cada opcional.
+
+No todos los identificadores del catálogo encabezan un canon resumido. \texttt{DVLT1} es el contenedor del vault: tras el prefijo lleva la longitud u32 de la clave de datos envuelta, esa clave sellada con la KEK y el documento sellado con cifrado autenticado. La AAD de ese documento ---UUID y versión u32, sin prefijo--- la define \texttt{document\_aad} en \rutarepo{crates/domain/src/crypto/cipher.rs}; el contenedor no fija valores declarados, sino que protege confidencialidad e integridad mediante la etiqueta de autenticación. \texttt{GADM1}, \texttt{DFMT1}, \texttt{DFMR1} y \texttt{TTRP1} delimitan los mensajes entre el servidor y sus procesos aislados de admisión general, validación de formatos PDF/DOCX y representación de informes; estos marcos sólo existen durante el intercambio y no se persisten. Por último, los separadores textuales \texttt{identity-totp-v1}, \texttt{qadra:*} y \texttt{tt-case-report-envelope-v1} no encabezan una estructura propia, sino que anteponen un contexto ASCII a los bytes de una huella o de una AAD. \texttt{identity-totp-v1}, seguido del UUID del usuario, es la AAD con que se sella el secreto TOTP, que no tiene un canon propio; los separadores \texttt{qadra:*} distinguen huellas de tokens e intenciones de invitación y recuperación, claves de límites de solicitudes y la AAD de los secretos de invitación, y \texttt{tt-case-report-envelope-v1} es la AAD de los sobres de informes. Los separadores \texttt{qadra:*} y \texttt{tt-case-report-envelope-v1} terminan en un byte nulo que el catálogo omite. Los dominios \texttt{tt.case-report.*}, en cambio, se escriben precedidos de su longitud u64 y seguidos de la versión 1 del formato, también en u64, y encabezan las codificaciones de solicitud y de instantánea que el codificador de \rutarepo{crates/application/src/case_reports/canonical.rs} construye y que se resumen con SHA-256.
+
+\section{Catálogo de prefijos}\label{sec:anexo-canones-catalogo}
+
+La \cref{tab:anexo-canones} reúne los 82 prefijos binarios presentes en el código de producción ---76 codificaciones canónicas resumidas o firmadas, la representación reversible \texttt{DINP1}, el contenedor \texttt{DVLT1} y cuatro marcos entre procesos--- junto con los separadores textuales de dominio. Se agrupan por dominio y remiten a la sección del \cref{cap:implementacion} que describe su uso. La columna de definición indica el archivo que construye los bytes; varias familias tienen además un decodificador estricto en el crate \texttt{infrastructure} que reconstruye los valores históricos desde los bytes almacenados.
+
+\begingroup
+\renewcommand{\_}{\textunderscore\allowbreak}
+\newcommand*{\sepdominio}[1]{{\def\UrlBreaks{\do\:\do\-\do\.}\path{#1}}}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}L{0.17\linewidth}L{0.43\linewidth}L{0.34\linewidth}@{}}
+  \caption[Catálogo de prefijos canónicos, marcos y separadores de dominio]{Catálogo de prefijos canónicos, contenedores, marcos entre procesos y separadores textuales de dominio, agrupados por dominio.}
+  \label{tab:anexo-canones} \\
+  \toprule
+  \textbf{Prefijo} & \textbf{Objeto que fija} & \textbf{Definición} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Prefijo} & \textbf{Objeto que fija} & \textbf{Definición} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{3}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  \multicolumn{3}{@{}l@{}}{\textbf{Identidad} (\cref{sec:impl-identidad})} \\
+  \midrule
+  \texttt{OWNCERT1} & Declaración de 150 bytes que registra (propósito 1, firmada con el certificado) o retira (propósito 2) el vínculo entre un certificado y la cuenta Owner. & \rutarepo{crates/domain/src/owner_certificates.rs} \\
+  \texttt{OWNAUTH1} & Desafío de 182 bytes del primer factor por certificado del Owner, con nonce de 32 bytes y ventana de validez, previo al MFA obligatorio. & \rutarepo{crates/domain/src/owner_certificate_login.rs} \\
+  \sepdominio{identity-totp-v1} & AAD del secreto TOTP sellado en reposo, seguida del UUID del usuario. & \rutarepo{crates/infrastructure/src/identity/secret.rs} \\
+  \sepdominio{qadra:invitation:v1} & Contexto de la huella del token de invitación. & \rutarepo{crates/application/src/identity/invitations/service.rs} \\
+  \sepdominio{qadra:invitation:prepare:v1} & Contexto de la huella de la intención de preparar el enrolamiento: token, operación y contraseña. & \rutarepo{crates/application/src/identity/invitations/service/pending.rs} \\
+  \sepdominio{qadra:invitation:finish:v1} & Contexto de la huella de la intención de finalizarlo: token, operación, contraseña y código MFA. & \rutarepo{crates/application/src/identity/invitations/service/recipient.rs} \\
+  \sepdominio{qadra:invitation-protection:v1} & AAD del secreto de invitación protegido, con propósito (entrega o MFA pendiente), UUID y revisión. & \rutarepo{crates/infrastructure/src/identity/invitation_secret.rs} \\
+  \sepdominio{qadra:password-reset:v1} & Contexto de la huella del token de recuperación de contraseña. & \rutarepo{crates/application/src/identity/password_reset/service.rs} \\
+  \sepdominio{qadra:password-reset-request-limit:v1}, \sepdominio{qadra:password-reset-completion-limit:v1} & Contextos de las huellas que forman las claves Redis de los límites de solicitud, por correo normalizado, y de finalización, por huella del token. & \rutarepo{crates/infrastructure/src/identity/password_reset_runtime/limiter.rs} \\
+  \sepdominio{qadra:owner-certificate-login-start-limit:v1}, \sepdominio{qadra:owner-certificate-login-proof-limit:v1} & Contextos de las claves Redis de los límites de inicio, por Owner y vínculo, y de prueba, por token, del acceso por certificado. & \rutarepo{crates/infrastructure/src/identity/owner_login_runtime/limiter.rs} \\
+  \midrule
+  \multicolumn{3}{@{}l@{}}{\textbf{Expedientes y participantes} (\cref{sec:impl-expedientes})} \\
+  \midrule
+  \texttt{CADM1} & Valores administrativos del expediente: estado, título, referencia y perfil penal opcional con NUC, carpeta judicial, autoridades, delitos en el orden declarado, información general e identificadores complementarios. & \rutarepo{crates/domain/src/case_administration/values.rs} \\
+  \texttt{PART1} & Valores del directorio manual: nombre, rol procesal, organización y situación jurídica opcionales y estado del directorio. & \rutarepo{crates/domain/src/participants/values.rs} \\
+  \texttt{SUBJ1} & Identidad representada, persona física o institución, con identificadores declarados o desconocidos y soporte documental exacto, sin actor ni tiempo. & \rutarepo{crates/domain/src/typed_participants/canonical.rs} \\
+  \texttt{PART2} & Participante tipificado ligado a una revisión exacta de su identidad, con los campos propios de cada uno de los once perfiles. & \rutarepo{crates/domain/src/typed_participants/canonical.rs} \\
+  \texttt{PREV1} & Decisiones del personal sobre identidades candidatas, con la huella del directorio y hasta 16 decisiones ordenadas. & \rutarepo{crates/application/src/typed_participants/canonical.rs} \\
+  \texttt{DIRST1} & Semilla de la huella del directorio del expediente, plegada en memoria constante sobre sus cabezas ordenadas. & \rutarepo{crates/application/src/typed_participants/canonical.rs} \\
+  \texttt{PCRED1} & Declaración personal de 218 bytes, con el prefijo completado por dos bytes nulos, que el participante firma externamente. & \rutarepo{crates/application/src/typed_participants/canonical.rs} \\
+  \texttt{PTXN1} & Recibo de preparación y confirmación de un participante tipificado, con huellas de identidad, participante y revisión de candidatos y prueba de firma opcional. & \rutarepo{crates/application/src/typed_participants/canonical.rs} \\
+  \midrule
+  \multicolumn{3}{@{}l@{}}{\textbf{Documentos y firma} (\cref{sec:impl-documentos})} \\
+  \midrule
+  \texttt{DMETA1} & Revisión de clasificación documental: tipo y clasificación opcionales y etiquetas ordenadas. & \rutarepo{crates/domain/src/document_metadata.rs} \\
+  \texttt{DICS1} & Huella de la instantánea observada de una versión documental cuyo contenido no superó la validación de integridad. & \rutarepo{crates/infrastructure/src/document_postgres/integrity_codec.rs} \\
+  \texttt{DINC1} & Captura del incidente de integridad registrado. & \rutarepo{crates/infrastructure/src/document_postgres/integrity_codec.rs} \\
+  \texttt{DOCBIND1} & Declaración de 142 bytes que vincula un certificado de firma con la cuenta Litigator activa: despliegue, raíz, confianza, revisión, generación y huella del certificado. & \rutarepo{crates/domain/src/document_signing.rs} \\
+  \texttt{DOCSIGN1} & Consentimiento de 258 bytes para firmar una versión documental exacta, con las huellas del contenido y de la firma PDF. & \rutarepo{crates/domain/src/document_signing/consent.rs} \\
+  \midrule
+  \multicolumn{3}{@{}l@{}}{\textbf{Etapas} (\cref{sec:impl-http-etapas})} \\
+  \midrule
+  \texttt{CSTG1} & Valores declarados de una adopción o transición de etapa ---tiempos, desfases y soportes exactos---, sin contexto ni procedencia capturada. & \rutarepo{crates/domain/src/case_stages/canonical.rs} \\
+  \midrule
+  \multicolumn{3}{@{}l@{}}{\textbf{Audiencias y medidas cautelares} (\cref{sec:impl-audiencias,sec:impl-cautelares})} \\
+  \midrule
+  \texttt{HEAR1} & Valores de la programación ordinaria: tipo, instante con desfase, modalidad, sede, nota, participantes exactos y base de condena opcional. & \rutarepo{crates/domain/src/hearings/canonical.rs} \\
+  \texttt{HTXN1} & Recibo de programar, reprogramar o cancelar, con actor, expediente, contexto esperado y huella de los valores. & \rutarepo{crates/application/src/hearings/canonical.rs} \\
+  \texttt{HRES1} & Valores de una sesión o resultado declarado: ocurrencia, alcance, tiempo, asistentes, acuerdos y procedencia. & \rutarepo{crates/domain/src/hearing_results/canonical.rs} \\
+  \texttt{HRTX1} & Recibo de registrar, corregir o retirar un resultado, con su ancla exacta y continuación opcional. & \rutarepo{crates/application/src/hearing_results/canonical.rs} \\
+  \texttt{PHEAR1} & Valores de una convocatoria cautelar de imposición o revisión, con objetivos y soporte declarado. & \rutarepo{crates/domain/src/precautionary_hearings/canonical.rs} \\
+  \texttt{PCTX1} & Contexto administrativo y de etapa observado en que se apoyan las actuaciones cautelares. & \rutarepo{crates/application/src/precautionary_hearings/context_encoding.rs} \\
+  \texttt{PHTXN1} & Instrucción de programar, reprogramar o cancelar una convocatoria cautelar. & \rutarepo{crates/application/src/precautionary_hearings/submission.rs} \\
+  \texttt{PHPR1} & Revisión preparada de la convocatoria: instrucción, contextos, fuentes y proyecciones de participantes. & \rutarepo{crates/application/src/precautionary_hearings/capture_encoding.rs} \\
+  \texttt{PHCR1} & Captura que vincula esa revisión con el reloj UTC de confirmación. & \rutarepo{crates/application/src/precautionary_hearings/capture_encoding.rs} \\
+  \texttt{MVAL1} & Vigencia declarada de una medida: inicio con su precisión, enunciado de vigencia y presencia y valor del término opcional. & \rutarepo{crates/domain/src/precautionary_measures/canonical.rs} \\
+  \texttt{MEAS1} & Valores de una medida: sujeto exacto, clase, condiciones, vigencia y supervisión. & \rutarepo{crates/domain/src/precautionary_measures/declaration_encoding.rs} \\
+  \texttt{MDVAL1} & Valores de la decisión declarada: autoridad, tiempo, justificación, soporte y localizador. & \rutarepo{crates/domain/src/precautionary_measures/declaration_encoding.rs} \\
+  \texttt{MEFX1} & Efectos de la decisión sobre las medidas: etiqueta, predecesor exacto y medida propuesta completa. & \rutarepo{crates/domain/src/precautionary_measures/effect_encoding.rs} \\
+  \texttt{MCVAL1} & Valores admitidos por una corrección administrativa: condiciones, vigencia y texto de supervisión. & \rutarepo{crates/domain/src/precautionary_measures/correction.rs} \\
+  \texttt{MDTXN1} & Instrucción de una decisión sobre medidas, con actor, contexto, valores, ancla y efectos. & \rutarepo{crates/application/src/precautionary_measures/decision_encoding.rs} \\
+  \texttt{MDPR1} & Revisión preparada de la decisión, con la instrucción íntegra, predecesores y resultados. & \rutarepo{crates/application/src/precautionary_measures/decision_encoding.rs} \\
+  \texttt{MDCR1} & Captura de la decisión fáctica con contexto, valores, soporte, ancla e instante. & \rutarepo{crates/application/src/precautionary_measures/decision_encoding.rs} \\
+  \texttt{MMCR1} & Captura de cada medida resultante de la decisión. & \rutarepo{crates/application/src/precautionary_measures/decision_encoding.rs} \\
+  \texttt{MDGR1} & Captura de grupo: revisión, decisión, medidas y sustituciones. & \rutarepo{crates/application/src/precautionary_measures/decision_encoding.rs} \\
+  \texttt{MDPR2}, \texttt{MMCR2}, \texttt{MDGR2} & Variantes V2 de la revisión, la captura por medida y la captura de grupo, con predecesores etiquetados por familia y raíz separada. & \rutarepo{crates/application/src/precautionary_measures/record_decision_encoding.rs} \\
+  \texttt{MHIA1} & Material del ancla en una audiencia inicial ordinaria: instantánea, recibo, contexto, actor y participantes. & \rutarepo{crates/application/src/precautionary_measures/anchor_encoding.rs} \\
+  \texttt{MATXN1} & Instrucción administrativa de corregir, marcar como registrada por error o reemplazar con identidad nueva un registro de medida. & \rutarepo{crates/application/src/measure_corrections/encoding.rs} \\
+  \texttt{MAPR1} & Revisión administrativa preparada. & \rutarepo{crates/application/src/measure_corrections/encoding.rs} \\
+  \texttt{MARCR1} & Captura de cada fila resultante de la acción administrativa. & \rutarepo{crates/application/src/measure_corrections/encoding.rs} \\
+  \texttt{MAGR1} & Captura de grupo administrativa: revisión, filas propias e instante. & \rutarepo{crates/application/src/measure_corrections/encoding.rs} \\
+  \midrule
+  \multicolumn{3}{@{}l@{}}{\textbf{Plazos y calendarios} (\cref{sec:impl-plazos})} \\
+  \midrule
+  \texttt{JCAL1} & Revisión de calendario jurisdiccional: alcance, cobertura, referencias públicas, reglas semanales y excepciones, sin metadatos de publicación. & \rutarepo{crates/domain/src/judicial_calendars/canonical.rs} \\
+  \texttt{JCTX1} & Recibo de publicar, reemplazar o retirar un calendario. & \rutarepo{crates/application/src/judicial_calendars/canonical.rs} \\
+  \texttt{PFRES1} & Resolución judicial declarada: clase, subtipo, emisor, tiempo, resumen y procedencia. & \rutarepo{crates/domain/src/procedural_facts/canonical.rs} \\
+  \texttt{PFNOT1} & Notificación declarada de una resolución exacta: carácter, medio, resultado, tiempos, personas y efecto declarado. & \rutarepo{crates/domain/src/procedural_facts/canonical.rs} \\
+  \texttt{PFSRC1} & Conjunto acotado y ordenado de fuentes exactas ---resolución, participantes, resultados de audiencia y soportes--- con sus vistas legibles. & \rutarepo{crates/application/src/procedural_facts/source_canonical.rs} \\
+  \texttt{PFTXN1} & Recibo de registrar, corregir o retirar un hecho procesal. & \rutarepo{crates/application/src/procedural_facts/submission.rs} \\
+  \texttt{DINP1} & Representación reversible y acotada de la solicitud de entrada de un plazo: selección del desencadenante, requisito, regla aritmética y calendario. El servidor no la resume ni la persiste; \texttt{DEVI1}, \texttt{DRES1} y \texttt{DPRF1} reutilizan sus escritores y lectores, y los estados de plazo, su escritor de tiempo declarado. & \rutarepo{crates/application/src/deadline_inputs/encoding/mod.rs} \\
+  \texttt{DPRF1} & Definición reversible de un perfil de plazo con su corpus de ejemplos reproducibles. & \rutarepo{crates/application/src/deadline_profiles/encoding/mod.rs} \\
+  \texttt{DPTX1} & Recibo de publicar, reemplazar o retirar un perfil. & \rutarepo{crates/application/src/deadline_profiles/canonical.rs} \\
+  \texttt{DEVI1} & Entrada estricta de evaluación: operandos declarados y aplicabilidad, previos a cualquier decisión del perfil. & \rutarepo{crates/application/src/deadline_evaluations/input_canonical.rs} \\
+  \texttt{DRES1} & Registro histórico inmutable del resultado de una evaluación y sus trazas. & \rutarepo{crates/application/src/deadline_evaluations/record/write.rs} \\
+  \texttt{DLRV1}, \texttt{DLRV2} & Estado revisado de un plazo; el sufijo 2 añade el seguimiento V2. & \rutarepo{crates/application/src/deadlines/canonical.rs} \\
+  \texttt{DLST1}, \texttt{DLST2} & Estado revisado junto con la administración observada en la captura; el sufijo 2 añade el seguimiento V2. & \rutarepo{crates/application/src/deadlines/canonical.rs} \\
+  \texttt{DLTX1} & Recibo de una operación humana V1 sobre un plazo. & \rutarepo{crates/application/src/deadlines/canonical.rs} \\
+  \texttt{DLTX2} & Recibo V2, de autor humano o técnico, con observaciones, predecesor y causa técnica opcional. & \rutarepo{crates/application/src/deadline_reevaluation/submission.rs} \\
+  \texttt{DLOB1} & Manifiesto de las cabezas de dependencias observadas. & \rutarepo{crates/application/src/deadline_reevaluation/observations.rs} \\
+  \texttt{DLOE1} & Evidencia de cada observación ---resolución, notificación, resultado de audiencia, calendario o perfil--- resumida en el manifiesto. & \rutarepo{crates/application/src/deadline_observations/entries.rs} \\
+  \texttt{HRDL1} & Revisión prospectiva del registro conjunto de un resultado de audiencia y su plazo derivado. & \rutarepo{crates/application/src/hearing_derived_deadlines/canonical.rs} \\
+  \texttt{HRDC1} & Captura que vincula esa revisión con los recibos reales del resultado y del plazo, el evento fuente y el instante. & \rutarepo{crates/application/src/hearing_derived_deadlines/capture.rs} \\
+  \midrule
+  \multicolumn{3}{@{}l@{}}{\textbf{Recursos procesales} (\cref{sec:impl-recursos})} \\
+  \midrule
+  \texttt{PRSC1} & Valores declarados de un recurso procesal y sus selecciones. & \rutarepo{crates/domain/src/procedural_resources/canonical.rs} \\
+  \texttt{PRAC1} & Acto declarado dentro de un recurso; registrarlo no cambia su estado organizativo. & \rutarepo{crates/domain/src/procedural_resources/canonical.rs} \\
+  \texttt{PRSS1} & Fuentes del recurso, compuestas con componentes \texttt{PFSRC1} acotados. & \rutarepo{crates/application/src/procedural_resources/canonical.rs} \\
+  \texttt{PRTX1} & Recibo con el contenido revisado, el correo del actor, las observaciones, el recibo anterior y el acto. & \rutarepo{crates/application/src/procedural_resources/canonical.rs} \\
+  \texttt{PRCP1} & Captura del instante de confirmación ligado al recibo completo. & \rutarepo{crates/application/src/procedural_resources/canonical.rs} \\
+  \texttt{RASL1} & Selección exacta de una asociación entre recurso, acto opcional y actividad destino. & \rutarepo{crates/domain/src/resource_activities/mod.rs} \\
+  \texttt{RATX1} & Recibo de la asociación. & \rutarepo{crates/application/src/resource_activities/canonical.rs} \\
+  \texttt{RACP1} & Captura de la asociación confirmada. & \rutarepo{crates/application/src/resource_activities/canonical.rs} \\
+  \texttt{RHEAR1} & Valores de la audiencia propia de un recurso, familia separada de \texttt{HEAR1}. & \rutarepo{crates/domain/src/resource_hearings/canonical.rs} \\
+  \texttt{RHPR1} & Revisión preparada de esa programación, independiente del almacenamiento JSON y del instante de confirmación. & \rutarepo{crates/application/src/resource_hearings/canonical.rs} \\
+  \texttt{RHCR1} & Captura que vincula la revisión preparada con la revisión resultante, el instante y la procedencia de los participantes. & \rutarepo{crates/application/src/resource_hearings/receipt.rs} \\
+  \texttt{RDLTX1} & Recibo compuesto de la creación contextual de un plazo en un recurso: huellas de los recibos del plazo y de la asociación. & \rutarepo{crates/application/src/resource_deadlines/receipt.rs} \\
+  \midrule
+  \multicolumn{3}{@{}l@{}}{\textbf{Supervisión y auditoría} (\cref{sec:impl-supervision})} \\
+  \midrule
+  \texttt{AUDCTX01} & Extensión opcional del evento de auditoría ---usuario, dirección IP, origen e identificador de solicitud--- anexada a la codificación heredada que se encadena. & \rutarepo{crates/domain/src/audit/context.rs} \\
+  \sepdominio{tt.case-report.request}, \sepdominio{tt.case-report.activity.request} & Dominios, con longitud u64 y versión 1, que encabezan la codificación resumida de la solicitud de un informe de estado de expedientes o de actividad de litigantes. & \rutarepo{crates/application/src/case_reports/validation.rs} \\
+  \sepdominio{tt.case-report.snapshot}, \sepdominio{tt.case-report.activity.snapshot} & Dominios que encabezan del mismo modo la codificación resumida de las instantáneas correspondientes. & \rutarepo{crates/application/src/case_reports/validation.rs} \\
+  \sepdominio{tt-case-report-envelope-v1} & AAD de los sobres de instantáneas y artefactos PDF o CSV, con UUID del informe, etiqueta de contenido y huella del texto claro. & \rutarepo{crates/infrastructure/src/case_report_protection.rs} \\
+  \midrule
+  \multicolumn{3}{@{}l@{}}{\textbf{Contenedores y comunicación entre procesos}} \\
+  \midrule
+  \texttt{DVLT1} & Contenedor del vault: longitud u32 y clave de datos envuelta, seguidas del documento sellado. & \rutarepo{crates/application/src/vault.rs} \\
+  \texttt{GADM1} & Respuesta de siete bytes del trabajador aislado de admisión general de cargas. & \rutarepo{crates/infrastructure/src/document_admission/worker.rs} \\
+  \texttt{DFMT1} & Solicitud al trabajador aislado que valida soportes PDF, mediante qpdf, y DOCX. & \rutarepo{crates/infrastructure/src/document_formats/worker.rs} \\
+  \texttt{DFMR1} & Respuesta de ese trabajador. & \rutarepo{crates/infrastructure/src/document_formats/worker.rs} \\
+  \texttt{TTRP1} & Respuesta del proceso aislado que representa informes: encabezado de 95 bytes seguido del artefacto. & \rutarepo{crates/infrastructure/src/case_report_isolation/protocol.rs} \\
+\end{longtable}
+\endgroup
+
+\section{Familias de migraciones}\label{sec:anexo-migraciones}
+
+El directorio \rutarepo{migrations/} contiene 141 archivos SQL numerados de 0001 a 0048; un mismo número agrupa los archivos de una familia que se instala en conjunto. Todos se incorporan al ejecutable y se aplican en el orden que fija \rutarepo{crates/infrastructure/src/postgres.rs} a partir de las listas de cada módulo de esquema, como \rutarepo{crates/infrastructure/src/postgres/migrations.rs}, dentro de una sola transacción serializada por esquema mediante un bloqueo consultivo transaccional (\rutarepo{docs/adr/0048-schema-scoped-migration-lock.md}). Su redacción es repetible ---\texttt{IF NOT EXISTS}, \texttt{CREATE OR REPLACE} y comprobaciones previas en bloques \texttt{DO}---, por lo que la migración puede ejecutarse de nuevo sobre una base ya preparada.
+
+{\emergencystretch=3em El esquema se prepara explícitamente con \texttt{database migrate -{}-runtime-role} y una \texttt{DATABASE\_URL} administrativa. El comando exige que el rol operativo exista y no crea usuarios PostgreSQL; en una transacción posterior le concede sólo los privilegios que cada familia necesita ---por ejemplo, lectura, inserción, actualización de columnas concretas y ejecución de funciones de comprobación--- y después los valida. \texttt{serve} se conecta con ese rol restringido y comprueba esquema, privilegios e inventario sin ejecutar DDL. La base debe usar codificación UTF-8 y, para actualizar una base existente, se detienen los escritores y se conserva un respaldo antes de migrar. El procedimiento, la recuperación y la restauración se describen en \rutarepo{docs/database-operations.md} y en la \cref{sec:impl-http-migracion}. La \cref{tab:anexo-migraciones} resume el propósito de cada número; entre paréntesis se indica la cantidad de archivos cuando la familia tiene más de uno.\par}
+
+\begingroup
+\renewcommand{\_}{\textunderscore\allowbreak}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}C{0.06\linewidth}L{0.29\linewidth}L{0.59\linewidth}@{}}
+  \caption[Familias de migraciones PostgreSQL]{Familias de migraciones PostgreSQL por número, con su raíz de nombre y su propósito.}
+  \label{tab:anexo-migraciones} \\
+  \toprule
+  \textbf{Núm.} & \textbf{Archivos} & \textbf{Propósito} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Núm.} & \textbf{Archivos} & \textbf{Propósito} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{3}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  0001 & \texttt{identity} & Usuarios con correo único, rol, estado, hash de contraseña, secreto TOTP protegido, códigos de recuperación y revisión. \\
+  0002 & \texttt{cases} & Expedientes y asignaciones de pertenencia. \\
+  0003 & \texttt{case\_documents\_audit} & Documentos cifrados por expediente, cadena de auditoría compartida, recibos de importación y disparador que preserva la evidencia. \\
+  0004 & \texttt{document\_versions} & Raíces documentales inmutables (\texttt{document\_series}) y versiones identificadas por UUID y número. \\
+  0005 & \texttt{document\_metadata} & Revisiones inmutables de clasificación con canon \texttt{DMETA1} y huella recalculados en SQL. \\
+  0006 & \texttt{case\_participants} & Raíces y revisiones del directorio de participantes con comprobación de \texttt{PART1}. \\
+  0007 & \texttt{case\_administration} & Revisiones administrativas (\texttt{CADM1}) y registro exacto de la etapa inicial. \\
+  0008 & \texttt{case\_stage*} (3) & Revisiones de etapa, comprobación de valores \texttt{CSTG1} y guardas de secuencia e inmutabilidad. \\
+  0009 & \texttt{participant\_credential\_trust} & Autoridad de credenciales del despliegue y revisiones de confianza pública (raíz y CRL). \\
+  0010 & \texttt{typed\_*} (6) & Identidades representadas, participantes tipificados, revisiones de candidatos y evidencia de declaraciones; lectores SQL de \texttt{SUBJ1} y \texttt{PART2}, comprobaciones de \texttt{PREV1}, \texttt{PTXN1} y \texttt{DIRST1}, e historia única entre las familias manual y tipificada. \\
+  0011 & \texttt{hearings*} (4) & Raíces y revisiones de audiencias, decodificador de \texttt{HEAR1}, recibos \texttt{HTXN1} e historia sólo de anexión. \\
+  0012 & \texttt{hearing\_results*} (5) & Sesiones y resultados declarados (\texttt{HRES1}, \texttt{HRTX1}), precisión temporal propia y rechazo de continuaciones cíclicas. \\
+  0013 & \texttt{judicial\_calendar\_*} (6) & Catálogo global de calendarios: tablas, fechas civiles, referencias y reglas declaradas, valores \texttt{JCAL1}, recibos \texttt{JCTX1} y guardas de escritura. \\
+  0014 & \texttt{procedural\_fact*} (11) & Resoluciones y notificaciones declaradas (\texttt{PFRES1}, \texttt{PFNOT1}), fuentes \texttt{PFSRC1}, recibos \texttt{PFTXN1}, personas, procedencia, tiempo y guardas de autoridad vigente. \\
+  0015 & \texttt{deadline\_source\_events} & Eventos durables de cambio de fuentes de plazos, escritos bajo el mismo bloqueo que sus revisiones auditadas. \\
+  0016 & \texttt{deadline\_profile\_*} (5) & Perfiles de plazo con alcance global o de expediente, proyección del título y alcance de \texttt{DPRF1}, recibos \texttt{DPTX1}, eventos de cambio y guardas. \\
+  0017 & \texttt{deadline\_*} (5) & Plazos persistidos e historia V1: selección de entradas desde \texttt{DEVI1}, estados \texttt{DLRV1} y \texttt{DLST1} con \texttt{DRES1}, recibos \texttt{DLTX1} y atención declarada. \\
+  0018 & \texttt{deadline\_*} (8) & Seguimiento V2 (\texttt{DLRV2}, \texttt{DLST2}), observaciones \texttt{DLOB1}, recibos \texttt{DLTX2} y guardas que separan escrituras humanas y técnicas, conservando V1. \\
+  0019 & \texttt{deadline\_dispatch\_*} (4) & Despachador: cursor durable, trabajos de reevaluación, páginas de candidatos acotadas y guardas. \\
+  0020 & \texttt{deadline\_worker\_*} (7) & Consumidor técnico: libros inmutables de resultados e intentos fallidos, transición técnica, observaciones y procedencia. \\
+  0021 & \texttt{alert\_*} (3) & Alertas personales: preferencias, programación, notificaciones, acuses, correo saliente e intentos, con validaciones y guardas. \\
+  0022 & \texttt{procedural\_resource*} (2) & Recursos procesales, actos declarados y revisiones con valores, fuentes, recibo y captura canónicos. \\
+  0023 & \texttt{resource\_activit*} (2) & Asociaciones exactas de recursos con audiencias o plazos existentes y sus revisiones. \\
+  0024 & \texttt{document\_integrity} & Incidentes inmutables de integridad documental. \\
+  0025 & \texttt{member\_lifecycle} & Generación de autenticación, bloqueo de escrituras de miembros, inmutabilidad de identidad y credenciales y prohibición de borrar cuentas. \\
+  0026 & \texttt{case\_reports} & Trabajos, instantáneas, artefactos y avisos de informes durables. \\
+  0027 & \texttt{audit\_query\_projection} & Segundos y nanosegundos generados e índice cronológico para consultar la auditoría sin alterar marcas canónicas ni cadena. \\
+  0028 & \texttt{password\_reset\_*} (5) & Capacidades de recuperación de contraseña: emisión, inspección, cancelación, consumo, inventario y guardas. \\
+  0029 & \texttt{owner\_certificate\_*} (3) & Registros y retiros de vínculos de certificado del Owner con comprobación de \texttt{OWNCERT1}. \\
+  0030 & \texttt{resource\_hearings*} (4) & Audiencias propias de recursos con sus revisiones y guardas, y su incorporación como destino de asociaciones. \\
+  0031 & \texttt{resource\_hearing\_alerts} & Proyecciones de alertas para audiencias de recursos con expediente y recurso exactos. \\
+  0032 & \texttt{hearing\_derived\_deadlines*} (2) & Orígenes compuestos de un resultado de audiencia y su plazo derivado (\texttt{HRDL1}, \texttt{HRDC1}). \\
+  0033 & \texttt{precautionary\_hearings*} (2) & Convocatorias cautelares y sus revisiones, con valores \texttt{PHEAR1}. \\
+  0034 & \texttt{measure\_decisions*} (4) & Operaciones, decisiones, raíces y revisiones de medidas de la familia judicial original (propietario \texttt{g1} y miembro \texttt{m1}) con \texttt{MDVAL1}, \texttt{MEAS1} y \texttt{MEFX1}, fuentes y completitud. \\
+  0035 & \texttt{measure\_decision\_*} (4) & Efectos sobre predecesores ---confirmar, modificar, revocar, cesar y sustituir--- con historia, captura, fuentes y completitud. \\
+  0036 & \texttt{precautionary\_hearing\_review} & Guarda de objetivos exactos de revisión cautelar, sin tablas ni permisos nuevos. \\
+  0037 & \texttt{measure\_decision\_*} (2) & Selectores exactos de ancla en una audiencia inicial ordinaria y su guarda. \\
+  0038 & \texttt{measure\_decision\_*} (3) & Selectores de ancla en una convocatoria cautelar, guarda de captura y guarda obligatoria de ancla. \\
+  0039 & \texttt{measure\_administrative\_*} (5) & Correcciones administrativas de medidas (\texttt{MCVAL1}) con guardas de captura, fuentes y completitud. \\
+  0040 & \texttt{measure\_*}, \texttt{precautionary\_*} (7) & Amplía las restricciones de familia a los propietarios \texttt{g1}, \texttt{g2} (decisión judicial V2) y \texttt{a1} (acción administrativa) y a sus miembros \texttt{m1}, \texttt{m2} y \texttt{c1}; sustituye las guardas vigentes de captura, fuentes, completitud y objetivos. \\
+  0041 & \texttt{measure\_*}, \texttt{precautionary\_*} (7) & Reemplazo administrativo conjunto con identidad nueva: selectores, captura, fuentes, completitud y registros de audiencias. \\
+  0042 & \texttt{precautionary\_hearing\_alerts} & Convocatorias cautelares en las alertas, sin cambiar identidades ni políticas existentes. \\
+  0043 & \texttt{document\_upload\_origins} & Origen inmutable de cada carga ---autor, instante y evento de auditoría--- contrastado con la evidencia confirmada. \\
+  0044 & \texttt{document\_signing\_bindings} & Vínculos personales de certificado de firma y sus retiros, con comprobación de \texttt{DOCBIND1}. \\
+  0045 & \texttt{individual\_document\_signatures} & Aceptaciones de firma individual por operación y versión documental exacta, con \texttt{DOCSIGN1}. \\
+  0046 & \texttt{member\_invitations} & Invitaciones de miembros, operaciones y finalizaciones del enrolamiento. \\
+  0047 & \texttt{case\_report\_readiness} & Estimaciones de duración de los trabajos de informe y registro de sus entregas por correo. \\
+  0048 & \texttt{audit\_event\_context} & Columna anulable \texttt{context\_json} de hasta 1024 bytes en \texttt{audit\_events}. \\
+\end{longtable}
+\endgroup

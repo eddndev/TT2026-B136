@@ -2,8 +2,8 @@
 
 El alta por invitaci\'on permite que el destinatario elija su contrase\~na y
 configure MFA sin entregar esos secretos al Owner. El administrador indica
-correo y perfil Litigante o Paralegal; no se solicitan otros datos personales
-ni se establece un cupo de cuentas. Una cuenta existente, activa o inactiva,
+correo y perfil Litigante o Paralegal; no se solicitan otros datos personales.
+Una cuenta existente, activa o inactiva,
 conserva su administraci\'on ordinaria. Este recorrido se implementa mediante
 \rutarepo{crates/application/src/identity/invitations/} y el contrato
 \rutarepo{docs/member-invitations-api.md}.
@@ -50,4 +50,4 @@ pendientes. Borra preparaci\'on MFA y entregas pendientes junto con un recibo,
 sin modificar cuentas o aceptaciones conservadas. Requiere admisi\'on cerrada y
 escritores y consumidores detenidos durante la restauraci\'on; no se ejecuta
 autom\'aticamente al iniciar el servidor. Este mecanismo y el alta por invitaci\'on
-no cambian la limitaci\'on hist\'orica de recuperar el material del alta directa.
+no modifican la limitaci\'on del alta directa (\cref{sec:impl-http-identidad}).

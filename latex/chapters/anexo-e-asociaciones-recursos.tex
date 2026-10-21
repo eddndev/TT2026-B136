@@ -1,6 +1,6 @@
-\section{Trazabilidad de asociaciones con actividades}\label{sec:matriz-asociaciones-recursos}
+\subsection{Trazabilidad de asociaciones con actividades}\label{sec:matriz-asociaciones-recursos}
 
-La matriz resume el incremento de vínculos organizativos a audiencias y plazos existentes. Conserva los resultados por frontera y no suma repeticiones de una campaña como casos distintos. La implementación se describe en la \cref{sec:impl-asociaciones-recursos} y la evidencia focal en la \cref{sec:pruebas-asociaciones-recursos}.
+La matriz resume los vínculos organizativos con audiencias y plazos existentes y su evidencia del 19 de septiembre de 2026. Conserva los resultados por frontera y no suma repeticiones de una campaña como casos distintos. La implementación se describe en la \cref{sec:impl-asociaciones-recursos} y la evidencia focal en la \cref{sec:pruebas-asociaciones-recursos}.
 
 \begin{longtable}{@{}L{3.0cm} L{7.0cm} L{3.0cm}@{}}
   \caption{Invariantes de asociaciones y evidencia focal disponible.}
@@ -36,7 +36,7 @@ La matriz resume el incremento de vínculos organizativos a audiencias y plazos 
   \addlinespace
   Navegador real & Vínculos exactos en escritorio y móvil, permisos y revocación; actividades y avisos sin alteraciones ni duplicados. & 3 escenarios distintos aprobados; incluidos en la regresión integrada. \\
   \addlinespace
-  Alcance procesal restante & Audiencias contextuales, corpus calificado, activación durable y trazabilidad de alertas en recursos. Los plazos contextuales se describen en la \cref{anexo:plazo-contextual}. & No completado por estos vínculos. \\
+  Alcance procesal separado & Audiencias propias de recursos y sus alertas (\cref{sec:pruebas-audiencias-recursos,sec:pruebas-alertas-audiencias-recursos}), consulta inversa desde actividades y alertas (\cref{sec:pruebas-recursos-desde-actividad}), corpus jurídico delimitado (\cref{sec:pruebas-corpus-juridico}) y activación automática de términos. Los plazos contextuales se describen en el \cref{anexo:plazo-contextual}. & No acreditado por estos vínculos; la activación automática no está implementada. \\
 \end{longtable}
 
-La evidencia del backend se conserva en los directorios de pruebas de dominio, aplicación, infraestructura y HTTP. Los archivos correspondientes comienzan con \rutarepo{resource_activity} o \rutarepo{resource_activities}. Los recorridos de navegador se conservan en \rutarepo{web/tests/browser/}, con el prefijo \rutarepo{resource-activities}. Los contratos se conservan en \rutarepo{docs/resource-activities-api.md} y las operaciones de recuperación en \rutarepo{docs/database-operations.md}. Asociar o desvincular no certifica efectos procesales, no cambia la etapa ni altera la atención de un plazo.
+La evidencia del backend se conserva en los directorios de pruebas de dominio, aplicación, infraestructura y HTTP. Los archivos correspondientes comienzan con \rutarepo{resource_activity} o \rutarepo{resource_activities}. Los recorridos de navegador se conservan en \rutarepo{web/apps/qadra/tests/browser/}, con el prefijo \rutarepo{resource-activities}. Los contratos se conservan en \rutarepo{docs/resource-activities-api.md} y las operaciones de recuperación en \rutarepo{docs/database-operations.md}. Asociar o desvincular no certifica efectos procesales, no cambia la etapa ni altera la atención de un plazo.

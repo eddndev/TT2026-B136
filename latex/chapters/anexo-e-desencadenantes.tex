@@ -1,4 +1,4 @@
-\section{Fuentes temporales exactas y coordinación aritmética}\label{sec:matriz-desencadenantes}
+\subsection{Fuentes temporales exactas y coordinación aritmética}\label{sec:matriz-desencadenantes}
 
 La \cref{tab:matriz-desencadenantes} relaciona las 45 pruebas focales de la \cref{sec:pruebas-desencadenantes} con los invariantes del módulo descrito en la \cref{sec:implementacion-desencadenantes}. Los archivos pertenecen a \rutarepo{crates/domain/tests/}; el contrato es \rutarepo{docs/deadline-triggers.md}.
 
@@ -22,8 +22,7 @@ La \cref{tab:matriz-desencadenantes} relaciona las 45 pruebas focales de la \cre
 
 Los seis archivos comparten el prefijo \texttt{deadline\_trigger\_} y los sufijos \texttt{contract}, \texttt{fields}, \texttt{integrity}, \texttt{hearings}, \texttt{qualification} y \texttt{arithmetic}. El informe versionado conserva comandos, resultados y límites de la campaña global. No se atribuye al módulo una validación de autorización, recibos persistidos o aplicabilidad jurídica: esas obligaciones corresponden a su integración mediante aplicación y persistencia.
 
-
-\subsection{Lectura y comprobación de insumos autorizados}\label{sec:matriz-insumos-plazos}
+\subsubsection{Lectura y comprobación de insumos autorizados}\label{sec:matriz-insumos-plazos}
 
 La \cref{tab:matriz-insumos-plazos} corresponde al servicio y adaptador de la \cref{sec:pruebas-insumos-plazos}. Sus fuentes comparten el prefijo \texttt{deadline\_input\_} en los directorios de pruebas de dominio, aplicación e infraestructura. Las pruebas de material y revisiones incluyen submódulos auxiliares; no se suman como ejecuciones adicionales.
 
@@ -45,4 +44,4 @@ La \cref{tab:matriz-insumos-plazos} corresponde al servicio y adaptador de la \c
   \end{tabularx}
 \end{table}
 
-El resultado en memoria conserva material y cálculo, pero no acredita una escritura futura. La autorización transaccional del almacén y la reautenticación del servicio se comprueban por separado. Si esta última falla después de confirmar la lectura, su evento de auditoría permanece. La aplicación operativa de reglas, evaluaciones y alertas conserva su aceptación pendiente.
+El resultado en memoria conserva material y cálculo, pero no acredita una escritura futura. La autorización transaccional del almacén y la reautenticación del servicio se comprueban por separado. Si esta última falla después de confirmar la lectura, su evento de auditoría permanece. La aplicación de reglas jurídicas, la evaluación persistente y las alertas no se acreditan con estas pruebas: tienen aceptaciones propias en las \cref{sec:pruebas-corpus-juridico,sec:pruebas-plazos-persistentes,sec:pruebas-alertas}.

@@ -1,0 +1,137 @@
+% =====================================================================
+%  04-documentos.tex - Repositorio documental y firma individual
+% =====================================================================
+
+\section{Repositorio documental y firma individual}\label{sec:impl-documentos}
+
+Cada documento pertenece a un expediente y conserva su contenido cifrado, sus versiones inmutables y una clasificación con historia propia. La sección se apoya en el cifrado, la firma, el sellado y el paquete de evidencia de la \cref{sec:impl-servicios} y en el modelo transaccional de la \cref{sec:impl-http-transacciones}. Recorre las operaciones documentales por expediente; las dos políticas de admisión de contenido, la general para nuevas cargas y versiones y la de PDF y DOCX para los soportes que respaldan actos procesales; las consultas de metadatos, el versionado y la clasificación; la entrega del contenido original con su buzón de incidentes, y la firma individual con custodia de la clave por su titular.
+
+\subsection{Operaciones documentales por expediente}\label{sec:impl-http-documentos}
+
+La carga recibe hasta 16~MiB binarios y un nombre seguro en \texttt{X-Document-Name}. El actor deriva de \texttt{Authorization: Bearer}; \texttt{X-Actor} no forma parte del contrato. Tras admitir el contenido (\cref{sec:impl-admision-documental}), el servicio crea UUID y versión uno, calcula SHA-256 y prepara el paquete cifrado \texttt{DVLT1} (\cref{sec:impl-s2-cifrado}). El AAD conserva el par identidad documental--versión; la asociación con el expediente es una restricción inmutable de PostgreSQL y no forma parte del contexto criptográfico.
+
+\begin{table}[H]
+  \centering
+  \caption{Contrato documental por expediente. Todas las rutas de las seis primeras filas usan el prefijo \texttt{/api/v1/cases/<case>/documents}.}
+  \label{tab:impl-http-rutas}
+  \begin{tabularx}{\linewidth}{@{}L{5.2cm} X@{}}
+    \toprule
+    \textbf{Método y sufijo} & \textbf{Responsabilidad} \\
+    \midrule
+    \texttt{POST} al prefijo & Carga cifrada y asociada al expediente; \texttt{201}. \\
+    \texttt{GET} al prefijo & Lista metadatos con paginación y filtros por nombre y estado de sellado. \\
+    \texttt{GET /<document>} & Devuelve metadatos persistidos del documento en el expediente indicado. \\
+    \texttt{POST /<document>/seal} & Firma con la clave del servidor y sello local; requiere una sola versi\'on disponible. \\
+    \texttt{POST /<document>/verify} & Verificación del documento con una sola versión disponible. \\
+    \texttt{GET /<document>/evidence} & ZIP del documento con una sola versión; cabecera \texttt{X-Document-Digest}. \\
+    \midrule
+    \texttt{GET /api/v1/audit/verify} & Owner comprueba la cadena PostgreSQL completa. \\
+    \texttt{GET /healthz} & Diagnóstico público del proceso. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las dos últimas filas de la \cref{tab:impl-http-rutas} no son operaciones sobre documentos. La comprobación de la cadena de auditoría compartida (\cref{sec:impl-s9-auditoria}) se expone en el mismo enrutador y puerto de aplicación documental, mientras \texttt{/healthz} es el diagnóstico del proceso y permanece fuera de la admisión de peticiones (\cref{sec:impl-http-limites}).
+
+Owner accede a cualquier expediente. Litigante y Paralegal necesitan pertenencia vigente para consultar metadatos, clasificar, cargar, a\~nadir versiones, verificar o exportar. El sellado con clave del servidor corresponde a Owner y Litigante; la firma individual de la \cref{sec:impl-firma-individual} corresponde exclusivamente al Litigante con su propio v\'inculo. Cliente conserva denegadas todas las acciones documentales incluso cuando est\'a asignado. El rol se comprueba antes de revelar el recurso. Un documento fuera del expediente indicado responde \texttt{404 document\_not\_found}, incluso para Owner o un usuario perteneciente a ambos expedientes. Las rutas globales sin expediente bajo \texttt{/api/v1/documents} responden \texttt{404} y no tienen alias.
+
+Las respuestas de carga, detalle y sellado incluyen los campos \texttt{case\_id}, \texttt{id}, \texttt{version}, \texttt{name}, \texttt{digest} y \texttt{sealed}. Listado, detalle actual, carga y anexado agregan \texttt{current\_metadata} con la clasificaci\'on vigente (\cref{sec:impl-http-clasificacion}); detalle hist\'orico, historial de contenido y sellado conservan una proyecci\'on exclusivamente documental. Cada versi\'on conserva su propio contenido cifrado y estado de sellado (\cref{sec:impl-http-versiones}). La ruta \texttt{seal} descifra y comprueba el digest, produce y verifica la firma con la clave configurada del servidor, solicita el token y lo verifica bajo la cadena TSA capturada. Una segunda solicitud por esa ruta sobre un documento sellado produce \texttt{409 document\_already\_sealed}. La firma individual presenta pruebas producidas en el equipo del titular y dispone de su propio recibo recuperable. Exportar comprueba el contenido descifrado y empaqueta la evidencia capturada sin actualizarla; la consulta de verificaci\'on proporciona por separado el reporte criptogr\'afico completo.
+
+\input{chapters/04-admision-documental}
+
+\subsection{Admisión acotada de PDF y DOCX}\label{sec:impl-formatos}
+
+{\raggedright La admisión general (\cref{sec:impl-admision-documental}) decide qué contenido puede convertirse en una versión documental; la política \texttt{pdf\_docx\_v1}, descrita en \rutarepo{docs/adr/0024-isolated-document-format-admission.md}, decide si una versión ya registrada puede respaldar un acto procesal. Se aplica al preparar los soportes de las adopciones y transiciones de etapa (\cref{sec:impl-http-etapas}), las fichas tipificadas (\cref{sec:impl-participantes-tipificados}), la programación de audiencias, sus sesiones y resultados declarados, las convocatorias y medidas cautelares (\cref{sec:impl-audiencias,sec:impl-cautelares}), las resoluciones y notificaciones declaradas y los recursos (\cref{sec:impl-recursos-declarados}); la firma individual la emplea para exigir PDF (\cref{sec:impl-firma-individual}). Examina las versiones que cada preparación selecciona: no se aplica retrospectivamente a todos los documentos ni convierte las cargas generales existentes en cargas con validación de formato. Cada lote admite hasta dos referencias distintas, 16~MiB por documento y 32~MiB en total. El adaptador limita vault y evidencia antes de transferirlos; la evidencia JSON admite 1~MiB antes de deserializarse. La selección definitiva repite las cotas en su propia instantánea.\par}
+
+La aplicación presta los bytes ya autenticados a un proceso separado del mismo ejecutable. Un protocolo binario acota entradas y respuesta; el texto del documento no pasa por argumentos ni mensajes de error. El worker Linux instala 5 segundos de CPU, 256~MiB de espacio de direcciones, tamaño de archivo de salida cero y core dumps deshabilitados antes de leer documentos. El supervisor impone 10 segundos desde el lanzamiento, usa tuberías no bloqueantes y recoge al proceso al fallar. Al concluir, libera buffers y parsers, vacía la respuesta y termina sin handlers \texttt{atexit}; el hijo no escribe perfiles LLVM que infringirían el límite de archivos, de modo que los límites se mantienen también al medir cobertura: la instrumentación corresponde al proceso de las pruebas de biblioteca. El presupuesto pertenece al lote completo; no se renueva por archivo ni incluye criptografía o consultas del padre.
+
+PDF usa la API C de qpdf~12.4.1, cargada dentro del worker desde una instalación con artefacto y SHA-256 fijados. Deshabilita recuperación, rechaza advertencias, errores y cifrado, incluso con contraseña de apertura vacía. Comprueba catálogo, referencias, padres y contadores del árbol de páginas, sin ciclos, con máximo de 4096 páginas y profundidad acotada. Esta política no promete un contador de expansión PDF, renderizado, validación completa del estándar ni detección de malware.
+
+DOCX admite un perfil ZIP32 con Stored o Deflate y hasta 1024 entradas físicas. Comprueba cabeceras, directorio, nombres inequívocos, descriptores, CRC32, tamaño real y final exacto del flujo comprimido. Cada entrada se expande una vez; los DOCX del lote comparten 64~MiB de expansión y un millón de eventos XML, con profundidad 128. Exige tipos de contenido, relaciones internas, parte principal Word y un cuerpo; admite familias Transitional y Strict coherentes. Rechaza DTD, entidades personalizadas, macros, OLE, ActiveX, paquetes embebidos, plantillas adjuntas y \texttt{altChunk}. Solo admite relaciones externas de hipervínculo inertes HTTP, HTTPS o mailto, que no se siguen.
+
+{\raggedright La admisión no extrae archivos ni resuelve enlaces; tampoco es una validación XSD completa de OPC/OOXML. Puede rechazar documentos válidos fuera de este perfil, como XML UTF-16 o ZIP64. Se diferencian formato rechazado, tamaño excesivo y presupuesto agotado. Un fallo del parser no autoriza la operación procesal que presenta el soporte ni reescribe evidencia. El servidor comprueba la instalación nativa antes de abrir su puerto; \rutarepo{scripts/setup-document-formats.sh} prepara la dependencia y \rutarepo{docs/document-format-operations.md} documenta operación, límites y reproducción.
+\par}
+\subsection{Consultas autorizadas de metadatos}\label{sec:impl-http-consultas}
+
+El listado recibe \texttt{limit}, \texttt{offset}, \texttt{name}, \texttt{sealed}, \texttt{document\_type}, \texttt{classification} y \texttt{tag}; los tres últimos filtran por la clasificación vigente (\cref{sec:impl-http-clasificacion}). El tamaño de página predeterminado es 50 y admite de 1 a 100; el desplazamiento es un entero no negativo. El filtro de nombre admite hasta 200 caracteres, recorta espacios exteriores y rechaza caracteres de control. PostgreSQL busca una subcadena literal sin distinguir mayúsculas mediante \texttt{strpos(lower(name), lower(...))}; los caracteres \texttt{\%} y \texttt{\_} conservan su significado literal. El filtro de sellado distingue documentos pendientes y documentos con evidencia capturada. La búsqueda alcanza el nombre almacenado, no el contenido cifrado.
+
+El adaptador restringe primero al expediente autorizado y selecciona la versión de mayor número de cada UUID (\cref{sec:impl-http-versiones}) y su última revisión de clasificación; después aplica los filtros y ordena por UUID antes de paginar. Tipo, categoría y una etiqueta individual se comparan por igualdad exacta sensible a mayúsculas y se combinan mediante conjunción. Una etiqueta retirada en una revisión posterior deja de coincidir; comas, acentos y caracteres de comodín se conservan literalmente. Una versión histórica sellada no hace aparecer como sellada a la versión actual pendiente. Obtiene como máximo una fila adicional para calcular \texttt{has\_more}; la respuesta contiene \texttt{documents} y ese indicador, sin un conteo global. El orden es estable para un conjunto sin modificaciones; varias peticiones no comparten una instantánea, por lo que altas concurrentes pueden modificar la composición de las páginas. Un expediente visible sin coincidencias devuelve una página vacía.
+
+La proyección SQL obtiene identidad, versión, nombre, digest, presencia de evidencia y valores de clasificación; no carga ni descifra el vault y no deserializa firmas, certificados o tokens. El detalle actual reúne la versión máxima de la asociación expediente/documento y la clasificación vigente en una misma transacción; el detalle histórico conserva únicamente el contenido del número solicitado. Por ello, obtener metadatos no constituye una verificación criptográfica de integridad: el usuario solicita esa comprobación mediante la operación específica de verificación, que presenta sus cuatro componentes.
+
+El permiso \texttt{ReadDocument} habilita las consultas para Owner, Litigante y Paralegal; los dos últimos requieren pertenencia vigente. Cliente permanece denegado incluso si pertenece al expediente. Cada consulta autentica la sesión y la transacción PostgreSQL revalida cuenta activa, rol y pertenencia antes de leer. El listado registra \texttt{document.listed}, incluso cuando no hay coincidencias; el detalle registra \texttt{document.read}. Los metadatos se entregan solamente después de confirmar su evento de auditoría. Un fallo de inserción o commit devuelve error sin liberar el resultado de la consulta.
+
+Los contratos residen en \rutarepo{crates/application/src/documents/query.rs} y \rutarepo{crates/web/src/routes/queries.rs}; la proyección persistida se implementa en \rutarepo{crates/infrastructure/src/document_postgres/query.rs}. Estas operaciones conservan los documentos cifrados y la evidencia existente sin modificar su versión, firma o sello.
+
+\subsection{Versiones inmutables y selección de evidencia}\label{sec:impl-http-versiones}
+
+El tipo \texttt{Document\allowbreak Version\allowbreak Ref} identifica una instant\'anea mediante UUID y n\'umero positivo de versi\'on. \texttt{Document\allowbreak Processor} prepara cada contenido nuevo con una DEK aleatoria propia y el AAD de ese par, utilizando el formato \texttt{DVLT1} de la \cref{tab:impl-vault}. Dos versiones con bytes iguales comparten digest, pero solicitan cifrados independientes. La firma separada del PDF y el token RFC~3161 cubren el digest del contenido; por s\'i mismos no firman el UUID, el n\'umero de versi\'on, el expediente ni el nombre. En la firma individual, el consentimiento adicional liga expediente, UUID y versi\'on con la cuenta y las pruebas presentadas (\cref{sec:impl-firma-individual}). En el sellado con clave del servidor, el actor de auditor\'ia deriva de la sesi\'on y no se equipara al titular de esa clave.
+
+La raíz \texttt{document\_series}, creada por la migración 0004 (\cref{tab:anexo-migraciones}), fija UUID, expediente y \texttt{first\_available\_version}. Las filas de \texttt{documents} usan clave primaria compuesta \texttt{(id, version)}; las claves foráneas impiden asociaciones incompatibles y una restricción diferida exige que la primera versión exista al confirmar. La versión actual se obtiene como \texttt{MAX(version)}, sin un puntero mutable independiente. Si la importación (\cref{sec:impl-http-migracion}) aporta únicamente la versión 7, esa es la primera disponible y la siguiente es 8; el sistema no inventa las versiones 1 a 6. Nombre, digest, vault y contexto no se modifican. La evidencia pasa de ausente a capturada una sola vez por versión.
+
+Anexar requiere \texttt{expected\_version}. La aplicación autoriza y compara la cabeza antes de cifrar; tras preparar, autentica nuevamente. El almacén vuelve a comprobar permisos, expediente y cabeza dentro de la transacción auditada. Dos solicitudes que esperan la misma versión producen un solo sucesor y un conflicto para la restante. Una cabeza distinta devuelve \texttt{409 document\_version\_conflict}; el agotamiento del contador de 32 bits devuelve \texttt{409 document\_version\_exhausted}. El evento \texttt{document.version\_added} y la fila se confirman juntos; fallar cualquiera de ellos impide el resultado exitoso.
+
+{\emergencystretch=3em Las rutas de la \cref{tab:impl-http-versiones} utilizan el prefijo común
+\rutarepo{/api/v1/cases/<case>/documents/<document>/versions}.\par}
+
+\begin{table}[H]
+  \centering
+  \caption{Contrato de consulta y operación sobre versiones documentales.}
+  \label{tab:impl-http-versiones}
+  \begin{tabularx}{\linewidth}{@{}L{5.4cm} X@{}}
+    \toprule
+    \textbf{Método y sufijo} & \textbf{Responsabilidad} \\
+    \midrule
+    \texttt{POST}\newline\texttt{?expected\_version=<n>} & Añade contenido binario con \texttt{X-Document-Name}; devuelve \texttt{201} y la nueva versión pendiente. \\
+    \texttt{GET ?limit=<n>\&}\newline\texttt{before\_version=<v>} & Historial descendente de metadatos con cursor exclusivo y página de 1 a 100 elementos. \\
+    \texttt{GET /<version>} & Detalle de la versión indicada en el expediente. \\
+    \texttt{POST /<version>/seal} & Firma con la clave del servidor y sello de esa versi\'on; conserva las restantes. \\
+    \texttt{POST /<version>/verify} & Reporte criptográfico con UUID, expediente y versión evaluada. \\
+    \texttt{GET /<version>/evidence} & ZIP histórico; cabeceras \texttt{X-Document-Id}, \texttt{X-Document-Version} y \texttt{X-Document-Digest}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+{\emergencystretch=3em El historial devuelve la lista \texttt{versions} y el indicador \texttt{has\_more}. Incluye el cursor \texttt{next\_before\_version} y la primera versión disponible, \texttt{first\_available\_version}. La página siguiente solicita versiones menores que la última entregada; anexar una nueva cabeza no desplaza las páginas ya recorridas. Para verla se refresca la primera página. Historial y detalle consultan exclusivamente metadatos y confirman sus eventos antes de responder. Un número inexistente y una asociación ajena producen el mismo error de recurso ausente. Cliente permanece denegado; Owner, Litigante y Paralegal conservan las condiciones de acceso al expediente, y Paralegal no puede sellar.\par}
+
+Las acciones con versi\'on expl\'icita resuelven una sola instant\'anea y conservan ese par durante preparaci\'on y confirmaci\'on. Las rutas de sellado, verificaci\'on y exportaci\'on sin n\'umero funcionan \'unicamente si hay una versi\'on disponible al resolver; si hay varias, responden \texttt{409 document\_version\_required}. Si una operaci\'on ya resolvi\'o la \'unica versi\'on y despu\'es se a\~nade otra, confirma la instant\'anea original sin redirigirse a la nueva cabeza. Sellar una versi\'on anterior y a\~nadir un sucesor son operaciones compatibles. La verificaci\'on general conserva la pol\'itica y el instante de evaluaci\'on de su contrato (\cref{sec:impl-s6-verificacion}); la consulta individual agrega el contexto hist\'orico capturado y separa el estado actual del certificado. Conservar bytes no garantiza que una TSA contin\'ue siendo aceptada indefinidamente.
+
+{\emergencystretch=3em Los contratos y la resolución se encuentran en \rutarepo{crates/application/src/documents/version.rs}, \rutarepo{crates/application/src/documents/case_content.rs} y \rutarepo{crates/web/src/routes/versions.rs}. El fundamento y las limitaciones se documentan en \rutarepo{docs/adr/0019-immutable-document-versions.md}.\par}
+
+\subsection{Clasificación documental con historia independiente}\label{sec:impl-http-clasificacion}
+
+El valor \texttt{Document\allowbreak Metadata}, definido en \rutarepo{crates/domain/src/document_metadata.rs}, representa tipo documental, categoría manual y etiquetas. Los dos campos opcionales admiten hasta 80 caracteres Unicode cada uno; los espacios exteriores se recortan y un resultado vacío se interpreta como ausencia. Se rechazan caracteres de control sobre la entrada original, antes del recorte. La solicitud admite hasta 20 etiquetas antes de deduplicar, cada una de 1 a 40 caracteres. Las etiquetas se ordenan por bytes UTF-8 y se deduplican por igualdad exacta. Se conservan mayúsculas, acentos, formas Unicode, comas y espacios interiores; no hay inferencia automática ni cambio de permisos a partir de estos valores.
+
+La clasificación pertenece a la raíz documental, no a una versión de archivo. La revisión cero significa que nunca se registró una decisión y devuelve campos ausentes y etiquetas vacías, sin autor ni fecha inventados. Las filas persistidas empiezan en uno. Cada reemplazo aceptado añade la revisión siguiente, incluso si limpia los campos o repite los valores; no sobrescribe historia. El contador llega hasta $2^{32}-1$ y su agotamiento es un conflicto explícito. El tipo \texttt{Metadata\allowbreak Revision} se mantiene separado de \texttt{Document\allowbreak Version}.
+
+El canon de valores empieza con \texttt{DMETA1} (\cref{tab:anexo-canones}). Cada campo opcional usa un indicador de ausencia o presencia; los valores presentes se codifican como longitud de cuatro bytes en orden de red y bytes UTF-8. Sigue la cantidad de etiquetas y cada etiqueta con su longitud y contenido. El máximo es 3\,940 bytes. El puerto SHA-256 calcula su huella, y PostgreSQL contrasta la misma representación con su función nativa, sin extensión adicional. Esta huella identifica valores organizativos: no cubre UUID, autor, revisión ni instante y no equivale a una firma de la decisión. La identidad documental y la revisión forman parte del recurso auditado; autor e instante se conservan por separado.
+
+La tabla \texttt{document\_metadata\_revisions} conserva una clave compuesta por UUID y revisión, campos normalizados, digest, instante UTC y UUID y correo histórico del actor. Ambos datos de identidad proceden del mismo usuario recargado y bloqueado dentro de la transacción, por lo que consultar historia no reconstruye el correo mediante la cuenta vigente. Los valores están en claro y son visibles únicamente bajo el permiso de lectura documental del expediente. Decodificar una fila comprueba canon, huella e instante; un dato inconsistente provoca error, sin normalización silenciosa.
+
+{\emergencystretch=3em Las rutas de la \cref{tab:impl-http-clasificacion} usan el prefijo \rutarepo{/api/v1/cases/<case>/documents}. La operación de reemplazo recibe \texttt{expected\_\allowbreak metadata\_\allowbreak revision}, tipo, categoría y el vector de etiquetas, y rechaza campos JSON desconocidos.\par}
+
+\begin{table}[H]
+  \centering
+  \caption{Contrato HTTP de clasificación documental.}
+  \label{tab:impl-http-clasificacion}
+  \begin{tabularx}{\linewidth}{@{}L{5.2cm} X@{}}
+    \toprule
+    \textbf{Método y sufijo} & \textbf{Responsabilidad} \\
+    \midrule
+    \texttt{POST /with-metadata} & Carga multipart de archivo y clasificación inicial; confirma ambos y devuelve \texttt{201}. \\
+    \texttt{GET /<document>/}\newline\texttt{metadata} & Estado actual con UUID, expediente, revisión y valores; no fabrica procedencia para la revisión cero. \\
+    \texttt{PUT /<document>/}\newline\texttt{metadata} & Reemplazo completo condicionado a la revisión esperada; devuelve la revisión confirmada. \\
+    \texttt{GET /<document>/}\newline\texttt{metadata/history} & Historia descendente con \texttt{limit} de 1 a 100 y cursor exclusivo \texttt{before\_revision}. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El permiso \texttt{Classify\allowbreak Document} corresponde a Owner, Litigante y Paralegal dentro de su ámbito documental; Cliente permanece denegado. La transacción toma el bloqueo común de auditoría (\cref{sec:impl-http-transacciones}) y revalida cuenta, rol, pertenencia y asociación documental antes de comparar la revisión esperada. Una cabeza diferente devuelve \texttt{document\_\allowbreak metadata\_\allowbreak conflict}; el agotamiento, \texttt{document\_\allowbreak metadata\_\allowbreak revision\_\allowbreak exhausted}, ambos con estado 409. El cambio y \texttt{document.metadata\_changed} se confirman juntos. Lectura e historia registran sus propios eventos antes de responder, aun cuando el resultado sea revisión cero o una página vacía.
+
+La carga clasificada recibe exactamente una parte \texttt{file} y una parte JSON \texttt{metadata}, en cualquier orden. Como en la carga binaria, el nombre autorizado viaja en \texttt{X-Document-Name}; el nombre del formulario multipart no sustituye ese contrato. El archivo admite 16~MiB, JSON 8~KiB y la petición completa 16~MiB más 32~KiB. El adaptador consume primero el cuerpo completo bajo ese límite, incluidos bytes posteriores al cierre multipart, y rechaza un fallo de transporte antes de preparar contenido. Después valida partes completas, únicas y conocidas, límites individuales y valores. La aplicación exige permisos de carga y clasificación antes y después de cifrar y vuelve a autenticar a la misma identidad. Raíz, versión inicial, revisión uno y los dos eventos de éxito se confirman en una única transacción. La carga binaria de la \cref{tab:impl-http-rutas} deja el documento sin clasificación, en revisión cero; la carga multipart explícita crea revisión uno aunque sus campos opcionales estén vacíos.
+
+\texttt{Document\allowbreak Overview} reúne contenido y clasificación actual y se devuelve desde la propia transacción de carga o anexado, sin un GET posterior que pudiera fallar después del éxito. Reclasificar no compara la versión del archivo; anexar, sellar, verificar o exportar una versión no compara la revisión organizativa. La clasificación no entra en \texttt{Document\allowbreak Record}, AAD, \texttt{DVLT1}, firma, sello, certificados ni ZIP de evidencia. Las decisiones y límites se fundamentan en \rutarepo{docs/adr/0020-audited-document-classification.md}.
+
+\input{chapters/04-contenido-documental}
+
+\input{chapters/04-firma-individual}

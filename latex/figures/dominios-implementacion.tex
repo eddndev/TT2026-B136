@@ -1,0 +1,111 @@
+% Dependency map of the implementation chapter domains. Each arrow points
+% from an element to the element it relies on. Coordinates are in cm and the
+% drawing spans x = 0.05 to 16.1, inside the 16.2 cm text width. The gray
+% group is drawn first so that its boxes stay on top of it.
+\begin{tikzpicture}[
+  x=1cm, y=1cm,
+  box/.style={draw=ipnvino, rounded corners=1.5mm, line width=0.6pt,
+    align=center, inner sep=3pt, font=\footnotesize, fill=white,
+    anchor=north west,
+    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
+  base/.style={box, fill=ipnvino!6},
+  group/.style={draw=black!35, rounded corners=2mm, line width=0.5pt,
+    fill=black!3},
+  dep/.style={-{Stealth[length=2mm]}, line width=0.6pt},
+  link/.style={line width=0.6pt, rounded corners=1mm}
+]
+  % Group: the case and the domains that hang from it
+  \draw[group] (0.4,-3.84) rectangle (15.75,-9.2);
+  \node[anchor=north west, font=\footnotesize\itshape, text=black!70]
+    at (0.6,-3.94) {El expediente y sus dominios};
+
+  % Surfaces
+  \node[box, text width=3.97cm, minimum height=1.05cm] (desp) at (0.4,0) {
+    \textbf{Despliegue privado}\\ paquetes, respaldos y CRL};
+  \node[box, text width=4.52cm, minimum height=1.05cm] (qadra) at (5.1,0) {
+    \textbf{Interfaz Qadra}\\ API \texttt{/api/v1} y WASM local};
+  \node[box, text width=5.12cm, minimum height=1.05cm] (cli) at (10.4,0) {
+    \textbf{CLI \texttt{despacho-cli}}\\
+    criptograf\'ia, base de datos y \texttt{serve}};
+
+  % Cross-cutting consumers
+  \node[box, text width=4.47cm, minimum height=1.5cm] (sup) at (0.4,-1.77) {
+    \textbf{Supervisi\'on operativa}\\
+    tablero, informes y consulta de actividad};
+  \node[box, text width=9.77cm, minimum height=1.5cm] (alert) at (5.75,-1.77) {
+    \textbf{Alertas personales}\\
+    proximidad de audiencias y plazos; plazos vencidos sin atenci\'on,\\
+    con revisi\'on requerida o cambio de fecha; bandeja y correo};
+
+  % Domains inside the group
+  \node[box, text width=5.77cm, minimum height=1.05cm] (res) at (7.683,-3.99) {
+    \textbf{Recursos procesales}\\ asociaciones con audiencias y plazos};
+  \node[box, text width=4.39cm, minimum height=1.95cm] (doc) at (0.55,-5.56) {
+    \textbf{Repositorio documental y firma individual}\\
+    versiones exactas, sellado y firma del titular};
+  \node[box, text width=4.39cm, minimum height=1.95cm] (act) at (5.767,-5.56) {
+    \textbf{Etapas procesales y audiencias}\\
+    soportes exactos; audiencias ordinarias y cautelares};
+  \node[box, text width=4.39cm, minimum height=1.95cm] (plz) at (10.983,-5.56) {
+    \textbf{C\'omputo de plazos}\\
+    fuentes: resoluciones, notificaciones y resultados de audiencia};
+  \node[box, text width=14.82cm, minimum height=1.0cm] (exp) at (0.55,-8.03) {
+    \textbf{Expedientes, administraci\'on penal y participantes}\\
+    pertenencia y aislamiento, perfil penal con revisiones, directorio e
+    identidades tipificadas};
+
+  % Identity and foundations
+  \node[box, text width=15.12cm, minimum height=1.0cm] (idn) at (0.4,-9.75) {
+    \textbf{Identidad, sesiones y cuentas}\\
+    Owner, Litigante, Paralegal y Cliente; Argon2id y TOTP; sesiones
+    opacas en Redis; miembros};
+  \node[base, text width=7.67cm, minimum height=1.5cm] (cry) at (0.4,-11.32) {
+    \textbf{Workspace y servicios criptogr\'aficos}\\
+    S1--S10, entre ellos Argon2id, TOTP y la cadena de auditor\'ia;
+    criptograf\'ia local en WASM};
+  \node[base, text width=6.62cm, minimum height=1.5cm] (http) at (8.9,-11.32) {
+    \textbf{Aplicaci\'on HTTP y persistencia}\\
+    API Axum; PostgreSQL: datos y auditor\'ia en una transacci\'on;
+    Redis: estado ef\'imero};
+
+  % Surfaces: deployment packages Qadra and the CLI. Both share one bus:
+  % Qadra presents supervision and alerts, and serve composes them; the
+  % right-hand trunk and the bottom bus reach the two foundations. The
+  % supervision branch sits right of the deployment box to avoid reading
+  % as a deployment arrow.
+  \draw[dep] (desp.east) -- (qadra.west);
+  \draw[dep, link] (desp.north) -- ++(0,0.35) -| (cli.north);
+  \draw[link] (qadra.south) -- (qadra.south |- 0,-1.3);
+  \draw[link] (4.85,-1.3) -- (16.1,-1.3);
+  \draw[dep] (4.85,-1.3) -- (4.85,0 |- sup.north);
+  \draw[dep] (alert.north |- 0,-1.3) -- (alert.north);
+  \draw[link] (cli.east) -| (16.1,-13.2) -- (4.35,-13.2);
+  \draw[dep] (4.35,-13.2) -- (cry.south);
+  \draw[dep] (12.325,-13.2) -- (http.south);
+
+  % Consumers: supervision reads the whole group and the audit chain;
+  % alerts read hearings, resource hearings and deadlines
+  \draw[dep] (2.75,0 |- sup.south) -- (2.75,-3.84);
+  \draw[dep, link] (sup.west) -| (0.05,0 |- cry.west) -- (cry.west);
+  \draw[dep] (6.7,0 |- alert.south) -- (6.7,0 |- act.north);
+  \draw[dep] (10.683,0 |- alert.south) -- (res.north);
+  \draw[dep] (14.65,0 |- alert.south) -- (14.65,0 |- plz.north);
+
+  % Inside the group
+  \draw[dep] (9.0,0 |- res.south) -- (9.0,0 |- act.north);
+  \draw[dep] (12.4,0 |- res.south) -- (12.4,0 |- plz.north);
+  \draw[dep] (act.west) -- (doc.east);
+  \draw[dep] (plz.west) -- (act.east);
+  \draw[dep] (doc.south) -- (doc.south |- exp.north);
+  % Typed identities cite an exact document version as support
+  \draw[dep] (1.4,0 |- exp.north) -- (1.4,0 |- doc.south);
+  \draw[dep] (act.south) -- (act.south |- exp.north);
+  \draw[dep] (plz.south) -- (plz.south |- exp.north);
+
+  % Case group, identity and foundations
+  \draw[dep] (5.47,0 |- exp.south) -- (5.47,0 |- idn.north);
+  \draw[dep] (4.35,0 |- idn.south) -- (4.35,0 |- cry.north);
+  \draw[dep] (12.325,0 |- idn.south) -- (12.325,0 |- http.north);
+  \draw[dep] (http.west) -- (cry.east);
+
+\end{tikzpicture}
