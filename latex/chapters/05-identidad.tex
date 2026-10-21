@@ -1,0 +1,38 @@
+% =====================================================================
+%  05-identidad.tex - Verificacion de identidad, sesiones y cuentas
+% =====================================================================
+
+\section{Verificación de identidad, sesiones y cuentas}\label{sec:pruebas-identidad}
+
+Esta sección reúne la verificación de la autenticación y del ciclo de vida de las cuentas descritos en la \cref{sec:impl-identidad}: diagnóstico del segundo factor, directorio de miembros, plazos de sesión y recuperación de borradores de Qadra tras un nuevo acceso, recuperación de contraseña, invitaciones, vínculo y acceso por certificado del Owner y calibración del costo de las credenciales.
+
+El registro operativo de los intentos de segundo factor (\cref{sec:impl-s8-totp}),
+común al acceso por contraseña y por certificado, tiene una verificación focal
+propia. La del 7 de octubre de 2026 aprobó 34
+pruebas de identidad, 14 HTTP y 22 del acceso por certificado, 70 en total, en
+Windows, con adaptadores de memoria o sustitutos HTTP. Las del acceso por
+certificado conservaron las comprobaciones de autoridad y admisión de sesión. La campaña incluyó
+aceptación, código inválido, reutilización, desafío ausente, cuenta inactiva,
+cambio de generación durante la verificación, recuperación y fallo de auditoría.
+La captura HTTP comprobó correlación por petición, rechazo público genérico y
+ausencia de secretos en los eventos. Este ensayo no acredita persistencia real,
+despliegue ni una nueva regresión global; su alcance está registrado en
+\rutarepo{docs/verification-report.md}.
+
+\input{chapters/05-miembros}
+
+\input{chapters/05-sesiones}
+
+\input{chapters/05-recuperacion-password}
+
+\input{chapters/05-invitaciones}
+
+\input{chapters/05-vinculo-certificado}
+
+\subsection{Calibración de Argon2id}\label{sec:pruebas-argon2}
+
+El diseño exige que el costo de un hash nuevo de Argon2id quede entre 0.5 y 1.0 segundos en el hardware de referencia (\cref{sec:autenticacion}). El caso de uso de calibración (subcomando \texttt{auth calibrate}) promedia cinco corridas de hash sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva. En el hardware de referencia (AMD Ryzen 7 7730U, 16 hilos lógicos), la calibración de la demostración de cierre del 17 de agosto de 2026 fijó $m = 256$~MiB, $t = 2$, $p = 1$ y reportó 529.4 milisegundos, es decir, un veredicto dentro de la banda. Esta medición conserva su alcance histórico. La subsección siguiente (\cref{sec:calibracion-credenciales}) reporta, sobre el mismo modelo de equipo pero con otro binario y contexto de ejecución, una medición de dos pasadas por debajo de la banda y la calibración de tres pasadas que se utiliza para hashes nuevos; ninguna de las dos medias de dos pasadas sustituye a la otra.
+
+El ajuste de parámetros está localizado en un único punto del adaptador. Un cambio de hardware o de perfil de binario exige repetir la medición, porque la memoria y el tiempo por hash cambian con el perfil de despliegue, y la banda no describe el rendimiento del acceso completo ni de HTTP bajo carga. El resto del servicio no depende de la banda: el formato PHC con los parámetros registrados, la coincidencia y no coincidencia de contraseñas, el tratamiento del hash corrupto como error y la ausencia de la contraseña en los diagnósticos están fijados por pruebas que pasan en cualquier hardware.
+
+\input{chapters/05-calibracion-credenciales}

@@ -223,7 +223,9 @@ servidor escucha solamente en `127.0.0.1:3000` por defecto.
 
 Todas las rutas usan `/api/v1`, salvo `/healthz`. El alta inicial se permite
 solo mientras PostgreSQL no contiene usuarios; la inserción del primer owner se
-protege con un bloqueo de tabla para conservar esa condición ante concurrencia.
+serializa con el bloqueo consultivo transaccional de las mutaciones auditadas y
+revalida la ausencia de usuarios antes de insertar, lo que conserva esa
+condición ante concurrencia.
 El alta de otros usuarios verifica sesión, estado y rol dentro del caso de uso
 y revalida al actor al confirmar en PostgreSQL. Bootstrap, creación y consumo
 de un código de recuperación guardan su evento con la mutación en una sola

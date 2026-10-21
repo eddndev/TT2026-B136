@@ -1,0 +1,46 @@
+\begin{tikzpicture}[every node/.style={font=\footnotesize\sffamily},>=Latex,line width=0.35pt]
+  \node[font=\footnotesize\bfseries\sffamily] at (7,6)
+    {CU-09 --- Configuración del calendario judicial};
+
+  \draw[fill=gray!10] (1,4.75) circle (0.22);
+  \draw (1,4.53) -- (1,3.95);
+  \draw (0.55,4.3) -- (1.45,4.3);
+  \draw (1,3.95) -- (0.6,3.5) (1,3.95) -- (1.4,3.5);
+  \node at (1,3.2) {Owner};
+
+  \draw[fill=yellow!4] (6.5,4.3) ellipse (2.3 and 0.9);
+  \node[align=center] at (6.5,4.3)
+    {CU-09\\Configuración del\\calendario judicial};
+  \draw (1.55,4.3) -- (4.2,4.3);
+
+  \node[draw,fill=yellow!8,anchor=north,align=left,inner sep=4pt] (note)
+    at (12.2,5.25)
+    {HU-22 $\cdot$ RF-08 $\cdot$ RNF-10\\
+     Calendario del despacho; aplica\\
+     a todos los cómputos futuros.};
+  \draw[densely dotted] (8.8,4.3) -- (note.west);
+
+  \draw[fill=yellow!4] (2.1,1.9) ellipse (2.0 and 0.65);
+  \node[align=center] at (2.1,1.9) {Día inhábil afecta\\plazo con $<$ 48 h};
+  \draw[->,dashed] (3.7,2.3) --
+    node[above,sloped] {$\langle\!\langle$extend$\rangle\!\rangle$}
+    (4.85,3.7);
+
+  \draw[fill=yellow!4] (7.6,2.1) ellipse (2.15 and 0.65);
+  \node[align=center] at (7.6,2.1) {Recálculo de plazos\\activos afectados};
+  \draw[->,dashed] (7.0,3.42) --
+    node[left,pos=0.45] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (7.3,2.75);
+
+  \draw[fill=yellow!4] (7.6,0.45) ellipse (2.15 and 0.65);
+  \node[align=center] at (7.6,0.45) {Registro de recesos,\\feriados e inhábiles};
+  \draw[->,dashed] (8.4,3.5) .. controls (10.6,2.9) and (10.6,0.9) ..
+    node[right,fill=white,inner sep=1pt,pos=0.5] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (9.75,0.6);
+
+  \draw[fill=yellow!4] (7.6,-1.2) ellipse (2.15 and 0.65);
+  \node[align=center] at (7.6,-1.2) {Selección de entidad\\federativa y fuero};
+  \draw[->,dashed] (8.7,3.75) .. controls (13.2,3.1) and (13.2,-0.9) ..
+    node[right,fill=white,inner sep=1pt,pos=0.6] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (9.75,-1.05);
+\end{tikzpicture}

@@ -1,0 +1,93 @@
+% =====================================================================
+%  05-documentos.tex - Verificacion del repositorio documental
+% =====================================================================
+
+\section{Verificación del repositorio documental}\label{sec:pruebas-documentos}
+
+Esta sección reúne la verificación del repositorio documental de la \cref{sec:impl-documentos}: las consultas, las versiones inmutables, la clasificación con carga atómica, la admisión general de nuevas cargas, la entrega del contenido exacto con su buzón de integridad y la firma documental individual. Las pruebas nativas y de formato de la política PDF/DOCX de soportes procesales (\cref{sec:impl-formatos}) se presentan con las etapas (\cref{sec:pruebas-etapas}). La trazabilidad por archivo de consultas, versiones, clasificación, contenido y firma se reúne en la \cref{sec:matriz-grupo-documentos}.
+
+\subsection{Consultas documentales e integración de navegador}\label{sec:pruebas-consultas}
+
+Las consultas de metadatos incorporan controles de entrada, autorización, proyección SQL y auditoría. La \cref{tab:pruebas-consultas} resume las condiciones comprobadas por sus pruebas, incluidas en las 539 aprobadas el 14 de septiembre (\cref{tab:pruebas-cobertura-consultas}). El conteo histórico y su cobertura permanecen identificados con la ejecución en que fueron medidos.
+
+{\emergencystretch=2em Los límites de parámetros se prueban en \rutarepo{crates/application/tests/document_query.rs}; la autorización del caso de uso, en \rutarepo{crates/application/tests/case_document_queries.rs}. La integración PostgreSQL se ejercita en \rutarepo{crates/infrastructure/tests/postgres_document_queries.rs} y el contrato HTTP en \rutarepo{crates/web/tests/document_queries.rs}.\par}
+
+\begin{table}[H]
+  \centering
+  \caption{Condiciones de comprobación de las consultas documentales por expediente.}
+  \label{tab:pruebas-consultas}
+  \begin{tabularx}{\linewidth}{@{}L{3.2cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Condiciones verificables} \\
+    \midrule
+    Entrada & Tamaño de página entre 1 y 100; nombre de hasta 200 caracteres sin controles; preservación literal de \texttt{\%} y \texttt{\_}; parámetros desconocidos rechazados. \\
+    Autorización & Sesión vigente; Cliente denegado; pertenencia, rol y estado activo recargados; documento ajeno e inexistente con el mismo error. \\
+    Persistencia & Filtros aplicados antes de paginar; orden por UUID; \texttt{has\_more} coherente; consultas que no decodifican vault ni evidencia. \\
+    Auditoría & Un evento de listado o detalle por consulta aceptada; un fallo de auditoría impide devolver metadatos y conserva la cadena. \\
+    HTTP & DTO sin criptograma ni material criptográfico, transferencia exacta de filtros y aislamiento de la asociación expediente/documento. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las pruebas del navegador Qadra se conservan bajo \rutarepo{web/apps/qadra/tests/}. Las pruebas con respuestas HTTP simuladas permiten aislar formularios, navegación, permisos visibles, estados de error y solicitudes. El 14 de septiembre, \rutarepo{scripts/web-demo.sh} aprobó un escenario de navegador contra la API, PostgreSQL, Redis y OpenSSL reales, definido en \rutarepo{web/apps/qadra/tests/live/document-workflow.spec.mjs}. El recorrido inició sesión con contraseña y recuperación de segundo factor, creó un expediente desde la interfaz, cargó un documento, obtuvo sus metadatos, confirmó su sello, verificó su integridad y descargó un ZIP cuyos bytes se contrastaron con el archivo original. Tras cerrar sesión, recargar y autenticar de nuevo, recuperó el expediente y su documento desde el repositorio persistido. El escenario también comprobó ausencia de errores de JavaScript y de desbordamiento horizontal a 390 píxeles de ancho. Esta ejecución demuestra ese recorrido concreto; no sustituye los escenarios restantes de los 17 casos de uso ni la evaluación de usabilidad con usuarios del despacho.
+
+\subsection{Versiones documentales inmutables}\label{sec:pruebas-versiones}
+
+Las pruebas de versiones separan la preservación de una instantánea de la elección de la versión actual. La \cref{tab:pruebas-versiones} organiza sus escenarios: éxito, rechazo, concurrencia y recuperación. Las pruebas de aplicación verifican el orden de autorización, preparación y confirmación mediante puertos; las de infraestructura utilizan PostgreSQL y criptografía reales. La trazabilidad por archivo se presenta en la \cref{sec:matriz-versiones}, separada de la de consultas (\cref{sec:matriz-consultas}).
+
+\begin{table}[H]
+  \centering
+  \caption{Escenarios de comprobación de versiones documentales.}
+  \label{tab:pruebas-versiones}
+  \begin{tabularx}{\linewidth}{@{}L{3.0cm} X@{}}
+    \toprule
+    \textbf{Propiedad} & \textbf{Escenarios positivos y negativos} \\
+    \midrule
+    Contexto cifrado & Versiones con contenido igual y distinto se descifran bajo su UUID y número; solicitan DEK propias. Sustituir vault, UUID, versión o digest produce rechazo. \\
+    Concurrencia & Cuatro anexados con la misma cabeza esperada producen un ganador y conflictos; sellar la versión anterior conserva su evidencia. La inserción espera al predecesor y rechaza el hueco si este revierte. \\
+    Atomicidad & Fallos de inserción, auditoría y commit diferido preservan documento y cadena anteriores. Fallar el evento de historial impide entregar sus metadatos. \\
+    Consultas y acceso & Filtros sobre la cabeza, historial descendente, cursor exclusivo, primera versión disponible y errores de versión ausente; Cliente denegado y pertenencia o rol revocados. \\
+    Continuidad & Migración repetida conserva filas y evidencia; origen con versión 7 admite la 8 y reconcilia la 7. Esquema incompleto, huecos y privilegios capaces de alterar la raíz se rechazan al abrir. \\
+    Frontera HTTP & Número explícito en acciones y respuestas; alias ambiguos rechazados, cuerpo acotado, parámetros inválidos y conflictos tipados sin redirigir a otra versión. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La demostración \rutarepo{scripts/api-version-demo.sh}, integrada en \rutarepo{scripts/api-demo.sh}, añade una segunda versión a un documento importado, comprueba el conflicto con la cabeza anterior y recorre historial, sellado, verificación y exportación explícitos. Compara el ZIP histórico con el obtenido antes del anexado y, tras restaurar PostgreSQL, compara nuevamente las exportaciones. OpenSSL valida firma y sello del contenido nuevo. Estas comprobaciones verifican las muestras y restauraciones ensayadas; una copia antigua íntegra aún puede conservar validez interna si no existe anclaje externo de la cabeza de auditoría.
+
+La validación final de Qadra aprobó 28 pruebas unitarias y 32 de navegador con respuestas simuladas, además de formato y compilación, bajo Node~22.22.2 y npm~10.9.7. El escenario real de \rutarepo{scripts/web-demo.sh} también aprobó: selló la versión 1 y descargó su ZIP, añadió una versión 2 con nombre y contenido distintos, la selló y verificó, y contrastó la descarga con los bytes del archivo nuevo. Al seleccionar nuevamente la versión 1 obtuvo un ZIP idéntico al inicial. Después de cerrar sesión, recargar y autenticar de nuevo, recuperó ambas versiones. No se registraron errores JavaScript. Las pruebas simuladas aíslan además conflictos de carga y respuestas tardías de sesiones o selecciones anteriores. Estos resultados se contabilizan por separado de Rust y no sustituyen la evaluación de usabilidad con personal del despacho.
+
+\subsection{Clasificación y carga documental atómica}\label{sec:pruebas-clasificacion}
+
+La clasificación mantiene una historia organizativa independiente de las versiones cifradas. Sus pruebas distinguen validación del valor, orquestación de permisos, persistencia transaccional, adaptación HTTP y comportamiento del navegador. La \cref{tab:pruebas-clasificacion} organiza las condiciones definidas por los archivos de prueba; la trazabilidad se detalla en la \cref{sec:matriz-clasificacion}. El canon de metadatos es un formato propio del prototipo, por lo que sus vectores fijan interoperabilidad entre Rust, PostgreSQL y OpenSSL y no se presentan como vectores oficiales de un estándar externo.
+
+\begin{table}[H]
+  \centering
+  \caption{Condiciones de comprobación de clasificación documental.}
+  \label{tab:pruebas-clasificacion}
+  \begin{tabularx}{\linewidth}{@{}L{3.2cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Condiciones verificables} \\
+    \midrule
+    Valores y canon & Límites por caracteres Unicode, controles antes de recortar, conteo previo a deduplicar, etiquetas exactas y vectores con longitudes UTF-8. \\
+    Autorización & Cuenta y pertenencia vigentes, Cliente denegado, UUID ajeno indistinguible del ausente y ambos permisos de carga clasificada revalidados antes del commit. \\
+    Transacción & Un sucesor por revisión esperada; carga inicial y dos eventos indivisibles; fallo de fila, segundo evento o commit diferido sin residuos. \\
+    Concurrencia & Clasificaciones competidoras producen un ganador; anexado de contenido conserva la clasificación de su commit; revocación confirmada antes de autorizar impide escribir. \\
+    Consultas & Cabezas de archivo y clasificación seleccionadas antes de filtrar; retirada de etiquetas antiguas, coincidencia literal y lectura sin decodificar evidencia. \\
+    Persistencia & Canon y digest Rust/SQL coincidentes, autor UUID y correo histórico, UTC con nanosegundos, rechazo de datos almacenados inconsistentes y privilegios restrictivos. \\
+    HTTP & JSON estricto, límites de parte y petición, orden libre, partes duplicadas o incompletas rechazadas y fallo tardío del cuerpo sin carga confirmada. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La prueba de transporte entrega el cierre multipart antes de un epílogo fragmentado o de un fallo posterior del flujo. La condición exigida es que el límite se aplique a todos los bytes recibidos y que el caso de uso no comience antes de completar satisfactoriamente el cuerpo. Las pruebas de clasificación también separan la revisión cero de una decisión posterior con valores vacíos y exigen conservar el correo capturado aunque la cuenta cambie de dirección. La integridad de esas filas no se equipara con una firma individual ni con detección universal de una restauración administrativa antigua.
+
+La validación final de la interfaz para clasificación aprobó 34 pruebas unitarias, 47 escenarios con respuestas HTTP simuladas y dos recorridos con servicios reales, además de formato y compilación. El recorrido de \rutarepo{web/apps/qadra/tests/live/document-classification.spec.mjs} carga archivo y revisión uno, clasifica de nuevo y genera un conflicto desde dos contextos autenticados. El segundo formulario conserva su borrador, compara la revisión concurrente y confirma una nueva decisión. Añadir una versión de contenido mantiene la clasificación actual; vaciar todos los campos crea la revisión cinco y conserva las cinco decisiones históricas con autor. Los filtros dejan de encontrar etiquetas retiradas y el reingreso recupera las versiones y revisiones. Los ZIP de las versiones 1 y 2 permanecen idénticos después de reclasificar y vaciar valores. El recorrido de versiones también aprobó, sin errores JavaScript. Estas comprobaciones de navegador se cuentan por separado de Rust y no sustituyen la evaluación de usabilidad.
+
+{\emergencystretch=3em La restauración inicial reveló que las funciones SQL de canon dependían del \texttt{search\_path} de la sesión; la resolución explícita de sus referencias contra el esquema de instalación (\cref{sec:impl-http-migracion}) elimina esa dependencia. Las regresiones de \rutarepo{crates/infrastructure/tests/document_metadata_restore.rs} ejecutan las funciones con ruta de búsqueda vacía y un ciclo real de \texttt{pg\_dump}/\texttt{pg\_restore}; comprueban conservación de filas, reapertura con rol restringido, anexado posterior y rechazo de una huella incorrecta. La demostración HTTP confirma también el inventario completo y los ZIP anteriores después de restaurar.\par}
+
+\input{chapters/05-admision-documental}
+
+\input{chapters/05-contenido-documental}
+
+\input{chapters/05-firma-individual}

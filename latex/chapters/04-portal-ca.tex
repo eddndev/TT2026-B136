@@ -1,13 +1,14 @@
 \subsubsection{Portal administrativo de la autoridad certificadora}
 \label{sec:impl-portal-ca}
 
-La operaci\'on administrativa de la CA se implement\'o en el binario separado
+La operaci\'on administrativa de la CA interna reside en el binario separado
 \texttt{qadra-ca}, con una interfaz de navegador bajo
 \rutarepo{web/apps/ca/}. Reutiliza componentes visuales de Qadra, pero compone
 \'unicamente autenticaci\'on del operador y operaciones de la autoridad. La
 cuenta Owner del despacho no adquiere estos permisos por su rol. La instalaci\'on
 en VPS3 utiliza procesos propios y el origen \texttt{ca.qadra.com.mx}, separados
-del despacho; su verificaci\'on operativa se distingue de las pruebas locales.
+del despacho; su verificaci\'on operativa se distingue de las pruebas locales
+(\cref{sec:pruebas-portal-ca}).
 
 El servicio reutiliza verificaci\'on de contrase\~na, protecci\'on de secretos y
 MFA del n\'ucleo de identidad, con admisi\'on expl\'icita por UUID y correo del
@@ -23,31 +24,31 @@ La composici\'on conserva los clientes PostgreSQL s\'incronos fuera del contexto
 de Tokio. El Router permanece bajo un due\~no s\'incrono y el servidor recibe
 un clon dentro de \texttt{block\_on}; los comandos de inspecci\'on y enrolamiento
 tambi\'en se ejecutan de forma s\'incrona. Esto evita que la liberaci\'on del
-\'ultimo cliente intente iniciar su cierre bloqueante dentro de otro runtime.
-La correcci\'on responde al aborto observado durante una parada administrativa;
-su aceptaci\'on local, integraci\'on y despliegue se distinguen en
+\'ultimo cliente intente iniciar su cierre bloqueante dentro de otro runtime,
+causa del aborto observado durante una parada administrativa; su reproducci\'on,
+aceptaci\'on local, integraci\'on y despliegue se distinguen en
 \cref{sec:pruebas-portal-ca}.
 
 La emisi\'on recibe un CSR p\'ublico y los datos de titular revisado, referencia
 y criterio de emisi\'on. Una inspecci\'on previa muestra sujeto y huellas; una
 confirmaci\'on separada selecciona \texttt{partner} o
 \texttt{document-signing}. El primer perfil corresponde al certificado Partner
-utilizado por el acceso Owner; el segundo conserva el prop\'osito de firma
-documental. El titular mantiene su clave privada fuera de la CA. El adaptador
+utilizado por el acceso Owner (\cref{sec:impl-vinculo-certificado}); el segundo conserva
+el prop\'osito de firma documental (\cref{sec:impl-firma-individual}). El titular
+mantiene su clave privada fuera de la CA, que no la recibe, y la emisi\'on no
+crea autom\'aticamente cuentas ni v\'inculos. El adaptador
 invoca la CLI y los scripts existentes con argumentos fijos, mientras que la
 frontera HTTP aporta la identidad del operador autenticado. Una petici\'on del
 navegador no decide el actor ni las rutas del ejecutor.
 
-La instalaci\'on emiti\'o el Partner de serie \texttt{1002} y conserv\'o su
-v\'inculo Owner R1, registrado mediante intervenci\'on humana y declaraci\'on
-firmada fuera del portal. El perfil de acceso por certificado qued\'o habilitado
-en la release \texttt{v0.1.9}; la firma del desaf\'io constituye su primer factor,
+El v\'inculo entre un certificado Partner y la cuenta Owner se registra fuera del
+portal, mediante intervenci\'on humana y una declaraci\'on firmada por el titular.
+En el acceso por certificado, la firma del desaf\'io constituye el primer factor,
 pero no sustituye MFA ni acredita por s\'i sola una sesi\'on autenticada completa.
-La aceptaci\'on operativa del 14 de octubre de 2026 complet\'o ese segundo factor
-y, despu\'es de cerrar la sesi\'on, el acceso alternativo por contrase\~na y MFA.
-Ambos recorridos mostraron la misma cuenta Owner con el rol Administrador.
-Las claves de los titulares no se reciben en la CA y la emisi\'on no crea
-autom\'aticamente cuentas ni v\'inculos.
+La emisi\'on instalada del Partner de serie \texttt{1002}, su v\'inculo Owner R1,
+la habilitaci\'on del perfil de acceso en la release \texttt{v0.1.9} y la
+aceptaci\'on operativa del 14 de octubre de 2026 de ambos accesos se reportan en
+\cref{sec:pruebas-portal-ca}.
 
 La admisi\'on comprueba la pol\'itica del sujeto antes de reservar una emisi\'on.
 Exige nombre com\'un y que cada atributo de pa\'is y organizaci\'on coincida con
@@ -65,8 +66,8 @@ resultado es inequ\'ivoco. S\'olo un estado previo completamente intacto permite
 reanudar la firma. Un efecto parcial o ambiguo bloquea otras mutaciones y no
 provoca reparaci\'on autom\'atica de OpenSSL ni una segunda emisi\'on.
 
-Una solicitud conservada antes de esta admisi\'on puede cerrarse como rechazada
-si la incompatibilidad queda demostrada, coinciden las huellas originales y
+Una solicitud ya conservada como operaci\'on pendiente, sin haber superado esta
+admisi\'on, puede cerrarse como rechazada si la incompatibilidad queda demostrada, coinciden las huellas originales y
 permanecen intactos todos los archivos de la captura y ausentes las hojas
 previstas. El recibo conserva UUID, actor, solicitud, serie reservada y fechas,
 sin certificado ni afirmaci\'on de emisi\'on. El historial distingue este estado
@@ -76,7 +77,8 @@ los cambios de material mantienen la guarda de recuperaci\'on.
 
 El inventario descarga material p\'ublico por serie y huella exactas. La
 revocaci\'on conserva motivo, operador y recibo, y distingue el cambio local
-del estado publicado. La renovaci\'on CRL reutiliza el mantenimiento existente:
+del estado publicado. La renovaci\'on CRL utiliza el mantenimiento recuperable
+del despliegue (\cref{sec:impl-despliegue}):
 candidato conservado, parada de API y web, respaldo, publicaci\'on con revisi\'on
 esperada y lectura de la sucesora antes de reabrir Qadra. El proceso CA puede
 permanecer disponible mientras PostgreSQL y Redis siguen activos. Sus guardas
@@ -93,5 +95,5 @@ cierre expl\'icito del servicio CA, recuperaci\'on de roles y secretos, invalida
 de sesiones y verificaci\'on antes de reabrir. La decisi\'on y el procedimiento
 quedan en
 \rutarepo{docs/adr/0078-separate-ca-operator-and-recoverable-operations.md} y
-\rutarepo{docs/ca/restore.md}. Se conserva la jerarqu\'ia interna existente;
-el portal no modifica las garant\'ias jur\'idicas de sus certificados.
+\rutarepo{docs/ca/restore.md}. El portal opera la misma jerarqu\'ia interna
+descrita en S3 y no modifica las garant\'ias jur\'idicas de sus certificados.

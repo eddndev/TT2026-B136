@@ -1,0 +1,72 @@
+% =====================================================================
+%  05-criptografia.tex - Resultados criptograficos
+% =====================================================================
+
+\section{Resultados criptográficos}\label{sec:pruebas-cripto}
+
+Esta sección reúne los resultados de los servicios S1 a S10 (\cref{tab:impl-servicios}): vectores oficiales, frescura de nonces, detección de mutaciones, propiedades verificadas por generación aleatoria y concurrencia de los adaptadores de archivo, seguidos de la verificación del portal administrativo de la CA. La calibración de Argon2id se presenta con la identidad (\cref{sec:pruebas-argon2}); el cruce con herramientas independientes ocupa la \cref{sec:pruebas-interop}.
+
+\subsection{Vectores oficiales}\label{sec:pruebas-vectores}
+
+Todos los vectores oficiales adoptados están en verde. La \cref{tab:pruebas-vectores} los resume. Para SHA-256 se reproducen los cuatro vectores de ejemplo de FIPS 180-4 \cite{nist2015fips1804}: la cadena vacía, el mensaje «abc», el mensaje de dos bloques y un millón de caracteres «a» ---este último consumido por flujo, lo que ejercita a la vez la interfaz de streaming del adaptador---. El vector «abc» se reutiliza además de extremo a extremo: la prueba del subcomando \texttt{crypto hash} verifica que el binario imprime exactamente \texttt{ba7816bf}\ldots{} ante ese contenido. Para AES-256-GCM se adoptaron los casos de prueba TC13 a TC16 de la especificación del modo GCM de McGrew y Viega \cite{mcgrewviega2004}, la base de NIST SP 800-38D \cite{dworkin2007}; los mismos valores figuran en las suites del programa de validación CAVP del NIST. El adaptador expone una operación de sellado con nonce inyectable exclusivamente para reproducir los vectores; las cuatro pruebas de cifrado exigen el criptograma y el tag exactos, dos de descifrado exigen la autenticación y el texto claro exactos, y una prueba de respuesta conocida negativa voltea el último byte del tag y exige el rechazo autenticado.
+
+\begin{table}[H]
+  \centering
+  \caption{Vectores oficiales reproducidos por la suite de pruebas.}
+  \label{tab:pruebas-vectores}
+  \begin{tabularx}{\linewidth}{@{}L{4.4cm} X C{1.9cm}@{}}
+    \toprule
+    \textbf{Estándar y fuente} & \textbf{Vectores reproducidos} & \textbf{Pruebas} \\
+    \midrule
+    FIPS 180-4, SHA-256 \cite{nist2015fips1804} & Cadena vacía (\texttt{e3b0c442}\ldots), «abc» (\texttt{ba7816bf}\ldots), mensaje de dos bloques (\texttt{248d6a61}\ldots) y un millón de «a» por flujo (\texttt{cdc76e5c}\ldots). & 4 \\
+    \addlinespace
+    Casos TC13--TC16 del modo GCM \cite{mcgrewviega2004,dworkin2007} & AES-256-GCM: cifrado de los cuatro casos con criptograma y tag exactos; descifrado autenticado de TC14 y TC16; caso negativo con el último byte del tag volteado. & 7 \\
+    \addlinespace
+    RFC 6238, apéndice B \cite{mraihi2011} & Los seis vectores TOTP SHA-1 de ocho dígitos ($T$ desde 59 hasta 20\,000\,000\,000, secreto ASCII de referencia). & 1 (6 vectores) \\
+    \addlinespace
+    RFC 4226, apéndice D \cite{mraihi2005} & Los diez vectores HOTP de seis dígitos (contadores 0 a 9), como verificación cruzada del conteo de dígitos de producción. & 1 (10 vectores) \\
+    \addlinespace
+    CRC-32 del formato ZIP & Valor de comprobación estándar: \texttt{crc32} de \texttt{"123456789"} igual a \texttt{0xCBF43926}, y \texttt{crc32} de la cadena vacía igual a 0. & 1 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Para la autenticación multifactor se reproducen íntegros los dos apéndices normativos: los seis vectores TOTP de RFC 6238 con SHA-1 y ocho dígitos, y los diez vectores HOTP de RFC 4226, que cruzan el conteo de seis dígitos usado en producción. Para la firma digital RSA-3072 con padding PKCS\#1 v1.5 no se adoptaron vectores oficiales ---los publicados fijan claves de otros tamaños---; su lugar lo ocupan dos verificaciones equivalentes: el determinismo del esquema, fijado por la prueba de que las codificaciones PKCS\#1 y PKCS\#8 de una misma clave producen firmas byte a byte idénticas, y la interoperabilidad bidireccional con OpenSSL que documenta la \cref{sec:pruebas-interop}.
+
+\subsection{Frescura de nonces}\label{sec:pruebas-nonces}
+
+El criterio del objetivo OE-4 exige cero reutilizaciones de nonce en una suite de 10\,000 cifrados. La prueba \texttt{nonces\_are\_distinct\_across\_ten\_thousand\_seals} ejecuta 10\,000 operaciones de sellado consecutivas sobre el cifrador real y registra el nonce de 96 bits de cada una en un conjunto: la prueba falla si algún nonce se repite. El resultado es de 10\,000 nonces distintos en 10\,000 operaciones, consistente con la generación por CSPRNG fresco en cada sellado que estableció el diseño (\cref{sec:cifrado-reposo}). La misma familia de garantías de frescura está fijada por pruebas en el resto del sistema: las dos DEK generadas en la prueba son distintas, dos enrolamientos TOTP extraen secretos distintos, cada hash de contraseña usa una sal aleatoria nueva ---dos hashes de la misma contraseña difieren y ambos verifican---, los ocho códigos de recuperación de un lote no se repiten, y ocho solicitudes concurrentes a la autoridad de sellado local producen ocho números de serie distintos.
+
+\subsection{Detección de mutaciones}\label{sec:pruebas-mutacion}
+
+Las pruebas de mutación alteran un artefacto criptográfico real ---un byte o un bit a la vez--- y exigen el rechazo. El resultado global es la detección del 100\,\% de las mutaciones ensayadas, en todos los servicios donde se aplicaron. La pieza central es la prueba exhaustiva del cifrado autenticado, \texttt{any\_single\_byte\_flip\_breaks\_authentication}: recorre en bucle \emph{cada} byte del payload sellado ---nonce, criptograma y tag, uno por uno--- y verifica que voltear cualquiera de ellos hace fallar la apertura con el error opaco de autenticación; para este servicio la afirmación de detección total no es muestral sino exhaustiva sobre todas las posiciones del artefacto. Alrededor de ese núcleo, la suite ensaya mutaciones sobre cada tipo de evidencia:
+
+\begin{itemize}
+  \item \textbf{Firma digital:} un byte alterado del documento firmado, o un byte alterado de la firma, produce el rechazo tipado de no correspondencia; el mismo caso se ensaya de extremo a extremo, donde el componente de firma de la verificación integral falla con su causa y el veredicto pasa a no válido.
+  \item \textbf{Certificado:} corromper el último byte DER de un certificado ---su firma--- hace que el validador reporte emisor no confiable aunque la estructura siga parseando; la prueba fija que la confianza depende de la verificación criptográfica y no del parseo.
+  \item \textbf{Token de sellado:} un token DER truncado o sustituido por bytes aleatorios se diagnostica como malformado; un token legítimo evaluado contra un ancla ajena queda como no confiable, conservando el diagnóstico de la herramienta.
+  \item \textbf{Cadena de auditoría:} \texttt{any\_single\_corruption\_is\_detected\_at\_its\_index} corrompe un bit de un byte de cualquier campo ---valor de cadena, secuencia, actor, acción o recurso--- de cualquier entrada de bitácoras generadas aleatoriamente, y exige que la verificación se rompa exactamente en el índice alterado; el mismo comportamiento se fija a mano sobre el archivo JSONL y de extremo a extremo por el subcomando \texttt{audit verify-chain}.
+  \item \textbf{Paquete cifrado y paquete de evidencia:} un byte alterado del archivo \texttt{DVLT1} produce el rechazo autenticado en el subcomando \texttt{vault decrypt}; un byte alterado de un miembro del ZIP lo detecta la herramienta independiente \texttt{unzip} por el CRC; un documento corrompido dentro del paquete extraído es rechazado por los comandos \texttt{openssl} del propio instructivo; y la exportación se rehúsa a escribir un paquete cuya firma fue alterada, nombrando el componente fallido.
+\end{itemize}
+
+Este conjunto aporta evidencia del criterio de detección del objetivo OE-4 para las mutaciones y artefactos ensayados y materializa la mitigación comprometida en el análisis de riesgos para el compromiso del esquema de cifrado (RTC-02, \cref{tab:rtc-02}).
+
+\subsection{Propiedades verificadas por generación aleatoria de casos}\label{sec:pruebas-propiedades}
+
+Cinco invariantes se verifican con \texttt{proptest} sobre cientos de entradas generadas aleatoriamente por corrida, en la tradición de las herramientas de property-based testing \cite{claessen2000}:
+
+\begin{enumerate}
+  \item \textbf{Round-trip del cifrado autenticado:} para toda llave de 32 bytes, todo AAD de hasta 63 bytes y todo texto claro de hasta 1\,023 bytes, abrir lo sellado devuelve el texto claro original.
+  \item \textbf{Determinismo de SHA-256:} para entradas arbitrarias de hasta 4\,095 bytes, el digest es idéntico entre corridas y entre la interfaz de bloque y la de flujo.
+  \item \textbf{Sensibilidad de SHA-256:} voltear cualquier bit de cualquier byte de la entrada cambia el digest.
+  \item \textbf{Validez de la cadena de auditoría:} cualquier secuencia aleatoria de 0 a 11 eventos anexados produce una cadena que verifica como válida.
+  \item \textbf{Detección puntual de corrupción:} una corrupción de un bit en cualquier campo de cualquier entrada de la bitácora se detecta exactamente en su índice.
+\end{enumerate}
+
+Las dos últimas propiedades son el complemento probabilístico de las pruebas de mutación de la \cref{sec:pruebas-mutacion}: no fijan un caso concreto sino el invariante completo del que esos casos son instancias.
+
+\subsection{Concurrencia}\label{sec:pruebas-concurrencia}
+
+Los dos adaptadores que comparten recursos del sistema de archivos entre procesos ---la bitácora encadenada en archivo de los comandos offline (\texttt{File\allowbreak Audit\allowbreak Log}) y la autoridad de sellado local--- se probaron bajo concurrencia real, no simulada. Ocho hilos que anexan cuatro eventos cada uno sobre el mismo archivo de bitácora, liberados simultáneamente con una barrera, producen 32 entradas con secuencias únicas y una sola cadena que verifica como válida: el lock exclusivo entre procesos serializa los escritores en lugar de permitir que bifurquen la cadena, y la misma garantía se fija para instancias del adaptador en procesos separados que escriben por turnos. En la autoridad de sellado, ocho solicitudes simultáneas producen ocho tokens con números de serie todos distintos ---la condición de carrera sobre el archivo de serie de OpenSSL que el adaptador debe serializar (\cref{sec:impl-s5-sellado})---, cuatro verificaciones simultáneas del mismo token concluyen todas válidas gracias al directorio de trabajo privado de cada una, y ninguna operación deja archivos de trabajo residuales en el directorio de la autoridad. La concurrencia de la cadena compartida en PostgreSQL, que usa el servidor HTTP, se verifica por separado en la \cref{sec:pruebas-atomicidad}.
+
+\input{chapters/05-portal-ca}

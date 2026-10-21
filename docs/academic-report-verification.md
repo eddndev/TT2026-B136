@@ -1,5 +1,111 @@
 # Verificación de la actualización académica
 
+## Catálogo de identidad de una sola instancia: 21 de octubre de 2026
+
+Por indicación del autor se retiró del manuscrito el registro comercial de
+despachos que la decisión de diseño de una sola instancia ya había descartado. HU-01, HU-02
+y CU-01 describían un registro con datos fiscales, selección de un plan Starter
+o Professional, aprovisionamiento de un espacio por despacho y confirmación por
+correo; ninguno de esos elementos existe en el prototipo. Ahora describen la
+inicialización de la instancia: la primera cuenta Owner se crea solo cuando no
+existen usuarios y recibe una única vez su clave TOTP, la URI de configuración y
+ocho códigos de recuperación. Los identificadores se conservaron, por lo que no
+se renumeraron historias ni casos de uso. CU-02 y la sección de invitaciones
+dejaron de mencionar un cupo de cuentas.
+
+El texto de CU-01 se contrastó con `bootstrap_owner`, la validación de correo y
+contraseña, la inserción del primer Owner bajo el bloqueo de mutaciones
+auditadas, la composición de Argon2id y del cifrado del secreto TOTP, la ruta
+HTTP y las vistas de acceso y enrolamiento de Qadra. Sus flujos alternos
+registran el rechazo cuando ya existen usuarios, los datos inválidos, el alta
+concurrente y la pérdida del material antes de resguardarlo.
+
+Los diagramas de CU-01, CU-04, CU-05 y CU-09 eran imágenes raster que mostraban
+un tenant aislado con plan, acceso a recursos de otro tenant, duplicidad de NUC
+en el tenant y calendario por tenant. Se redibujaron como fuentes TikZ con el
+estilo de los diagramas de CU-16 y CU-17. CU-04, CU-05 y CU-09 conservan
+actores, inclusiones, extensiones y notas; solo cambiaron las menciones de
+tenant y las referencias RF de sus notas, que ahora coinciden con sus tablas.
+Se retiraron `image5.png`, `image8.png`, `image9.png` e `image13.png`, que ya
+no se usan. Las demás imágenes raster incluidas se revisaron y no contienen
+planes ni tenants.
+
+Se compiló con LuaHBTeX 1.17.0 (TeX Live 2023), biber 2.22 y latexmk 4.88 en
+Fedora 43, con Times New Roman local. El reporte produjo **461 páginas**, sin
+referencias ni citas indefinidas. El log conserva las sustituciones de
+versalitas y los dos desbordes horizontales ya existentes. Se inspeccionaron las
+páginas de las historias de identidad, la tabla y el diagrama de CU-01 y los
+diagramas de CU-04, CU-05 y CU-09. El texto extraído del PDF solo menciona
+tenant en la delimitación de una sola instancia, el requerimiento de
+segregación y la decisión de diseño correspondiente.
+
+En la misma fecha se corrigieron otras discrepancias del catálogo de identidad.
+La figura de CU-02 mostraba el modelo de datos inicial y no un diagrama de casos
+de uso; se dibujó en TikZ a partir de su tabla. Su flujo alterno de baja
+rechazaba que el Owner se diera de baja a sí mismo, pero el código solo impide
+quedarse sin un Owner activo, y ahora lo describe así. CU-03 presentaba el
+segundo factor como opcional y su diagrama lo representaba como extensión;
+el inicio de sesión siempre emite un desafío de cinco minutos para TOTP o código
+de recuperación, también después del primer factor por certificado. El texto y
+el nuevo diagrama TikZ lo muestran como inclusión obligatoria. Se retiraron
+`image6.png` e `image7.png`. Fuera del manuscrito, `docs/http-api.md` describe
+el bloqueo consultivo transaccional que serializa el alta inicial, y
+`docs/product-completion.md` usa el nombre vigente de CU-01. La compilación con
+el mismo entorno produjo **461 páginas** sin referencias indefinidas, y se
+inspeccionaron las páginas de CU-02 y CU-03.
+
+## Reorganización por dominios de implementación y pruebas: 20 de octubre de 2026
+
+Los capítulos 4 y 5 y el anexo E se reorganizaron por dominio, en el mismo
+orden: arquitectura y servicios criptográficos, persistencia, identidad,
+expedientes, documentos, etapas y audiencias, plazos, recursos, alertas y
+supervisión. Cada sección de dominio es un archivo que reúne sus apartados; el
+índice muestra subsecciones. Las figuras de arquitectura pasaron a la sección
+4.1 y el anexo A quedó como catálogo de prefijos canónicos y familias de
+migraciones verificado contra el código. Las diez tablas de cobertura por crate
+del capítulo 5 se sustituyeron por una tabla de evolución de los nueve cortes
+del 12 al 16 de septiembre y la tabla completa del 16 de septiembre; las tablas
+de los cortes anteriores conservan etiqueta, fecha y cifras en la evidencia del
+anexo E. La sección de Qadra describe una vez los mecanismos comunes del
+cliente y resume las vistas en una tabla. Se añadieron seis figuras TikZ a los
+capítulos 4 y 5.
+
+La reorganización inicial se hizo por rangos de líneas con una comprobación que
+exige usar cada línea no vacía de las fuentes una sola vez. Las pasadas
+editoriales posteriores se revisaron de forma adversarial contra el código, la
+documentación versionada y el texto anterior. La comparación final con `main`
+(`859f4e7`) no encontró cifras, fechas ni medidas ausentes en los capítulos 4
+y 5 ni en los anexos; las rutas retiradas correspondían a archivos inexistentes
+y se sustituyeron por sus equivalentes en `web/apps/qadra/`. Las mediciones
+históricas conservan sus cortes y no se ejecutó ninguna prueba nueva.
+
+Los autores revisaron y autorizaron las correcciones de los capítulos 1 y 3:
+alcances y supuestos de la introducción y afirmaciones del diseño que
+contradecían la implementación. Se conservaron el resumen aprobado, los
+objetivos, el estado del arte con su tabla comparativa, el capítulo 2 y las
+conclusiones pendientes. Las imágenes raster `image24.png`, `image25.png` y
+`image27.png` del capítulo 3 todavía muestran elementos del diseño de referencia
+que la implementación no adoptó; su corrección requiere redibujarlas.
+
+Se compiló con LuaHBTeX 1.17.0 (TeX Live 2023 de Ubuntu 24.04), biber 2.19 y
+latexmk 4.83 en una copia temporal de `latex/`. Times New Roman se extrajo de
+`times32.exe` tras comprobar el SHA-256 de ADR-0017; el código usa DejaVu Sans
+Mono. En el mismo entorno, la fuente de `main` produjo **427 páginas**. La
+revisión `0cc32b0` produjo **461 páginas**, 5466257 bytes, SHA-256
+`a82657756cea8632eee7421bfd2c71b6c9f1e9f09ab168fbf7bb2c32adbcb0b9`, sin
+referencias ni citas sin resolver. Los dos avisos `Overfull hbox` y la
+sustitución de versalitas de Times New Roman ya aparecían al compilar `main`.
+
+Se inspeccionaron las páginas físicas **5-10** (índice general), **154, 177,
+213, 245, 261 y 345** (figuras 4.1, 4.4, 4.5, 4.6, 5.1 y 5.2), **247** (tabla
+de vistas de Qadra), **345** (tabla de evolución de cobertura) y **370** (tabla
+de prefijos del anexo A). Las figuras se revisaron además por separado a 12 pt;
+se corrigieron una etiqueta que tocaba un borde y dos figuras con texto
+superpuesto. No se observaron recortes, solapes ni glifos faltantes en las
+páginas revisadas. El PDF generado no se añadió a Git ni sustituye el PDF local
+aceptado; la compilación del flujo `Documents` corresponde a la revisión
+publicada.
+
 ## Conciliación documental: 17 de octubre de 2026
 
 El manuscrito describe el acceso Owner por certificado y MFA, la firma local y

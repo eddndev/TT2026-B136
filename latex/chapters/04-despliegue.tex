@@ -1,5 +1,7 @@
 \section{Despliegue privado identificado por versión}\label{sec:impl-despliegue}
 
+El despliegue separa las versiones de la aplicación del estado persistente. Esta sección describe la publicación por etiquetas, la activación con retroceso, los respaldos y su restauración, el mantenimiento de la lista de revocación y los controladores que detienen, publican, aprueban y reabren los servicios de la instalación; su verificación se presenta en la \cref{sec:pruebas-despliegue}.
+
 El proceso de entrega utiliza etiquetas de tres componentes numéricos con el
 prefijo \texttt{v}. La automatización valida su formato y resuelve la etiqueta
 al commit de origen antes de reutilizar las comprobaciones de Rust y de la
@@ -7,19 +9,28 @@ interfaz. Solamente después de su aprobación compila y empaqueta el ejecutable
 los archivos estáticos, la biblioteca qpdf y los ejecutables FFmpeg/ffprobe
 fijados. La compilación nativa se realiza en el runner de VPS3, compatible con
 la ABI de su Ubuntu 22.04; los otros jobs conservan runners propios. Un
-manifiesto conserva versión, commit, huellas de archivos y huella de migraciones; no contiene
+manifiesto conserva versión, commit, huellas de archivos y huella de las
+migraciones (\cref{tab:anexo-migraciones}); no contiene
 credenciales ni material criptográfico privado.
 
 La transferencia usa una identidad Ed25519 y una llave de servidor verificada
 previamente. PostgreSQL, Redis, Rust y nginx se ejecutan como servicios del
 usuario de despliegue \texttt{qadra} en VPS3, bajo
 \texttt{/home/qadra/qadra}, con puertos limitados a la interfaz de retorno local.
-El navegador accede por un túnel SSH al puerto 22022. La identidad Ed25519 de
+El acceso administrativo usa SSH en el puerto 22022, y la guía de despliegue
+documenta un túnel hacia el frontend local. La identidad Ed25519 de
 despliegue pertenece a esa cuenta; no se entrega la clave administrativa al
 workflow. CI y la aplicación comparten el servidor con servicios separados.
 Los datos, la clave de protección y el material de firma y sellado permanecen fuera de los directorios de versiones.
 La preparación del host no crea automáticamente una cuenta Owner ni publica
-la aplicación en Internet.
+la aplicación en Internet. El origen público HTTPS del despacho,
+\texttt{qadra.com.mx}, es una configuración del host separada de esa
+preparación, y el portal de la CA dispone de su propio origen
+(\cref{sec:impl-portal-ca}). Ese origen no satisface por sí mismo las
+condiciones que \rutarepo{docs/product-completion.md} fija para un despliegue
+público ---límites operativos como TLS interno y pooling, revisión del modelo de
+amenaza de la firma HTTP y delimitación de la ausencia de anclaje externo de
+auditoría---, que permanecen pendientes (\cref{sec:impl-divergencias}).
 
 La activación verifica el paquete, detiene la entrada y la API, respalda el
 estado y cambia un enlace a la versión candidata. Después comprueba las
@@ -29,15 +40,10 @@ Una diferencia entre huellas de migraciones impide el cambio automático:
 retroceder el ejecutable no implica que una base migrada sea compatible.
 \rutarepo{docs/deployment.md} documenta mantenimiento, consulta de registros y
 recuperación; \rutarepo{docs/adr/0048-private-versioned-deployment.md} fundamenta
-esta separación entre versiones de aplicación y estado persistente.
-
-La versión privada aceptada \texttt{v0.1.1} conserva un manifiesto de 119
-archivos y el esquema de la versión previa. La aceptación operativa comprobó
-su salud, identidad y material criptográfico, así como el rollback real a
-\texttt{v0.1.0} y el retorno a la nueva versión sin alterar datos SQL ni claves.
-El ingreso permanece privado y la cuenta inicial Owner requiere enrolamiento
-explícito; una instalación sin usuarios no demuestra todavía el recorrido
-autenticado de un despacho.
+esta separación entre versiones de aplicación y estado persistente. La
+activación real de versiones sucesivas, su rollback y el retorno sin alterar
+datos SQL ni claves cuentan con la aceptación operativa fechada de la
+\cref{sec:pruebas-despliegue}.
 
 El respaldo reúne PostgreSQL, una instantánea Redis validada y el material
 privado disponible, con la API y la entrada detenidas. La comprobación del
@@ -47,15 +53,9 @@ La restauración exige invalidar sesiones y desafíos, conservar los controles
 vigentes y verificar la persistencia AOF antes de reabrir el ingreso.
 Una copia histórica no recupera cambios posteriores ni demuestra por sí sola
 una recuperación integral; \rutarepo{docs/deployment-backups.md} delimita el
-procedimiento y sus condiciones de aceptación.
-
-La captura real del estado inicial se restauró fuera de VPS3 con PostgreSQL
-16.15 y Redis 7.4.11. Se conservaron esquema, privilegios, claves, confianza,
-proyección y cadena de auditoría; el binario aceptado arrancó con rechazo de
-peticiones sin credenciales. La instantánea Redis se cargó y se comprobó su
-persistencia tras reiniciar con AOF. El conjunto tenía cero usuarios y ninguna
-clave Redis vigente: esta evidencia acredita la recuperación del estado inicial,
-no la recuperación de un despacho poblado ni un tiempo objetivo de recuperación.
+procedimiento y sus condiciones de aceptación. La restauración real de una
+captura de la instalación se presenta con su alcance en la
+\cref{sec:pruebas-despliegue}.
 
 
 El mantenimiento de la lista de revocación coordina tres estados distintos:
@@ -79,24 +79,16 @@ de reiniciar la misma versión. Un fallo de salud mantiene cerrado el ingreso,
 sin retroceder la confianza ni el contador. Este protocolo no es una transacción
 distribuida ni programa renovaciones automáticas; sus condiciones operativas
 se detallan en \rutarepo{docs/deployment-crl.md} y
-\rutarepo{docs/adr/0063-recoverable-crl-maintenance.md}.
+\rutarepo{docs/adr/0063-recoverable-crl-maintenance.md}. Su aceptación operativa
+sobre la instalación privada se presenta en la \cref{sec:pruebas-despliegue}.
 
 
-La aceptación operativa de este controlador renovó una vez la confianza de
-la instalación privada, de revisión 1 a 2, y conservó la autoridad, claves,
-certificados y revocaciones. Sólo cambiaron la CRL y su contador en el material
-privado. La aplicación \texttt{v0.1.1} reinició con salud comprobada, el registro
-terminó aceptado y su respaldo exacto conservó las cuatro piezas. Se verificó
-la cadena de auditoría completa y el prefijo previo sin modificaciones.
-Esta comprobación usó una instalación sin usuarios y no programó un timer.
-
-
-Los respaldos prospectivos incorporan un manifiesto privado de captura con
+Cada respaldo nuevo incorpora un manifiesto privado de captura con
 identidad declarada de aplicación y controlador, tamaños y huellas SHA-256 de
 los tres archivos de datos. Se publica y sincroniza antes del marcador final.
 El recibo CRL incluye ese quinto archivo cuando existe y rechaza su aparición,
-retirada o cambio respecto del inventario aceptado. Una captura histórica no
-se convierte silenciosamente al formato nuevo. Estas huellas detectan cambios
+retirada o cambio respecto del inventario aceptado. Una captura creada sin
+manifiesto no se convierte silenciosamente a ese formato. Estas huellas detectan cambios
 respecto de un recibo conservado por una vía confiable; no autentican por sí
 solas datos y manifiesto que el mismo operador pueda sustituir.
 
@@ -184,7 +176,8 @@ posterior al plazo no acredita disponibilidad. Las lecturas parciales limitan
 los cuerpos y actualizan el timeout del socket. Los encabezados y delimitadores
 internos de HTTP y una lectura bloqueada del filesystem no tienen interrupción
 total garantizada; el controlador rechaza el resultado al recuperar el control.
-Se conserva la interfaz anterior sin plazo explícito. Véase
+La llamada sin plazo explícito conserva sus límites por operación: diez segundos
+por comando de dependencia y cinco por apertura HTTP. Véase
 \rutarepo{docs/deployment-readiness-deadline.md}.
 
 La entrada administrativa por SSH exige la huella aprobada externamente del

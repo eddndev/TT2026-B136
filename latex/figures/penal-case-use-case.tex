@@ -1,0 +1,70 @@
+\begin{tikzpicture}[every node/.style={font=\footnotesize\sffamily},>=Latex,line width=0.35pt]
+  \node[font=\footnotesize\bfseries\sffamily] at (7,7.4)
+    {CU-05 --- Registro y administración de expediente penal};
+
+  \draw[fill=gray!10] (1,6.45) circle (0.22);
+  \draw (1,6.23) -- (1,5.65);
+  \draw (0.55,6) -- (1.45,6);
+  \draw (1,5.65) -- (0.6,5.2) (1,5.65) -- (1.4,5.2);
+  \node at (1,4.9) {Litigante};
+  \draw (1.55,6) -- (5.2,4.95);
+
+  \draw[fill=gray!10] (1,4.05) circle (0.22);
+  \draw (1,3.83) -- (1,3.25);
+  \draw (0.55,3.6) -- (1.45,3.6);
+  \draw (1,3.25) -- (0.6,2.8) (1,3.25) -- (1.4,2.8);
+  \node at (1,2.5) {Paralegal};
+  \draw[->,dashed] (1.55,3.6) --
+    node[above,sloped] {consulta}
+    (4.45,4.1);
+
+  \draw[fill=yellow!4] (7,4.3) ellipse (2.6 and 0.95);
+  \node[align=center] at (7,4.3)
+    {CU-05\\Registro y administración\\de expediente penal};
+
+  \node[draw,fill=yellow!8,anchor=north,align=left,inner sep=4pt] (note)
+    at (12.4,5.75)
+    {HU-12, HU-17, HU-18 $\cdot$ RF-04\\
+     RNF-04, RNF-10\\
+     Estado inicial: Investigación.};
+  \draw[densely dotted] (9.6,4.35) -- (note.west);
+
+  \draw[fill=yellow!4] (1.9,1.05) ellipse (1.9 and 0.65);
+  \node[align=center] at (1.9,1.05) {Faltan campos\\obligatorios};
+  \draw[->,dashed] (3.45,1.45) --
+    node[above,sloped] {$\langle\!\langle$extend$\rangle\!\rangle$}
+    (5.15,3.62);
+
+  \draw[fill=yellow!4] (1.9,-0.6) ellipse (1.9 and 0.65);
+  \node[align=center] at (1.9,-0.6) {NUC ya existe\\en el despacho};
+  \draw[->,dashed] (3.55,-0.25) --
+    node[below,sloped,pos=0.45] {$\langle\!\langle$extend$\rangle\!\rangle$}
+    (5.9,3.43);
+
+  \draw[fill=yellow!4] (8.1,2.3) ellipse (1.9 and 0.5);
+  \node at (8.1,2.3) {Registro en bitácora};
+  \draw[->,dashed] (7.6,3.37) --
+    node[left,pos=0.45] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (7.9,2.8);
+
+  \draw[fill=yellow!4] (8.1,0.8) ellipse (2.25 and 0.65);
+  \node[align=center] at (8.1,0.8)
+    {Persistencia con\\estado «Investigación»};
+  \draw[->,dashed] (9.2,3.6) .. controls (11.0,3.0) and (11.0,1.1) ..
+    node[right,fill=white,inner sep=1pt,pos=0.5] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (10.3,0.95);
+
+  \draw[fill=yellow!4] (8.1,-0.8) ellipse (2.25 and 0.65);
+  \node[align=center] at (8.1,-0.8)
+    {Registro de tipo\\de delito y metadatos};
+  \draw[->,dashed] (9.45,3.85) .. controls (12.7,3.2) and (12.7,-0.5) ..
+    node[right,fill=white,inner sep=1pt,pos=0.55] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (10.3,-0.65);
+
+  \draw[fill=yellow!4] (8.1,-2.4) ellipse (2.25 and 0.65);
+  \node[align=center] at (8.1,-2.4)
+    {Validación de NUC\\y Carpeta Judicial};
+  \draw[->,dashed] (9.6,4.15) .. controls (14.3,3.6) and (14.3,-2.1) ..
+    node[right,fill=white,inner sep=1pt,pos=0.6] {$\langle\!\langle$include$\rangle\!\rangle$}
+    (10.3,-2.25);
+\end{tikzpicture}

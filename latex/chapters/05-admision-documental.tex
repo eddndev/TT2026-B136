@@ -1,7 +1,7 @@
 \subsection{Validación y aceptación de la admisión documental general}\label{sec:pruebas-admision-documental}
 
-Las comprobaciones focales de la admisión general distinguen la política de
-aplicación, el rechazo HTTP y la ejecución de analizadores nativos. La
+Las comprobaciones focales de la admisión general
+(\cref{sec:impl-admision-documental}) distinguen la política de aplicación, el rechazo HTTP y la ejecución de analizadores nativos. La
 \cref{tab:pruebas-admision-documental} presenta los resultados aprobados por
 frontera; no representa una nueva ejecución global del proyecto ni actualiza
 las mediciones históricas de cobertura. Los 29 casos de infraestructura y los
@@ -51,9 +51,12 @@ La dependencia se verificó con el usuario del runner en los tres VPS. VPS1,
 con AlmaLinux, requirió una compilación nativa porque el binario preparado en
 Ubuntu~22 depende de GLIBC~2.35. La comprobación posterior de cada instalación
 es de solo lectura. Clippy aprobó el workspace y todos los targets con
-advertencias denegadas. Los gates globales y la integración permanecen
-pendientes. Los resultados no acreditan detección de malware, autenticidad
-jurídica ni ampliación de la política de soportes PDF/DOCX. El contrato y la
+advertencias denegadas. Los gates globales y la integración no forman parte de
+esta evidencia local: la integración del incremento en \texttt{main}, con su
+confirmación, consta en \rutarepo{docs/product-completion.md}, y las cifras
+anteriores describen la aceptación original y no una nueva ejecución. Los
+resultados no acreditan detección de malware, autenticidad jurídica ni
+ampliación de la política de soportes PDF/DOCX (\cref{sec:impl-formatos}). El contrato y la
 distinción entre evidencia local y cierre global se conservan en
 \rutarepo{docs/document-upload-admission-api.md} y en
 \rutarepo{docs/adr/0058-bounded-general-document-admission.md}.

@@ -1,8 +1,8 @@
-\section{Comprobación del registro conjunto de resultado y plazo}\label{sec:pruebas-resultado-plazo-derivado}
+\subsection{Comprobación del registro conjunto de resultado y plazo}\label{sec:pruebas-resultado-plazo-derivado}
 
 La validación de la \cref{sec:impl-resultado-plazo-derivado} separa revisión prospectiva, captura real y recuperación histórica. Los casos se ejecutan por frontera y conservan sus resultados focales; no forman un nuevo denominador global de pruebas o cobertura. El \cref{sec:matriz-resultado-plazo-derivado} relaciona esas fronteras con sus fuentes versionadas, mientras que \rutarepo{docs/verification-report.md} registra comandos, resultados y límites de cada ejecución.
 
-\subsection{Preparación, captura y reconstrucción histórica}
+\subsubsection{Preparación, captura y reconstrucción histórica}
 
 Los 18 casos iniciales de preparación comprueban correspondencia entre la audiencia, el resultado propuesto y la fuente R1 seleccionada por el plazo. Conservan perfil, calendario, responsable, declaraciones y políticas. Distinguen una instrucción incompleta legítimamente bloqueada de una referencia ajena o una evidencia inconsistente. Una sesión concluida no inventa una hora de finalización. Las 29 regresiones afectadas de insumos, evaluador y evidencia histórica se registran aparte de esos casos nuevos; entre ellas, la ausencia de duración no se sustituye por el máximo configurado.
 
@@ -10,7 +10,7 @@ La captura final incorporó ocho casos que contrastan el cálculo revisado con e
 
 La recuperación histórica añadió seis casos y repitió los 26 anteriores en un focal de 32 aprobados. Comprueba ambos compromisos, el autor y las dependencias capturadas, sin volver a ejecutar la aritmética. Los cambios en campos legibles o en referencias deben invalidar el material, aunque se conserven huellas aportadas por el llamador. Las cantidades anteriores describen grupos de pruebas y reejecuciones; no se suman como si fueran casos nuevos de una misma corrida.
 
-\subsection{Servicio y persistencia transaccional}
+\subsubsection{Servicio y persistencia transaccional}
 
 El servicio incorporó 13 casos de autenticación, admisión y confirmación con puertos controlados. Comprueban ambas capacidades de gestión, reautenticación del principal, correspondencia del comando y rechazo de una aprobación distinta. La simulación de una respuesta perdida conserva el intento para conciliación explícita, sin introducir reintentos automáticos. Las 25 regresiones del flujo ordinario de admisión se mantuvieron como evidencia separada.
 
@@ -18,7 +18,7 @@ En PostgreSQL 16.15 desechable, catorce casos de esquema, catálogo, inventario 
 
 La frontera persistente exige resultado, plazo, evento y origen auditado coherentes. La recuperación de dos registros creados independientemente no satisface esa condición. Las pruebas también conservan la autoridad histórica capturada cuando los datos actuales de la cuenta cambian legítimamente; la autorización de acceso sigue siendo actual. Estos ensayos con conexiones reales no equivalen a una campaña HTTP completa ni a una restauración integral de todos los servicios.
 
-\subsection{Transporte, cliente y recuperación del editor}
+\subsubsection{Transporte, cliente y recuperación del editor}
 
 Los dieciséis casos nuevos del adaptador HTTP comprueban ambas respuestas de preparación, confirmación, ámbito, fuente exacta, huellas, autorización, JSON estricto y límite del cuerpo. Preservan el desfase original y la secuencia del evento como cadena decimal. La primera corrida funcional aprobó catorce; dos fixtures no aislaban correctamente las fronteras pretendidas y se corrigieron antes de repetir sus casos, que aprobaron sin modificar el producto. El caso de composición de rutas aprobó por separado. Esta evidencia procede de flujos inyectados y no demuestra persistencia a través del servidor real.
 
@@ -26,7 +26,7 @@ El cliente interno aprobó 24 casos Node entre el grupo inicial de diecisiete y 
 
 El editor añadió 31 casos Node, seis de navegador con respuestas controladas y dos regresiones compartidas. Recorren el registro calculable y bloqueado, revisión explícita, respuesta incierta y preservación del borrador. La recuperación tras caducar la sesión aprobó un caso en 10.205~s: el mismo usuario vuelve a autorizar el expediente y consulta el intento original antes de cargar fuentes actuales. No recupera una aceptación anterior ni crea otra confirmación para resolver la incertidumbre. Esa duración corresponde al comando focal de recuperación, no a una medición de rendimiento ni a los seis escenarios completos.
 
-\subsection{Navegador nativo y restauración integrada}
+\subsubsection{Navegador nativo y restauración integrada}
 
 El navegador con servicios reales aprobó cinco escenarios. Cuatro recorrieron registros calculables y bloqueados a 1440 y 390 píxeles de ancho; el quinto descartó una respuesta real HTTP 201 después de la confirmación y recuperó mediante \texttt{Replay} el registro exacto, sin otro \texttt{submit}. Los casos calculables contrastaron la consulta nativa de Agenda y su representación en Qadra, además del aviso interno del plazo a 24 horas, su destinatario y la huella de evidencia correspondiente. El correo permaneció deshabilitado. Los registros bloqueados conservaron explicación e historia sin adquirir por ello un vencimiento operativo.
 
@@ -36,4 +36,4 @@ La campaña completa de API y restauración aprobó con salida cero en 493.782~s
 
 La comparación SQL completa resultó idéntica antes y después de \texttt{pg\_dump} y \texttt{pg\_restore}, incluida la tabla de orígenes de la migración \texttt{0032}. Se conservaron ambos componentes, recibos, evento y auditoría. Las sesiones anteriores recibieron HTTP 401 y las consultas posteriores requirieron nueva autenticación multifactor. Esta evidencia de respaldo y recuperación es independiente de la aceptación del navegador. Asimismo, un aviso de la audiencia no demuestra el del plazo configurado desde su resultado; se exige identificar la familia, el plazo y su origen exactos.
 
-Los perfiles y datos sintéticos de estas pruebas permiten reproducir el comportamiento técnico, pero no constituyen un corpus jurídico aprobado. Tampoco acreditan evaluación de usabilidad con personal del despacho ni entrega de correo externo. El cierre de integración continua, la integración remota y el despliegue permanecen pendientes; cada frontera conserva evidencia y criterios de cierre propios.
+Los perfiles y datos sintéticos de estas pruebas permiten reproducir el comportamiento técnico, pero no constituyen un corpus jurídico aprobado. Tampoco acreditan evaluación de usabilidad con personal del despacho ni entrega de correo externo. Estas campañas locales no acreditan por sí solas la integración ni el despliegue. La integración del flujo en la rama principal se registra en \rutarepo{docs/hearing-derived-deadlines.md}, que precisa que esa integración no acredita el despliegue ni la aprobación de los perfiles jurídicos, y \rutarepo{docs/four-front-closure.md} lo clasifica entre los frentes integrados y delimita su cierre. Cada frontera conserva evidencia y criterios de cierre propios.

@@ -1,0 +1,92 @@
+% =====================================================================
+%  04-cli.tex - Interfaz de linea de comandos
+% =====================================================================
+
+\section{La interfaz de línea de comandos}\label{sec:impl-cli}
+
+La interfaz de línea de comandos \texttt{despacho-cli}, construida con \texttt{clap}~4 en modo derive (\rutarepo{crates/bin/src/cli.rs}), es junto con las API Axum una de las entradas implementadas de la arquitectura hexagonal (\cref{sec:hexagonal-definicion}). Comparte con la API HTTP de la \cref{sec:impl-http} los casos de uso de \texttt{application}: ejercita de extremo a extremo los servicios criptográficos sin levantar el servidor y reúne las tareas administrativas de esquema, importación, restauración y confianza. La bandera global \texttt{-{}-json} conmuta las operaciones administrativas a un objeto JSON legible por máquina. La \cref{tab:impl-cli-catalogo} presenta el catálogo completo de subcomandos con sus banderas principales ---\texttt{serve} admite además las rutas del material de confianza y de la TSA local y las opciones de límites, sesiones, consumidores, correo, acceso del Owner por certificado, recuperación de contraseña e invitaciones reunidas en \rutarepo{crates/bin/src/serve_args.rs}---, y la \cref{tab:impl-cli-casos} el cableado de cada grupo hacia los casos de uso de \texttt{application} y los adaptadores concretos que la raíz de composición inyecta.
+
+\begingroup
+\footnotesize
+\begin{longtable}{@{}L{7.2cm}L{\dimexpr\linewidth-7.2cm-2\tabcolsep\relax}@{}}
+  \caption{Catálogo de subcomandos de \texttt{despacho-cli}. La bandera global \texttt{-{}-json} aplica a todos.}
+  \label{tab:impl-cli-catalogo} \\
+    \toprule
+    \textbf{Comando y banderas} & \textbf{Efecto} \\
+    \midrule
+    \endfirsthead
+    \toprule
+    \textbf{Comando y banderas} & \textbf{Efecto} \\
+    \midrule
+    \endhead
+
+    \texttt{serve -{}-signer-cert <CERT> -{}-signer-key <KEY> [-{}-qpdf-library <LIB>] [-{}-ffprobe-path <PATH>] [-{}-ffmpeg-path <PATH>] [-{}-bind <ADDR>] [-{}-data-dir <DIR>]} & Inicia la API por expediente con un rol PostgreSQL restringido, sesiones Redis, TSA local y consumidores internos; exige la biblioteca qpdf mediante \texttt{-{}-qpdf-library} o \texttt{DOCUMENT\_QPDF\_LIBRARY} y los ejecutables FFmpeg/ffprobe fijados, tomados de \texttt{/opt/tt-media/bin} salvo \texttt{-{}-ffprobe-path} y \texttt{-{}-ffmpeg-path} (\texttt{TT\_FFPROBE\_PATH}, \texttt{TT\_FFMPEG\_PATH}), y no arranca si su comprobación inicial falla. \\
+    \midrule
+    \texttt{database migrate -{}-runtime-role <ROLE>} & Aplica las migraciones del esquema (\cref{tab:anexo-migraciones}) y sus permisos con una conexión administrativa; el rol debe existir. \\
+    \texttt{database import [-{}-data-dir <DIR>] -{}-mapping <PATH> [-{}-apply]} & Inspecciona origen y destino; solo \texttt{-{}-apply} confirma la importación y el corte. \\
+    \texttt{database check} & Valida esquema, funciones, permisos efectivos e inventarios con el rol operativo de \texttt{DATABASE\_URL}, sin DDL ni reparaciones. \\
+    \texttt{database invalidate-restored-password-resets -{}-operation-id <UUID> -{}-expected-database <DB> -{}-expected-schema <SCHEMA> (-{}-expected-empty-audit | -{}-expected-audit-sequence <N> -{}-expected-audit-head <SHA256>)} & Cancela, con conexión administrativa y recibo auditado, las capacidades de recuperación de contraseña pendientes de una base restaurada. \\
+    \texttt{database invalidate-restored-invitations} (mismas banderas) & Cancela del mismo modo las invitaciones de enrolamiento pendientes de una base restaurada. \\
+    \midrule
+    \texttt{crypto hash <FILE>} & Resumen SHA-256 del archivo. \\
+    \midrule
+    \texttt{vault encrypt <FILE> -{}-doc-id <UUID> [-{}-version <N>]} & Cifra con envelope encryption; escribe \texttt{<FILE>.enc}. \\
+    \texttt{vault decrypt <PACKAGE> -{}-doc-id <UUID> [-{}-version <N>] [-{}-out <PATH>]} & Descifra un archivo \texttt{DVLT1}; sin \texttt{-{}-out} escribe el claro a la salida estándar. \\
+    \texttt{vault rotate-kek -{}-file <PATH>} & Re-envuelve la DEK bajo la KEK de \texttt{NEW\_KEK\_BASE64}. \\
+    \midrule
+    \texttt{pki [-{}-scripts-dir <DIR>] init-ca} & Crea la CA raíz interna (idempotente). \\
+    \texttt{pki issue -{}-cn <CN> [-{}-purpose <PURPOSE>]} & Emite un certificado ordinario o para declaración personal interna. \\
+    \texttt{pki issue-request -{}-csr <CSR> -{}-name <NAME> [-{}-purpose <PURPOSE>]} & Emite desde un CSR externo, sin generar la clave privada del titular, un certificado de firma documental (perfil predeterminado) u ordinario. \\
+    \texttt{pki revoke -{}-serial <HEX>} & Revoca por número de serie. \\
+    \texttt{pki gen-crl} & Genera la CRL en PEM. \\
+    \texttt{pki show <CERT>} & Inspecciona sujeto, emisor, serie y vigencia. \\
+    \texttt{credential-trust publish -{}-root-cert <PATH> -{}-crl <PATH> -{}-expected-revision <N>} & Publica raíz y CRL con revisión esperada y conexión administrativa. \\
+    \midrule
+    \texttt{sign <FILE> -{}-cert <PATH> -{}-key <PATH>} & Firma el digest del archivo; escribe \texttt{<FILE>.sig}. \\
+    \texttt{timestamp <INPUT> [-{}-mock] [-{}-out <PATH>] [-{}-pki-dir <DIR>]} & Solicita un sello RFC 3161; escribe \texttt{<INPUT>.tsr}. Con \texttt{-{}-mock} usa la TSA local; sin ella, el proveedor remoto. \\
+    \texttt{verify <FILE> -{}-sig <PATH> -{}-cert <PATH> -{}-ca <PATH> [-{}-tsr] [-{}-crl] [-{}-tsa-cert] [-{}-at <RFC3339>]} & Verificación integral de cuatro componentes; \texttt{-{}-at} evalúa el certificado a un instante dado. \\
+    \texttt{package export <FILE> -{}-sig -{}-tsr -{}-cert -{}-ca -{}-crl [-{}-tsa-chain] -{}-out <PATH>} & Exporta el paquete de evidencia, previa verificación de los artefactos. \\
+    \midrule
+    \texttt{auth calibrate} & Mide el costo real de Argon2id contra la banda de 500--1\,000 ms. \\
+    \texttt{auth hash-password} & Hash PHC de una contraseña leída de la entrada estándar. \\
+    \texttt{auth verify-password -{}-hash <PHC>} & Verifica una contraseña contra un PHC almacenado. \\
+    \texttt{auth totp enroll -{}-user <EMAIL> -{}-secret-out <PATH>} & Enrola el segundo factor y emite los códigos de recuperación. \\
+    \texttt{auth totp verify -{}-code <CODE> -{}-secret-file <PATH>} & Verifica un código TOTP. \\
+    \midrule
+    \texttt{audit append -{}-action <STRING> -{}-resource <STRING>} & Anexa un evento a la bitácora offline, si el origen no está bloqueado por migración. \\
+    \texttt{audit verify-chain} & Verifica la cadena del archivo offline desde el génesis. \\
+    \texttt{audit show} & Lista los eventos del archivo offline en orden de inserción. \\
+    \bottomrule
+\end{longtable}
+\endgroup
+
+\begin{table}[htbp]
+  \centering
+  \caption{Correspondencia entre comandos, orquestación y adaptadores compuestos por el binario.}
+  \label{tab:impl-cli-casos}
+  \begin{tabularx}{\linewidth}{@{}L{3.4cm} L{5.2cm} >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Comando} & \textbf{Caso(s) de uso} & \textbf{Adaptadores inyectados} \\
+    \midrule
+    \texttt{serve} & \texttt{Identity\allowbreak Service}, \texttt{CaseService}, \texttt{CaseDocument\allowbreak Service} y los servicios de los demás dominios (\cref{sec:impl-http}) & PostgreSQL transaccional, Redis, Argon2id, TOTP, cifrado, firma, TSA local, ZIP, procesos de admisión de formatos y consumidores internos de plazos, alertas e informes \\
+    \texttt{database *} & Preparación administrativa, validación de registros históricos y de una base restaurada, y cancelación de capacidades restauradas & \texttt{initialize\_database}, \texttt{Legacy\allowbreak Import}, \texttt{with\_validated\_postgres}, las funciones de invalidación de identidad y puertos de validación criptográfica \\
+    \texttt{crypto hash} & \texttt{Hash\allowbreak Document} & \texttt{Ring\allowbreak Sha256\allowbreak Hasher} \\
+    \texttt{vault *} & \texttt{Encrypt\allowbreak Document}, \texttt{Decrypt\allowbreak Document}, \texttt{RotateKek} & \texttt{Ring\allowbreak Aes\allowbreak Gcm\allowbreak Cipher}, \texttt{Envelope\allowbreak Key\allowbreak Manager} \\
+    \texttt{pki *} & \texttt{Initialize\allowbreak Ca}, \texttt{Issue\allowbreak Certificate}, \texttt{Revoke\allowbreak Certificate}, \texttt{GenerateCrl}, \texttt{Inspect\allowbreak Certificate} & \texttt{Openssl\allowbreak Ca\allowbreak Adapter}, \texttt{X509\allowbreak Chain\allowbreak Validator} \\
+    \texttt{credential-trust} & Publicación auditada de confianza interna & PostgreSQL administrativo y verificador de declaraciones \\
+    \texttt{sign} & \texttt{Sign\allowbreak Document} + \texttt{Verify\allowbreak Signature} & \texttt{Rsa\allowbreak Pkcs1\allowbreak Signer}, \texttt{Rsa\allowbreak Pkcs1\allowbreak Verifier} \\
+    \texttt{timestamp} & \texttt{Timestamp\allowbreak Document} & \texttt{Local\allowbreak Openssl\allowbreak Tsa} o \texttt{Cincel\allowbreak Tsa\allowbreak Adapter} \\
+    \texttt{verify} & \texttt{Verify\allowbreak Document} & \texttt{Ring\allowbreak Sha256\allowbreak Hasher}, \texttt{Rsa\allowbreak Pkcs1\allowbreak Verifier}, \texttt{X509\allowbreak Chain\allowbreak Validator}, \texttt{Rfc3161\allowbreak Verifier} \\
+    \texttt{package export} & \texttt{Verify\allowbreak Document} + \texttt{Export\allowbreak Evidence\allowbreak Package} & los cuatro anteriores más \texttt{Stored\allowbreak Zip\allowbreak Writer} \\
+    \texttt{auth calibrate}, \texttt{hash-password}, \texttt{verify-password} & \texttt{CalibratePassword\allowbreak Hashing}, \texttt{Hash\allowbreak Password}, \texttt{Verify\allowbreak Password} & \texttt{Argon2id\allowbreak Hasher} \\
+    \texttt{auth totp *} & \texttt{EnrollTotp}, \texttt{VerifyTotp} & \texttt{Totp\allowbreak Rs\allowbreak Provider}, \texttt{Random\allowbreak Recovery\allowbreak Code\allowbreak Generator}, \texttt{Argon2id\allowbreak Hasher} \\
+    \texttt{audit *} & \texttt{Append\allowbreak Audit\allowbreak Event}, \texttt{Verify\allowbreak Audit\allowbreak Chain}, \texttt{Show\allowbreak Audit\allowbreak Log} & \texttt{File\allowbreak Audit\allowbreak Log}, \texttt{Ring\allowbreak Sha256\allowbreak Hasher}, \texttt{SystemClock} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Con \texttt{-{}-json}, las operaciones finitas emiten resultados estructurados en la salida estándar ---por ejemplo, \texttt{crypto hash} emite \texttt{\{algorithm, digest, file\}} y \texttt{verify} emite el reporte completo con los cuatro componentes y el veredicto---, mientras los diagnósticos van a la salida de error. Se exceptúan el proceso persistente \texttt{serve} y \texttt{vault decrypt} sin archivo de salida, que conserva el texto claro crudo. Los códigos de salida están pensados para que los scripts bifurquen directamente: el proceso termina con código distinto de cero cuando \texttt{verify} produce un veredicto no válido, cuando \texttt{auth verify-password} reporta una contraseña que no coincide, cuando \texttt{auth totp verify} rechaza el código, cuando \texttt{audit verify-chain} encuentra la cadena rota ---imprimiendo antes el JSON de fallo con el índice del primer eslabón roto--- y cuando \texttt{package export} rehúsa exportar. Los subcomandos de lectura de la bitácora (\texttt{verify-chain}, \texttt{show}) rehúsan operar sobre un archivo inexistente: reportar una ruta equivocada o un log borrado como una cadena vacía válida frustraría el propósito de la verificación.
+
+La raíz de composición es el crate \texttt{bin}: su punto de entrada \rutarepo{crates/bin/src/main.rs} despacha a los módulos de cada comando, y en conjunto constituyen el único lugar del sistema donde los adaptadores concretos se instancian e inyectan en los casos de uso. Es también el único crate que usa \texttt{anyhow}, tal como estableció el patrón de inyección de dependencias por composición del diseño (\cref{sec:inyeccion-dependencias}). Ahí ---y no en los adaptadores, que quedan libres de acceso al entorno--- se leen los secretos: la KEK de \texttt{KEK\_BASE64} a un buffer \texttt{Zeroizing}, la clave privada del firmante desde su archivo PEM, la credencial del proveedor de sellado. La raíz concentra también salvaguardas operativas que no pertenecen a ningún servicio individual: \texttt{sign} verifica la firma recién producida contra el certificado \emph{antes} de escribir \texttt{<FILE>.sig}, de modo que una clave que no corresponde al certificado falla ahí y no produce una firma inverificable; \texttt{timestamp} relee el token recibido y comprueba que cubra el digest calculado antes de escribir el archivo \texttt{.tsr}; \texttt{vault rotate-kek} escribe a un archivo temporal y renombra encima, de modo que un fallo a la mitad deja el original intacto; y \texttt{package export} somete los artefactos al mismo caso de uso \texttt{Verify\allowbreak Document} de la verificación integral ---CRL y token incluidos--- y rehúsa exportar si el veredicto no es válido, nombrando cada componente fallido, porque un paquete que fallaría sus propias instrucciones de verificación no debe existir.
+
+La integración de todos los servicios se demuestra con el guion \rutarepo{scripts/demo.sh}, que compila el binario y recorre el ciclo completo de evidencia en un directorio temporal: creación de la autoridad interna, del firmante y de la autoridad de sellado; hash del documento de muestra; cifrado en reposo con corrupción deliberada de un byte y observación del rechazo; firma y obtención del sello de tiempo; verificación integral con los cuatro componentes válidos; alteración de una copia del documento con el consecuente fallo del componente de firma; exportación del paquete de evidencia y su verificación con solo \texttt{openssl} y \texttt{unzip}; revocación del certificado y su detección; calibración de autenticación y códigos de un solo uso; y bitácora encadenada con anexado, verificación, manipulación y nueva verificación. La transcripción íntegra de una ejecución real, capturada el 12 de julio de 2026 sobre OpenSSL 3.5.7, está versionada en \rutarepo{docs/demo-transcript.md}. Una segunda demostración, \rutarepo{scripts/api-demo.sh}, recorre el mismo núcleo a través de HTTP y se describe en la \cref{sec:impl-http-limites}. El entorno, los comandos y el resumen de ambos recorridos quedaron asentados en \rutarepo{docs/verification-report.md}; la \cref{sec:pruebas-interop} presenta su evidencia.

@@ -1,0 +1,87 @@
+% =====================================================================
+%  05-expedientes.tex - Verificacion de expedientes y participantes
+% =====================================================================
+
+\section{Verificación de expedientes y participantes}\label{sec:pruebas-expedientes}
+
+Las pruebas de esta sección comprueban el directorio de participantes con revisiones, el perfil penal con su cierre administrativo, la coordinación de acciones y consultas que la interfaz aplica a los editores de documentos, clasificación y participantes, y las identidades representadas con declaraciones tipificadas. La pertenencia y el aislamiento por expediente se ensayan con la autorización por recurso de la \cref{sec:pruebas-permisos}.
+
+\subsection{Directorio con revisiones y estado organizativo}\label{sec:pruebas-participantes}
+
+Las pruebas del directorio distinguen valores, orquestación, transacciones, contrato HTTP y navegador. El canon \texttt{PART1} es propio del prototipo: sus vectores no se presentan como vectores oficiales, sino como acuerdos binarios comprobados entre Rust, PostgreSQL y OpenSSL. La \cref{tab:pruebas-participantes} sintetiza las invariantes comprobadas del directorio manual; la \cref{sec:matriz-participantes} identifica sus fuentes.
+
+\begin{table}[H]
+  \centering
+  \caption{Condiciones de comprobación del directorio de participantes.}
+  \label{tab:pruebas-participantes}
+  \begin{tabularx}{\linewidth}{@{}L{3.0cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Condiciones verificables} \\
+    \midrule
+    Valores y canon & Límites Unicode, controles antes de recortar, opciones ausentes, forma Unicode conservada, estado exacto y máximo de 2\,584 bytes. \\
+    Permisos y alcance & Cuatro roles, pertenencia actual, cuenta activa, ficha ajena indistinguible de ausente y revisión oculta antes de autorizar. \\
+    Revisiones & Creación activa en uno, raíz completa al commit, secuencia contigua, homónimos distintos y contador agotado sin desbordamiento. \\
+    Estado y concurrencia & Un ganador con revisión esperada; cambio exclusivo de estado conserva textos actuales; órdenes de confirmación y revocación durante espera. \\
+    Atomicidad & Fallos de fila, evento o commit diferido revierten raíces, revisiones y auditoría; lecturas no liberan datos cuando falla su evento. \\
+    Consultas & Cabeza elegida antes de filtros, coincidencias literales sensibles a mayúsculas, UUID ascendente, historia descendente y cursores exclusivos. \\
+    Procedencia y recuperación & UUID y correo capturados, UTC, corrupción rechazada, permisos restrictivos, migración repetible y restauración real con ruta SQL vacía. \\
+    HTTP & Seis rutas con alcance exacto, JSON estricto, cuerpo completo de 8~KiB, revisiones tipadas y distinción entre error de formato y semántico. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las regresiones de estado enfrentan un reemplazo de textos con una solicitud de archivo sobre la misma revisión. Exigen un único ganador auditado, conflicto para el perdedor y conservación de los textos actuales al confirmar después un cambio exclusivo de estado. Una prueba adicional retiene el bloqueo de auditoría mientras confirma la revocación de pertenencia, rol o cuenta activa; la operación que esperaba se rechaza sin añadir datos. Los casos de ambos órdenes distinguen la intención explícita de un reemplazo completo del comando que solo archiva o reactiva.
+
+El contrato HTTP prueba que ninguna mutación realiza una lectura posterior para armar su respuesta. Rechaza intentos de fijar UUID, autor, digest o fecha, campos repetidos y desconocidos, y estado inicial enviado por el cliente. La revisión cero llega a validación semántica; valores negativos, desbordamientos y tipos incorrectos fallan al decodificar. La frontera de 8~KiB se prueba tanto con cuerpo íntegro como fragmentado, y los máximos Unicode caben incluso con escapes de pares sustitutos. Estas comprobaciones no acreditan identidad o legitimación procesal de las personas registradas.
+
+La demostración HTTP crea dos homónimos con UUID distintos, prueba permisos de cuatro roles, revocación, filtros y paginación. Dos reemplazos con la misma revisión esperada producen una confirmación y un conflicto, con un solo evento de éxito. Archivar y reactivar conserva los textos vigentes; el historial registra cinco revisiones de una ficha y una de la otra. El respaldo y restauración compara filas completas, autoría y fechas de las seis revisiones, además de preservar las versiones documentales y sus ZIP. Estas pruebas no cierran los criterios jurídicos del caso de uso, cuyo cumplimiento parcial delimita la \cref{sec:impl-participantes-limites}.
+
+El agotamiento se ensaya con una modificación administrativa deliberada que alcanza el máximo sin crear miles de millones de filas. La prueba exige conflicto y ausencia de nueva auditoría; verifica por separado que el arranque rechaza ese inventario discontinuo. La importación inicial también rechaza un directorio ocupado aunque sus filas se hayan insertado sin eventos; repetir un recibo válido conserva las fichas añadidas después del corte legacy.
+
+La validación de navegador del corte del directorio, del 14 de septiembre de 2026, aprobó 38 pruebas unitarias y 65 escenarios simulados, estos últimos en 24.6 segundos, además de formato y compilación. Los tres recorridos con servicios reales aprobaron en 39.4 segundos bajo Node~22.22.2 y npm~10.9.7. El recorrido propio del directorio usa cuentas independientes y dos contextos de edición: conserva un borrador ante conflicto, compara la revisión vigente y confirma un reemplazo explícito. Un archivo concurrente conserva el rol actualizado; la reactivación llega a la revisión siete, recuperada tras cerrar sesión, recargar y autenticar de nuevo. Litigante añade la octava revisión, Paralegal consulta esa historia y Cliente no solicita el directorio. Tras revocar la asignación del litigante se retiran los datos de la vista. El ZIP documental anterior permanece idéntico después de las operaciones del directorio y no se registran errores JavaScript. Las capturas de escritorio y móvil y estos ensayos automáticos no sustituyen la validación de usabilidad con personal del despacho.
+
+\subsection{Perfil penal, revisiones y cierre administrativo}\label{sec:pruebas-administracion}
+
+El corte de administración penal del 14 de septiembre de 2026 aprobó \textbf{770 pruebas Rust, sin fallos y con una externa ignorada}, usando PostgreSQL y Redis aislados. Las 66 pruebas añadidas respecto de las 704 del corte del directorio se distribuyen en 24 de dominio y aplicación, 12 HTTP y 30 de infraestructura. Formato, compilación del workspace y Clippy terminaron con código cero. La \cref{tab:pruebas-administracion} distingue validación, persistencia, frontera HTTP y compatibilidad; la \cref{sec:matriz-administracion} identifica sus archivos. Estas cifras amplían la evidencia y no sustituyen las mediciones históricas.
+
+\begin{table}[H]
+  \centering
+  \caption{Condiciones de comprobación de la administración penal.}
+  \label{tab:pruebas-administracion}
+  \begin{tabularx}{\linewidth}{@{}L{3.0cm} X@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Condiciones verificadas} \\
+    \midrule
+    Valores y canon & Perfil completo o ausente, límites Unicode, CRLF y controles originales, delitos ordenados sin duplicados, canon CADM1 de hasta 12\,717 bytes. \\
+    Altas y procedencia & R0 sin historia inventada, alta básica R1 pendiente, alta penal R1 activa con registro inicial exacto y actor capturado. \\
+    Permisos y proyección & Cuenta y pertenencia vigentes, cuatro roles, Client básico, datos sensibles fuera de su DTO y lecturas sin retorno cuando falla auditoría. \\
+    Revisiones y unicidad & CAS con un ganador, estado exclusivo conserva textos, identificadores sobre cabezas incluidas cerradas y reutilización tras corrección. \\
+    Cierre & Rechazo de mutaciones y sellado preparado antes del cierre; prioridad de recurso ausente y conservación de consultas, verificación, exportación y reapertura. \\
+    Consultas & Filtros literales sobre cabeza, UUID ascendente, revisiones descendentes y cursores exclusivos, sin promesa de instantánea entre páginas. \\
+    Persistencia y recuperación & Rollback, restricciones, privilegios, inventario, READ COMMITTED después de espera, migración repetible y restore con ruta SQL vacía. \\
+    HTTP & Seis rutas, DTO compatibles, tipos y JSON estrictos, cuerpo completo de 64~KiB y máximos escapados. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Los tres vectores de CADM1 fijan bytes y SHA-256 para valores básicos, completos y Unicode con salto de línea. Se contrastan entre Rust, PostgreSQL y OpenSSL; no son vectores oficiales de un estándar externo. La prueba máxima compara 12\,717 bytes de valores multibyte. La validación SQL rechaza perfiles parciales, controles y arreglos de delitos no canónicos; la normalización CRLF se comprueba por separado de la codificación de valores ya normalizados.
+
+Las pruebas de concurrencia enfrentan reemplazos con una misma revisión y altas que compiten por identificadores actuales. Las inserciones directas bajo READ COMMITTED esperan el bloqueo común y vuelven a comprobar unicidad después de la espera; una escritura con aislamiento Repeatable Read se rechaza. Las lecturas que esperan una revocación o desactivación confirmada no devuelven los datos anteriores. El ensayo de cierre obtiene primero una instantánea para sellar, confirma el cierre y exige rechazo al intentar persistirla; la reapertura conserva las fichas existentes. Son condiciones de consistencia, no mediciones de rendimiento ni una campaña de carga.
+
+La demostración HTTP completa terminó con código cero. Comprueba R0, alta básica con tres eventos, alta penal con cuatro, rechazo de perfiles inválidos sin raíces o eventos nuevos, cuatro roles y un único ganador auditado ante CAS paralelo. Cerrar impide nueve operaciones de edición, documentos y directorio; consultas, verificación y ZIP siguen disponibles. La corrección de identificadores permite reutilizarlos y conserva la etapa inicial de la primera revisión. Completar perfiles pendientes no crea una etapa. La revocación con la misma sesión retira detalle e historia.
+
+El inventario respaldado y restaurado contiene \textbf{cinco expedientes, once revisiones administrativas y dos registros iniciales}; conserva cinco raíces documentales, seis versiones de contenido, tres revisiones de clasificación y dos participantes con seis revisiones. Se comparan filas completas, detalles e historias, autores UUID/correo, fechas y ZIP de ambas versiones. El origen documental conserva cuatro archivos y un prefijo de \textbf{63 eventos}; el prefijo de 51 eventos, registrado desde el corte de consultas documentales hasta el del directorio, mantiene su condición histórica. El recibo se reconcilia después de la actividad administrativa sin añadir filas ni eventos. Reconstruir el fixture legacy documental no equivale a migrar íntegramente un historial administrativo actual; esa preservación se comprueba mediante el respaldo completo.
+
+La validación de navegador aprobó 45 pruebas unitarias, 88 escenarios simulados en 35.0 segundos y cuatro recorridos con servicios reales en 1.3 minutos, además de formato y compilación. El recorrido de \rutarepo{web/apps/qadra/tests/live/case-administration.spec.mjs} crea un perfil completo en R1 y muestra Investigación; completa perfiles básico y legado conservando etapa sin registrar. Dos contextos autenticados provocan un conflicto de edición, mantienen el borrador y confirman una nueva base explícita. Un cierre concurrente bloquea una carga pendiente sin borrar su nombre. La historia presenta cinco revisiones al cerrar; la reapertura y una edición del litigante permiten al Paralegal consultar siete. Cliente no solicita el contrato administrativo y la revocación retira el resumen visible. El ZIP de la primera versión permanece idéntico durante el cierre; no se registran errores JavaScript.
+
+Las capturas de escritorio y móvil comprueban legibilidad del resumen, formulario multilineal, comparación, historia y estados de cierre. El recorrido de 390 píxeles comprueba ausencia de desplazamiento horizontal. El ajuste final del área de texto se revisó visualmente y con servicios reales. Estas comprobaciones no sustituyen pruebas de usabilidad con personal del despacho ni validación jurídica de los datos manuales.
+
+\subsubsection{Coordinación de acciones y consultas en documentos, clasificación y participantes}\label{sec:pruebas-coordinacion-interfaz}
+
+Esta comprobación de navegador abarca, además de la administración penal, los editores de documentos y versiones, de clasificación y de participantes, que coordinan cada acción con las consultas que actualizan su vista (\cref{sec:impl-qadra-conciliacion}). El corte del 15 de septiembre de 2026 aprobó 48 pruebas unitarias, 109 escenarios simulados en 36.5 segundos y cuatro recorridos con servicios reales en 57.6 segundos. Estos últimos ejercitan administración penal, participantes, clasificación y versiones. Formato y compilación de la interfaz terminaron satisfactoriamente; la compilación tomó 1.45 segundos sin advertencias. Son resultados nuevos de navegador, separados de los 88 escenarios de la administración penal registrados el día anterior. Las fuentes Rust y las migraciones conservaron sus hashes, por lo que no se repitieron sus suites ni se presenta la cobertura previa como una nueva medición.
+
+Las regresiones de coordinación retienen deliberadamente las respuestas de listado e historial para comprobar que los controles no se liberan antes de terminar las consultas dependientes. Cubren sellado, anexado, clasificación y edición de participantes, tanto al confirmar cambios como al consultar una base después de un conflicto. La carga inicial espera el listado antes de montar los lectores de la ficha. Un fallo transitorio de consulta conserva el estado ya confirmado; una denegación retira los datos y una respuesta tardía no los restaura. Estas condiciones no alteran el límite compartido del servidor ni garantizan capacidad disponible entre vistas o usuarios.
+
+{\raggedright Los casos se reproducen en \rutarepo{web/apps/qadra/tests/browser/document-admission.spec.mjs}, \rutarepo{web/apps/qadra/tests/browser/metadata-admission.spec.mjs} y \rutarepo{web/apps/qadra/tests/browser/participant-refresh.spec.mjs}, junto con las comprobaciones de carga documental. La reproducción controlada identifica la condición ensayada; no atribuye una respuesta HTTP concreta a fallos remotos anteriores cuyo estado no se capturó.\par}
+
+\input{chapters/05-participantes-tipificados}

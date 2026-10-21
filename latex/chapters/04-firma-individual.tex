@@ -8,12 +8,14 @@ adem\'as pertenencia vigente al expediente y que este se encuentre activo.
 Owner y Paralegal conservan sus permisos de consulta, verificaci\'on y
 exportaci\'on, sujetos a las reglas de acceso por expediente, sin adquirir por
 ello permiso para firmar como otro usuario. Cliente mantiene denegado el
-acceso documental. La posesi\'on de un certificado no sustituye la sesi\'on
-con MFA ni concede pertenencia.
+acceso documental (\cref{sec:impl-http-documentos}). La posesi\'on de un
+certificado no sustituye la sesi\'on con MFA ni concede pertenencia. La
+implementaci\'on materializa los flujos de firma y de verificaci\'on dise\~nados
+para los casos de uso CU-13 y CU-14 (\cref{fig:cu-13,fig:cu-14}).
 
 El titular conserva su clave privada fuera del servidor. Puede generar y usar
 una copia cifrada en el navegador mediante el ayudante descrito en
-\cref{sec:impl-criptografia-local}, o mantener el recorrido externo con OpenSSL.
+\cref{sec:impl-criptografia-local}, o seguir el recorrido externo con OpenSSL.
 Despu\'es de generar una solicitud CSR y obtener el certificado de firma de la
 CA interna, la API recibe solamente material p\'ublico. El servicio
 \texttt{Signing\allowbreak Binding\allowbreak Service} prepara una declaraci\'on
@@ -30,8 +32,10 @@ el certificado en la CA.
 
 Para un documento, el cliente descarga la versi\'on exacta seleccionada y
 contrasta sus identificadores y digest con los metadatos recibidos. El
-servidor descifra y valida el contenido almacenado y exige que sea PDF.
-La firma separada del PDF se produce en el equipo del titular con RSA-3072 y SHA-256.
+servidor descifra y valida el contenido almacenado y, mediante el worker
+acotado de la \cref{sec:impl-formatos}, exige que sea PDF. La firma separada
+del PDF se produce en el equipo del titular con RSA-3072 y SHA-256, con el
+mismo ayudante local o con OpenSSL.
 A partir de ella, \texttt{Document\allowbreak Signing\allowbreak Service}
 prepara un consentimiento de 258 bytes con prefijo \texttt{DOCSIGN1}.
 Adem\'as del contexto de cuenta, certificado y confianza, incorpora el

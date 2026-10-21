@@ -1,0 +1,155 @@
+% =====================================================================
+%  05-cobertura.tex - Cobertura y criterios de exito
+% =====================================================================
+
+\section{Cobertura y criterios de éxito}\label{sec:pruebas-cobertura}
+
+La cobertura de líneas se mide con \texttt{cargo-llvm-cov} sobre la suite Rust completa, con PostgreSQL y Redis reales y desechables. El umbral del 90\,\% que exige el requerimiento RNF-13 se aplica en integración continua a los tres crates con lógica criptográfica, \texttt{domain}, \texttt{application} e \texttt{infrastructure}, mediante \rutarepo{scripts/coverage-gate.sh}. Los crates \texttt{bin} y \texttt{web} se reportan sin umbral: son fronteras de entrada y composición cuyo valor se complementa con pruebas de contrato y guiones E2E.
+
+La \cref{tab:pruebas-cobertura-evolucion} reúne los cortes del 12 al 16 de septiembre de 2026 que informan líneas cubiertas e instrumentadas del workspace. Cada fila corresponde a una ejecución distinta, con su propio código y denominador; los conteos describen cortes sucesivos y no se suman entre sí. La prueba ignorada de cada corte es la del proveedor externo de sellado, y los conteos de navegador se registran aparte de los de Rust. En todos los cortes aprobaron los tres umbrales obligatorios del 90\,\%.
+
+\begin{table}[H]
+  \centering
+  \caption[Evolución de la cobertura global por corte]{Pruebas Rust aprobadas y cobertura global de líneas por corte, del 12 al 16 de septiembre de 2026.}
+  \label{tab:pruebas-cobertura-evolucion}
+  \small
+  \begin{tabularx}{\linewidth}{@{}l X r r r@{}}
+    \toprule
+    \textbf{Fecha} & \textbf{Alcance del corte} & \makecell[r]{\textbf{Pruebas aprobadas}\\\textbf{(+ ignoradas)}} & \makecell[r]{\textbf{Líneas cubiertas /}\\\textbf{instrumentadas}} & \makecell[r]{\textbf{Cobertura}\\\textbf{global}} \\
+    \midrule
+    12 sep. & Autorización documental por expediente y auditoría transaccional & 519 (+1) & 8\,026 / 8\,845 & 90.7\,\% \\
+    14 sep. & Consultas documentales autorizadas & 539 (+1) & 8\,256 / 9\,071 & 91.0\,\% \\
+    14 sep. & Versiones documentales inmutables & 577 (+1) & 8\,908 / 9\,719 & 91.7\,\% \\
+    14 sep. & Clasificación documental auditada & 644 (+1) & 9\,854 / 10\,670 & 92.4\,\% \\
+    14 sep. & Directorio de participantes & 704 (+1) & 10\,994 / 11\,838 & 92.9\,\% \\
+    14 sep. & Administración penal auditada & 770 (+1) & 12\,613 / 13\,506 & 93.4\,\% \\
+    15 sep. & Adopción y transiciones de etapa; admisión de soportes PDF/DOCX & 933 (+1) & 15\,817 / 17\,064 & 92.7\,\% \\
+    15 sep. & Identidades y participantes tipificados & 1\,066 (+1) & 21\,968 / 23\,773\textsuperscript{a} & 92.4\,\% \\
+    16 sep. & Programación de audiencias & 1\,183 (+1) & 25\,201 / 27\,226 & 92.6\,\% \\
+    \bottomrule
+  \end{tabularx}
+
+  \smallskip
+  {\footnotesize\raggedright \textsuperscript{a}\,Primera campaña instrumentada del corte. Su repetición de cierre aprobó las mismas 1\,066 pruebas y cubrió 21\,967 de 23\,773 líneas, también 92.4\,\% (\cref{sec:pruebas-participantes-tipificados}).\par}
+\end{table}
+
+La \cref{fig:pruebas-evolucion-cobertura} representa las mismas nueve filas en el orden de la tabla: las barras muestran las pruebas Rust aprobadas de cada corte y la línea une sus coberturas globales, cada una medida sobre su propio denominador, junto con la referencia del umbral del 90\,\% que integración continua exige por separado a \texttt{domain}, \texttt{application} e \texttt{infrastructure} y no a la cobertura global.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/evolucion-cobertura}
+  \caption{Pruebas Rust aprobadas y cobertura global de líneas en los nueve cortes del 12 al 16 de septiembre de 2026, con el umbral del 90\,\% por crate como referencia.}
+  \label{fig:pruebas-evolucion-cobertura}
+\end{figure}
+
+Los denominadores crecen con el código instrumentado de cada corte, por lo que los porcentajes globales no forman una serie de avance: el 93.4\,\% del corte administrativo corresponde a su propia medición y no al código ampliado de los cortes siguientes. La \cref{tab:pruebas-cobertura-audiencias} desglosa por crate el corte del 16 de septiembre, la medición por crate más reciente que este capítulo presenta completa; su alcance se describe en la \cref{sec:pruebas-audiencias}. Esa tabla no representa el estado final del producto: las campañas completas posteriores informan los porcentajes de los crates con umbral junto con su propia evidencia, sin desglose de líneas (\cref{sec:pruebas-sesiones,sec:pruebas-recuperacion-password}). Los desgloses por crate de los cortes anteriores se conservan en la \cref{sec:matriz-cobertura}.
+
+\begin{table}[H]
+  \centering
+  \caption[Cobertura por crate del cierre de audiencias]{Cobertura de líneas por crate del cierre de programación de audiencias, 16 de septiembre de 2026, y umbral aplicado en integración continua.}
+  \label{tab:pruebas-cobertura-audiencias}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+    \toprule
+    \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
+    \midrule
+    \texttt{domain}         & 2\,730 & 2\,802 & 97.43\,\% & 90\,\% (bloqueante) \\
+    \texttt{application}    & 4\,813 & 5\,055 & 95.21\,\% & 90\,\% (bloqueante) \\
+    \texttt{infrastructure} & 12\,653 & 13\,694 & 92.40\,\% & 90\,\% (bloqueante) \\
+    \texttt{bin}            & 911 & 1\,217 & 74.86\,\% & informativo \\
+    \texttt{web}            & 4\,094 & 4\,458 & 91.83\,\% & informativo \\
+    \midrule
+    \textbf{Workspace}      & \textbf{25\,201} & \textbf{27\,226} & \textbf{92.56\,\%} & --- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Cortes históricos}\label{sec:pruebas-cortes-historicos}
+
+El corte del 12 de septiembre de 2026, registrado en \rutarepo{docs/verification-report.md}, aprobó 519 pruebas sin fallos y con una ignorada (\cref{tab:pruebas-cobertura-evolucion}); incorporó autorización documental por expediente, persistencia y auditoría transaccionales, migración de archivos cifrados y restauración. PostgreSQL y Redis fueron procesos reales y desechables, con bases separadas para identidad, expedientes y documentos. La prueba ignorada corresponde al proveedor externo de sellado; las ejecuciones ordinarias emplean un sustituto HTTP local y la TSA OpenSSL del prototipo, sin consumir el servicio comercial. La \cref{tab:pruebas-cobertura} presenta la cobertura por crate medida en esa ejecución: es una medición propia del corte, con su propio denominador, y no la repetición de una medición anterior. Parte de su margen sobre el umbral proviene de pruebas dedicadas a rutas de error de los adaptadores ---una bitácora cuya ruta es un directorio, una línea almacenada con timestamp imparseable, respuestas del proveedor de sellado sin token o con base64 inválido, material PEM corrupto en el firmador y el verificador---, de modo que los caminos de fallo están tan ejercitados como los de éxito. El inventario detallado de pruebas conserva este corte; la calibración de Argon2id y los extractos de una transcripción anterior se identifican como evidencia histórica.
+
+Las primeras cuatro ejecuciones del 14 de septiembre ampliaron sucesivamente ese alcance mediante \rutarepo{scripts/test-backends.sh}, con PostgreSQL y Redis aislados; la quinta, de administración penal, se describe en la \cref{sec:pruebas-administracion}. La \cref{sec:matriz-corrida} relata sus demostraciones. Sus inventarios esenciales son los siguientes:
+
+\begin{itemize}
+  \item \textbf{Consultas documentales.} El ensayo incluye las consultas de listado y detalle; la compilación y Clippy del workspace terminaron satisfactoriamente. La demostración HTTP conservó el aislamiento de cuatro roles en dos expedientes, la revocación y el sellado concurrente; su restauración comprobó cuatro documentos y 51 eventos preservados. La validación del navegador se registra como una ejecución adicional.
+  \item \textbf{Versiones inmutables.} Se ejecutó el workspace completo; formato, compilación y Clippy aprobaron. La demostración HTTP preservó cuatro documentos importados y el prefijo histórico de 51 eventos, añadió y selló una segunda versión y rechazó una cabeza esperada obsoleta y los alias ambiguos. El ZIP de la versión 1 permaneció idéntico tras añadir la 2; el respaldo y la restauración conservaron ambas versiones y sus ZIP.
+  \item \textbf{Clasificación documental.} El envoltorio de servicios aislados y la ejecución instrumentada terminaron satisfactoriamente; formato, compilación, Clippy, política de dependencias y demostración CLI también aprobaron. La demostración HTTP conserva cuatro documentos importados y el prefijo histórico de 51 eventos; el inventario respaldado contiene cinco raíces documentales, seis versiones de contenido y tres revisiones de clasificación, y la restauración conserva filas, procedencia y ZIP de ambas versiones.
+  \item \textbf{Directorio de participantes.} Formato, compilación del workspace, Clippy y política de dependencias terminaron satisfactoriamente. Las 60 pruebas añadidas se distribuyen en 21 de dominio y aplicación, 12 HTTP y 27 de infraestructura. La demostración API conserva cuatro documentos importados y 51 eventos de prefijo histórico; su respaldo reúne cinco raíces documentales, seis versiones de contenido, tres revisiones de clasificación y dos participantes con seis revisiones. Restaurar mantiene las filas completas, la procedencia y los ZIP anteriores.
+\end{itemize}
+
+Las mediciones instrumentadas de esos cortes conservan sus numeradores y denominadores por crate en la \cref{sec:matriz-cobertura}; en todas aprobaron los tres umbrales obligatorios de \rutarepo{scripts/coverage-gate.sh}. La de consultas, ejecutada sobre 539 pruebas aprobadas y una externa ignorada, obtuvo 8\,256 de 9\,071 líneas cubiertas, 91.0\,\% global (\cref{tab:pruebas-cobertura-consultas}); la \cref{tab:pruebas-cobertura} conserva la medición anterior para distinguir la evidencia de cada ejecución. La de versiones inmutables registró 8\,908 de 9\,719 líneas sobre 577 pruebas, 91.7\,\% global (\cref{tab:pruebas-cobertura-versiones}), con Rust y Cargo~1.94.0, PostgreSQL~18.6, Valkey~8.1.9 compatible con Redis y OpenSSL~3.5.7. La de clasificación cubrió 9\,854 de 10\,670 líneas sobre 644 pruebas, 92.4\,\% global (\cref{tab:pruebas-cobertura-clasificacion}). La del directorio registró 10\,994 de 11\,838 líneas sobre 704 pruebas, 92.9\,\% global, con el mismo entorno (\cref{tab:pruebas-cobertura-participantes}). La administración penal aprobó 770 pruebas también bajo instrumentación y alcanzó 12\,613 de 13\,506 líneas, 93.4\,\% global (\cref{tab:pruebas-cobertura-administracion}); el corte del directorio permanece en 704 pruebas y 92.9\,\%.
+
+Los cortes del 15 y 16 de septiembre se describen con su alcance en las \cref{sec:pruebas-etapas,sec:pruebas-participantes-tipificados,sec:pruebas-audiencias}. Los desgloses por crate de los dos cortes del 15 de septiembre se conservan en las \cref{tab:pruebas-cobertura-etapas,tab:pruebas-cobertura-identidades}.
+
+\subsection{Contraste con los criterios de éxito}\label{sec:pruebas-criterios-exito}
+
+Sobre los umbrales conviene una precisión: el criterio de éxito del objetivo OE-6 pide cobertura de al menos 80\,\% en los módulos criptográficos, mientras que el requerimiento RNF-13 pide 90\,\%. La integración continua aplica el más estricto de los dos, y los resultados superan ambos. El requerimiento RNF-14 ---que el 100\,\% de las pruebas de los módulos criptográficos pase antes de considerar completado un incremento--- se verificó en el corte del 12 de septiembre: el job de pruebas reporta error si falla una prueba y la ejecución registrada cierra con 519 de 519 pruebas ejecutadas en verde, más una prueba externa ignorada.
+
+La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de éxito verificables que el Capítulo~\ref{cap:introduccion} fijó para los objetivos específicos OE-3 a OE-6 (\cref{tab:criterios-exito}), desglosados por subcriterio y con un estado explícito: cumplido, parcial o diferido.
+
+\begin{longtable}{@{}l L{0.40\linewidth} L{0.36\linewidth} L{0.10\linewidth}@{}}
+  \caption{Resultados contra los criterios de éxito de los objetivos OE-3 a OE-6.}
+  \label{tab:pruebas-criterios} \\
+  \toprule
+  \textbf{OE} & \textbf{Criterio de éxito} & \textbf{Resultado medido} & \textbf{Estado} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{OE} & \textbf{Criterio de éxito} & \textbf{Resultado medido} & \textbf{Estado} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{4}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  OE-3 & Firma RSA-3072 con SHA-256 verificable de forma independiente sobre el 100\,\% de los contratos firmados. & Toda firma se verifica antes de escribirse; interoperabilidad bidireccional con OpenSSL; paquete de evidencia verificable sin el software propio. & Cumplido \\
+  \addlinespace
+  OE-3 & Sello de tiempo RFC 3161 local vinculado al hash del documento y verificable con OpenSSL. & Tokens emitidos sobre el digest SHA-256, verificados en dos etapas y aceptados por \texttt{openssl ts -verify}; el binario comprueba que el token cubre el digest antes de almacenarlo. & Cumplido \\
+  \addlinespace
+  OE-3 & Tasa sobre un PSC externo, fuera del alcance actual por la inestabilidad y el costo no transparente del sandbox evaluado. & No medida. La campaña considerada sobre el sandbox de Cincel, con una tasa de verificación exitosa de al menos 99\,\%, no fue medible: el registro no garantizó una API operativa, la campaña requeriría un sandbox de pago con precios no transparentes y la evidencia externa quedó fuera del alcance. La TSA local sí queda verificada de extremo a extremo. & Fuera del alcance actual \\
+  \addlinespace
+  OE-4 & Detección del 100\,\% de alteraciones de un byte mediante pruebas de mutación. & Todas las mutaciones ensayadas fueron detectadas; para el cifrado autenticado la verificación es exhaustiva sobre cada byte del payload (\cref{sec:pruebas-mutacion}). & Cumplido \\
+  \addlinespace
+  OE-4 & Nonce único por operación y cero reutilizaciones en una suite de 10\,000 cifrados. & 10\,000 sellados consecutivos sin repetición del nonce de 96 bits (\cref{sec:pruebas-nonces}). & Cumplido \\
+  \addlinespace
+  OE-4 & Envelope encryption con DEK por documento. & DEK aleatoria de 32 bytes por documento envuelta bajo la KEK; rotación de KEK sin recifrar el documento, fijada por prueba. & Cumplido \\
+  \addlinespace
+  OE-5 & Argon2id calibrado a 0.5--1.0 s por hash nuevo en el hardware de referencia ($m = 256$~MiB, $t = 3$, $p = 1$). & La medición del 19 de septiembre en AMD Ryzen 7 7730U promedió 659.7596048 ms en cinco hashes con tres pasadas, dentro de la banda para el host y binario medidos (\cref{sec:calibracion-credenciales}). & Cumplido* \\
+  \addlinespace
+  OE-5 & MFA basado en TOTP con ventana de tolerancia $\pm 1$ período. & Vectores oficiales de RFC 6238 y RFC 4226 en verde; desfase de $\pm 1$ paso aceptado y $\pm 2$ rechazado; enrolamiento y verificación de extremo a extremo. & Cumplido \\
+  \addlinespace
+  OE-5 & Control de acceso RBAC con cuatro roles diferenciados (Owner, Litigante, Paralegal, Cliente). & Sesiones opacas revocables en Redis; rol y estado vigentes en PostgreSQL; matriz y asignación revalidadas por operación y en el commit. Cliente conserva denegadas las operaciones documentales aun estando asignado. & Cumplido* \\
+  \addlinespace
+  OE-6 & Cobertura de pruebas $\geq$ 80\,\% en los módulos criptográficos. & Entre 92.40 y 97.43\,\% por crate criptográfico en el desglose completo del 16 de septiembre (\cref{tab:pruebas-cobertura-audiencias}); el ensayo de consultas del 14 de septiembre registró, como medición histórica, entre 92.5 y 96.8\,\%. El umbral aplicado en CI es el 90\,\% de RNF-13, más estricto que el criterio. & Cumplido \\
+  \addlinespace
+  OE-6 & Al menos 15 pruebas de extremo a extremo que cubran los flujos de firma y verificación. & 22 pruebas ejecutan el binario real sobre esos flujos (\texttt{sign}, \texttt{timestamp}, \texttt{verify} y \texttt{package export}), además de la demostración íntegra. & Cumplido \\
+  \addlinespace
+  OE-6 & Matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. & La \cref{tab:pruebas-casos} cubre servicios; faltan flujos funcionales de los 17 casos de uso y su validación integrada. & Parcial \\
+  \addlinespace
+  OE-6 & Pruebas de usabilidad con usuarios del despacho. & No se ha reproducido una campaña con usuarios; las pruebas automáticas no sustituyen esa evaluación. & Pendiente \\
+\end{longtable}
+
+Los resultados respaldan los criterios criptográficos de integridad y confidencialidad de OE-4, así como la firma verificable y el sellado local contemplados en OE-3. La campaña con un PSC externo está fuera del alcance vigente. La autenticación por certificado para socios con rol Owner de OE-5 cuenta con aceptación del servicio instalado, seguida de MFA; sus límites de identidad y autorización permanecen explícitos. OE-6 permanece parcial respecto de la matriz de los 17 casos de uso y la usabilidad con usuarios del despacho. Las condiciones de interpretación son las siguientes:
+
+\begin{itemize}
+  \item \textbf{Evidencia externa de PSC (OE-3).} La autoridad de sellado local demuestra el flujo RFC 3161 completo ---solicitud, emisión, token DER, verificación en dos etapas y aceptación por herramientas independientes---. La tasa de verificación externa no se mide porque la API de Cincel no ofreció garantía operativa y el sandbox requiere un pago no transparente. El adaptador remoto queda probado contra un stub y disponible para una futura sustitución consciente, pero no bloquea el desarrollo ni se presenta como evidencia del prototipo.
+  \item \textbf{Autenticación por certificado (OE-5).} El primer factor Owner comprueba una firma sobre un desafío nuevo con el certificado interno previamente vinculado y concede únicamente el paso MFA. La aceptación instalada del 14 de octubre comprobó el acceso con certificado y MFA y, después de cerrar esa sesión, el acceso independiente por contraseña y MFA (\cref{sec:pruebas-portal-ca}). La firma de ese ensayo se produjo con OpenSSL fuera de Qadra; no acredita una nueva prueba personal del ayudante local ni identidad civil. El método requiere habilitación explícita del servidor y no sustituye el segundo factor.
+  \item \textbf{RBAC de cuatro roles (OE-5).} \texttt{X-Actor} fue eliminado. La API exige sesiones opacas revocables, recarga rol y estado desde PostgreSQL y revalida permisos y pertenencia en los casos de uso y la transacción. Redis impone cinco rechazos de contraseña por 15 minutos, reclama TOTP de forma atómica y conserva desafíos de un solo intento. El asterisco recuerda que la pertenencia ya se persiste, pero habilitar acceso documental a Cliente requiere ampliar y probar expresamente la política (\cref{sec:impl-divergencias}).
+  \item \textbf{Banda de calibración de Argon2id (OE-5).} La medición histórica del 17 de agosto conserva $m = 256$~MiB, $t = 2$, $p = 1$ y una media de 529.4 ms (\cref{sec:pruebas-argon2}). El 19 de septiembre, cinco hashes nuevos con tres pasadas promediaron 659.7596048 ms en el entorno documentado (\cref{sec:calibracion-credenciales}). Los PHC anteriores conservan sus parámetros. El asterisco de la tabla limita el resultado al costo de un hash nuevo en ese hardware y perfil de binario; no mide el acceso completo ni HTTP bajo carga y exige recalibrar si cambia el entorno.
+\end{itemize}
+
+La clasificación implementada no completa por sí sola los casos de uso de carga y consulta del producto. La política PDF/DOCX de soportes procesales (\cref{sec:impl-formatos}) permanece independiente de la admisión general de ocho familias, integrada con aceptación API, restauración y navegador real (\cref{sec:pruebas-admision-documental}; \rutarepo{docs/product-completion.md}). Los nombres seguros y los límites de tamaño, por sí solos, no validan el formato. La entrega de contenido sin sello y los avisos internos al Owner cuentan con la evidencia de la \cref{sec:pruebas-contenido-documental}; esos avisos no determinan la causa del fallo ni acreditan atención humana. Siguen pendientes la política documental de Cliente y la evaluación con usuarios.
+
+El corte del 12 de septiembre respalda el backend criptográfico y HTTP con 519 pruebas ejecutadas, una cobertura global de 90.7\,\%, vectores oficiales y verificaciones independientes. Los ensayos documentan autorización por expediente, atomicidad, migración y restauración sobre datos generados. No constituyen una campaña de carga de producción, una evaluación de usabilidad ni evidencia de cumplimiento jurídico. La ejecución del 14 de septiembre amplía esa evidencia con consultas de metadatos autorizadas y auditadas, 539 pruebas aprobadas y 91.0\,\% de cobertura; el escenario de navegador contra servicios reales se registra separadamente de esos conteos Rust. Las versiones inmutables y la clasificación amplían la operación documental con historias independientes. El directorio añade fichas organizativas auditadas y el expediente incorpora perfil penal, historia y cierre administrativo. La adopción y los avances de Investigación a Intermedia y de Intermedia a Juicio incorporan soportes exactos e historia propia. La programación de audiencias incorpora valores, historia y contratos con evidencia por capa. Los incrementos de recursos, sesiones y resultados declarados de audiencias, plazos y alertas tienen evidencia específica en este capítulo; los conteos históricos anteriores no describen por sí solos su estado actual.
+
+La aceptación del corpus finito de ocho supuestos se presenta en la \cref{sec:pruebas-corpus-juridico}; sus resultados y bloqueos no acreditan cobertura jurídica universal. Las verificaciones de despliegue y del portal CA registran por separado activaciones, respaldos, recuperación y parada, con los entornos y límites de las \cref{sec:pruebas-despliegue,sec:pruebas-portal-ca}. Esta evidencia operacional no establece garantías generales de capacidad, latencia o disponibilidad, ni convierte los ensayos locales en comprobaciones del servicio instalado. La aceptación histórica del riesgo temporal del firmante RSA bajo uso por CLI, descrita en \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md}, no acredita por sí sola su exposición mediante HTTP. La evaluación de usabilidad con personal del despacho permanece pendiente; la identidad civil o judicial tampoco se acredita mediante la PKI interna. La cabeza de auditoría carece de anclaje externo: una cadena válida aislada no prueba que no se haya truncado su extremo. La TSA local no equivale a una constancia de un PSC autorizado.
+
+\subsection{Protocolo de evaluación humana preparado}\label{sec:pruebas-protocolo-humano}
+El kit \rutarepo{docs/usability/README.md} reúne protocolo, tareas, guía de
+moderación, consentimiento y plantillas vacías. Está preparado para observar
+personas del despacho sobre una versión identificada y datos ficticios. Deben
+registrarse terminación de tareas, tiempos, errores, asistencia y observaciones,
+y relacionar las correcciones con los resultados obtenidos. No contiene
+participantes ni una campaña humana ejecutada. Las pruebas automáticas y las
+capturas de interfaz no sustituyen esa evaluación ni completan el criterio de
+usabilidad de OE-6.

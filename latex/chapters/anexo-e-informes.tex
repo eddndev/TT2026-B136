@@ -1,4 +1,4 @@
-\section{Trazabilidad de informes de expedientes}\label{anexo:informes}
+\subsection{Trazabilidad de informes de expedientes}\label{anexo:informes}
 
 Las \cref{sec:diseno-informes,sec:impl-informes,sec:pruebas-informes} delimitan
 filtros, autorización, cola durable, artefactos y evidencia. El contrato
@@ -8,7 +8,7 @@ actividad. Ninguna modalidad reconstruye un censo histórico. La decisión
 \rutarepo{docs/adr/0060-durable-authorized-case-reports.md} y la guía
 \rutarepo{docs/database-operations.md} conservan las condiciones de privacidad,
 recuperación y respaldo con KEK. La aceptación integrada comprueba estas
-condiciones sin sustituir la regresión global del incremento.
+condiciones sin sustituir la regresión global.
 
 Las pruebas de aplicación están en \rutarepo{crates/application/tests/}:
 \texttt{case\_reports.rs} ejercita contratos autorizados y
@@ -21,9 +21,9 @@ Sus pruebas no sustituyen la aceptación mediante el servidor compuesto.
 
 La adaptación HTTP se verifica en
 \rutarepo{crates/web/tests/case_reports_http.rs}; el cliente tiene comprobaciones
-en \rutarepo{web/tests/case-reports-api.test.mjs} y recorridos bajo
-\rutarepo{web/tests/browser/}. Los dos recorridos de servicios reales están en
-\rutarepo{web/tests/live/case-reports.spec.mjs} y conservan sus propios usuarios
+en \rutarepo{web/apps/qadra/tests/case-reports-api.test.mjs} y recorridos bajo
+\rutarepo{web/apps/qadra/tests/browser/}. Los dos recorridos de servicios reales están en
+\rutarepo{web/apps/qadra/tests/live/case-reports.spec.mjs} y conservan sus propios usuarios
 y expedientes de prueba. Acreditan los formatos exactos tras renovar la sesión.
 El guion \rutarepo{scripts/api-case-reports-demo.py} aprobó el recorrido HTTP
 con el consumidor real, los avisos y la revocación de toda la captura; la
@@ -41,14 +41,15 @@ deben conservar estas condiciones además de la igualdad de bytes. Ninguna
 exportación constituye un documento firmado por una persona, una notificación
 jurídica ni una constancia externa de conservación.
 
-La autoría se documenta en
-\rutarepo{docs/adr/0073-author-attributed-activity-reports.md}. La migración
+{\emergencystretch=3em La autoría se documenta en
+\rutarepo{docs/adr/0073-author-attributed-activity-reports.md}. Para atribuir
+las cargas documentales, la migración
 \rutarepo{migrations/0043_document_upload_origins.sql} vincula las cargas
 originales con cuenta, instante y auditoría. Las comprobaciones del origen y su
-restauración están en \texttt{document\_upload\_origins.rs} y
-\texttt{document\_upload\_origin\_schema.rs}, incluidas en la suite documental.
-El módulo \texttt{case\_report\_activity\_model.rs} comprueba las capturas de
-actividad desde el target \texttt{case\_report\_model}.
+restauración están en \rutarepo{document_upload_origins.rs} y
+\rutarepo{document_upload_origin_schema.rs}, incluidas en la suite documental.
+El módulo \rutarepo{case_report_activity_model.rs} comprueba las capturas de
+actividad desde el target \texttt{case\_report\_model}.\par}
 
 Los módulos de apoyo de \texttt{case\_report\_backend} contrastan el periodo
 por operación, autoría tras reasignación, aislamiento y registros originales
@@ -56,7 +57,7 @@ de hechos, recursos, sesiones/resultados y decisiones cautelares. Los acuerdos
 contenidos en una sesión y las medidas de una decisión no se cuentan como
 actuaciones independientes; la atención conserva una cantidad por plazo y
 autor en el periodo. Las correcciones y reintentos no agregan contribuciones.
-El recorrido \rutarepo{web/tests/live/case-reports.activity.spec.mjs} contrasta
+El recorrido \rutarepo{web/apps/qadra/tests/live/case-reports.activity.spec.mjs} contrasta
 PDF y CSV contra cantidades esperadas, además de la recuperación del informe
 tras una nueva sesión. La existencia del guion no sustituye su ejecución,
 registrada por separado en \rutarepo{docs/verification-report.md}.
@@ -79,22 +80,22 @@ opcional, en \rutarepo{crates/bin/src/serve_report_email_tests.rs}.\par}
 El contrato p\'ublico tiene pruebas en
 \rutarepo{crates/web/tests/case_report_http_support/estimate_tests.rs}; los valores
 y la presentaci\'on se comprueban en
-\rutarepo{web/tests/case-report-estimate.test.mjs} y
-\rutarepo{web/tests/browser/case-report-estimate.spec.mjs}. Estas fuentes separan
+\rutarepo{web/apps/qadra/tests/case-report-estimate.test.mjs} y
+\rutarepo{web/apps/qadra/tests/browser/case-report-estimate.spec.mjs}. Estas fuentes separan
 el historial insuficiente, la predicci\'on fija, la duraci\'on observada y los
 estados del proveedor. La existencia de una prueba no acredita su ejecuci\'on;
 el informe de verificaci\'on conserva la evidencia de cada campa\~na.\par}
 
-La nueva aceptaci\'on de \rutarepo{web/tests/live/case-reports.spec.mjs} aprob\'o
-los recorridos Owner y Litigante y la inspecci\'on de cuatro capturas de escritorio
-y m\'ovil. El ensayo de
+La aceptaci\'on de \rutarepo{web/apps/qadra/tests/live/case-reports.spec.mjs} que
+incluye la presentaci\'on de la estimaci\'on aprob\'o los recorridos Owner y
+Litigante y la inspecci\'on de cuatro capturas de escritorio y m\'ovil. El ensayo de
 \rutarepo{crates/bin/src/serve_report_readiness_acceptance.rs}, con sus apoyos
 HTTP versionados, aprob\'o autenticaci\'on real, espera en cola con predicci\'on
 superior a dos segundos, aviso mediante transporte capturado y reingreso con
 recuperaci\'on MFA. Conserv\'o PDF y CSV exactos y cadena de auditor\'ia \'integra.
 La \cref{sec:pruebas-informes} registra sus tiempos y alcance. Estas aceptaciones
-locales no cierran los controles de integraci\'on pendientes ni habilitan correo
-en producci\'on.
+locales no sustituyen los controles de integraci\'on ni la habilitaci\'on del correo
+en producci\'on, registrados por separado en \rutarepo{docs/technical-closure.md}.
 
 La \cref{tab:cu-16} mantiene su flujo alterno aprobado de correo y estimaci\'on.
 El ensayo independiente de \rutarepo{crates/infrastructure/tests/case_report_support/timing_validation.rs},
@@ -105,7 +106,8 @@ predicciones dentro de tolerancia y cobertura del 100\%, seg\'un la
 copias independientes del historial congelado. Los dos reintentos fuera de
 tolerancia se conservaron; en actividad s\'olo se midieron cargas documentales
 originales. El resultado cumple el criterio del 90\% en ese ensayo, sin extenderlo
-a producci\'on ni al cat\'alogo completo de actividad, y no activa correo p\'ublico.
+a producci\'on ni al cat\'alogo completo de actividad, y no constituye por s\'i mismo
+la habilitaci\'on del correo en producci\'on.
 El cierre del corpus jur\'idico y de la matriz de accesos y datos de auditor\'ia
 conserva su verificaci\'on propia.
 El criterio de actividad de la \cref{tab:rf-19} se limita a documentos originales,

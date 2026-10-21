@@ -1,0 +1,83 @@
+% Evolution of approved Rust tests (bars, left axis) and global line
+% coverage (line, right axis) for the nine dated cuts listed in the table
+% tab:pruebas-cobertura-evolucion, in table order.
+% Plot area: 12.6 cm x 6 cm. Cut i is centered at x = (i - 0.5) * 1.4 cm.
+% Left axis: 0 to 1600 tests, y = tests * 6 / 1600.
+% Right axis: 85 % to 94 %, y = (percent - 85) * 6 / 9.
+\begin{tikzpicture}[
+  axis/.style={black!70, line width=0.6pt},
+  bar/.style={draw=ipnvino, fill=ipnvino!12, line width=0.6pt},
+  cov/.style={black!85, line width=0.9pt},
+  dot/.style={draw=black!85, fill=white, line width=0.7pt},
+  limit/.style={black!60, dashed, line width=0.7pt},
+  tick/.style={font=\footnotesize, inner sep=1.5pt},
+  title/.style={font=\small, align=center}
+]
+  % Bars, test counts inside the base of each bar and cut numbers.
+  \foreach \i/\n/\lab in {1/519/519, 2/539/539, 3/577/577, 4/644/644,
+      5/704/704, 6/770/770, 7/933/933, 8/1066/1\,066, 9/1183/1\,183} {
+    \pgfmathsetmacro{\x}{(\i - 0.5) * 1.4}
+    \pgfmathsetmacro{\h}{\n * 6 / 1600}
+    \draw[bar] ({\x - 0.47},0) rectangle ({\x + 0.47},\h);
+    \node[tick, anchor=south, text=ipnvino] at (\x,0.08) {\lab};
+    \node[tick, anchor=north] at (\x,-0.08) {\i};
+  }
+  % 90 % reference on the right axis: y = (90 - 85) * 6 / 9.
+  \draw[limit] (0,{10 / 3}) -- (12.6,{10 / 3});
+  % Global coverage line.
+  \foreach \i/\c [remember=\i as \lasti (initially 0),
+      remember=\c as \lastc (initially 0)] in {1/90.7, 2/91.0, 3/91.7,
+      4/92.4, 5/92.9, 6/93.4, 7/92.7, 8/92.4, 9/92.6} {
+    \ifnum\i>1
+      \draw[cov] ({(\lasti - 0.5) * 1.4},{(\lastc - 85) * 2 / 3})
+        -- ({(\i - 0.5) * 1.4},{(\c - 85) * 2 / 3});
+    \fi
+  }
+  % Markers and values; each label sits on the side free of the segments.
+  \foreach \i/\c/\pos/\dx in {1/90.7/above/-1mm, 2/91.0/below right/0mm,
+      3/91.7/above left/0mm, 4/92.4/above left/0mm, 5/92.9/above left/0mm,
+      6/93.4/above/0mm, 7/92.7/above right/0mm, 8/92.4/below/0mm,
+      9/92.6/above/0mm} {
+    \filldraw[dot] ({(\i - 0.5) * 1.4},{(\c - 85) * 2 / 3}) circle (1.6pt);
+    \node[tick, \pos=2pt, xshift=\dx]
+      at ({(\i - 0.5) * 1.4},{(\c - 85) * 2 / 3}) {\c\,\%};
+  }
+  % Axes and tick labels.
+  \draw[axis] (0,0) -- (12.6,0);
+  \draw[axis] (0,0) -- (0,6);
+  \draw[axis] (12.6,0) -- (12.6,6);
+  \foreach \t/\lab in {0/0, 400/400, 800/800, 1200/1\,200, 1600/1\,600} {
+    \draw[axis] (-0.08,{\t * 6 / 1600}) -- (0,{\t * 6 / 1600});
+    \node[tick, anchor=east] at (-0.1,{\t * 6 / 1600}) {\lab};
+  }
+  \foreach \p in {85,...,94} {
+    \draw[axis] (12.6,{(\p - 85) * 2 / 3}) -- (12.68,{(\p - 85) * 2 / 3});
+    \node[tick, anchor=west] at (12.7,{(\p - 85) * 2 / 3}) {\p};
+  }
+  \node[title, rotate=90] at (-1.3,3) {Pruebas Rust aprobadas};
+  \node[title, rotate=90] at (13.45,3)
+    {Cobertura global de l\'ineas (porcentaje)};
+  % Date groups of the cuts (September 2026).
+  \foreach \a/\b/\d in {1/1/12 sep., 2/6/14 sep., 7/8/15 sep., 9/9/16 sep.} {
+    \draw[black!55, line width=0.5pt]
+      ({(\a - 1) * 1.4 + 0.1},-0.5) -- ++(0,-0.1)
+      -- ({\b * 1.4 - 0.1},-0.6) -- ++(0,0.1);
+    \node[tick, anchor=north] at ({(\a + \b - 1) * 0.7},-0.62) {\d};
+  }
+  \node[title] at (6.3,-1.35)
+    {Corte, numerado en el orden de la tabla, y fecha (septiembre de 2026)};
+  % Legend.
+  \begin{scope}[yshift=-2.0cm]
+    \draw[bar] (-0.5,-0.12) rectangle (-0.1,0.12);
+    \node[tick, anchor=west] at (0,0)
+      {Pruebas Rust aprobadas (eje izquierdo)};
+    \draw[cov] (6.3,0) -- (6.9,0);
+    \filldraw[dot] (6.6,0) circle (1.6pt);
+    \node[tick, anchor=west] at (7.0,0)
+      {Cobertura global de l\'ineas (eje derecho)};
+    \draw[limit] (-0.55,-0.5) -- (-0.05,-0.5);
+    \node[tick, anchor=west] at (0,-0.5)
+      {Umbral del 90\,\% por crate en CI: \texttt{domain},
+       \texttt{application} e \texttt{infrastructure} (eje derecho)};
+  \end{scope}
+\end{tikzpicture}

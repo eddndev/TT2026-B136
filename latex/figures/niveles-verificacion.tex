@@ -1,0 +1,102 @@
+% Verification levels: the five-level Rust pyramid and the separate
+% Qadra and integrated-service levels described in chapter 5.
+% Every multi-line text uses explicit line breaks so that no word is
+% hyphenated inside the boxes at the report size.
+\begin{tikzpicture}[
+  level/.style={
+    draw=ipnvino, rounded corners=1.5mm, line width=0.6pt,
+    fill=ipnvino!6, align=center, inner sep=4pt, font=\footnotesize
+  },
+  crate/.style={
+    draw=ipnvino, rounded corners=1mm, line width=0.6pt,
+    fill=white, align=center, inner sep=3pt, font=\footnotesize,
+    minimum height=2.3cm
+  },
+  side/.style={
+    draw=black!45, rounded corners=1.5mm, line width=0.6pt,
+    fill=black!3, align=center, inner sep=4pt, font=\footnotesize,
+    text width=4.75cm, minimum height=1.45cm
+  },
+  head/.style={align=center, font=\footnotesize}
+]
+  % Level 1 (base): unit tests of each crate. The title sits on top of
+  % the band and the three crate boxes form one centered row below it.
+  \node[level, minimum width=11cm, minimum height=3.2cm] (l1) at (5.5,0) {};
+  \node[head, anchor=north] (l1t) at ([yshift=-0.5mm]l1.north)
+    {\textbf{1. Pruebas unitarias por crate}};
+  \node[crate, text width=3.1cm, anchor=south west] (dom)
+    at ([xshift=3.1mm,yshift=1.6mm]l1.south west) {
+    \texttt{domain}\\
+    Dobles deterministas\\
+    escritos a mano
+  };
+  \node[crate, text width=2.6cm, right=3mm of dom] (app) {
+    \texttt{application}\\
+    Orquestaci\'on de\\
+    casos de uso con\\
+    mocks generados\\
+    con \texttt{mockall}
+  };
+  \node[crate, text width=3.4cm, right=3mm of app] (inf) {
+    \texttt{infrastructure}\\
+    Criptograf\'ia real con\\
+    vectores oficiales de\\
+    FIPS 180-4, GCM,\\
+    RFC 6238 y RFC 4226
+  };
+  % Levels 2 to 5, narrowing towards the top by 0.9 cm per level
+  \node[level, text width=9.82cm, above=1.6mm of l1] (l2) {
+    \textbf{2. Pruebas de propiedades}\\
+    Invariantes sobre entradas generadas aleatoriamente con \texttt{proptest}
+  };
+  \node[level, text width=8.92cm, above=1.6mm of l2] (l3) {
+    \textbf{3. Integraci\'on de infraestructura}\\
+    Scripts versionados de \texttt{pki/} como fixtures,\\
+    con instantes de evaluaci\'on derivados de su vigencia;\\
+    PostgreSQL y Redis desechables de\\
+    \texttt{scripts/test-backends.sh}
+  };
+  \node[level, text width=8.02cm, above=1.6mm of l3] (l4) {
+    \textbf{4. Extremo a extremo del crate \texttt{bin}}\\
+    Binario \texttt{despacho-cli} como subproceso:\\
+    salidas, archivos y c\'odigos de terminaci\'on
+  };
+  \node[level, text width=7.12cm, above=1.6mm of l4] (l5) {
+    \textbf{5. Fitness functions FF-1 a FF-5}\\
+    Propiedades arquitect\'onicas en cada integraci\'on
+  };
+  \node[head, above=1.2mm of l5] (rust)
+    {\textbf{Suite Rust: pir\'amide de cinco niveles}};
+  % Separate column: Qadra client, browser and integrated API campaigns.
+  % The outer boxes align with the top and the base of the pyramid; the
+  % inner boxes keep the same gap to them, so the three gaps stay even.
+  \coordinate (rx) at (13.9,0);
+  \node[side, anchor=north] (api) at (l5.north -| rx) {
+    \textbf{Campa\~nas de API}\\
+    \textbf{y restauraci\'on}\\
+    \texttt{scripts/api-demo.sh}\\
+    respaldo con \texttt{pg\_dump}\\
+    y restauraci\'on con \texttt{pg\_restore}
+  };
+  \node[side, anchor=south] (node) at (l1.south -| rx) {
+    \textbf{Pruebas unitarias Node}\\
+    Cliente de Qadra\\
+    con \texttt{node --test}
+  };
+  \node[side, below=7.2mm of api] (live) {
+    \textbf{Navegador con servicios reales}\\
+    \texttt{scripts/web-demo.sh}\\
+    API, PostgreSQL,\\
+    Redis y TSA local
+  };
+  \node[side, above=7.2mm of node] (mock) {
+    \textbf{Navegador con}\\
+    \textbf{HTTP controlado}\\
+    Playwright con\\
+    respuestas simuladas
+  };
+  \node[head, anchor=south] (qadra) at (rust.south -| rx) {
+    \textbf{Qadra y servicios integrados}\\
+    Evidencia aparte de los conteos Rust
+  };
+\end{tikzpicture}
