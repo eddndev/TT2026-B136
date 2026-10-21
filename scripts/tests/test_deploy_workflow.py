@@ -10,7 +10,7 @@ class DeploymentWorkflowTests(unittest.TestCase):
     def test_all_executable_jobs_use_owned_runners(self):
         text = (ROOT / ".github/workflows/deploy.yml").read_text()
         runners = re.findall(r"^    runs-on: (.+)$", text, re.MULTILINE)
-        self.assertEqual(len(runners), 3)
+        self.assertEqual(len(runners), 4)
         self.assertTrue(all("self-hosted" in runner for runner in runners))
         package = text.split("  package:\n", 1)[1].split("  deploy:\n", 1)[0]
         self.assertIn("runs-on: [self-hosted, Linux, X64, tt-ci-dedicated]", package)
@@ -22,7 +22,21 @@ class DeploymentWorkflowTests(unittest.TestCase):
         for name in ("ci", "web"):
             gate = (ROOT / f".github/workflows/{name}.yml").read_text()
             self.assertIn("  workflow_call:", gate)
-        self.assertIn("needs: [version, rust, web]", text)
+        self.assertIn("needs: [version, gates, rust, web]", text)
+
+    def test_gates_are_skipped_only_when_reuse_was_proven(self):
+        text = (ROOT / ".github/workflows/deploy.yml").read_text()
+        gates = text.split("  gates:\n", 1)[1].split("  rust:\n", 1)[0]
+        self.assertIn("python3 -B scripts/deploy_gate_reuse.py", gates)
+        self.assertIn("persist-credentials: false", gates)
+        package = text.split("  package:\n", 1)[1].split("  deploy:\n", 1)[0]
+        condition = package.split("    runs-on:", 1)[0]
+        for clause in ("!cancelled()", "needs.version.result == 'success'",
+                       "needs.gates.result == 'success'",
+                       "(needs.rust.result == 'success' || (needs.rust.result == 'skipped' && needs.gates.outputs.reuse_rust == 'true'))",
+                       "(needs.web.result == 'success' || (needs.web.result == 'skipped' && needs.gates.outputs.reuse_web == 'true'))"):
+            self.assertIn(clause, condition)
+        self.assertIn("run-id: ${{ needs.gates.outputs.web_run_id }}", package)
 
     def test_manual_preparation_builds_exact_commit_without_deployment(self):
         text = (ROOT / ".github/workflows/deploy.yml").read_text()
@@ -52,13 +66,13 @@ class DeploymentWorkflowTests(unittest.TestCase):
             gate = text.split(f"  {name}:\n", 1)[1].split(
                 f"  {following}:\n", 1
             )[0]
-            self.assertIn("needs: version", gate)
+            self.assertIn("needs: [version, gates]", gate)
             self.assertIn(f"uses: ./.github/workflows/{workflow}.yml", gate)
-            self.assertNotRegex(gate, r"(?m)^    if:")
+            reuse = "reuse_rust" if name == "rust" else "reuse_web"
+            self.assertRegex(gate, rf"(?m)^    if: \$\{{\{{ needs\.gates\.outputs\.{reuse} != 'true' \}}\}}$")
 
         package, deploy = text.split("  package:\n", 1)[1].split("  deploy:\n", 1)
-        self.assertIn("needs: [version, rust, web]", package)
-        self.assertNotRegex(package, r"(?m)^    if:")
+        self.assertIn("needs: [version, gates, rust, web]", package)
         self.assertIn("ref: ${{ needs.version.outputs.commit }}", package)
         self.assertIn("SOURCE_COMMIT: ${{ needs.version.outputs.commit }}", package)
         self.assertIn('bash scripts/build-release.sh "$VERSION" "$SOURCE_COMMIT"', package)
