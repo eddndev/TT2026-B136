@@ -52,9 +52,9 @@ Las historias de usuario constituyen el instrumento de captura de requerimientos
 \subsection{Autenticación, Acceso y Gestión de Identidad}\label{subsec:hu-autenticacion}
 
 \begin{itemize}
-  \item \textbf{HU-01 — Registro de despacho.} Como socio fundador, quiero registrar mi despacho en el sistema proporcionando los datos de la firma, para disponer de un espacio propio y aislado donde gestionar los expedientes y al equipo de trabajo.
+  \item \textbf{HU-01 — Inicialización de la instancia del despacho.} Como socio fundador, quiero crear la primera cuenta administradora en la instancia desplegada para el despacho, para comenzar a gestionar los expedientes y al equipo de trabajo.
 
-  \item \textbf{HU-02 — Selección de plan de servicio.} Como socio fundador, quiero elegir un plan de servicio (Starter o Professional) al momento del registro, para que el sistema habilite las funcionalidades y los límites de usuarios correspondientes al nivel contratado.
+  \item \textbf{HU-02 — Segundo factor desde el alta inicial.} Como socio fundador, quiero recibir la clave de mi segundo factor y un juego de códigos de recuperación al crear la cuenta administradora, para que el acceso a la administración del despacho quede protegido desde el primer inicio de sesión.
 
   \item \textbf{HU-03 — Invitación de miembros al equipo.} Como socio del despacho, quiero invitar nuevos colaboradores mediante correo electrónico asignándoles un perfil (Litigante o Paralegal), para que puedan acceder al sistema con los permisos apropiados a su función.
 
@@ -164,23 +164,23 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
 
 \subsection{Autenticación, Acceso y Gestión de Identidad}\label{sec:cu-autenticacion}
 
-\subsubsection{CU-01 --- Registro de despacho y selección de plan}
+\subsubsection{CU-01 --- Inicialización de la instancia y alta del Owner fundador}
 
 \begin{table}[H]
   \centering
-  \caption{Caso de uso CU-01: Registro de despacho y selección de plan.}
+  \caption{Caso de uso CU-01: Inicialización de la instancia y alta del Owner fundador.}
   \label{tab:cu-01}
   \begin{tabularx}{\linewidth}{@{}>{\bfseries}l X@{}}
     \toprule
     ID & \textbf{CU-01} \\
     \midrule
-    Nombre & Registro de despacho y selección de plan \\
+    Nombre & Inicialización de la instancia y alta del Owner fundador \\
     Actor principal & Socio fundador \\
-    Actores secundarios & Sistema de correo transaccional \\
-    Precondiciones & El usuario no posee una cuenta activa en el sistema. \\
-    Flujo principal & 1. El usuario accede al formulario de registro. 2. Ingresa los datos del despacho (nombre de la firma, domicilio fiscal, datos de contacto). 3. Selecciona un plan de servicio (Starter o Professional). 4. Establece sus credenciales de acceso (correo y contraseña). 5. El sistema valida los datos ingresados y aprovisiona el espacio de trabajo del despacho con el plan seleccionado. 6. El sistema envía un correo de confirmación al socio fundador. 7. El socio fundador confirma su correo electrónico mediante el enlace recibido. 8. El sistema activa la cuenta y redirige al tablero de control del despacho. \\
-    Flujos alternos & 4a. La contraseña no cumple las políticas de complejidad → el sistema indica los requisitos faltantes. 5a. El correo electrónico ya está registrado → el sistema informa que la cuenta existe y ofrece la opción de recuperación. 7a. El enlace de confirmación ha expirado → el sistema permite reenviar el correo de confirmación. \\
-    Postcondiciones & El despacho queda registrado con su espacio de datos inicializado, el plan activo y el socio fundador autenticado con rol Owner. Las credenciales se almacenan mediante funciones de hashing resistentes. \\
+    Actores secundarios & --- \\
+    Precondiciones & La instancia del despacho está desplegada y aún no existe ninguna cuenta de usuario. \\
+    Flujo principal & 1. El socio fundador elige «Configurar acceso inicial» en la pantalla de acceso. 2. Ingresa su correo electrónico y una contraseña de 12 a 1024 bytes. 3. El sistema comprueba que la instancia no tenga usuarios, valida el correo y la contraseña, deriva el hash de la contraseña con Argon2id y genera el secreto TOTP y ocho códigos de recuperación. 4. El sistema registra la cuenta con perfil Owner y el evento correspondiente de la bitácora en una misma transacción. 5. El sistema muestra una sola vez la clave TOTP, su URI de configuración y los códigos de recuperación. 6. El socio fundador agrega la clave a su aplicación de autenticación y resguarda los códigos. 7. El socio fundador inicia sesión con contraseña y segundo factor (CU-03). \\
+    Flujos alternos & 3a. La instancia ya tiene usuarios → el sistema rechaza la configuración inicial antes de validar los datos; las cuentas posteriores se incorporan mediante CU-02 o mediante el alta directa por un Owner autenticado. 3b. El correo no es válido o la contraseña no cumple la política → el sistema rechaza la solicitud sin crear la cuenta. 4a. Otra alta concurrente se confirmó antes → el sistema revalida, bajo un bloqueo transaccional, que no existan usuarios, rechaza la operación como en 3a y no crea un segundo Owner fundador. 5a. Se pierde la respuesta o el material antes de resguardarlo → la aplicación no permite recuperarlo y se requiere intervención administrativa sobre la instancia. \\
+    Postcondiciones & La instancia queda inicializada con una única cuenta Owner activa, cuya contraseña se almacena con Argon2id, cuyo secreto TOTP se conserva cifrado y cuyos códigos de recuperación se guardan como hashes. La operación queda registrada en la bitácora y el servicio rechaza nuevas solicitudes de configuración inicial. No se inicia sesión automáticamente. \\
     Derivado de & HU-01, HU-02 \\
     RF relacionados & RF-01, RF-02 \\
     RNF relacionados & RNF-01, RNF-02 \\
@@ -190,8 +190,8 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.9\linewidth]{image5.png}
-  \caption{Diagrama CU-01. Registro de despacho y selección de plan.}
+  \resizebox{0.9\linewidth}{!}{\input{figures/initialization-use-case}}
+  \caption{Diagrama CU-01. Inicialización de la instancia y alta del Owner fundador.}
   \label{fig:cu-01}
 \end{figure}
 
@@ -209,7 +209,7 @@ Los casos de uso formalizan las historias de usuario definidas en la \cref{sec:h
     Actor principal & Owner \\
     Actores secundarios & Colaborador invitado, sistema de correo transaccional \\
     Precondiciones & El Owner tiene sesi\'on activa; las invitaciones y su canal de correo est\'an habilitados expresamente. \\
-    Flujo principal (alta) & 1. El Owner accede a la gesti\'on de equipo. 2. Indica el correo y el perfil Litigante o Paralegal. 3. El sistema comprueba que no exista una cuenta con ese correo. La instancia atiende a un despacho sin cupo de usuarios. 4. Registra una invitaci\'on de 24 horas y su entrega por correo. 5. El invitado abre el enlace y elige su contrase\~na, sin otros datos personales. 6. Configura TOTP, conserva sus c\'odigos de recuperaci\'on y confirma el segundo factor. 7. El sistema crea la cuenta, consume la invitaci\'on y registra bit\'acora y recibo en una transacci\'on. 8. El integrante inicia sesi\'on con contrase\~na y MFA. \\
+    Flujo principal (alta) & 1. El Owner accede a la gesti\'on de equipo. 2. Indica el correo y el perfil Litigante o Paralegal. 3. El sistema comprueba que no exista una cuenta con ese correo. 4. Registra una invitaci\'on de 24 horas y su entrega por correo. 5. El invitado abre el enlace y elige su contrase\~na, sin otros datos personales. 6. Configura TOTP, conserva sus c\'odigos de recuperaci\'on y confirma el segundo factor. 7. El sistema crea la cuenta, consume la invitaci\'on y registra bit\'acora y recibo en una transacci\'on. 8. El integrante inicia sesi\'on con contrase\~na y MFA. \\
     Flujo principal (baja) & 1. El Owner accede al módulo de gestión de equipo. 2. Selecciona al miembro que desea dar de baja. 3. El sistema solicita confirmación de la acción. 4. El Owner confirma la baja. 5. El sistema revoca de inmediato el acceso del colaborador, invalida sus sesiones activas y registra la operación en la bitácora. 6. Los expedientes y documentos asociados al colaborador permanecen en el sistema sin modificación; únicamente se revoca el acceso. \\
     Flujos alternos & 2a. (Alta) El correo pertenece a una cuenta activa o inactiva: se rechaza la invitaci\'on. 5a. El enlace venci\'o: el Owner puede reenviar; el reenv\'io invalida el enlace y la preparaci\'on MFA anteriores. 6a. Se pierde una respuesta: el invitado recupera la preparaci\'on con el mismo enlace y contrase\~na, o consulta el recibo de la confirmaci\'on sin duplicar la cuenta. 2b. (Baja) El Owner intenta darse de baja a s\'i mismo: se rechaza la operaci\'on, ya que el despacho requiere al menos un Owner activo. \\
     Postcondiciones & (Alta) La cuenta queda activa con el perfil asignado solo despu\'es de confirmar MFA, con un recibo recuperable y sin iniciar sesi\'on autom\'aticamente. (Baja) El acceso queda revocado. En ambos casos se conserva el registro en la bit\'acora. \\
