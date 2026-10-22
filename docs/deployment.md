@@ -126,6 +126,14 @@ valores. Antes de instalar se sustituyeron sólo las dos referencias de unidad
 al alias `/usr/local/bin/python3` por la ruta canónica del mismo ejecutable,
 con copia privada de los originales y sin cambiar los procesos activos.
 
+Desde el 22 de octubre de 2026 la generación instalada es
+`c496fb0ad8bdb69bec157043978f22953c65f0c11e7b81c8b3fbf197335297a4`, construida
+desde `6077df6edf139ac77337e9b880b93f9726f0dc7a` con el mismo launcher e
+intérprete. Las versiones `v0.1.2` a `v0.1.13` se activaron con `prepare_version`
+y recetas administrativas, no con tags, por lo que `QADRA_CONTROLLER_SHA256` no
+se actualizó; antes de reactivar la ruta por tag hay que fijarla al inventario
+vigente.
+
 La pública debe estar en `~/.ssh/authorized_keys` (0600; `.ssh` 0700), conservando
 otras entradas. Utilizar una identidad Ed25519 exclusiva para la cuenta `qadra`
 y el despliegue; no entregar la clave administrativa de root al workflow. Los

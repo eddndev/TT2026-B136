@@ -55,8 +55,9 @@ registran este resultado por separado de los ensayos controlados anteriores.
 PR110 integro generacion de clave y CSR con Rust/WASM, respaldo cifrado y
 reimportacion, vinculo y acceso Owner con MFA, vinculo documental y firma
 del PDF y su consentimiento. PR111 corrigio el reloj de una simulacion CA.
-Qadra `v0.1.12/201fbb026eb5cbac8b3c0a28a898c0ae21bd4aba` esta desplegado;
-la CA conserva `v0.1.11`, sus credenciales y certificados. El registro de
+Qadra `v0.1.12/201fbb026eb5cbac8b3c0a28a898c0ae21bd4aba` lo desplego; desde
+el 21 de octubre Qadra y la CA corren `v0.1.13/54b9a015257f01fbfa8be15ef3a1a891c3770147`,
+con las mismas credenciales y certificados. El registro de
 [verificacion](verification-report.md) separa pruebas nativas, navegador,
 paquete, retorno sobre restauracion existente y comprobacion publica.
 La firma local de declaraciones de participantes conserva una decision

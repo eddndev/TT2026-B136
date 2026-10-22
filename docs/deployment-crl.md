@@ -179,6 +179,13 @@ directorio de `backups/` cuando su recibo y el diario de la operación aceptada
 identifican la misma ruta. Los respaldos de renovaciones manuales, activaciones y
 restauraciones no se eliminan.
 
+La renovación programada está instalada en VPS3 desde el 22 de octubre de 2026
+con la generación `c496fb0a…`, umbral de 72 horas y retención de cuatro
+respaldos. El proveedor aceptó la alerta de prueba. Antes de habilitarla, la
+CRL se renovó a mano de la revisión 5 a la 6 (número 4101), vigente hasta el 28
+de octubre a las 20:37 UTC; la primera renovación programada ocurrirá al entrar
+en el umbral, el 26 de octubre después de las 09:00 UTC.
+
 ### Instalación de las unidades
 
 Antes de instalar, crear `config/crl-schedule.json` con modo 0600 y comprobar

@@ -1,5 +1,27 @@
 # Informe de verificación local
 
+## Despliegue de v0.1.13 y renovación programada instalada: 21 y 22 de octubre de 2026
+
+`v0.1.13` (`54b9a015`) se preparó con `prepare_version` (run 39687625173) y se
+verificó localmente: 242 archivos, esquema sin cambios y módulo del navegador
+con sus huellas. La ventana instaló primero la generación de controladores
+`b86a301c…` con la CA detenida; la oficina reabrió en 34 segundos sobre
+`v0.1.12`. La calificación arrancó el candidato y el retorno sobre la restauración
+aislada del mismo esquema. La activación cerró el ingreso unos dos minutos, creó
+el respaldo `20261021T231925Z-ecc2b209` con copia externa verificada, preservó
+77 tablas y dejó la auditoría válida con 2,267,399 eventos. La CA pasó de
+`v0.1.11` a `v0.1.13` tras 4.5 minutos detenida. Ambos orígenes públicos
+respondieron `v0.1.13`, 200 y 401, y el WASM como `application/wasm`.
+
+La alerta de prueba falló porque el borde del proveedor de correo rechaza el
+cliente `urllib` por defecto. La corrección se integró y se instaló como la
+generación `c496fb0a…`, sin nueva release: la oficina cerró 28 segundos y la CA
+49. Las unidades del timer se regeneraron con ese pin, ninguna conserva el
+anterior, y la unidad de alerta terminó con éxito al entregar la prueba al proveedor. El preflight de controladores
+detectó la actualización de seguridad de systemd 249.11-0ubuntu3.23 instalada
+por `unattended-upgrade`; `dpkg --verify` no reportó archivos alterados y se
+fijó la nueva huella de `systemctl`.
+
 ## Renovación programada de la CRL: 21 de octubre de 2026
 
 Antes de implementar la automatización se renovó a mano la CRL de producción con

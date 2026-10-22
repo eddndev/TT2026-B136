@@ -12,9 +12,10 @@ Escuela Superior de Cómputo (ESCOM) — Instituto Politécnico Nacional (IPN).
 
 ## Estado vigente
 
-El último despliegue aceptado, del 16 de octubre de 2026, es Qadra `v0.1.12`
-(`201fbb026eb5cbac8b3c0a28a898c0ae21bd4aba`); la CA conserva `v0.1.11`
-(`1186da93c0075a4e2839f7a407deca45e16f6602`). Incluye firma local Rust/WASM,
+El último despliegue aceptado, del 21 de octubre de 2026, es `v0.1.13`
+(`54b9a015257f01fbfa8be15ef3a1a891c3770147`) para Qadra y para la CA, con la
+[renovación programada de la CRL](docs/deployment-crl.md#renovación-programada)
+activa. Incluye firma local Rust/WASM,
 conservando la alternativa externa y las claves bajo control del titular.
 Los cuatro frentes procesales y el
 corpus jurídico finito de ocho supuestos están aceptados, integrados y desplegados.
