@@ -28,6 +28,20 @@ inserciones de datos del fixture con valores aleatorios. Los Parse bajaron de
 `deadline_schema`, `hearing_result_catalog`, `alert_catalog` y
 `postgres_startup`. La suite completa corre en la campana de la PR.
 
+## Optimización del cliente SCRAM en pruebas: 22 de octubre de 2026
+
+El perfil del CI atribuyó cerca del 7 al 10 % del tiempo de las pruebas de base
+de datos al handshake SCRAM del cliente PostgreSQL: unos 48 ms por conexión en
+el perfil sin optimizar, frente a 4 ms de `psql`. `Cargo.toml` optimiza ahora
+`postgres-protocol`, `hmac`, `sha2`, `digest` y `block-buffer` en el perfil de
+desarrollo, igual que ya lo hacía con `argon2`, `blake2`, `num-bigint-dig` y
+`rsa`. En un A/B local con PostgreSQL desechable, dos rondas alternadas de
+`deadline_tracking_functions::runtime_checks_every_new_parser_body_and_execution_metadata`
+tardaron 58.46 y 58.03 s con `main` y 51.71 y 48.69 s con el cambio; el tiempo
+de usuario del proceso bajó de unos 15.5 a 8.1 s. La compilación de las pruebas
+de `infrastructure` con `--locked` aprobó. El efecto en el runner dedicado se
+medirá con la siguiente campaña.
+
 ## Despliegue de v0.1.13 y renovación programada instalada: 21 y 22 de octubre de 2026
 
 `v0.1.13` (`54b9a015`) se preparó con `prepare_version` (run 39687625173) y se
