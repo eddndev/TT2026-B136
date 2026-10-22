@@ -96,6 +96,7 @@ def main():
     target = Path(os.environ["CARGO_TARGET_DIR"]).resolve()
     directory = target.parent / "coverage" / helpers.cache_key(root, os.environ, toolchain)
     directory.mkdir(parents=True, exist_ok=True)
+    helpers.prune_caches(directory)
     report = root / f"coverage-shard-{args.shard}.info"
     helpers.clear_measurements(directory, report)
     environment = {**os.environ, "CARGO_LLVM_COV_TARGET_DIR": str(directory)}

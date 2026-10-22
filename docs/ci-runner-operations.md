@@ -131,9 +131,20 @@ pertenencia a los grupos ni acceso a las credenciales del runner. El workflow
 limita PostgreSQL a 6 GiB y Redis a 128 MiB,
 incluidos en el presupuesto anterior. Usar almacenamiento persistente para
 `~/.cache/tt-ci` y `output/tmp`; no colocar esas rutas en tmpfs. El espacio de
-compilacion debe dimensionarse con la primera ejecucion completa, conservando
-los caches compatibles y retirando generaciones obsoletas fuera de trabajos
-activos.
+compilacion debe dimensionarse con la primera ejecucion completa. Cada cambio
+de `Cargo.toml`, `Cargo.lock`, toolchain o entorno de cobertura crea otra
+generacion de unos 20 GB bajo `~/.cache/tt-ci/coverage`; al iniciar,
+`scripts/ci-coverage.py`, `scripts/ci_nextest.py` y `scripts/ci_test_shard.py`
+conservan la generacion en uso y las dos mas recientes, y eliminan las demas
+salvo las usadas durante las ultimas seis horas, que pueden pertenecer a un
+trabajo activo del mismo host. Sin esta poda, 30 generaciones (376 GB) llenaron
+el disco del servidor dedicado y la campana fallo.
+
+Los servicios de runner usan `Restart=on-failure` con `RestartSec=30` y un
+limite de cinco arranques en diez minutos, mediante un drop-in
+`/etc/systemd/system/actions.runner.<repositorio>.<runner>.service.d/restart.conf`.
+Asi un runner terminado por el OOM global del host vuelve sin intervencion; el
+job interrumpido debe relanzarse desde Actions.
 
 En un host configurado con el usuario `tt-runner`, aplicar el presupuesto
 conjuntamente a sus procesos y servicios rootless mediante la slice del UID:
