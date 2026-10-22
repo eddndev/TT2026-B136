@@ -93,6 +93,12 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("needs: reuse", test)
         self.assertIn("${{ !cancelled() && !inputs.dispatch_measurement && needs.reuse.outputs.run_id == '' }}", test)
 
+    def test_coverage_runs_whenever_the_tests_ran_even_though_reuse_was_skipped(self):
+        # A skipped needed job skips its dependents unless their condition checks status.
+        coverage = self.job("coverage", "deny")
+        self.assertIn("needs: [test, deployment-backup]", coverage)
+        self.assertIn("${{ !cancelled() && !inputs.dispatch_measurement && needs.test.result == 'success' && needs.deployment-backup.result == 'success' }}", coverage)
+
     def test_pull_requests_record_the_tested_tree_after_all_test_steps(self):
         test = self.job("test", "dispatch-measurement")
         record = test.split("Record the tested tree", 1)[1]
