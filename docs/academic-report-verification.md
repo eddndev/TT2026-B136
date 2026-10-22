@@ -1,5 +1,45 @@
 # Verificación de la actualización académica
 
+## Rediseño del capítulo de implementación: 22 de octubre de 2026
+
+El capítulo 4 se reescribió para que los diagramas sustituyan a la prosa
+técnica. Sus 37 archivos conservan nombres e inclusiones; la prosa pasó de unas
+53 000 a unas 25 000 palabras y las seis figuras anteriores se sustituyeron por
+cincuenta y cinco figuras TikZ de bloques, secuencia, estados y estructura
+(`latex/figures/fig-04[a-m]-*.tex`), con los estilos de
+`latex/config/diagramas.tex`. La apertura reemplaza el inventario de funciones
+por un mapa del capítulo con la sección, los casos de uso y la figura guía de
+cada dominio. Cada sección cierra con sus límites y una línea de fuentes
+uniforme (`\Fuentes`, definida en `latex/config/preamble.tex`).
+
+Antes de condensar cada sección se extrajo de su versión anterior una lista de
+cifras, fechas, versiones, límites, limitaciones y pendientes. Cada elemento
+quedó una vez en el capítulo o se remite al lugar donde ya estaba: el diseño
+del capítulo 3, las pruebas del capítulo 5, los anexos A a E o la documentación
+de `docs/`. Una revisión independiente comprobó que cada remisión contiene lo
+que la frase promete; las que no lo hacían se corrigieron en origen. Se
+conservaron todas las etiquetas citadas desde otros capítulos.
+
+Fuera del capítulo 4, las referencias a secciones de anexo se imprimen ahora
+como «sección» y no como «apéndice», con los artículos ajustados en los
+capítulos 5 y anexo E. El anexo E cuenta diez jobs en
+`.github/workflows/ci.yml` y su tabla incluye `reuse` (ADR 0082), que omite
+`test` y `coverage` en un push a `main` cuando ya aprobó una solicitud de
+integración con el mismo árbol.
+
+Se compiló con LuaHBTeX 1.17.0, biber 2.22 y latexmk 4.88 con el nombre de
+trabajo `main-rework`: **372 páginas**, 2038620 bytes, SHA-256
+`f40be99ece13c40abac3e49aad0bd7ba489eb2238c97effebb54004ab128ac10`, sin
+referencias ni citas sin resolver, etiquetas duplicadas, glifos ausentes ni
+guiones largos visibles en el capítulo 4. El capítulo ocupa las páginas lógicas
+82 a 151, frente a 82 a 188 de la revisión anterior. Persisten los dos avisos
+`Overfull hbox` menores fuera de los capítulos 3 y 4. Se inspeccionaron las
+páginas físicas 101 a 170 y se corrigieron solapes, huecos y referencias
+imprecisas. Las figuras anteriores del capítulo (`dominios-implementacion`,
+`trust-boundaries-current`, `ports-adapters-current`, `operacion-auditada`,
+`capas-plazos` y `qadra-sesion`) ya no se incluyen. El PDF generado no se
+añadió a Git.
+
 ## Rediseño del capítulo de análisis y diseño: 22 de octubre de 2026
 
 El capítulo 3 se dividió en ocho archivos de sección y se reescribió para

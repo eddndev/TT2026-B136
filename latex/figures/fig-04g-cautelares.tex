@@ -1,0 +1,54 @@
+\begin{tikzpicture}[
+  fld/.style={caja, font=\diag, align=left, text width=4.45cm, minimum width=4.65cm, minimum height=0.7cm},
+  fldC/.style={fld, fill=ESCOMAzulClaro},
+  ent/.style={cajaOsc, text width=4.45cm, minimum width=4.65cm, minimum height=0.56cm,
+    font=\scriptsize\diagsans\bfseries},
+  efe/.style={caja, text width=1.25cm, minimum width=1.4cm, minimum height=0.42cm, font=\diag}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (4.9,-4.45);
+  \draw[zona] (5.55,0) rectangle (10.45,-6.75);
+  \draw[zona] (11.1,0) rectangle (16,-6.75);
+  \node[zonaLabel] at (0,0) {CONVOCATORIA CAUTELAR};
+  \node[zonaLabel] at (5.55,0) {DECISIÓN DECLARADA};
+  \node[zonaLabel] at (11.1,0) {REGISTROS DE MEDIDA};
+
+  % Convocatoria
+  \node[ent] (c0) at (2.45,-0.7) {Raíz y revisiones inmutables};
+  \node[fld]  (c1) at (2.45,-1.45) {Programar, reprogramar o cancelar; cancelar conserva valores e historia};
+  \node[fldC] (c2) at (2.45,-2.25) {\textbf{Propósito}: imposición o revisión};
+  \node[fld]  (c3) at (2.45,-3.05) {Cita con desfase, modalidad, sede, participantes y soporte exacto};
+  \node[fldC] (c4) at (2.45,-3.85) {\textbf{Revisión}: 1 a 32 medidas por identidad, revisión y huella};
+
+  % Decisión
+  \node[ent] at (8.0,-0.7) {Una decisión por operación};
+  \node[fld]  (d1) at (8.0,-1.45) {Autoridad, justificación, soporte y localizador};
+  \node[fld]  (d2) at (8.0,-2.25) {\textbf{Tiempo}: fecha, minuto, segundo o desconocido con motivo};
+  \node[fldC] (d3) at (8.0,-3.05) {\textbf{Ancla} opcional: audiencia inicial o convocatoria cautelar};
+  \node[fldC] (d4) at (8.0,-3.85) {\textbf{Resultado}: sin cambios o grupo indivisible de efectos};
+  \foreach \t/\x/\y in {imponer/6.45/-4.75, confirmar/8.0/-4.75, modificar/9.55/-4.75,
+                        revocar/6.45/-5.25, cesar/8.0/-5.25, sustituir/9.55/-5.25}
+    \node[efe] at (\x,\y) {\t};
+  \draw[flecha] (d4.south) -- (8.0,-4.53);
+  \node[font=\diag, text=ESCOMGris, text width=4.45cm, align=center] at (8.0,-6.1)
+    {Sustituir enlaza predecesores y sucesores en la misma captura. Un tiempo incompleto no se rellena: no se inventan hora, desfase ni término.};
+
+  % Medidas
+  \node[ent] at (13.55,-0.7) {Identidad estable y revisiones};
+  \node[fld]  (m1) at (13.55,-1.45) {\textbf{Sujeto}: ficha y revisión exactas};
+  \node[fld]  (m2) at (13.55,-2.25) {\textbf{Clase}: una del catálogo cerrado};
+  \node[fld]  (m3) at (13.55,-3.05) {Condiciones, supervisión y vigencia con la precisión del tiempo};
+  \node[fldC] (m4) at (13.55,-3.85) {\textbf{Procedencia judicial}: decisión de origen};
+  \node[caja, dashed, font=\diag, text width=4.45cm, minimum width=4.65cm, align=left, anchor=north] (rect) at (13.55,-4.55)
+    {\textbf{Rectificación administrativa}, no judicial, desde la cabeza consultada: corregir texto (conserva sujeto, clase, origen y estructura), marcar por error (conserva historia) o reemplazar con identidad nueva y enlace, en una sola operación};
+
+  % Otra sección: audiencia inicial ordinaria
+  \node[cajaGris, dashed, font=\diag, text width=4.45cm, minimum width=4.65cm] (ini) at (2.45,-5.4)
+    {\textbf{Audiencia inicial ordinaria} (\S\,\ref*{sec:impl-audiencias}): su revisión exacta aporta cita y participantes};
+
+  % Relaciones
+  \draw[flecha] (c0.east) -- (5.08,-0.7) -- (5.08,-2.88) -- (d3.west |- 0,-2.88);
+  \draw[flecha] (ini.east) -- (5.37,-5.4) -- (5.37,-3.22) -- (d3.west |- 0,-3.22);
+  \draw[flecha] (d4.east) -- (m4.west);
+  \draw[flechaSuave] (rect.north) -- node[font=\diag, text=ESCOMAzulMedio, right=2pt]{corrige} (m4.south);
+\end{tikzpicture}

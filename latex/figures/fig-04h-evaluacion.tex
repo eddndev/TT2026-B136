@@ -1,0 +1,37 @@
+\begin{tikzpicture}[
+  fam/.style={caja, text width=2.15cm, anchor=north west, align=left, font=\diag},
+  et/.style={cajaClara, text width=2.3cm, minimum height=2.45cm, anchor=north, font=\diag},
+  blq/.style={cajaError, text width=2.3cm, minimum height=1.45cm, anchor=north, font=\diag},
+  hd/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, anchor=south}]
+
+  % Fuentes seleccionadas
+  \node[hd, anchor=south west] at (0,0.05) {FUENTE EXACTA};
+  \node[fam] (r) at (0,0) {\textbf{Resolución}\\ campo: emisión};
+  \node[fam] (n) at (0,-0.85) {\textbf{Notificación} y su resolución padre\\ campos: práctica, recepción o efecto declarado};
+  \node[fam] (h) at (0,-2.45) {\textbf{Resultado de audiencia}, acuerdo opcional\\ campo: tiempo de sesión};
+
+  % Etapas
+  \foreach \x/\t in {3.95/1 INTEGRIDAD, 6.75/2 EXTRACCIÓN, 9.55/3 REGLA, 12.35/4 ARITMÉTICA, 15.15/5 FINALIZACIÓN}
+    \node[hd] at (\x,0.05) {\t};
+  \node[et] (i) at (3.95,0) {Expediente, familia, identidad, revisión, padre de la notificación y pertenencia del acuerdo; recibos y calendario coherentes};
+  \node[et] (x) at (6.75,0) {Solo el campo pedido, sin respaldo en otro; o una calificación: final de audiencia o inicio del periodo ordenado};
+  \node[et] (g) at (9.55,0) {\textbf{Suma fija}: cantidad en la regla. \textbf{Duración ordenada}: unidad y máximo; cantidad al evaluar. \textbf{Anclaje directo}: el instante de la fuente};
+  \node[et] (a) at (12.35,0) {Días naturales o computables, con fecha inicial y ajuste declarados; meses por día homólogo, sin treinta días ni recorte; horas con segundo y desfase, en UTC};
+  \node[cajaOsc, text width=2.3cm, minimum height=2.45cm, anchor=north, font=\diag] (f) at (15.15,0)
+    {Instante aritmético; candidata civil sin hora, nunca medianoche; o corte civil, diario o semanal, con hora, desfase propio, canal y cobertura};
+  \foreach \s in {r,n,h} \draw[flecha] (\s.east) -- ([yshift=-0.3cm]i.west);
+  \foreach \s/\e in {i/x,x/g,g/a,a/f} \draw[flecha] (\s) -- (\e);
+
+  % Salidas sin instante final
+  \node[blq] (ie) at (3.95,-2.85) {\textbf{Error}: discrepancia, recibo alterado, perfil privado ajeno o respuestas duplicadas; no hay evaluación};
+  \node[blq] (xe) at (6.75,-2.85) {\textbf{Bloqueo}: campo ausente, familia incompatible o calificación que falta; no se calcula};
+  \node[blq] (ge) at (9.55,-2.85) {\textbf{Bloqueo}: cantidad ausente o superior al máximo; no se fabrica regla ni se recorta};
+  \node[blq] (ae) at (12.35,-2.85) {\textbf{Bloqueo}: tiempo desconocido, precisión o desfase insuficientes, sin calendario u homólogo inexistente};
+  \node[blq] (fe) at (15.15,-2.85) {\textbf{Bloqueo}: sin corte o fuera de su cobertura; no hay instante final};
+  \foreach \s/\e in {i/ie,x/xe,g/ge,a/ae,f/fe} \draw[flechaError] (\s) -- (\e);
+
+  % Aplicabilidad declarada
+  \node[caja, draw=ESCOMGris, text width=9.4cm, anchor=north west, align=left, font=\diag] (ap) at (2.7,-4.6)
+    {\textbf{Aplicabilidad declarada}: ámbito confirmado, condiciones aceptadas y sin incidencia pendiente. Si falta, bloqueo identificable que conserva el cálculo parcial.};
+  \draw[flechaSuave] (ap.east) -| node[etq, pos=0.2, above]{impide el instante final} (fe.south);
+\end{tikzpicture}

@@ -1,0 +1,34 @@
+\begin{tikzpicture}[
+  et/.style={caja, text width=2.55cm, minimum width=2.75cm, minimum height=1.45cm},
+  err/.style={cajaError, text width=2.55cm, minimum width=2.75cm, font=\diag}]
+
+  % Fila 1: Actions
+  \draw[zona] (0,0) rectangle (16,-2.1);
+  \node[zonaLabel] at (0,0) {GITHUB ACTIONS · RUNNERS PROPIOS DE VPS1 Y VPS3};
+  \node[et] (e1) at (1.5,-1.15)  {\textbf{1 Etiqueta}\\ v\textit{M.m.p} exacta, resuelta a su commit};
+  \node[et] (e2) at (4.75,-1.15) {\textbf{2 Gates CI y Web}\\ se reutilizan si ya aprobaron esas entradas};
+  \node[et] (e3) at (8.0,-1.15)  {\textbf{3 Compilación}\\ nativa en VPS3, ABI de Ubuntu 22.04};
+  \node[et] (e4) at (11.25,-1.15){\textbf{4 Paquete}\\ \texttt{qadra-VERSION-}\\ \texttt{COMMIT.tar.gz}};
+  \node[et] (e5) at (14.5,-1.15) {\textbf{5 Transferencia}\\ SSH Ed25519 de \texttt{qadra}, contra llave de servidor verificada};
+  \foreach \a/\b in {e1/e2,e2/e3,e3/e4,e4/e5} \draw[flecha] (\a) -- (\b);
+
+
+  % Fila 2: controlador en VPS3
+  \draw[zona] (0,-2.5) rectangle (16,-6.25);
+  \node[zonaLabel] at (0,-2.5) {VPS3 · CONTROLADOR DE LA CUENTA \texttt{qadra}, BAJO UN BLOQUEO EXCLUSIVO};
+  \node[et] (e6) at (14.5,-3.65)  {\textbf{6 Verifica}\\ paquete, versión no menor y huella de migraciones};
+  \node[et] (e7) at (11.25,-3.65) {\textbf{7 Detiene}\\ web y API y crea el respaldo completo};
+  \node[et] (e8) at (8.0,-3.65)   {\textbf{8 Cambia enlaces}\\ \texttt{current}: candidata\\ \texttt{previous}: anterior};
+  \node[et] (e9) at (4.75,-3.65)  {\textbf{9 Comprueba}\\ bases, API (401), HTML, proxy, versión y commit};
+  \node[cajaOsc, text width=2.55cm, minimum width=2.75cm, minimum height=1.45cm] (ok) at (1.5,-3.65)
+    {\textbf{Versión activa}\\ identificada por etiqueta y commit};
+  \foreach \a/\b in {e6/e7,e7/e8,e8/e9,e9/ok} \draw[flecha] (\a) -- (\b);
+  \draw[flecha] (e5.south) -- node[etq, right=1pt]{paquete} (e6.north);
+
+  \node[err] (x6) at (14.5,-5.5) {huella distinta: se detiene antes de apagar o migrar};
+  \node[err] (x9) at (4.75,-5.5) {fallo: restaura la anterior y conserva las escrituras de la base};
+  \node[err] (x0) at (8.0,-5.5)  {si tampoco se recupera, la entrada queda cerrada};
+  \draw[flechaError] (e6.south) -- (x6.north);
+  \draw[flechaError] (e9.south) -- (x9.north);
+  \draw[flechaError] (x9.east) -- (x0.west);
+\end{tikzpicture}

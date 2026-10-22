@@ -4,249 +4,142 @@
 
 \section{Servicios criptográficos}\label{sec:impl-servicios}
 
-El diseño criptográfico del Capítulo~\ref{cap:analisis} (\cref{sec:diseno-cripto}) especificó los servicios de integridad, confidencialidad, no repudio y autenticación del prototipo. Esta sección los recorre como diez servicios implementados, S1 a S10, cada uno con la misma anatomía: un puerto (trait) en \texttt{domain}, un adaptador en \texttt{infrastructure} y un caso de uso en \texttt{application} que los orquesta. La \cref{tab:impl-servicios} presenta el mapa completo. Dos convenciones atraviesan todos los servicios. Primera: los rechazos criptográficos son \emph{resultados} tipados (enumeraciones como \texttt{Signature\allowbreak Verification} o \texttt{Certificate\allowbreak Validation}), nunca errores; el camino de error queda reservado a fallos del backend o a evidencia inevaluable, lo que permite construir políticas futuras (por ejemplo, bloqueo de cuenta) sin confundir un intento fallido con una falla del sistema. Segunda: la delegación de operaciones criptográficas a la herramienta \texttt{openssl} como subproceso ocurre en exactamente tres puntos (la CA interna, la TSA local y la etapa criptográfica del verificador RFC 3161); todo lo demás es Rust nativo sobre \texttt{ring}, \texttt{rsa}, \texttt{sha2}, \texttt{x509-cert}, \texttt{cms}, \texttt{x509-tsp}, \texttt{argon2} y \texttt{totp-rs}. Junto a S3 se describe el portal administrativo de la CA (\cref{sec:impl-portal-ca}); a S5 le siguen los resultados de la exploración del sellado de tiempo (\cref{sec:impl-spike-tsa}); y la sección cierra con la generación y firma local en el navegador (\cref{sec:impl-criptografia-local}), que opera con la clave del titular fuera del servidor.
+Esta sección implementa el diseño de la \cref{sec:diseno-cripto} como diez servicios, S1 a S10, que realizan RF-13 a RF-17 (\cref{tab:rf-cripto}) y RNF-02 a RNF-04 (\cref{tab:rnf-seguridad}) y sostienen la consulta, la firma y la verificación documentales (\cref{tab:cu-12,tab:cu-13,tab:cu-14}). La \cref{fig:impl-servicios-panorama} muestra cómo se encadenan; la \cref{tab:impl-servicios}, su puerto, adaptador y biblioteca, y la \cref{tab:pruebas-casos}, sus pruebas.
 
-El manejo de errores materializa el patrón de errores tipados por capa que el diseño estableció (\cref{sec:manejo-errores}). El crate de dominio define \texttt{DomainError} (\rutarepo{crates/domain/src/error.rs}) con 61 variantes tipadas mediante \texttt{thiserror}, una por condición de fallo con significado propio: en los servicios criptográficos, por ejemplo, longitud de digest inválida, payload sellado malformado, CRL vencida o nombre de entrada de archivo inutilizable; las demás protegen, entre otras condiciones, el vocabulario de roles y los valores y revisiones de documentos, expedientes, participantes e identidades representadas, etapas, audiencias y sus resultados, calendarios, hechos procesales, recursos y medidas cautelares. Una variante merece mención explícita: \texttt{Authentication\allowbreak Failed}, el rechazo deliberadamente opaco de un descifrado autenticado (\cref{sec:impl-s2-cifrado}). Los errores de los backends de infraestructura (\texttt{CryptoError}, \texttt{TsaError}) se convierten hacia el dominio y hacia la aplicación mediante conversiones \texttt{From}, y la capa de aplicación añade en \texttt{Application\allowbreak Error} solo lo que le es propio: el fallo de un puerto, con categoría neutral opcional; los rechazos de credenciales, sesión y permisos; los conflictos de revisión y el cierre de un expediente; los errores de cada flujo de dominio; un archivo vault malformado; y un certificado recién emitido que no supera su validación posterior a la emisión.
-
-\begin{table}[H]
+\begin{figure}[!htbp]
   \centering
-  \caption{Servicios criptográficos implementados: puertos del dominio y adaptadores de infraestructura.}
+  \input{figures/fig-04b-panorama}
+  \caption{Los diez servicios y su encadenamiento. El mismo digest de S1 alimenta la firma y el sello; S6 compone S1, S3, S4 y S5, y S10 empaqueta la evidencia para repetir S6 fuera de la plataforma. Las etiquetas OpenSSL marcan la CA (S3) y la TSA (S5); OpenSSL se usa además en la etapa delegada del verificador de S5, que esta figura no detalla (\cref{fig:impl-tsa-local}).}
+  \label{fig:impl-servicios-panorama}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \caption{Servicios criptográficos: biblioteca y puerto del dominio con su adaptador.}
   \label{tab:impl-servicios}
-  \begin{tabularx}{\linewidth}{@{}l L{3.4cm} L{4.6cm} X@{}}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}l L{3.5cm} >{\raggedright\arraybackslash}X@{}}
     \toprule
-    \textbf{Id} & \textbf{Servicio} & \textbf{Puerto(s) del dominio} & \textbf{Adaptador(es)} \\
+    \textbf{Servicio} & \textbf{Biblioteca} & \textbf{Puerto $\rightarrow$ adaptador} \\
     \midrule
-    S1 & Hash de documentos & \texttt{Document\allowbreak Hasher} & \texttt{Ring\allowbreak Sha256\allowbreak Hasher} \\
-    S2 & Cifrado autenticado y envelope encryption & \texttt{Authenticated\allowbreak Cipher}, \texttt{KeyManager} & \texttt{Ring\allowbreak Aes\allowbreak Gcm\allowbreak Cipher}, \texttt{Envelope\allowbreak Key\allowbreak Manager} \\
-    S3 & PKI interna & \texttt{Certificate\allowbreak Authority}, \texttt{Certificate\allowbreak Validator} & \texttt{Openssl\allowbreak Ca\allowbreak Adapter}, \texttt{X509\allowbreak Chain\allowbreak Validator} \\
-    S4 & Firma digital & \texttt{Document\allowbreak Signer}, \texttt{Signature\allowbreak Verifier} & \texttt{Rsa\allowbreak Pkcs1\allowbreak Signer}, \texttt{Rsa\allowbreak Pkcs1\allowbreak Verifier} \\
-    S5 & Sellado de tiempo & \texttt{Timestamp\allowbreak Service}, \texttt{Timestamp\allowbreak Verifier} & \texttt{Local\allowbreak Openssl\allowbreak Tsa}, \texttt{Cincel\allowbreak Tsa\allowbreak Adapter}, \texttt{Rfc3161\allowbreak Verifier} \\
-    S6 & Verificación integral & (compone los de S1, S3, S4 y S5) & caso de uso \texttt{Verify\allowbreak Document} \\
-    S7 & Hash de contraseñas & \texttt{Password\allowbreak Hasher} & \texttt{Argon2id\allowbreak Hasher} \\
-    S8 & Segundo factor TOTP & \texttt{Totp\allowbreak Provider}, \texttt{Recovery\allowbreak Code\allowbreak Generator} & \texttt{Totp\allowbreak Rs\allowbreak Provider}, \texttt{Random\allowbreak Recovery\allowbreak Code\allowbreak Generator} \\
-    S9 & Cadena de auditoría & \texttt{AuditLog}, \texttt{Clock} & \texttt{Postgres\allowbreak Audit\allowbreak Log}, \texttt{File\allowbreak Audit\allowbreak Log}, \texttt{SystemClock} \\
-    S10 & Paquete de evidencia & \texttt{Archive\allowbreak Writer} & \texttt{Stored\allowbreak Zip\allowbreak Writer} \\
+    S1 Hash & \texttt{ring} 0.17 & \texttt{DocumentHasher} $\rightarrow$ \texttt{RingSha256Hasher} \\
+    S2 Cifrado & \texttt{ring} 0.17 & \texttt{AuthenticatedCipher}, \texttt{KeyManager} $\rightarrow$ \texttt{RingAesGcmCipher}, \texttt{EnvelopeKeyManager} \\
+    S3 PKI & OpenSSL; \texttt{x509-cert} 0.2, \texttt{der} 0.7 & \texttt{CertificateAuthority}, \texttt{CertificateValidator} $\rightarrow$ \texttt{OpensslCaAdapter}, \texttt{X509ChainValidator} \\
+    S4 Firma & \texttt{rsa} 0.9, \texttt{sha2} 0.10 & \texttt{DocumentSigner}, \texttt{SignatureVerifier} $\rightarrow$ \texttt{RsaPkcs1Signer}, \texttt{RsaPkcs1Verifier} \\
+    S5 Sello & OpenSSL; \texttt{cms} 0.2, \texttt{x509-tsp} 0.1, \texttt{reqwest} 0.12 & \texttt{TimestampService}, \texttt{TimestampVerifier} $\rightarrow$ \texttt{LocalOpensslTsa}, \texttt{CincelTsaAdapter}, \texttt{Rfc3161Verifier} \\
+    S6 Verificación & S1, S3, S4 y S5 & Caso de uso \texttt{VerifyDocument} \\
+    S7 Contraseñas & \texttt{argon2} 0.5, \texttt{getrandom} & \texttt{PasswordHasher} $\rightarrow$ \texttt{Argon2idHasher} \\
+    S8 TOTP & \texttt{totp-rs} 5 & \texttt{TotpProvider}, \texttt{RecoveryCodeGenerator} $\rightarrow$ \texttt{TotpRsProvider}, \texttt{RandomRecoveryCodeGenerator} \\
+    S9 Auditoría & vía S1 & \texttt{AuditLog}, \texttt{Clock} $\rightarrow$ \texttt{PostgresAuditLog}, \texttt{FileAuditLog}, \texttt{SystemClock} \\
+    S10 ZIP & propia & \texttt{ArchiveWriter} $\rightarrow$ \texttt{StoredZipWriter} \\
     \bottomrule
   \end{tabularx}
 \end{table}
+
+\subsection{Resultados tipados y errores}\label{sec:impl-servicios-anatomia}
+
+Cada servicio tiene puerto del dominio, adaptador y caso de uso, con errores por capa (\cref{sec:manejo-errores}). Un rechazo criptográfico (firma, certificado, sello o descifrado) es un \emph{resultado} tipado; el camino de error queda para fallos del backend o evidencia que no se puede evaluar. Así una política futura, como el bloqueo de cuenta, no confunde un intento fallido con una falla del sistema.
+
+El error del dominio tiene 61 variantes tipadas, como un digest de longitud inválida, un paquete sellado malformado, una CRL vencida o un nombre de entrada inutilizable. Los errores de los backends se convierten hacia dominio y aplicación; esta solo añade fallo de puerto, rechazos de credenciales, sesión y permisos, conflictos de revisión, cierre de expediente, vault malformado y certificado recién emitido que no supera su validación. Las claves cruzan los puertos como bytes, sin criptografía en el dominio, y los buffers propios se borran. OpenSSL se ejecuta como subproceso solo en tres puntos: la CA interna, la TSA local y la etapa criptográfica del verificador RFC 3161; el resto es Rust nativo.
 
 \subsection{S1. Hash de documentos con SHA-256}\label{sec:impl-s1-hash}
 
-El puerto \texttt{Document\allowbreak Hasher} (\rutarepo{crates/domain/src/crypto/hasher.rs}) es el más simple del sistema y sirve para ilustrar el patrón que repiten todos los demás: un trait del dominio que declara el contrato criptográfico sin nombrar backend alguno. El Listado~\ref{lst:impl-puerto-hasher} lo reproduce íntegro.
-
-\begin{lstlisting}[language=Rust,caption={Puerto de hashing del dominio (\texttt{crates/domain/src/crypto/hasher.rs}).},label={lst:impl-puerto-hasher}]
-/// Computes SHA-256 digests of document content.
-///
-/// Adapters implement this port with a concrete cryptographic backend. Both
-/// operations must produce the same digest for the same input bytes.
-pub trait DocumentHasher {
-    /// Hashes a byte slice already held in memory.
-    fn hash_bytes(&self, data: &[u8]) -> Sha256Digest;
-
-    /// Hashes a stream by consuming it in fixed-size blocks, so inputs of
-    /// any length are digested without loading them fully into memory.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`DomainError::StreamRead`] when reading from `reader` fails.
-    fn hash_stream(&self, reader: &mut dyn Read) -> Result<Sha256Digest, DomainError>;
-}
-\end{lstlisting}
-
-El adaptador \texttt{Ring\allowbreak Sha256\allowbreak Hasher} (\rutarepo{crates/infrastructure/src/hashing.rs}) lo implementa con el crate \texttt{ring}~0.17. La variante de flujo consume la entrada en bloques de 64~KiB, de modo que el consumo de memoria es plano para entradas de cualquier tamaño, y reintenta las lecturas interrumpidas por señales del sistema operativo. El resultado es el value object \texttt{Sha256\allowbreak Digest}, un arreglo fijo de 32 bytes con constructores que rechazan longitudes o codificaciones hexadecimales inválidas. Siguiendo la práctica de desarrollo guiado por pruebas del proyecto, los primeros tests del adaptador son los vectores oficiales de FIPS 180-4 \cite{nist2015fips1804}, complementados con una verificación de interoperabilidad contra \texttt{sha256sum} y con propiedades verificadas por generación aleatoria de casos. El caso de uso \texttt{Hash\allowbreak Document} expone el servicio a la interfaz de usuario.
+S1 recorre la entrada en bloques de 64~KiB, con memoria constante para cualquier tamaño, y reintenta las lecturas interrumpidas. El digest es un valor fijo de 32 bytes que rechaza longitudes o hexadecimal inválidos. Se probó primero con los vectores de FIPS 180-4 \cite{nist2015fips1804}, después con \texttt{sha256sum} y con propiedades sobre casos aleatorios (\cref{sec:pruebas-vectores,tab:pruebas-interop,sec:pruebas-propiedades}).
 
 \subsection{S2. Cifrado autenticado y envelope encryption}\label{sec:impl-s2-cifrado}
 
-{\emergencystretch=2em La confidencialidad en reposo diseñada en \cref{sec:cifrado-reposo} se implementa con dos puertos. El primero, \texttt{Authenticated\allowbreak Cipher} (\rutarepo{crates/domain/src/crypto/cipher.rs}), declara las operaciones de sellado y apertura autenticados; el material de clave cruza la interfaz como slices de bytes para que el crate de dominio permanezca libre de dependencias criptográficas, mientras los buffers propietarios viven en contenedores \texttt{Zeroizing} del lado del llamador. Su adaptador, \texttt{Ring\allowbreak Aes\allowbreak Gcm\allowbreak Cipher} (\rutarepo{crates/infrastructure/src/encryption.rs}), implementa AES-256-GCM con \texttt{ring} \cite{dworkin2007,mcgrew2008}: en cada operación de sellado se extrae un nonce fresco de 96 bits del CSPRNG del sistema, y la salida adopta el formato fijo nonce~(12~bytes)~$\Vert$~criptograma~$\Vert$~tag~(16~bytes), representado por el value object \texttt{Sealed\allowbreak Payload}, que rechaza cualquier secuencia menor a 28 bytes. Todo rechazo de descifrado se colapsa deliberadamente en el error opaco \texttt{Authentication\allowbreak Failed}, que no revela si falló la clave, el tag o los datos y niega así a un adversario la retroalimentación que distingue esos casos.\par}
+S2 implementa con AES-256-GCM \cite{dworkin2007,mcgrew2008} la envoltura de claves \cite{dworkin2012} de la \cref{sec:cifrado-reposo} (\cref{fig:cripto-sobre}). Cada sellado toma un nonce nuevo de 96 bits del generador del sistema, y un paquete de menos de 28 bytes se rechaza. Toda falla de apertura se colapsa en un único error opaco que no revela si falló la clave, la etiqueta o los datos (\cref{fig:impl-vault}).
 
-Los datos adicionales autenticados ligan cada criptograma a la identidad y versión del documento. La función de dominio \texttt{document\_aad} (Listado~\ref{lst:impl-document-aad}) construye ese vínculo: 16 bytes crudos del UUID del documento seguidos de la versión como 4 bytes big-endian. Abrir un paquete bajo otro UUID o número de versión produce un rechazo autenticado. Este vínculo no demuestra que la versión consultada sea la más reciente ni impide restaurar íntegramente un estado anterior válido de la base y su bitácora; esa reversión requiere una referencia externa de continuidad. La asociación con el expediente se protege en PostgreSQL y no forma parte del AAD.
-
-\begin{lstlisting}[language=Rust,caption={Construcción del AAD que liga el criptograma a su documento (\texttt{crates/domain/src/crypto/cipher.rs}).},label={lst:impl-document-aad}]
-/// Builds the additional authenticated data that binds a sealed document to
-/// its identity: the 16 raw bytes of the document id UUID followed by the
-/// document version as 4 big-endian bytes.
-///
-/// Sealing a document with this AAD makes decryption fail unless the caller
-/// asks for exactly the same document and version. That prevents
-/// substituting one document's ciphertext for another's (the id would
-/// differ) and replaying an older version of the same document (the version
-/// would differ).
-pub fn document_aad(id: DocumentId, version: DocumentVersion) -> [u8; DOCUMENT_AAD_LEN] {
-    let mut aad = [0u8; DOCUMENT_AAD_LEN];
-    aad[..16].copy_from_slice(id.as_uuid().as_bytes());
-    aad[16..].copy_from_slice(&version.get().to_be_bytes());
-    aad
-}
-\end{lstlisting}
-
-El segundo puerto, \texttt{KeyManager} (\rutarepo{crates/domain/src/crypto/keys.rs}), gobierna el esquema de envelope encryption \cite{dworkin2012}: generar una DEK, envolverla bajo la KEK, desenvolverla y re-envolverla bajo una KEK nueva. Su adaptador \texttt{Envelope\allowbreak Key\allowbreak Manager} genera una DEK aleatoria de 32 bytes por documento y la sella con el mismo cifrador AES-256-GCM, pero con AAD \emph{vacío}: la decisión, documentada en el propio código, es que la DEK envuelta ya queda ligada a su documento por el archivo que la transporta, y mantener la envoltura independiente de la identidad permite rotar la KEK re-envolviendo todas las claves sin necesidad de saber a qué documento pertenece cada una. El caso de uso \texttt{Encrypt\allowbreak Document} serializa el resultado en el formato de archivo \texttt{DVLT1} (\cref{tab:impl-vault}), definido normativamente en \rutarepo{crates/application/src/vault.rs}; \texttt{Decrypt\allowbreak Document} reconstruye el AAD con la identidad y versión que el llamador afirma, de modo que un identificador o versión incorrectos fallan exactamente igual que un criptograma alterado; y \texttt{RotateKek} re-envuelve únicamente la DEK, copiando intactos los bytes del documento sellado, con un costo independiente del tamaño del documento, la propiedad de rotación que el diseño exigió en \cref{sec:cifrado-reposo}.
-
-\begin{table}[H]
+\begin{figure}[!tb]
   \centering
-  \caption[Formato del archivo vault \texttt{DVLT1}]{Formato del archivo vault \texttt{DVLT1} (definición normativa en \texttt{crates/application/src/vault.rs}).}
-  \label{tab:impl-vault}
-  \begin{tabularx}{\linewidth}{@{}l l X@{}}
-    \toprule
-    \textbf{Desplazamiento} & \textbf{Tamaño} & \textbf{Campo} \\
-    \midrule
-    0 & 5 & Bytes mágicos ASCII \texttt{DVLT1}. \\
-    5 & 4 & Longitud $N$ (big-endian) de la DEK envuelta. \\
-    9 & $N$ & DEK envuelta: nonce~$\Vert$~criptograma~$\Vert$~tag, sellada bajo la KEK con AAD vacío. \\
-    $9+N$ & resto & Documento sellado: nonce~$\Vert$~criptograma~$\Vert$~tag, sellado bajo la DEK con AAD = identificador del documento (16 bytes UUID)~$\Vert$~versión (4 bytes big-endian). \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+  \input{figures/fig-04b-vault}
+  \caption{Formato normativo del archivo DVLT1 (definido en \texttt{vault.rs} de la capa de aplicación); sus operaciones están en la \cref{fig:cripto-sobre}. La DEK envuelta no lleva AAD: el archivo ya la liga a su documento, de modo que la KEK rota sin saber a qué documento pertenece cada DEK. El documento sellado sí queda ligado a su UUID y su versión.}
+  \label{fig:impl-vault}\label{tab:impl-vault}
+\end{figure}
 
 \subsection{S3. Infraestructura de clave pública interna}\label{sec:impl-s3-pki}
 
-La CA interna de una sola capa especificada en \cref{sec:firma-digital} se implementó como un conjunto de scripts versionados bajo \rutarepo{pki/} (\texttt{init-ca.sh}, \texttt{issue-cert.sh}, \texttt{revoke.sh}, \texttt{gen-crl.sh}) que operan la herramienta OpenSSL con configuración declarativa (\texttt{openssl.cnf}). Los parámetros coinciden con el diseño: claves RSA de 3\,072 bits, firma sha256WithRSAEncryption en todos los casos, certificado raíz autofirmado con vigencia de 1\,825 días (cinco años), certificados de entidad final con vigencia de 365 días y CRL con vigencia de siete días conforme a RFC 5280 \cite{cooper2008}. La política de emisión obliga a que país y organización del certificado emitido coincidan con los de la CA, ignora las extensiones solicitadas en el CSR (\texttt{copy\_extensions = none}) y aplica un retroceso deliberado de cinco minutos al inicio de vigencia, práctica común de las autoridades públicas, para que un certificado sea utilizable de inmediato aun con desfase de reloj entre máquinas. El puerto \texttt{Certificate\allowbreak Authority} se implementa en \texttt{Openssl\allowbreak Ca\allowbreak Adapter} (\rutarepo{crates/infrastructure/src/certificates/authority.rs}), que ejecuta esos scripts como subprocesos con el directorio de trabajo inyectado vía \texttt{PKI\_CA\_DIR} y normaliza los números de serie a hexadecimal en mayúsculas antes de invocar subproceso alguno. El caso de uso \texttt{Issue\allowbreak Certificate} rehúsa reportar éxito hasta validar el certificado recién emitido contra la raíz, de modo que una CA mal inicializada falla en la emisión y no en el primer uso. Los scripts operan con disciplina defensiva (\texttt{set -euo pipefail}, verificación previa de que \texttt{openssl} está disponible, inicialización idempotente que rehúsa sobrescribir una CA existente) y el material de claves privadas jamás se versiona: vive únicamente en el directorio de trabajo en tiempo de ejecución, con el \texttt{.gitignore} del repositorio como red de seguridad adicional; el \texttt{README.md} del directorio documenta el orden de uso, los comandos de verificación independiente y la versión de OpenSSL (3.5.7) con la que fueron probados.
+La CA de una capa de la \cref{sec:firma-digital} se opera con scripts sobre un \texttt{openssl.cnf} declarativo \cite{cooper2008}; parámetros, política y salvaguardas, probados con OpenSSL 3.5.7, están en el \cref{anexo:pki} (\cref{tab:pki-parametros} y secciones~\ref{sec:pki-openssl-cnf} y~\ref{sec:pki-init-ca}). El adaptador ejecuta los scripts como subprocesos con su directorio en \texttt{PKI\_CA\_DIR} y normaliza las series a hexadecimal en mayúsculas antes de invocar alguno. La emisión no reporta éxito hasta validar el certificado nuevo contra la raíz: una CA mal inicializada falla al emitir y no en el primer uso.
 
-La validación es el puerto \texttt{Certificate\allowbreak Validator}, implementado por \texttt{X509\allowbreak Chain\allowbreak Validator} (\rutarepo{crates/infrastructure/src/certificates/validator.rs}). Las crates \texttt{x509-cert}~0.2 y \texttt{der}~0.7 solo \emph{parsean} X.509 y deliberadamente no verifican firmas, así que la verificación criptográfica se implementó re-codificando a DER la estructura to-be-signed parseada y comprobando la firma PKCS\#1 v1.5 con \texttt{rsa} y \texttt{sha2} contra la clave pública del emisor (la misma técnica para la firma de la CRL sobre su \texttt{tbsCertList}), decisión registrada en \rutarepo{docs/adr/0004-certificate-validation-implementation.md} y correcta porque DER es una codificación canónica: decodificar y re-codificar entrada DER válida reproduce los bytes firmados. El validador ejecuta sus comprobaciones en orden fijo y reporta exactamente el primer fallo: (1) confianza del emisor (nombre, algoritmo y firma); (2) ventana de vigencia del certificado; (3) ventana de vigencia \emph{del emisor}, porque un emisor fuera de su propia vigencia no ancla confianza en ese instante; y (4) revocación contra la CRL opcional. El contrato de revocación es estricto: si se presenta una CRL, cualquier defecto de la lista (ilegible, no firmada por el emisor, o vencida en su \texttt{nextUpdate}) es un error duro y nunca un pase permisivo; omitir la CRL es una decisión explícita del llamador que el reporte de verificación hace visible. El instante de evaluación siempre es un timestamp explícito, lo que permite a las pruebas controlar el reloj.
+El validador (ADR~0004) usa \texttt{x509-cert} y \texttt{der} solo para leer. Verifica la firma recodificando a DER la parte firmada del certificado o de la CRL y comprobando PKCS\#1 v1.5; es correcto porque DER es canónico. Comprueba en orden fijo y reporta solo el primer fallo: (1) confianza del emisor (nombre, algoritmo y firma), (2) vigencia del certificado, (3) vigencia del emisor y (4) revocación contra la CRL opcional. El instante de evaluación siempre es explícito, así que las pruebas controlan el reloj. Si se presenta una CRL, cualquier defecto (ilegible, no firmada por el emisor o vencida) es error duro; omitirla es decisión del llamador, visible en el reporte.
 
-{\emergencystretch=3em La emisi\'on para firma personal se apoya en el comando \texttt{pki issue-request}, el caso de uso \texttt{Issue\allowbreak Certificate\allowbreak Request} y el puerto \texttt{Certificate\allowbreak Request\allowbreak Authority}. El titular genera fuera del servidor la clave RSA-3072 y el CSR, con el ayudante local del navegador (\cref{sec:impl-criptografia-local}) o con OpenSSL; el adaptador comprueba la firma de la solicitud y sus par\'ametros antes de emitir. La CA fija el perfil final de firma y no copia extensiones solicitadas. El comando devuelve el certificado p\'ublico sin crear un archivo de clave privada del titular dentro de la CA. El perfil Partner del acceso Owner (\cref{sec:impl-vinculo-certificado}) y el perfil de firma documental (\cref{sec:impl-firma-individual}) tienen prop\'ositos distintos y no se intercambian.\par}
+El certificado de firma personal se emite desde un CSR que el titular genera fuera del servidor (\cref{sec:pki-issue-request,sec:impl-criptografia-local}). Su perfil no se intercambia con el Partner del acceso Owner (\cref{sec:impl-vinculo-certificado}).
 
 \input{chapters/04-portal-ca}
 
 \subsection{S4. Firma digital RSA-3072}\label{sec:impl-s4-firma}
 
-El esquema de firma es el diseñado en \cref{sec:firma-digital}: RSA-3072 con SHA-256 y padding PKCS\#1 v1.5. Los puertos son \texttt{Document\allowbreak Signer} y \texttt{Signature\allowbreak Verifier} (\rutarepo{crates/domain/src/crypto/signature.rs}); nunca se firma el documento sino su digest SHA-256, calculado por el puerto de hashing, y el rechazo de una verificación es un resultado tipado, no un error. Los adaptadores \texttt{Rsa\allowbreak Pkcs1\allowbreak Signer} y \texttt{Rsa\allowbreak Pkcs1\allowbreak Verifier} (\rutarepo{crates/infrastructure/src/signing.rs}) usan los crates \texttt{rsa}~0.9 y \texttt{sha2}~0.10 con la feature \texttt{oid}, que liga SHA-256 a su identificador en la estructura DigestInfo del padding, de modo que los 32 bytes ya calculados se firman sin hashear dos veces. El firmador rechaza en construcción cualquier módulo menor a 3\,072 bits; acepta la clave privada en PEM PKCS\#8 o PKCS\#1, la retiene en un buffer \texttt{Zeroizing}, la parsea únicamente durante la operación de firma y la descarta al salir del ámbito, y su representación de depuración omite el material (\texttt{private key pem withheld}). El verificador acepta como material de clave tanto un certificado X.509 (del que extrae el SubjectPublicKeyInfo) como una clave pública SPKI en PEM; una firma cuya longitud no coincide con el tamaño de la clave se rechaza como malformada, y cualquier comprobación fallida se colapsa en \texttt{Mismatched\allowbreak Document\allowbreak Or\allowbreak Key}, porque un fallo de verificación no distingue un documento alterado de una clave ajena. La elección del crate \texttt{rsa} está registrada en \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md}; el aviso RUSTSEC-2023-0071 que esa decisión acepta, su contingencia hacia \texttt{ring} y sus límites ante la exposición HTTP se presentan en \cref{sec:impl-workspace}.
-
-El flujo de firma individual (\cref{sec:impl-firma-individual}) reutiliza la verificaci\'on RSA, pero recibe pruebas generadas en el equipo del titular mediante el ayudante local o una herramienta externa. \texttt{Internal\allowbreak Rsa\allowbreak Document\allowbreak Signing\allowbreak Verifier} comprueba primero el v\'inculo entre cuenta y certificado y, para cada documento, dos firmas: la del contenido PDF y la del consentimiento can\'onico que incluye su digest y el digest de esa firma. Los prefijos \texttt{DOCBIND1} y \texttt{DOCSIGN1} (\cref{tab:anexo-canones}) separan el registro del v\'inculo y la autorizaci\'on documental; una prueba de acceso Owner no satisface ninguno de esos contratos. La ruta individual no invoca el firmador privado del servidor.
+S4 firma con RSA-3072 y PKCS\#1 v1.5 el digest SHA-256 de S1, nunca el documento (\cref{sec:firma-digital}); la opción \texttt{oid} de \texttt{sha2} permite firmar esos 32 bytes sin calcular el hash dos veces. El firmador rechaza al construirse módulos menores de 3072 bits y acepta PEM PKCS\#8 o PKCS\#1. Retiene la clave en un buffer que se borra, la interpreta solo al firmar y la omite de su representación de depuración. El verificador acepta un certificado X.509 o una clave SPKI en PEM. Rechaza como malformada una firma cuya longitud no es la de la clave, y colapsa toda otra falla en un único rechazo que no distingue un documento alterado de una clave ajena.
 
 \subsection{S5. Sellado de tiempo RFC 3161}\label{sec:impl-s5-sellado}
 
-El sellado de tiempo conserva el contrato del diseño (\cref{sec:sellado-tiempo}): el puerto \texttt{Timestamp\allowbreak Service} recibe un digest SHA-256 y devuelve el token como bytes DER opacos, y el puerto \texttt{Timestamp\allowbreak Verifier} verifica un token contra el digest esperado y un ancla de confianza en PEM \cite{adams2001}. Existen dos adaptadores emisores, intercambiables sin tocar el dominio. \texttt{Local\allowbreak Openssl\allowbreak Tsa} (\rutarepo{crates/infrastructure/src/timestamp/local.rs}) es una autoridad de sellado local de desarrollo y demostración que ejecuta \texttt{openssl ts -query} y \texttt{openssl ts -reply} como subprocesos contra el directorio de trabajo preparado por \rutarepo{pki/issue-tsa-cert.sh}; el paso de respuesta se serializa entre hilos y procesos con un lock advisory exclusivo sobre el archivo \texttt{serial.lock} (crate \texttt{fs2}), porque OpenSSL avanza el archivo de serie con una secuencia leer-incrementar-escribir no atómica que, sin serialización, acuñaría números de serie duplicados. \texttt{Cincel\allowbreak Tsa\allowbreak Adapter} (\rutarepo{crates/infrastructure/src/timestamp/cincel.rs}) es el camino remoto hacia el sandbox del PSC \cite{cincel2024}, implementado con \texttt{reqwest}~0.12 en modo bloqueante sobre \texttt{rustls}; envía el digest por \texttt{POST} a \rutarepo{/api/v1/timestamps} con la credencial en el header \texttt{X-Api-Key}, maneja las respuestas de token inmediato, procesamiento diferido con sondeo (\texttt{RetryPolicy} configurable) y rechazo, y mantiene la credencial en un buffer \texttt{Zeroizing} excluido de la depuración y de todo mensaje de error. La configuración de ambos emisores y los resultados de su exploración se reportan en \cref{sec:impl-spike-tsa}.
+S5 conserva el contrato de la \cref{sec:sellado-tiempo} \cite{adams2001}: un puerto recibe un digest SHA-256 y devuelve el token como DER opaco; otro lo verifica contra el digest esperado y un ancla PEM. Los dos emisores, la TSA local y el adaptador del PSC \cite{cincel2024}, se intercambian sin tocar el dominio (\cref{fig:impl-tsa-local}).
 
-{\emergencystretch=2em La verificación, \texttt{Rfc3161\allowbreak Verifier} (\rutarepo{crates/infrastructure/src/timestamp/verify.rs}), opera en dos etapas conforme a \rutarepo{docs/adr/0005-rfc3161-verification-strategy.md}. La etapa nativa decodifica el DER con \texttt{cms}~0.2 y \texttt{x509-tsp}~0.1 (aceptando una respuesta \texttt{Time\allowbreak Stamp\allowbreak Resp} completa o un token CMS desnudo), extrae el \texttt{TSTInfo}, compara el message imprint contra el digest esperado exigiendo tanto el OID id-sha256 (2.16.840.1.101.3.4.2.1) como la igualdad de bytes, y lee el tiempo de generación en formato RFC 3339; las entradas indecodificables y los desajustes de imprint se diagnostican aquí, con causas precisas y sin lanzar subproceso alguno. La etapa delegada encarga la comprobación de la firma CMS y de la cadena de certificados a \texttt{openssl ts -verify}, montando los archivos en un directorio temporal privado (modo 0700, nombre impredecible) que se elimina en todo camino de retorno; la aceptación produce \texttt{Valid} con el instante de generación, y un rechazo produce \texttt{Untrusted\allowbreak Token} con el diagnóstico de la herramienta. Implementar a mano la verificación CMS (atributos firmados, comprobaciones de tipo de contenido, construcción de cadena) habría añadido una superficie criptográfica sustancial que el prototipo no debe poseer, mientras que la dependencia de la herramienta \texttt{openssl} ya existía para la CA interna.\par}
+\begin{figure}[!tb]
+  \centering
+  \input{figures/fig-04b-tsa-local}
+  \caption{Emisión con la TSA local y verificación en dos etapas (ADR~0005). OpenSSL avanza el archivo de serie con lectura, incremento y escritura no atómicos; el lock exclusivo sobre \texttt{serial.lock}, entre hilos y procesos, evita series duplicadas. La etapa nativa exige el OID id-sha256 (2.16.840.1.101.3.4.2.1); la delegada usa un directorio temporal privado e impredecible que se borra en todo retorno.}
+  \label{fig:impl-tsa-local}
+\end{figure}
+
+La cadena CMS se delega en OpenSSL porque implementarla añadiría superficie criptográfica y ya era dependencia de la CA. El adaptador remoto usa \texttt{reqwest} bloqueante sobre \texttt{rustls}: envía el digest por \texttt{POST} con la credencial en \texttt{X-Api-Key} y maneja token inmediato, procesamiento diferido con sondeo según una política de reintento configurable, y rechazo. La credencial vive en un buffer que se borra, fuera de la depuración y de los errores; el modo remoto se configura según la sección~\ref{sec:cli-timestamp}.
 
 \subsection{Resultados de la exploración del sellado de tiempo}\label{sec:impl-spike-tsa}
 
-El análisis de riesgos identificó la integración con la API del PSC como el riesgo técnico de mayor exposición (RTC-01, \cref{tab:rtc-01}), y previó como contingencia un servicio sustituto que simulara las respuestas de la TSA para no bloquear el desarrollo. El registro en el entorno de Cincel pudo completarse, pero el riesgo se materializó durante el consumo: la API no mostró estabilidad suficiente para sostener una campaña repetible y el sandbox requiere pago con precios no transparentes, por lo que no es una dependencia determinista ni económicamente neutra para la suite o la demostración (\cref{sec:riesgo-psc-materializado}). La respuesta de implementación va más allá de la contingencia prevista: en lugar de un simulador, el prototipo opera localmente con OpenSSL una \emph{autoridad de sellado real}, que emite tokens RFC 3161 auténticos, criptográficamente completos y verificables con herramientas independientes.
+El registro en Cincel se completó, pero su API no fue estable para una campaña repetible y su sandbox exige pago sin precios transparentes (RTC-01, \cref{sec:riesgo-psc-materializado}). En lugar de un simulador, el prototipo opera con OpenSSL una TSA real que emite tokens RFC 3161 auténticos y verificables con herramientas independientes; la demostración de extremo a extremo sella con ella. Su certificado y su \texttt{tsa.cnf} están en las secciones~\ref{sec:pki-issue-tsa} y~\ref{sec:pki-tsa-cnf}.
 
-La autoridad local se prepara con el script \rutarepo{pki/issue-tsa-cert.sh}: la CA interna emite un certificado de TSA RSA-3072 con vigencia de 365 días cuya extensión \texttt{extended\allowbreak Key\allowbreak Usage} es crítica y contiene únicamente \texttt{time\allowbreak Stamping}, como exige RFC 3161 \cite{adams2001}. La configuración \rutarepo{pki/tsa.cnf} fija los parámetros de operación: digests de solicitud y de firma SHA-256, exactitud declarada de un segundo (\texttt{accuracy = secs:1}), sin garantía de orden entre tokens, números de serie desde 1000, y una política de emisión identificada por el OID 1.3.6.1.4.1.13762.3, un arco privado del árbol de empresas de IANA, declarado explícitamente como política de demostración y no como política de producción registrada. Las solicitudes que pidan cualquier otra política se rehúsan. El adaptador \texttt{Local\allowbreak Openssl\allowbreak Tsa} ejercita esta autoridad vía el comando \texttt{timestamp -{}-mock}, y las pruebas de integración \rutarepo{crates/infrastructure/tests/local_tsa_rfc3161.rs} recorren el ciclo completo contra los scripts reales en directorios temporales, cotejando los tokens emitidos con la línea de comandos de \texttt{openssl}; ninguna de esas pruebas está marcada como ignorada. La demostración de extremo a extremo del prototipo emite sus sellos con esta autoridad; su aceptación por \texttt{openssl ts -verify} en la verificación independiente del paquete de evidencia se reporta en \cref{sec:pruebas-interop}.
-
-{\emergencystretch=3em El camino remoto hacia el PSC permanece como una integración explícita del comando \texttt{timestamp} cuando no se pasa \texttt{-{}-mock}. En ese modo, el binario exige \texttt{CINCEL\_BASE\_URL} y \texttt{CINCEL\_API\_KEY} no vacías en el entorno (los valores en blanco de la plantilla no configuran nada) y construye el \texttt{Cincel\allowbreak Tsa\allowbreak Adapter} con un tiempo límite de 15 segundos por solicitud y una política de reintento de cinco sondeos cada dos segundos. El contrato HTTP de ese adaptador descrito en \cref{sec:impl-s5-sellado}, con los estados \texttt{completed}, \texttt{processing} y \texttt{rejected}, es un contrato asumido por el adaptador y cubierto por un stub local, no un contrato confirmado por una campaña externa. El stub (\rutarepo{crates/infrastructure/tests/cincel_stub.rs}) cubre el token inmediato, el procesamiento diferido, los rechazos con detalle, los estados HTTP de error, los cuerpos indecodificables, la autoridad inalcanzable y la promesa de que la credencial jamás se filtra a los mensajes de error. La prueba de humo contra el sandbox real, \texttt{the\_real\_sandbox\_\allowbreak issues\_a\_token}, permanece ignorada por la falta de garantía operativa de la API y el costo del sandbox, de modo que no forma parte de la evidencia del prototipo.\par}
-
-El acceso al proveedor no produjo una ejecución suficientemente estable y repetible para declarar confirmado su contrato HTTP ni para medir el criterio de éxito de OE-3, y la falta de un precio transparente impide autorizar una campaña. Por decisión del proyecto, la confirmación empírica del algoritmo de firma de la TSA comercial y la tasa externa quedan fuera del alcance actual. La limitación está \emph{acotada arquitectónicamente}: el flujo RFC 3161 completo (solicitud, emisión, almacenamiento del token DER y verificación en dos etapas) está demostrado de extremo a extremo con una autoridad real, el verificador \texttt{Rfc3161\allowbreak Verifier} es agnóstico de la autoridad emisora porque verifica cualquier token contra el ancla de confianza suministrada, y el intercambio de emisor es una sustitución explícita detrás del puerto \texttt{Timestamp\allowbreak Service}, sin tocar el dominio ni la lógica de verificación. Esta portabilidad no equipara las garantías: un token de la TSA interna prueba el funcionamiento técnico bajo la CA del prototipo, pero no constituye una constancia independiente emitida por un PSC autorizado.
+\texttt{openssl ts -verify} acepta los sellos de la demostración (\cref{sec:pruebas-interop}). Las pruebas de la TSA local recorren el ciclo con los scripts reales y cotejan los tokens con OpenSSL. Un stub HTTP local cubre token inmediato, procesamiento diferido, rechazos con detalle, estados HTTP de error, cuerpos indecodificables y autoridad inalcanzable, y comprueba que la credencial nunca aparezca en los errores. La prueba del sandbox real queda ignorada por costo y falta de garantía operativa, sin valor de evidencia (\cref{tab:matriz-pruebas}).
 
 \subsection{S6. Verificación integral}\label{sec:impl-s6-verificacion}
 
-{\emergencystretch=2em El caso de uso \texttt{Verify\allowbreak Document} (\rutarepo{crates/application/src/verification.rs}) compone cuatro puertos (\texttt{Document\allowbreak Hasher}, \texttt{Signature\allowbreak Verifier}, \texttt{Certificate\allowbreak Validator} y \texttt{Timestamp\allowbreak Verifier}) en un único reporte sobre un flujo de entrada, materializando el flujo de verificación en cuatro pasos que el diseño describió en \cref{sec:sellado-tiempo}. El reporte contiene cuatro componentes (integridad, firma, certificado y sello de tiempo), cada uno con estado \texttt{Passed}, \texttt{Failed} o \texttt{Skipped} y una causa legible. La semántica es deliberadamente conservadora: los componentes cuya evidencia no se aportó se reportan omitidos \emph{con su razón}, nunca desaparecen en silencio, y no cuentan contra el veredicto; el veredicto es \texttt{NotValid} si cualquier componente ejercitado falló (Listado~\ref{lst:impl-verdict}). La integridad compara el digest recomputado contra el que atestigua el token de sellado (sin token no existe referencia independiente y el componente se omite), y el verificador revisa el imprint \emph{antes} que la cadena de confianza, de modo que un token no confiable aún puede confirmar que el digest coincide (integridad aprobada con sello fallido). El estado del certificado habla únicamente del instante de evaluación: que esté hoy expirado o revocado no invalida por sí mismo una firma producida cuando era válido, y el texto del reporte lo hace explícito, dejando la lectura jurídica al operador. Los errores (flujo ilegible, PEM imparseable, CRL no confiable o vencida) no son resultados: abortan la verificación.\par}
+S6 compone S1, S3, S4 y S5 sobre un flujo de entrada en un reporte de cuatro componentes (\cref{fig:impl-verificacion}). El estado del certificado habla solo del instante evaluado y no invalida por sí mismo una firma hecha durante la vigencia (\cref{sec:pruebas-interop,sec:verificacion-historica}).
 
-La evidencia de firma individual (\cref{sec:impl-firma-individual}) agrega una comprobaci\'on hist\'orica del v\'inculo y del consentimiento antes de producir el reporte. Conserva las declaraciones, sus firmas y la confianza capturada al registrar el certificado y aceptar el documento. La consulta distingue ese resultado del estado actual del certificado y del retiro del v\'inculo: una revocaci\'on, expiraci\'on o retirada posterior impide las nuevas operaciones que correspondan, pero no reescribe las pruebas anteriores. Si falta confianza vigente, el estado actual se presenta como no disponible. Los documentos firmados con la clave del servidor se identifican como tales y no reciben atribuci\'on personal retroactiva.
+\begin{figure}[!tb]
+  \centering
+  \input{figures/fig-04b-verificacion}
+  \caption{Verificación integral. Como el imprint se revisa antes que la cadena, un token no confiable aún confirma la integridad; sin token no hay referencia independiente y la integridad se omite.}
+  \label{fig:impl-verificacion}
+\end{figure}
 
-\begin{lstlisting}[language=Rust,caption={Veredicto de la verificación integral sobre los cuatro componentes (\texttt{crates/application/src/verification.rs}).},label={lst:impl-verdict}]
-    let components = [&integrity, &signature, &certificate, &timestamp];
-    let verdict = if components
-        .iter()
-        .any(|component| component.status == ComponentStatus::Failed)
-    {
-        Verdict::NotValid
-    } else {
-        Verdict::Valid
-    };
-
-    Ok(VerificationReport {
-        document_digest_hex: digest.to_hex(),
-        integrity,
-        signature,
-        certificate,
-        timestamp,
-        verdict,
-    })
-}
-\end{lstlisting}
+La firma individual (\cref{sec:impl-firma-individual}) agrega una comprobación histórica del vínculo y del consentimiento con las pruebas y la confianza capturadas, separada del estado actual del certificado y del retiro del vínculo. Revocar, expirar o retirar impide nuevas operaciones, pero no reescribe pruebas. Sin confianza vigente, el estado actual es no disponible, y lo firmado con la clave del servidor no recibe atribución personal retroactiva. Una prueba de acceso Owner no sirve como prueba de vínculo documental ni de firma individual (formatos \texttt{DOCBIND1} y \texttt{DOCSIGN1} de esa sección), y esta ruta no invoca el firmador del servidor.
 
 \subsection{S7. Hash de contraseñas con Argon2id}\label{sec:impl-s7-argon2}
 
-El puerto \texttt{Password\allowbreak Hasher} (\rutarepo{crates/domain/src/crypto/password.rs}) exige una sal aleatoria fresca y una cadena PHC; un hash almacenado ilegible es un error distinto de una contraseña incorrecta. El adaptador \texttt{Argon2id\allowbreak Hasher} (\rutarepo{crates/infrastructure/src/password.rs}) usa \texttt{argon2}~0.5 y sales de \texttt{getrandom}. Los hashes nuevos contienen \texttt{m=262144,t=3,p=1}: 256~MiB, tres iteraciones, un carril, sal de 16 bytes y salida de 32 bytes. La verificación toma los parámetros del PHC almacenado; los valores históricos con dos iteraciones siguen aceptando la contraseña correcta y rechazando una incorrecta, sin reescritura ni migración implícita.
+El puerto de Argon2id \cite{biryukov2021} exige sal aleatoria nueva y cadena PHC; un hash almacenado ilegible es un error distinto de una contraseña incorrecta. Los hashes nuevos usan 256~MiB, $t=3$, $p=1$, sal de 16 bytes y salida de 32 bytes. La verificación toma los parámetros del PHC almacenado, así que los hashes históricos de dos iteraciones siguen verificando sin migración implícita.
 
-La comprobación de este costo frente a la banda del diseño se reporta en \cref{sec:pruebas-argon2,sec:calibracion-credenciales}. La medición histórica de 529.4 ms con dos iteraciones conserva su alcance. El control aislado del costo de dos iteraciones promedió 400.3851816 ms en cinco hashes sobre AMD Ryzen 7 7730U, 16 hilos lógicos y Linux 7.1.13 fc43, con binario de desarrollo y optimización de nivel 3 en Argon2 y Blake2. Siete pruebas focales del ajuste aprobaron en 21.602~s, incluida la compatibilidad histórica. La medición real de tres iteraciones promedió 659.7596048 ms en cinco hashes y obtuvo veredicto dentro de banda; compilación y calibración duraron 79.514~s con 2553 fuentes estables y un único ensayo activo. Este resultado acredita hashes nuevos en ese host y binario, sin modificar el costo codificado en los PHC anteriores. Seis pruebas CLI aprobaron en 20.916~s y la demostración completa en 8.240~s; su medición secundaria de 563.2 ms sobre cinco hashes también quedó dentro de banda, sin sustituir la principal. Estos resultados focales se conservan separados del cierre integrado documentado en \rutarepo{docs/verification-report.md}. La banda inclusiva de 500--1000 ms requiere un promedio y veredicto explícitos: el éxito del comando no demuestra que se cumpla. Se mide un hash, no un enrolamiento o recuperación completos, y debe repetirse en otro entorno de despliegue. El ADR~0044 de \rutarepo{docs/adr/} documenta estos límites.
-
-\begin{lstlisting}[language=Rust,caption={Parámetros de Argon2id declarados como constantes (\texttt{crates/infrastructure/src/password.rs}).},label={lst:impl-argon2}]
-/// Memory cost in KiB (256 MiB).
-const MEMORY_KIB: u32 = 262144;
-
-/// Number of passes over the memory.
-const ITERATIONS: u32 = 3;
-
-/// Degree of parallelism (lanes).
-const PARALLELISM: u32 = 1;
-
-/// Length in bytes of the derived hash.
-const OUTPUT_LEN: usize = 32;
-
-/// Length in bytes of the random salt drawn for every hash.
-const SALT_LEN: usize = 16;
-\end{lstlisting}
+La banda, las mediciones y el ajuste a $t=3$ (ADR~0044) están en la \cref{sec:calibracion-credenciales}; los tiempos de las pruebas focales, de la CLI y de la demostración, separados del cierre integrado, están en \rutarepo{docs/verification-report.md}.
 
 \subsection{S8. Segundo factor TOTP y códigos de recuperación}\label{sec:impl-s8-totp}
 
-El puerto \texttt{Totp\allowbreak Provider} (\rutarepo{crates/domain/src/crypto/totp.rs}) declara el enrolamiento y la verificación del segundo factor; su adaptador \texttt{Totp\allowbreak Rs\allowbreak Provider} (\rutarepo{crates/infrastructure/src/totp.rs}) usa el crate \texttt{totp-rs}~5 con las features \texttt{otpauth} y \texttt{zeroize}, configurada con los parámetros del diseño (\cref{sec:autenticacion}): HMAC-SHA1, códigos de seis dígitos, paso de 30 segundos, desfase aceptado de un paso a cada lado (ventana efectiva de unos 90 segundos) y secreto de 20 bytes (igual a la salida de HMAC-SHA1, como recomienda RFC 4226 \cite{mraihi2005}) con un mínimo aceptado de 16 bytes \cite{mraihi2011}. El URI de aprovisionamiento \texttt{otpauth://} embebe el secreto codificado en base32 sin relleno \cite{josefsson2006}; por ello, el value object \texttt{Totp\allowbreak Enrollment} guarda sus tres campos (secreto crudo, secreto en base32 y URI) en buffers \texttt{Zeroizing}. La comparación de códigos ya es de tiempo constante dentro de \texttt{totp-rs}. El puerto aislado es deliberadamente sin estado; en la aplicación HTTP (\cref{sec:impl-http-identidad}), \texttt{Redis\allowbreak Session\allowbreak Store} materializa la decisión de \rutarepo{docs/adr/0008-totp-single-use-enforcement.md}: reclama atómicamente una huella del código aceptado con TTL de 90 segundos, por lo que una reproducción dentro de la ventana se rechaza.
+S8 usa \texttt{totp-rs} con las opciones \texttt{otpauth} y \texttt{zeroize}: HMAC-SHA1 \cite{mraihi2011}, seis dígitos, paso de 30~s y un paso de desfase a cada lado, una ventana efectiva de unos 90~s. El secreto mide 20 bytes \cite{mraihi2005} y se aceptan desde 16. La URI \texttt{otpauth} lleva el secreto en base32 sin relleno \cite{josefsson2006}; por eso secreto, base32 y URI viven en buffers que se borran, y los códigos se comparan en tiempo constante. El puerto no tiene estado y el solo uso lo exige el llamador (ADR~0008): en HTTP (\cref{sec:impl-http-identidad}), Redis reclama de forma atómica una huella del código aceptado durante 90~s y rechaza su reproducción.
 
-{\emergencystretch=2em El enrolamiento completo lo orquesta el caso de uso \texttt{EnrollTotp}, que además emite los ocho códigos de recuperación de un solo uso previstos por el diseño. El generador \texttt{Random\allowbreak Recovery\allowbreak Code\allowbreak Generator} produce códigos de diez símbolos en la forma \texttt{XXXXX-XXXXX} sobre un alfabeto de 32 símbolos que excluye los caracteres confundibles I, L, O y U; cada símbolo aporta cinco bits extraídos sin sesgo de módulo, para un total de 50 bits de entropía por código. Los códigos en claro se muestran una única vez (viajan como \texttt{Zeroizing}); lo que se almacena es el value object \texttt{Recovery\allowbreak Code\allowbreak Set}: ocho ranuras con hashes PHC producidos por el mismo puerto \texttt{Password\allowbreak Hasher} de S7, cuya operación \texttt{consume} verifica un código contra las ranuras no usadas y consume la que coincide.\par}
+Los ocho códigos de recuperación tienen la forma \texttt{XXXXX-XXXXX} sobre 32 símbolos sin I, L, O ni U: 5 bits por símbolo, sin sesgo de módulo, dan 50 bits por código. Se muestran en claro una sola vez y se guardan en ocho ranuras como hashes PHC de S7; consumir uno lo verifica contra las ranuras libres y marca la que coincide.
 
-Los intentos HTTP de segundo factor producen un registro operativo con hora UTC,
-identificador de petición generado por el servidor, UUID de cuenta cuando está
-disponible, resultado y motivo interno. La respuesta pública mantiene el rechazo
-genérico. El registro distingue reutilización, inactividad y cambio de generación;
-agrupa código incorrecto o fuera de ventana y desafío vencido, consumido o desconocido,
-pues las interfaces no permiten separarlos. No incorpora códigos, secretos,
-contraseñas ni tokens. Estos eventos se consultan en el journal del servicio y
-permanecen separados de la cadena transaccional, según
-\rutarepo{docs/mfa-access-logs.md}.
+Cada intento HTTP de segundo factor deja en el journal, fuera de la cadena transaccional, hora UTC, identificador de petición, UUID de cuenta si existe, resultado y motivo interno, sin códigos, secretos, contraseñas ni tokens; la respuesta pública es genérica. Distingue reutilización, inactividad y cambio de generación, y agrupa el código incorrecto o fuera de ventana con el desafío vencido, consumido o desconocido, que las interfaces no separan (\rutarepo{docs/mfa-access-logs.md}).
 
 \subsection{S9. Cadena de auditoría}\label{sec:impl-s9-auditoria}
 
-La bitácora de auditoría es lógica de dominio pura (\rutarepo{crates/domain/src/audit/}). Cada evento registra secuencia, timestamp, actor, acción y recurso, con un contexto opcional de procedencia e identidad observada, y la cadena se define por la regla
-\[
-  \mathit{chain}(n) = \text{SHA-256}\bigl(\mathit{chain}(n-1) \,\Vert\, \text{bytes canónicos}(n)\bigr),
-\]
-con un valor génesis fijo de 32 bytes cero para la primera entrada. La codificación canónica serializa la secuencia como 8 bytes big-endian y cada campo textual variable con un prefijo de longitud de 4 bytes big-endian; el timestamp se normaliza a UTC y se representa en RFC 3339. Cuando existe contexto, después de esos campos se añade la extensión \texttt{AUDCTX01}, de 12 a 60 bytes: incorpora etiquetas explícitas de presencia, UUID y direcciones IP en orden de red, y una etiqueta para el origen HTTP, CLI o interno. La codificación distingue un dato ausente de un UUID nulo o una dirección no especificada. Si el contexto no existe, no se añade ningún byte ni indicador: los eventos históricos conservan exactamente su codificación y sus hashes. La cadena cubre el contexto registrado, cuya captura y consulta describe \cref{sec:impl-bitacora}, con independencia de su representación JSON de almacenamiento. El Listado~\ref{lst:impl-chain} muestra el cálculo del eslabón. El hashing pasa por el puerto \texttt{Document\allowbreak Hasher}, así que ningún backend criptográfico entra al crate de dominio.
+\begin{figure}[!b]
+  \centering
+  \input{figures/fig-04b-auditoria}
+  \caption{Cadena de auditoría. Los prefijos de longitud evitan que dos eventos distintos produzcan los mismos bytes; \texttt{AUDCTX01} lleva etiquetas de presencia, UUID, IP en orden de red y origen HTTP, CLI o interno.}
+  \label{fig:impl-auditoria}
+\end{figure}
 
-\begin{lstlisting}[language=Rust,caption={Regla de encadenamiento de la bitácora (\texttt{crates/domain/src/audit/chain.rs}).},label={lst:impl-chain}]
-pub const GENESIS_PREVIOUS: Sha256Digest = Sha256Digest::from_array([0u8; SHA256_LEN]);
+Cada evento registra secuencia, instante, actor, acción y recurso, con contexto opcional, y se encadena con S1 (\cref{fig:impl-auditoria}). La extensión \texttt{AUDCTX01} (\cref{tab:anexo-canones}) distingue un dato ausente de un UUID nulo o una IP no especificada; sin contexto no añade bytes, así que los eventos históricos conservan sus hashes.
 
-/// Computes the chain value of an event given the previous chain value.
-///
-/// # Errors
-///
-/// Propagates the canonical-encoding failures of
-/// [`AuditEvent::canonical_bytes`].
-pub fn chain_digest(
-    hasher: &dyn DocumentHasher,
-    previous: &Sha256Digest,
-    event: &AuditEvent,
-) -> Result<Sha256Digest, DomainError> {
-    let canonical = event.canonical_bytes()?;
-    let mut linked = Vec::with_capacity(SHA256_LEN + canonical.len());
-    linked.extend_from_slice(previous.as_bytes());
-    linked.extend_from_slice(&canonical);
-    Ok(hasher.hash_bytes(&linked))
-}
-\end{lstlisting}
-
-La verificación recomputa cada eslabón desde el génesis y señala el primer índice inconsistente. Detecta alteraciones de campos, inserciones y cambios de orden dentro de la cadena. No detecta por sí sola el truncamiento de la cola: un prefijo válido sigue verificando desde el mismo génesis. Se requiere un anclaje independiente de la cabeza para cubrir esa limitación, que permanece abierta en \rutarepo{docs/adr/0007-audit-chain-anchoring.md}.
-
-El servidor usa \texttt{Postgres\allowbreak Audit\allowbreak Log} y comparte la cadena con las mutaciones de identidad, expedientes, asignaciones, documentos y actividad procesal. El adaptador transaccional calcula secuencia y hash bajo un bloqueo común; el cambio durable y su evento se confirman juntos. El timestamp se conserva como texto canónico, incluida su precisión de nanosegundos, para evitar que una conversión de almacenamiento altere los hashes. Los detalles de autorización, concurrencia y privilegios se presentan en \cref{sec:impl-http}.
-
-\texttt{File\allowbreak Audit\allowbreak Log} permanece disponible para los comandos offline: guarda JSON Lines y coordina lectores y escritores con bloqueos sobre un archivo hermano. \texttt{In\allowbreak Memory\allowbreak Audit\allowbreak Log} sirve a pruebas y procesos efímeros. Los tres adaptadores conservan la regla del dominio; el puerto \texttt{Clock}, implementado por \texttt{SystemClock}, permite controlar el instante en pruebas. Los archivos de un origen importado quedan protegidos contra nuevas escrituras por los marcadores del procedimiento de corte (\cref{sec:impl-http-migracion}).
+En el servidor la cadena es única, con secuencia y hash bajo un bloqueo común (\cref{sec:impl-http}). El instante se guarda como texto canónico con nanosegundos para que ninguna conversión altere los hashes. El adaptador JSON Lines de la CLI (\cref{sec:cli-audit}) coordina lectores y escritores con un bloqueo sobre un archivo hermano; tras una importación, los marcadores del corte impiden escribir en los archivos del origen (\cref{fig:impl-http-importacion}). El adaptador en memoria y un reloj inyectable sirven a las pruebas.
 
 \subsection{S10. Paquete de evidencia}\label{sec:impl-s10-evidencia}
 
-El caso de uso \texttt{Export\allowbreak Evidence\allowbreak Package} (\rutarepo{crates/application/src/evidence.rs}) construye el paquete autocontenido que el diseño prometió en \cref{sec:sellado-tiempo}: un archivo ZIP con el documento, su firma separada (\texttt{<doc>.sig}), su sello de tiempo (\texttt{<doc>.tsr}), el certificado del firmante (\texttt{certificado.pem}), la raíz emisora (\texttt{ca.pem}), la CRL incluida como evidencia (\texttt{crl.pem}), opcionalmente la cadena de la autoridad de sellado (\texttt{tsa-chain.pem}) y un archivo \texttt{INSTRUCCIONES.md} generado desde una plantilla versionada, que documenta la verificación independiente completa en cuatro pasos con comandos literales de \texttt{openssl}, incluida la versión local de la herramienta con que se redactaron. La regla del ancla del sello es explícita: si \texttt{tsa-chain.pem} viaja en el paquete, la comprobación del token se ancla en esa cadena; en caso contrario, en \texttt{ca.pem}, pues la autoridad interna de sellado encadena a la misma raíz.
+S10 escribe un ZIP con documento, firma, sello, certificados, CRL e instrucciones de plantilla versionada que, con la versión local de OpenSSL, repiten S6 (\cref{tab:verificacion-contenido}), más las pruebas de firma individual si aplica (\cref{sec:verificacion-individual}). En HTTP se conserva la CRL capturada al sellar, que exportar no actualiza (\cref{sec:verificacion-historica}).
 
-Los cuatro pasos de las instrucciones reproducen, con herramientas ajenas al prototipo, la verificación integral de S6:
-
-\begin{itemize}
-  \item \textbf{Integridad}: \texttt{openssl dgst -sha256} sobre el documento, comparado carácter por carácter con el resumen registrado en las propias instrucciones.
-  \item \textbf{Firma}: extracción de la clave pública del certificado del firmante (\texttt{openssl x509 -pubkey}) y verificación de la firma separada con \texttt{openssl dgst -sha256 -verify}.
-  \item \textbf{Certificado}: concatenación de \texttt{ca.pem} y \texttt{crl.pem}, seguida de \texttt{openssl verify} con la opción \texttt{-crl\_check}. Se identifican el instante de evaluación y la CRL suministrada. En el flujo HTTP se conserva la CRL capturada al sellar; exportar no la actualiza ni reemite la firma o el sello. El resultado técnico debe interpretarse según el material y el instante evaluados.
-  \item \textbf{Sello de tiempo}: \texttt{openssl ts -verify} contra el ancla resuelta por la regla anterior, con la inspección del token disponible vía \texttt{openssl ts -reply -in <sello> -text}.
-\end{itemize}
-
-{\emergencystretch=2em El puerto \texttt{Archive\allowbreak Writer} lo implementa \texttt{Stored\allowbreak Zip\allowbreak Writer} (\rutarepo{crates/infrastructure/src/archive.rs}), una implementación propia del subconjunto mínimo del formato ZIP \cite{pkware2022}: entradas almacenadas sin compresión (método 0), un encabezado local por entrada, directorio central y registro de fin de directorio, con CRC-32 calculado bit a bit (polinomio reflejado \texttt{0xEDB88320}, verificado contra el valor de comprobación estándar \texttt{0xCBF43926}). La salida es determinista (orden de entradas del llamador y timestamps fijos a la época DOS), de modo que archivar dos veces el mismo contenido produce bytes idénticos. La alternativa de depender del crate \texttt{zip} se descartó en \rutarepo{docs/adr/0006-evidence-package-format.md} por dos razones: su requisito de compilador frente al piso de Rust 1.78 de \rutarepo{docs/adr/0001-msrv-and-dependency-pinning.md}, razón que \rutarepo{docs/adr/0013-raise-msrv-for-security-fixes.md} deja sin efecto al fijar Rust 1.88, y su configuración por defecto, que incorpora backends de compresión y criptografía innecesarios para el formato elegido. Esta segunda razón se mantiene, porque aquí la compresión no aporta nada: se prioriza conservar bytes y evitar dependencias de compresión en el paquete de evidencia. La seguridad de extracción se garantiza en el dominio: el value object \texttt{Archive\allowbreak Entry} restringe los nombres a un subconjunto ASCII conservador sin separadores de ruta, así que un archivo extraído jamás escribe fuera de su directorio destino.\par}
-
-{\emergencystretch=2em Para una firma individual, el exportador conserva las entradas documentales existentes y agrega \rutarepo{certificate-binding.bin}, \rutarepo{certificate-binding.sig}, \rutarepo{binding-root.der}, \rutarepo{binding-crl.der}, \rutarepo{document-consent.bin}, \rutarepo{document-consent.sig} e \rutarepo{individual-signing.json}. Las instrucciones describen las comprobaciones RSA de registro y consentimiento, la reconstrucci\'on de sus contextos y la evaluaci\'on hist\'orica de certificado y CRL. La extensi\'on es condicional: un paquete de firma del servidor mantiene su formato y significado. Exportar no modifica las pruebas capturadas ni solicita un nuevo sello.\par}
+El escritor ZIP es propio \cite{pkware2022}: sin compresión, con orden y fechas fijas, de modo que el mismo contenido produce los mismos bytes. El ADR~0006 descartó la biblioteca \texttt{zip} por exigir un compilador posterior a Rust 1.78, motivo que el ADR~0013 anuló al fijar 1.88, y por traer por omisión compresión y criptografía innecesarias, motivo que se mantiene (\cref{tab:impl-adrs}). Los nombres de entrada se limitan a ASCII sin separadores de ruta: extraer nunca escribe fuera del destino.
 
 \input{chapters/04-criptografia-local}
+
+\subsection{Límites de los servicios criptográficos}
+
+El AAD no prueba que la versión consultada sea la más reciente ni impide restaurar íntegro un estado anterior válido de base y bitácora; eso requiere una referencia externa de continuidad, pendiente. La cadena detecta alteraciones, inserciones y reordenamientos, pero no el truncamiento de su cola, que exige anclar la cabeza fuera del registro (ADR~0007). La firma del servidor usa \texttt{rsa} con el aviso RUSTSEC-2023-0071 aceptado (ADR~0002; véanse los límites de la \cref{sec:impl-workspace}). El contrato HTTP del PSC (estados \texttt{completed}, \texttt{processing} y \texttt{rejected}) es asumido y solo lo cubre el stub: no se confirmó ni se midió con él el criterio de OE-3, y sin precio transparente no se autoriza una campaña. El algoritmo de firma de la TSA comercial y la tasa externa quedan, por decisión del proyecto, fuera del alcance. El flujo RFC 3161 completo funciona con una autoridad real tras el puerto, aunque esta no equivale a un PSC (\cref{sec:riesgo-psc-materializado}).
+
+\Fuentes{\rutarepo{docs/adr/}, \rutarepo{docs/mfa-access-logs.md} y \rutarepo{docs/verification-report.md}.}

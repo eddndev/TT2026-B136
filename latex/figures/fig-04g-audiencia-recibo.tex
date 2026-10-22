@@ -1,0 +1,40 @@
+\begin{tikzpicture}[
+  actor/.append style={minimum width=2.5cm, text width=2.3cm},
+  tramo/.style={draw=ESCOMGris, dotted, line width=0.5pt},
+  tramoL/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, fill=white, anchor=west, inner sep=1.5pt},
+  fin/.style={paso, text width=4.6cm, anchor=north west}]
+  \Actores{q/1.6/{Qadra},api/6.2/{API},rds/10.5/{Redis\\ (sesión)},pg/14.5/{PostgreSQL}}{-8.5}
+
+  % Preparación
+  \draw[tramo] (0,-0.75) -- (16,-0.75);
+  \node[tramoL] at (0,-0.75) {Preparar};
+  \Msg{1.6}{6.2}{-1.2}{\textbf{1} comando con UUID de operación nuevo}
+  \Paso{6.2}{-1.35}{4.6}{Calcula las huellas de valores y de envío sin reservar identificadores ni crear filas}
+  \Msg[msgR]{6.2}{1.6}{-2.45}{valores normalizados, revisión y dos huellas}
+
+  % Confirmación
+  \draw[tramo] (0,-2.8) -- (16,-2.8);
+  \node[tramoL] at (0,-2.8) {Confirmar};
+  \Msg{1.6}{6.2}{-3.25}{\textbf{2} comando y huella esperada}
+  \Paso{6.2}{-3.4}{3.9}{Repite la preparación y compara la huella del envío}
+  \Msg{6.2}{10.5}{-4.5}{reautentica la misma cuenta}
+  \Msg{6.2}{14.5}{-4.95}{confirmación}
+  \Paso{14.5}{-5.1}{2.9}{Bloqueo auditado; revalida permisos, estado, base y fuentes; captura el instante tras la espera}
+  \Paso[pasoOsc]{14.5}{-6.3}{2.9}{Revisión, recibo y evento en una transacción}
+  \Msg[msgR]{14.5}{6.2}{-7.15}{confirmado}
+  \Msg[msgE]{6.2}{3.6}{-7.15}{respuesta perdida}
+  \node[font=\scriptsize\diagsans\bfseries, text=IPNGuinda] at (3.45,-7.15) {×};
+
+  % Conciliación
+  \draw[tramo] (0,-7.5) -- (16,-7.5);
+  \node[tramoL] at (0,-7.5) {Conciliar};
+  \Msg{1.6}{6.2}{-7.95}{\textbf{3} consulta la revisión exacta}
+  \Msg{6.2}{14.5}{-7.95}{lectura autorizada}
+  \Msg[msgR]{6.2}{1.6}{-8.4}{revisión o ausencia}
+  \node[fin] at (0,-8.75)
+    {\textbf{Coincide} en audiencia, expediente, actor, operación, acción y huella: el envío se confirmó.};
+  \node[fin] at (5.55,-8.75)
+    {\textbf{Ausente}: sigue incierto; se conserva el envío sin generar otra operación.};
+  \node[fin, pasoError] at (11.1,-8.75)
+    {\textbf{De otro envío}: conflicto; se muestra y se conserva el borrador.};
+\end{tikzpicture}

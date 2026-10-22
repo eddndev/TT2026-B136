@@ -1,0 +1,41 @@
+\begin{tikzpicture}[
+  est/.style={caja, text width=2.55cm, minimum height=0.95cm},
+  ini/.style={circle, fill=ESCOMAzulOscuro, minimum size=2.6mm, inner sep=0pt},
+  panel/.style={font=\scriptsize\diagsans\bfseries, text=ESCOMAzulOscuro, anchor=west},
+  lazo/.style={flecha, looseness=4}]
+
+  % ===== (a) Registro y atención =====
+  \node[panel] at (0,0) {(a) Registro, atención y retiro};
+  \node[ini] (i1) at (3.75,-0.75) {};
+  \draw[zona] (0.35,-1.45) rectangle (7.15,-3.95);
+  \node[zonaLabel] at (0.35,-1.45) {ACTIVO};
+  \node[est, text width=2.1cm] (pen) at (1.65,-2.95) {Atención\\ pendiente};
+  \node[est, cajaClara, text width=2.1cm] (dec) at (5.85,-2.95) {Atención declarada: tiempo, relato y localizador};
+  \draw[flecha] (i1) |- node[etq, pos=0.75, above=1pt]{alta: rev. 1} (1.65,-2.1) -- (pen.north);
+  \draw[flecha] ([yshift=3.8mm]pen.east) -- ([yshift=3.8mm]dec.west);
+  \node[etq, align=center, fill=none] at (3.75,-2.95) {cambio\\ de atención};
+  \draw[flecha] ([yshift=-3.8mm]dec.west) -- ([yshift=-3.8mm]pen.east);
+  \draw[flecha] (6.55,-1.45) .. controls (6.55,-0.55) and (5.15,-0.55) .. node[etq, above=0pt]{corrección: base y motivo} (5.15,-1.45);
+  \node[est, cajaError, text width=4.6cm] (ret) at (3.75,-4.85) {Retirado: terminal y organizativo; no declara nulidad del acto};
+  \draw[flecha] (3.75,-3.95) -- node[etq, right=2pt]{retiro} (ret);
+  \node[font=\diag, text=ESCOMTinta, align=center, text width=6.8cm] at (3.75,-5.85)
+    {La corrección conserva la atención; atención y retiro conservan definición, responsable, cálculo histórico y seguimiento. Cada flecha agrega una revisión V2 inmutable.};
+
+  % ===== (b) Seguimiento V2 =====
+  \node[panel] at (8.3,0) {(b) Estado de revisión del seguimiento V2};
+  \node[est, cajaGris] (leg) at (9.6,-1.75) {Heredado: V1 o sin política declarada};
+  \node[est, cajaError, text width=2.3cm] (pnd) at (9.6,-3.75) {Pendiente: motivos acumulados};
+  \node[est, cajaOsc, text width=1.9cm] (acc) at (14.75,-3.75) {Aceptada};
+  \node[ini] (i2) at (14.4,-1.75) {};
+  \draw[flecha] (i2) -- node[etq, left=2pt, align=right]{alta o corrección\\ humana} (i2 |- acc.north);
+  \draw[flecha, rounded corners=3pt] (leg.north) -- (9.6,-0.6) -- node[etq, above=1pt]{corrección humana con políticas} (15.25,-0.6) -- (15.25,-0.6 |- acc.north);
+  \draw[flecha] (leg) -- node[etq, left=2pt, align=right]{conciliación técnica:\\ políticas sin\\ determinar} (pnd);
+  \draw[flecha] ([yshift=2.5mm]pnd.east) -- node[etq, above=1pt, align=center]{corrección humana\\ con políticas} ([yshift=2.5mm]acc.west);
+  \draw[flecha] ([yshift=-2.5mm]acc.west) -- node[etq, below=1pt, align=center]{fuente o perfil\\ seguido cambia;\\ dependencia retirada} ([yshift=-2.5mm]pnd.east);
+  \draw[flecha] ([xshift=-4mm]pnd.south) .. controls +(0,-1.0) and +(0,-1.0) .. node[etq, below=0pt, align=center]{nuevos motivos se suman,\\ sin borrar ni aceptar} ([xshift=4mm]pnd.south);
+  \draw[flecha] ([xshift=-4mm]acc.south) .. controls +(0,-1.0) and +(0,-1.0) .. ([xshift=4mm]acc.south);
+  \node[font=\diag, text=ESCOMTinta, align=center, text width=4.0cm, anchor=north] at (13.85,-4.9)
+    {calendario seguido publicado: recalcula y conserva perfil, fuente y calificaciones;\\ cambio de dependencia fija: conserva};
+  \node[font=\diag, text=ESCOMTinta, align=center, text width=7.2cm, anchor=north] at (11.95,-6.05)
+    {La conciliación conserva cálculo, responsable y atención. Si un cambio exige revisión, aunque sea simultáneo, se conserva el cálculo anterior. Atención y retiro conservan el estado de revisión; en V1 mantienen el heredado.};
+\end{tikzpicture}

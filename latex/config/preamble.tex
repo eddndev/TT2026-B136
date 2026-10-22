@@ -120,6 +120,8 @@
 % comando \path del paquete url, ya cargado. No emplear en argumentos
 % móviles (captions).
 \newcommand{\rutarepo}[1]{{\def\UrlBreaks{\do\/\do\-\do\.\do\_}\path{#1}}}
+% Línea de fuentes del repositorio al cierre de una sección.
+\newcommand{\Fuentes}[1]{\par\smallskip{\raggedright\small\interlinepenalty=10000\noindent\textit{Fuentes:} #1\par}}
 
 % ---------- Estilo de títulos (titlesec) ----------------------------
 \usepackage{titlesec}

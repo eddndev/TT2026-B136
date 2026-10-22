@@ -1,0 +1,37 @@
+\begin{tikzpicture}[
+  b/.style={caja, text width=4.2cm, minimum height=0.95cm},
+  bc/.style={cajaClara, text width=4.2cm, minimum height=0.95cm}]
+  \newcommand{\Sec}[1]{\\[1pt]{\diag\color{ESCOMGris}\S\,\ref*{#1}}}
+
+  % Dependencias seleccionadas por revisión exacta
+  \draw[zona] (0.1,1.0) rectangle (15.7,-0.62);
+  \node[zonaLabel] at (0.1,1.0) {DEPENDENCIAS · SIEMPRE UNA REVISIÓN EXACTA};
+  \node[b] (src) at (2.6,-0.05) {\textbf{Fuentes temporales}\\ resoluciones, notificaciones\\ y resultados de audiencia};
+  \node[b] (cal) at (7.9,-0.05) {\textbf{Calendario jurisdiccional}\\ catálogo global versionado\\ que publica el Owner};
+  \node[b] (prf) at (13.2,-0.05) {\textbf{Perfil de plazo}\\ global o del expediente;\\ lo publica el Owner};
+
+  % Cálculo en memoria
+  \node[bc] (ins) at (5.25,-1.85) {\textbf{Insumos autorizados}\\ extracción y aritmética\Sec{sec:implementacion-desencadenantes}};
+  \node[bc] (evl) at (13.2,-1.85) {\textbf{Evaluación del perfil}\\ candidata, traza y bloqueos\Sec{sec:implementacion-perfiles-plazos}};
+  \draw[flecha] (src.south) -- ++(0,-0.3) -| ([xshift=-1.0cm]ins.north);
+  \draw[flecha] (cal.south) -- ++(0,-0.3) -| ([xshift=1.0cm]ins.north);
+  \draw[flecha] (prf) -- (evl);
+  \draw[flecha] (ins) -- node[etq, above]{material verificado} (evl);
+
+  % Registro persistente
+  \node[cajaOsc, text width=4.2cm, minimum height=1.05cm] (dl) at (7.9,-3.7)
+    {\textbf{Plazo del expediente}\\ revisiones inmutables, recibo y auditoría\\[1pt]{\diag\color{ESCOMAzulClaro}\S\,\ref*{sec:implementacion-plazos-persistentes} y \S\,\ref*{sec:impl-resultado-plazo-derivado}}};
+  \node[b] (hum) at (2.6,-3.7) {\textbf{Operaciones humanas}\\ alta, corrección, atención\\ y retiro};
+  \node[b] (tec) at (13.2,-3.7) {\textbf{Reevaluación técnica}\\ consumidor durable,\\ sin cuenta humana};
+  \draw[flecha] (hum) -- (dl);
+  \draw[flecha] (tec) -- (dl);
+  \draw[flecha] ([xshift=-1.4cm]evl.south) -- ++(0,-0.5) -| node[etq, pos=0.25, above]{captura en la revisión} ([xshift=1.0cm]dl.north);
+  \draw[flechaSuave] (15.7,-0.05) -- (16.15,-0.05) |- (tec.east);
+  \node[etq, rotate=90] at (16.15,-1.85) {cada revisión emite un evento};
+
+  % Consumidores
+  \node[b, minimum height=0.8cm] (age) at (5.25,-5.35) {\textbf{Agenda combinada}\Sec{sec:implementacion-agenda-combinada}};
+  \node[b, minimum height=0.8cm] (ale) at (10.55,-5.35) {\textbf{Alertas personales}\Sec{sec:implementacion-alertas}};
+  \draw[flecha] (dl.south) -- ++(0,-0.3) -| (age.north);
+  \draw[flecha] (dl.south) -- ++(0,-0.3) -| (ale.north);
+\end{tikzpicture}

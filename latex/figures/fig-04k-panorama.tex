@@ -1,0 +1,49 @@
+\begin{tikzpicture}[
+  fn/.style={caja, text width=3.3cm, minimum width=3.5cm, minimum height=1.05cm},
+  dat/.style={cajaClara, text width=2.3cm, minimum width=2.5cm, minimum height=0.9cm},
+  prc/.style={caja, text width=3.3cm, minimum width=3.5cm, minimum height=0.85cm},
+  ev/.style={etq, anchor=west, font=\diag}]
+
+  % Cliente
+  \node[cajaOsc, text width=11.1cm, minimum height=0.65cm] (qd) at (5.9,0)
+    {\textbf{Qadra}: sesión vigente de Owner o Litigante};
+  \node[cajaGris, text width=3.3cm, minimum width=3.5cm, minimum height=0.65cm] (rs) at (14.15,0)
+    {Resend (correo)};
+
+  % API
+  \draw[zona] (0,-0.85) rectangle (11.8,-2.6);
+  \node[zonaLabel] at (0,-0.85) {API};
+  \node[fn] (bit) at (2.0,-1.85) {\textbf{Consulta de bitácora}\\ CU-17 · páginas con cursor};
+  \node[fn] (tab) at (5.9,-1.85) {\textbf{Tablero}\\ CU-15 · indicadores a petición};
+  \node[fn] (inf) at (9.8,-1.85) {\textbf{Informes}\\ CU-16 · solicitud durable};
+
+  \draw[flecha] (2.0,-0.33) -- node[etq, right]{solo Owner} (2.0,-1.32);
+  \draw[flecha] (5.9,-0.33) -- node[etq, right]{Owner o Litigante} (5.9,-1.32);
+  \draw[flecha] (9.8,-0.33) -- node[etq, right]{Owner o Litigante} (9.8,-1.32);
+
+  % PostgreSQL
+  \draw[zona] (0,-3.05) rectangle (11.8,-5.2);
+  \node[zonaLabel] at (0,-3.05) {POSTGRESQL};
+  \node[dat, text width=3.6cm, minimum width=3.8cm] (d1) at (6.4,-3.6) {Expedientes, documentos, plazos y asignaciones};
+  \node[dat, text width=2.9cm, minimum width=3.1cm] (d2) at (10.2,-3.6) {Solicitudes, capturas y artefactos cifrados};
+  \node[cajaOsc, text width=11.1cm, minimum height=0.7cm] (log) at (5.9,-4.7)
+    {\textbf{Bitácora encadenada}: cada operación confirma su evento en la misma transacción};
+
+  \draw[flecha] (6.4,-2.38) -- node[etq, right]{lee} (d1.north);
+  \draw[flecha] (10.2,-2.38) -- node[etq, right]{registra} (d2.north);
+  \draw[flechaSuave] (3.4,-4.35) -- node[etq, right, pos=0.6]{selecciona} (3.4,-2.38);
+  \draw[flecha] (2.2,-2.38) -- (2.2,-4.35);
+  \draw[flecha] (4.3,-2.38) -- (4.3,-4.35);
+  \draw[flecha] (8.4,-2.38) -- (8.4,-4.35);
+
+  % Procesos internos
+  \draw[zona] (12.3,-0.85) rectangle (16,-4.5);
+  \node[zonaLabel] at (12.3,-0.85) {PROCESOS DE \texttt{serve}};
+  \node[prc] (ml) at (14.15,-1.7) {Consumidor opcional de correo};
+  \node[prc] (rn) at (14.15,-2.8) {Renderizador: un proceso hijo por formato};
+  \node[prc, cajaClara] (cs) at (14.15,-3.95) {Consumidor serial: toma los trabajos};
+  \draw[flecha] (ml.north -| 15.4,0) -- node[etq, left]{aviso} (rs.south -| 15.4,0);
+  \draw[flecha] (cs.north) -- (rn.south);
+  \draw[flechaD] (cs.west) -- (d2.east);
+  \draw[flecha] (cs.south) |- (log.east);
+\end{tikzpicture}

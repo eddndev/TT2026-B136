@@ -1,0 +1,35 @@
+\begin{tikzpicture}[yscale=0.79,
+  tramo/.style={draw=ESCOMGris, dotted, line width=0.5pt},
+  tramoL/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, fill=white,
+    anchor=west, inner sep=1.5pt}]
+  \Actores{usr/1.5/{Owner\\ (Qadra)},api/5.6/{API},rds/9.9/{Redis},pg/14.3/{PostgreSQL}}{-12.55}
+
+  % ==== Declaración ====
+  \draw[tramo] (0,-0.85) -- (16,-0.85);
+  \node[tramoL] at (2.95,-0.85) {Declaración nueva};
+  \Msg{1.5}{5.6}{-1.35}{\textbf{1} ¿acceso habilitado?}
+  \Msg[msgR]{5.6}{1.5}{-1.8}{solo un booleano}
+  \Paso{1.9}{-1.88}{3.5}{Elige el recibo público de su vínculo; conserva cuenta, vínculo, huella y nombre}
+  \Msg{1.5}{5.6}{-3.3}{\textbf{2} pide declaración}
+  \Msg{5.6}{9.9}{-3.75}{cuotas de inicio}
+  \draw[msg] (5.6,-4.2) -- node[msgL, pos=0.74]{Owner activo, vínculo y confianza} (14.3,-4.2);
+  \Msg{5.6}{9.9}{-4.65}{captura de un uso; vence al instante firmado}
+  \Msg[msgR]{5.6}{1.5}{-5.1}{\texttt{OWNAUTH1} (182 B)}
+  \Paso{1.9}{-5.25}{3.5}{Firma los bytes exactos con el ayudante local u OpenSSL}
+
+  % ==== Prueba ====
+  \draw[tramo] (0,-6.5) -- (16,-6.5);
+  \node[tramoL] at (2.95,-6.5) {Prueba y segundo factor};
+  \Msg{1.5}{5.6}{-7.0}{\textbf{3} firma de 384 B}
+  \Msg{5.6}{9.9}{-7.45}{cuotas de prueba; consume la captura}
+  \Paso{5.6}{-7.6}{3.6}{Verifica RSA (perfil Partner), confianza e instante}
+  \Paso[pasoError]{9.9}{-7.6}{3.8}{Firma alterada o repetida: rechazo; la captura ya se consumió}
+  \draw[msg] (5.6,-8.95) -- node[msgL, pos=0.74]{revalida cuenta, vínculo y confianza} (14.3,-8.95);
+  \Msg{5.6}{9.9}{-9.4}{desafío MFA}
+  \Msg[msgR]{5.6}{1.5}{-9.85}{desafío, nunca una sesión}
+  \Msg{1.5}{5.6}{-10.4}{\textbf{4} código TOTP o de recuperación}
+  \Msg{5.6}{9.9}{-10.85}{sesión con procedencia del vínculo}
+  \Msg[msgR]{5.6}{1.5}{-11.3}{token de sesión}
+  \Paso{1.9}{-11.45}{3.5}{Qadra exige el mismo Owner elegido y con rol Owner}
+  \Paso{9.9}{-11.0}{3.8}{Retirar el vínculo o cambiar la confianza la invalida, sin pasarla a contraseña}
+\end{tikzpicture}

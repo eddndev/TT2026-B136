@@ -1,0 +1,43 @@
+\begin{tikzpicture}[
+  est/.style={cajaClara, text width=2.5cm, minimum height=1.15cm, rounded corners=5pt},
+  ev/.style={etq, align=center}]
+
+  % Estados principales
+  \node[est] (s0) at (1.4,-1.9) {\textbf{Solicitada}\\ respuesta 202; no espera búsqueda, emisión ni envío};
+  \node[est] (s1) at (5.65,-1.9) {\textbf{Emitida}\\ PostgreSQL guarda solo el SHA-256; el correo lleva el enlace};
+  \node[est] (s2) at (9.9,-1.9) {\textbf{Consumida}\\ contraseña nueva; la capacidad ya no sirve};
+  \node[cajaOsc, text width=2.9cm, minimum height=1.15cm] (fin) at (14.35,-1.9)
+    {Acceso con la contraseña nueva y el MFA ya enrolado};
+
+  \draw[flecha] (s0) -- node[ev, above=3pt]{cuenta\\ activa y\\ cupo libre} (s1);
+  \draw[flecha] (s1) -- node[ev, above=3pt]{capacidad\\ vigente y\\ contraseña} (s2);
+  \draw[flecha] (s2) -- node[ev, above=3pt]{sin\\ sesión} (fin);
+
+  % Entrega incierta
+  \node[paso, text width=3.4cm, anchor=south] (inc) at (5.65,-0.95)
+    {Entrega incierta: la capacidad sigue vigente, sin reenvío automático};
+  \draw[flechaSuave] (inc.south) -- (s1.north);
+
+  % Salidas
+  \node[cajaGris, text width=2.5cm, minimum height=1.0cm] (n0) at (1.4,-3.95)
+    {\textbf{Sin emisión}: cuenta desconocida o inactiva, o cupo ocupado; mismo resultado, sin otra tarea};
+  \node[cajaError, text width=1.9cm, minimum height=1.0cm] (e1) at (4.35,-3.95) {\textbf{Vencida}\\ (vigencia\\ configurada)};
+  \node[cajaError, text width=2.3cm, minimum height=1.0cm] (e2) at (6.85,-3.95) {\textbf{Cancelada}: entrega rechazada (mismo ID y digest) o restauración};
+  \draw[flecha] (s0) -- (n0);
+  \draw[flechaError] (s1.south -| e1) -- (e1);
+  \draw[flechaError] (s1.south -| e2) -- (e2);
+
+  % Instalación privada
+  \node[paso, text width=6.6cm, anchor=north west] at (9.0,0.05)
+    {\textbf{Instalación privada}: Resend; vigencia de 900 s; un enlace pendiente por cuenta; una solicitud por correo cada 300 s; espera total de correo de 5000 ms};
+
+  % Transacción de consumo
+  \node[pasoOsc, text width=7.0cm, anchor=north] (tx) at (12.25,-2.85)
+    {\textbf{Una transacción}, tras los bloqueos de auditoría y de fila:\\
+     1. vuelve a comprobar vigencia y generación (la inspección previa a Argon2id no autoriza);\\
+     2. sustituye el hash Argon2id de la contraseña;\\
+     3. revisión +1 y generación de autenticación +1;\\
+     4. consume la capacidad y agrega el evento.\\
+     Si falla la auditoría, se revierte todo. Rol, pertenencias y MFA se conservan.};
+  \draw[flechaSuave] (s2.south) -- (s2.south |- tx.north);
+\end{tikzpicture}

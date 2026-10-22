@@ -1,0 +1,34 @@
+\begin{tikzpicture}[
+  campo/.append style={font=\scriptsize\diagsans},
+  tam/.append style={font=\diag},
+  titulo/.style={anchor=south west, font=\diag\bfseries, text=ESCOMAzulOscuro, inner sep=1pt},
+  ev/.style={cajaClara, text width=2.6cm, minimum height=0.75cm},
+  ch/.style={cajaOsc, text width=2.6cm, minimum height=0.7cm},
+  ad/.style={caja, text width=4.85cm, minimum height=0.8cm}]
+
+  % Bytes canónicos
+  \node[titulo] at (0,0.1) {Bytes canónicos de un evento};
+  \Tira{0}{-0.95}{1.9/campoRel/{secuencia\\ big-endian}//8 B,
+                  0.9/campo/{long.}//4 B,
+                  2.5/campo/{instante UTC\\ en RFC 3339}//variable,
+                  0.9/campo/{long.}//4 B,
+                  1.95/campo/{actor}//variable,
+                  0.9/campo/{long.}//4 B,
+                  1.95/campo/{acción}//variable,
+                  0.9/campo/{long.}//4 B,
+                  1.95/campo/{recurso}//variable,
+                  2.15/campoFirma/{\texttt{AUDCTX01}\\ si hay contexto}//12 a 60 B}
+
+  % Encadenamiento
+  \node[titulo, font=\scriptsize\diagsans\bfseries] at (0,-1.75) {Encadenamiento: \textit{chain}(\textit{n}) = SHA-256(\textit{chain}(\textit{n} \textminus{} 1) $\Vert$ bytes(\textit{n}))};
+  \node[ch] (g) at (1.45,-3.7) {génesis: 32 B en cero};
+  \foreach \k/\x/\t in {1/5.25/1, 2/9.05/2, 3/12.85/n} {
+    \node[ev] (e\k) at (\x,-2.4) {evento \t: bytes canónicos};
+    \node[ch] (c\k) at (\x,-3.7) {\textit{chain}(\t)};
+    \draw[flecha] (e\k) -- node[etq, right=1pt]{SHA-256} (c\k);
+  }
+  \draw[flecha] (g) -- (c1);
+  \draw[flecha] (c1) -- (c2);
+  \draw[flecha, dashed] (c2) -- node[etq, above=1pt]{\dots} (c3);
+
+\end{tikzpicture}

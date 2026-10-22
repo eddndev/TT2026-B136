@@ -1,5 +1,5 @@
 % =====================================================================
-%  anexo-b-cli.tex — Manual de la interfaz de línea de comandos
+%  anexo-b-cli.tex - Manual de la interfaz de línea de comandos
 % =====================================================================
 \chapter{Manual de la interfaz de línea de comandos}\label{anexo:cli}
 
@@ -98,7 +98,8 @@ El actor procede del bearer vigente. Owner accede a todos los expedientes;
 Litigante y Paralegal necesitan asignación y este último no puede sellar.
 Cliente solo consulta metadatos asignados y mantiene denegado el acceso
 documental. Las rutas globales anteriores bajo \texttt{/api/v1/documents}
-responden \texttt{404}. El contrato se presenta en \cref{sec:impl-http}.
+responden \texttt{404}. El contrato se presenta en las
+\cref{tab:impl-http-identidad,tab:impl-http-expedientes,tab:impl-http-rutas}.
 
 Los límites predeterminados son ocho peticiones admitidas y dos operaciones
 bloqueantes, configurables mediante las dos opciones de concurrencia; ambas

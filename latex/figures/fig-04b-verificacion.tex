@@ -1,0 +1,40 @@
+\begin{tikzpicture}[
+  ent/.style={caja, draw=ESCOMGris, text=ESCOMTinta, text width=2.9cm, minimum height=0.85cm},
+  prt/.style={caja, text width=2.7cm, minimum height=0.85cm},
+  cmp/.style={cajaClara, text width=3.0cm, minimum height=0.85cm}]
+
+  % Entradas
+  \node[ent] (i1) at (1.9,0) {Firma separada y certificado del firmante};
+  \node[ent] (i2) at (1.9,-1.3) {Flujo del documento};
+  \node[ent] (i3) at (1.9,-2.6) {Token y ancla, si se aportan};
+  \node[ent] (i4) at (1.9,-3.9) {Certificado emisor, CRL opcional e instante};
+
+  % Puertos
+  \node[prt] (p1) at (5.6,0) {\textbf{S4} verificador de firma};
+  \node[prt] (p2) at (5.6,-1.3) {\textbf{S1} hash por flujo};
+  \node[prt] (p3) at (5.6,-2.6) {\textbf{S5} verificador del token};
+  \node[prt] (p4) at (5.6,-3.9) {\textbf{S3} validador de certificado};
+  \foreach \k in {1,2,3,4} \draw[flecha] (i\k) -- (p\k);
+  \draw[flecha] (i1.west) -- (0.1,0) -- (0.1,-4.62) -- node[etq, pos=0.75]{certificado del firmante} (4.9,-4.62) -- (4.9,0 |- p4.south);
+  \draw[flecha] ([xshift=-0.5cm]p2.north) -- node[etq, right=1pt]{digest} ([xshift=-0.5cm]p1.south);
+  \draw[flecha] ([xshift=-0.5cm]p2.south) -- node[etq, right=1pt]{digest} ([xshift=-0.5cm]p3.north);
+
+  % Componentes del reporte
+  \node[cmp] (c1) at (9.65,0) {\textbf{Firma}: corresponde al digest y al certificado};
+  \node[cmp] (c2) at (9.65,-1.3) {\textbf{Integridad}: digest recalculado frente al token};
+  \node[cmp] (c3) at (9.65,-2.6) {\textbf{Sello}: token aceptado bajo el ancla};
+  \node[cmp] (c4) at (9.65,-3.9) {\textbf{Certificado}: estado en el instante evaluado};
+  \draw[flecha] (p1) -- (c1);
+  \draw[flecha] (p2) -- (c2);
+  \draw[flecha] (p3.east) -- (c3.west);
+  \draw[flecha] ([yshift=0.15cm]p3.east) -- ([yshift=-0.15cm]c2.west);
+  \draw[flecha] (p4) -- (c4);
+
+  % Veredicto
+  \node[cajaOsc, text width=2.75cm, minimum height=4.75cm] (ver) at (14.4,-1.95)
+    {\textbf{Veredicto}\\[2pt] no válido si alguno falla\\[2pt] omitido, con su razón, no cuenta en contra};
+  \foreach \k in {1,2,3,4} \draw[flecha] (c\k.east) -- (c\k.east -| ver.west);
+
+  \node[cajaError, text width=15.6cm, align=left, anchor=north west] at (0,-4.95)
+    {\textbf{Errores, no resultados}: flujo ilegible, PEM imparseable o CRL no confiable o vencida; sin reporte};
+\end{tikzpicture}

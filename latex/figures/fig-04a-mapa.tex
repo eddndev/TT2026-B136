@@ -1,0 +1,62 @@
+\begin{tikzpicture}[y=0.8cm,
+  dom/.style={caja, minimum height=1.05cm},
+  num/.style={font=\diag\bfseries, text=ESCOMAzul}]
+
+  % Zonas
+  \draw[zona] (0.75,0.3) rectangle (16,-1.75);
+  \draw[zona, fill=white] (0.75,-2.05) rectangle (16,-8.85);
+  \draw[zona] (0.75,-9.15) rectangle (16,-11.25);
+  \node[zonaLabel] at (0.75,0.3) {SUPERFICIES DE USO};
+  \node[zonaLabel] at (0.75,-2.05) {DOMINIOS FUNCIONALES DEL DESPACHO};
+  \node[zonaLabel] at (0.75,-9.15) {CIMIENTOS};
+
+  % Dirección de dependencia
+  \draw[flecha, line width=1.1pt] (0.32,0.1) -- node[etq, rotate=90, fill=white, pos=0.5]
+    {cada banda se apoya en las inferiores} (0.32,-11.0);
+
+  % Superficies
+  \node[dom, cajaOsc, text width=4.25cm] (qadra) at (3.35,-1.0)
+    {\textbf{Interfaz Qadra}\\ sesión, borradores y conciliación\\ {\diag sección \ref*{sec:impl-http-interfaz} · CU interactivos · fig.~\ref*{fig:impl-qadra-bloques}}};
+  \node[dom, cajaOsc, text width=4.6cm] (cli) at (8.375,-1.0)
+    {\textbf{Línea de comandos}\\ criptografía local, base y servidor\\ {\diag sección \ref*{sec:impl-cli} · CU-14 · fig.~\ref*{fig:impl-cli-arbol}}};
+  \node[dom, cajaOsc, text width=4.25cm] (desp) at (13.4,-1.0)
+    {\textbf{Despliegue privado}\\ paquetes, respaldos y CRL\\ {\diag sección \ref*{sec:impl-despliegue} · operación · fig.~\ref*{fig:impl-despliegue-topologia}}};
+
+  % Consumidores transversales
+  \node[dom, text width=6.75cm] (sup) at (4.6,-3.2)
+    {\textbf{Supervisión operativa}: tablero, informes\\ y consulta de actividad\\ {\diag sección \ref*{sec:impl-supervision} · CU-15 a CU-17 · fig.~\ref*{fig:impl-supervision}}};
+  \node[dom, text width=6.75cm] (ale) at (12.15,-3.2)
+    {\textbf{Alertas personales}: audiencias y plazos;\\ bandeja y correo\\ {\diag sección \ref*{sec:implementacion-alertas} · CU-10 · fig.~\ref*{fig:impl-alertas-flujo}}};
+
+  % Actividad procesal
+  \node[dom, cajaClara, text width=2.85cm, minimum height=1.35cm] (doc) at (2.75,-5.12)
+    {\textbf{Documentos y firma individual}\\ {\diag sección \ref*{sec:impl-documentos} · fig.~\ref*{fig:impl-doc-panorama}\\ CU-11 a CU-14}};
+  \node[dom, cajaClara, text width=2.85cm, minimum height=1.35cm] (act) at (6.6,-5.12)
+    {\textbf{Etapas procesales y audiencias}\\ {\diag sección \ref*{sec:impl-actuaciones} · fig.~\ref*{fig:impl-actuaciones-panorama}\\ CU-07 y CU-08}};
+  \node[dom, cajaClara, text width=2.85cm, minimum height=1.35cm] (plz) at (10.45,-5.12)
+    {\textbf{Cómputo de plazos}\\ {\diag sección \ref*{sec:impl-plazos} · fig.~\ref*{fig:impl-capas-plazos}\\ CU-08 y CU-09}};
+  \node[dom, cajaClara, text width=2.85cm, minimum height=1.35cm] (rec) at (14.3,-5.12)
+    {\textbf{Recursos procesales}\\ {\diag sección \ref*{sec:impl-recursos} · fig.~\ref*{fig:impl-rec-panorama}\\ RF procesales}};
+  \draw[flecha] (act) -- node[etq, above=1pt]{soportes} (doc);
+  \draw[flecha] (plz) -- node[etq, above=1pt]{resultados} (act);
+  \draw[flecha] (rec) -- (plz);
+  \draw[flecha] (rec.south) -- ++(0,-0.2) -| (act.south);
+
+  % Expediente e identidad
+  \node[dom, text width=14.6cm, minimum height=0.8cm] (exp) at (8.375,-6.95)
+    {\textbf{Expedientes, administración penal y participantes}: pertenencia, perfil penal con revisiones y directorio\\ {\diag sección \ref*{sec:impl-expedientes} · CU-05 y CU-06 · fig.~\ref*{fig:impl-exp-panorama}}};
+  \node[dom, text width=14.6cm, minimum height=0.8cm] (idn) at (8.375,-8.15)
+    {\textbf{Identidad, sesiones y cuentas}: cuatro roles, Argon2id y TOTP, sesiones opacas, miembros\\ {\diag sección \ref*{sec:impl-identidad} · CU-01 a CU-04 · fig.~\ref*{fig:impl-identidad-panorama}}};
+
+  % Cimientos
+  \node[dom, cajaOsc, text width=4.25cm] (ws) at (3.35,-10.4)
+    {\textbf{Workspace y calidad}\\ crates, CI y fitness functions\\ {\diag sección \ref*{sec:impl-workspace} · fig.~\ref*{fig:hexagonal-completa}}};
+  \node[dom, cajaOsc, text width=4.25cm] (cr) at (8.375,-10.4)
+    {\textbf{Servicios criptográficos}\\ S1 a S10, CA y WASM local\\ {\diag sección \ref*{sec:impl-servicios} · fig.~\ref*{fig:impl-servicios-panorama}}};
+  \node[dom, cajaOsc, text width=4.25cm] (http) at (13.4,-10.4)
+    {\textbf{HTTP y persistencia}\\ transacción auditada y límites\\ {\diag sección \ref*{sec:impl-http} · CU-04 · fig.~\ref*{fig:impl-operacion-auditada}}};
+
+  % Flechas entre bandas
+  \foreach \x in {3.35,8.375,13.4} \draw[flecha] (\x,-1.75) -- (\x,-2.05);
+  \foreach \x in {3.35,8.375,13.4} \draw[flecha] (\x,-8.85) -- (\x,-9.15);
+\end{tikzpicture}

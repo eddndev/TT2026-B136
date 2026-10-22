@@ -4,46 +4,55 @@
 
 \section{Identidad, sesiones y cuentas}\label{sec:impl-identidad}
 
-Esta sección reúne la autenticación de cuentas y su ciclo de vida: sesiones vigentes y segundo factor, recuperación de contraseña, alta por invitación, vínculo de certificado del Owner con su primer factor opcional y directorio de miembros con revocación durable. Las primitivas Argon2id y TOTP se describen con los servicios criptográficos (\cref{sec:impl-s7-argon2,sec:impl-s8-totp}); aquí se presenta su uso por la aplicación HTTP. Las vistas Qadra de estos recorridos aplican los mecanismos comunes de sesión, borradores y conciliación (\cref{sec:impl-http-interfaz}), y cada subsección precisa sólo lo propio de su dominio.
+Esta sección implementa los casos de uso CU-01 a CU-04 (\cref{tab:cu-01,tab:cu-02,tab:cu-03,tab:cu-04}) y los requerimientos RF-01 a RF-03 (\cref{tab:rf-acceso}). La \cref{fig:impl-identidad-panorama} reúne sus recorridos y el dato que los enlaza: la \emph{generación de autenticación}. Argon2id y TOTP están en las \cref{sec:impl-s7-argon2,sec:impl-s8-totp}, y Qadra, en la \cref{sec:impl-http-interfaz}.
+
+\begin{figure}[!htb]
+  \centering
+  \input{figures/fig-04c-panorama}
+  \caption{Recorridos de identidad. Las cuentas nacen por tres vías y siempre usan segundo factor; los cambios de acceso avanzan la generación.}
+  \label{fig:impl-identidad-panorama}
+\end{figure}
 
 \subsection{Identidad y sesiones vigentes}\label{sec:impl-http-identidad}
 
-El alta inicial solo funciona mientras no existen usuarios. PostgreSQL serializa esa condición y confirma el primer Owner junto con su evento de auditoría. El correo se normaliza y la contraseña se almacena como PHC Argon2id; el enrolamiento entrega una sola vez el secreto TOTP y ocho códigos de recuperación. La tabla \texttt{users}, creada por la migración 0001 y ampliada por la 0025 con la generación de autenticación (\cref{tab:anexo-migraciones}), conserva UUID, correo único, rol, estado activo, secreto TOTP cifrado, hashes de recuperación y revisión optimista. \texttt{Aes\allowbreak Gcm\allowbreak Secret\allowbreak Protector} liga el secreto al UUID del usuario mediante datos autenticados bajo la KEK del entorno.
+Redis guarda lo efímero y PostgreSQL decide (\cref{fig:impl-identidad-estado}). El acceso sigue la \cref{fig:cu-seq-sesion}, y el alta inicial, que PostgreSQL serializa, la \cref{tab:cu-01}; la tabla de usuarios, con correo normalizado y contraseña PHC Argon2id, y su generación de autenticación se crean en las migraciones de la \cref{tab:anexo-migraciones}.
 
-Login verifica la contraseña y crea un desafío Redis de cinco minutos. Cada intento de segundo factor consume ese desafío mediante \texttt{GETDEL}; también lo consume un rechazo. TOTP añade un reclamo atómico contra repetición, mientras que recuperación confirma el consumo del código junto con su auditoría en PostgreSQL. Antes de emitir una sesión se comprueban nuevamente la cuenta activa, el principal completo y la generación de autenticación, cuyo avance revoca sesiones y desafíos anteriores (\cref{sec:impl-miembros}). Cinco contraseñas rechazadas bloquean durante 15 minutos la clave normalizada del correo; incremento y expiración del contador son atómicos.
-
-Las sesiones utilizan tokens opacos de 256 bits y una clave Redis derivada por SHA-256, sin guardar el token en claro. El backend local conserva por defecto \texttt{absolute\_only}: un límite absoluto de 24 horas que ninguna actividad prolonga. La opción \texttt{-{}-session-idle-seconds} de \texttt{serve}, o \texttt{TT\_SESSION\_IDLE\_SECONDS}, habilita explícitamente un límite de inactividad positivo de hasta 86\,400 segundos; una configuración inválida impide el arranque. No se selecciona una duración de inactividad por omisión. La consulta de estado y las peticiones ordinarias no registran actividad.
-
-Redis conserva una estructura hash versionada con identidad, política, creación, última actividad y plazos. Los scripts Lua usan el reloj del servidor y comprueban el esquema completo, la política, un TTL positivo y la fecha exacta de expiración. La identidad JSON permanece opaca para Lua, de modo que la generación de autenticación mantiene su valor entero. Una clave con otro tipo, versión o conjunto de campos, sin expiración o con una política distinta exige autenticar de nuevo; no se repara asignando tiempo adicional. La comprobación mediante \texttt{PEXPIRETIME} requiere Redis 7 o posterior, mientras que el contrato de respaldo exige separadamente Redis 7.4. El fundamento se conserva en \rutarepo{docs/adr/0064-explicit-session-activity.md}.
-
-\begin{table}[H]
+\begin{figure}[!htb]
   \centering
-  \caption{Contrato HTTP de identidad.}
+  \input{figures/fig-04c-estado-sesion}
+  \caption{Estado de autenticación: Redis conserva con vencimiento y PostgreSQL decide. Los números dan el orden de las comprobaciones de cada petición protegida.}
+  \label{fig:impl-identidad-estado}
+\end{figure}
+
+\paragraph{Plazos.} Por omisión rige un plazo absoluto de 24 horas que ninguna actividad prolonga, para que las lecturas de fondo no prolonguen ni recreen sesiones (ADR 0064). Opcionalmente se configura un plazo de inactividad de hasta 86\,400 s (\cref{sec:cli-serve}), sin valor por omisión; un valor inválido impide arrancar. Solo la ruta de actividad desplaza ese plazo, sin pasar del absoluto ni recrear claves vencidas o revocadas.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Contrato HTTP de identidad (prefijo \texttt{/api/v1}).}
   \label{tab:impl-http-identidad}
-  \begin{tabularx}{\linewidth}{@{}L{6.2cm} X@{}}
+  \small
+  \begin{tabularx}{\linewidth}{@{}L{4.9cm} X@{}}
     \toprule
-    \textbf{Ruta} & \textbf{Responsabilidad} \\
+    \textbf{Ruta} & \textbf{Efecto} \\
     \midrule
-    \texttt{POST /api/v1/auth/bootstrap} & Crea el primer Owner y entrega su enrolamiento; \texttt{201}. \\
-    \texttt{POST /api/v1/auth/login} & Verifica contraseña y entrega desafío MFA. \\
-    \texttt{POST /api/v1/auth/mfa/totp} & Consume desafío, verifica TOTP y crea sesión. \\
-    \texttt{POST /api/v1/auth/mfa/recovery} & Consume desafío y recuperación; crea sesión. \\
-    \texttt{GET /api/v1/auth/me} & Devuelve identidad y rol vigentes. \\
-    \texttt{GET /api/v1/auth/session} & Consulta identidad, política y plazos sin renovar; \texttt{200}. \\
-    \texttt{POST /api/v1/auth/activity} & Registra actividad explícita dentro de una sesión vigente; \texttt{200}. \\
-    \texttt{POST /api/v1/auth/logout} & Revoca la sesión; \texttt{204}. \\
-    \texttt{POST /api/v1/users} & Owner crea y enrola otra cuenta; \texttt{201}. \\
+    \texttt{POST auth/bootstrap} & Primer Owner y su enrolamiento; \texttt{201}. \\
+    \texttt{POST auth/login} & Contraseña; desafío MFA. \\
+    \texttt{POST auth/mfa/totp} & Desafío y TOTP; sesión. \\
+    \texttt{POST auth/mfa/recovery} & Desafío y código de recuperación; sesión. \\
+    \texttt{GET auth/me} & Identidad y rol; no registra actividad. \\
+    \texttt{GET auth/session} & Política y plazos, sin renovar; \texttt{200}. \\
+    \texttt{POST auth/activity} & Actividad explícita; \texttt{200}. \\
+    \texttt{POST auth/logout} & Revoca la sesión; \texttt{204}. \\
+    \texttt{POST users} & Un Owner, revalidado al confirmar, crea y enrola otra cuenta; \texttt{201}. \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-Ambos mecanismos MFA devuelven el bearer y los mismos metadatos públicos que la consulta de sesión: usuario, política, tiempo del servidor y vencimientos absoluto y de inactividad. Los instantes se expresan en milisegundos Unix; los campos de inactividad son \texttt{null} en el modo absoluto. El campo \texttt{expires\_in\_seconds} representa los segundos enteros restantes hasta el primer vencimiento respecto del tiempo del servidor devuelto. Las respuestas de estado y actividad no incluyen un bearer nuevo ni la generación interna de autenticación; sus campos precisos se documentan en \rutarepo{docs/http-api.md}.
+Cualquiera de los cuatro roles (\cref{tab:permisos-implementados}) puede consultar y registrar la actividad de su sesión con las rutas \texttt{auth/session} y \texttt{auth/activity} (\cref{tab:impl-http-identidad}), sin cuerpo ni parámetros; una sesión inválida recibe \texttt{401}, una petición con cuerpo o parámetros recibe \texttt{400} y las respuestas no se guardan en caché. Ambas rutas MFA devuelven el token y los mismos metadatos que la consulta de sesión (usuario, política, hora del servidor y vencimientos); estado y actividad no dan token nuevo ni la generación. Redis comprueba los vencimientos con su propio reloj, lo que exige Redis 7 o posterior (7.4 para el respaldo).
 
-Los cuatro roles pueden consultar y registrar actividad de su propia sesión mediante bearer vigente, cuerpo vacío y ausencia de parámetros de consulta. Ambas respuestas usan \texttt{Cache-Control: no-store}. Una sesión inválida recibe \texttt{401}; aportar cuerpo o parámetros recibe \texttt{400}. La actividad explícita solo desplaza el plazo de inactividad hasta el límite absoluto y no recrea claves vencidas o revocadas. La consulta de estado, \texttt{/auth/me} y las demás peticiones protegidas conservan los plazos.
+\paragraph{Límites.} PostgreSQL y Redis no comparten transacción distribuida: un cambio de cuenta posterior a la lectura puede coincidir con la actividad, aunque la generación modificada impide autorizaciones posteriores, y una operación admitida antes de vencer puede completar su transacción. Si la auditoría falla tras crear un desafío o una sesión, se intenta retirar la credencial y se responde con error, sin token; si la limpieza falla, la clave dura hasta su expiración. El cierre revoca primero y no restaura la sesión si falla su evento.
 
-Cada operación protegida consulta la sesión en Redis, contrasta cuenta activa, principal completo y generación con PostgreSQL, y confirma después que la misma sesión sigue vigente en Redis. Registrar actividad añade una comparación atómica final antes de modificar su plazo. La creación de usuarios revalida además al Owner al confirmar. PostgreSQL y Redis no comparten una transacción distribuida: un cambio de cuenta posterior a su lectura puede coincidir con la actividad, pero la generación modificada impide autorizaciones posteriores. Una operación admitida antes de vencer puede completar una transacción ya iniciada.
-
-Si falla la auditoría después de crear un desafío o sesión, la aplicación intenta retirar la credencial y devuelve error sin token. Si también falla la limpieza, la clave puede permanecer hasta su expiración. Logout revoca primero y no restaura la sesión si falla el evento posterior. En el alta directa, si se pierde la respuesta de enrolamiento, su material MFA no puede recuperarse; el alta por invitaci\'on dispone, en cambio, de preparaci\'on y recibo recuperables (\cref{sec:impl-invitaciones}).
+\Fuentes{\rutarepo{docs/http-api.md}; ADR 0064.}
 
 \input{chapters/04-recuperacion-password}
 

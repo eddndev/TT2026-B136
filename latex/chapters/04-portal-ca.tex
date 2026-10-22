@@ -1,99 +1,77 @@
 \subsubsection{Portal administrativo de la autoridad certificadora}
 \label{sec:impl-portal-ca}
 
-La operaci\'on administrativa de la CA interna reside en el binario separado
-\texttt{qadra-ca}, con una interfaz de navegador bajo
-\rutarepo{web/apps/ca/}. Reutiliza componentes visuales de Qadra, pero compone
-\'unicamente autenticaci\'on del operador y operaciones de la autoridad. La
-cuenta Owner del despacho no adquiere estos permisos por su rol. La instalaci\'on
-en VPS3 utiliza procesos propios y el origen \texttt{ca.qadra.com.mx}, separados
-del despacho; su verificaci\'on operativa se distingue de las pruebas locales
-(\cref{sec:pruebas-portal-ca}).
+El portal opera desde un navegador la CA interna de S3 (\cref{fig:cripto-pki}):
+revisa solicitudes CSR, emite, revoca y publica la CRL con confirmación de un
+operador. Es el binario separado \texttt{qadra-ca}, con la interfaz
+\rutarepo{web/apps/ca/}, que reutiliza componentes visuales de Qadra pero solo
+compone la autenticación del operador y las operaciones de la autoridad
+(\cref{fig:impl-ca-zonas}). Compartirlos no hace intercambiables las sesiones
+de la CA y del despacho, y el Owner no adquiere permisos de la CA por su rol.
 
-El servicio reutiliza verificaci\'on de contrase\~na, protecci\'on de secretos y
-MFA del n\'ucleo de identidad, con admisi\'on expl\'icita por UUID y correo del
-operador configurado. Sus usuarios y auditor\'ia residen en el esquema fijo
-\texttt{qadra\_ca} de la misma base PostgreSQL, bajo un rol operativo sin acceso
-al esquema del despacho ni autoridad de creaci\'on. Redis separa sesiones,
-desaf\'ios, cuotas y marcas TOTP mediante el prefijo \texttt{ca-identity}.
-El alta inicial es un comando administrativo local: entrega material MFA en un
-archivo privado, confirma el factor y s\'olo entonces inserta cuenta y auditor\'ia.
-No crea una cuenta artificial del despacho para representar al operador.
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-04d-ca-zonas}
+  \caption{Procesos y datos del portal CA en el servidor privado de despliegue (VPS3, \cref{sec:impl-despliegue}), separados del despacho.}
+  \label{fig:impl-ca-zonas}
+\end{figure}
 
-La composici\'on conserva los clientes PostgreSQL s\'incronos fuera del contexto
-de Tokio. El Router permanece bajo un due\~no s\'incrono y el servidor recibe
-un clon dentro de \texttt{block\_on}; los comandos de inspecci\'on y enrolamiento
-tambi\'en se ejecutan de forma s\'incrona. Esto evita que la liberaci\'on del
-\'ultimo cliente intente iniciar su cierre bloqueante dentro de otro runtime,
-causa del aborto observado durante una parada administrativa; su reproducci\'on,
-aceptaci\'on local, integraci\'on y despliegue se distinguen en
+\paragraph{Operador y arranque.} El servicio reutiliza la verificación de
+contraseña, la protección de secretos y la MFA del núcleo de identidad. El alta
+inicial es un comando local que entrega el material MFA en un archivo privado,
+exige confirmar el factor y solo entonces inserta cuenta y auditoría, sin crear
+una cuenta artificial del despacho. Las conexiones a la base se gestionan fuera
+del motor asíncrono del servidor, porque liberarlas dentro de él provocó un
+cierre abrupto durante una parada administrativa (\cref{sec:pruebas-portal-ca}).
+
+\paragraph{Admisión.} La inspección de un CSR público muestra sujeto y
+huellas sin reservar nada. Tras comprobar la firma del CSR y la raíz, el
+servicio exige un nombre común y que cada país y organización coincida con
+alguno de la raíz adoptada (tipo y valor ASN.1), sin valores en el código ni
+cambios en la política de OpenSSL. Un material inválido o un inspector fuera de
+servicio no bastan para declarar la solicitud incompatible. Una solicitud
+pendiente solo se cierra como rechazada si la incompatibilidad se demuestra con
+las huellas originales iguales, la captura intacta y ausentes las hojas previstas.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-04d-ca-estados}
+  \caption{Estados de una mutación de la CA: emisión, revocación o publicación.
+    Una respuesta perdida se reanuda con el mismo UUID; un efecto ambiguo bloquea
+    nuevas mutaciones hasta revisión manual.}
+  \label{fig:impl-ca-estados}
+\end{figure}
+
+\paragraph{Operaciones.} Con titular revisado, referencia y
+criterio, una confirmación separada emite con el perfil \texttt{partner}
+(acceso Owner) o \texttt{document-signing} (firma documental). La CA no recibe
+la clave privada y emitir no crea cuentas ni vínculos; el operador se toma de
+la sesión HTTP y las rutas del ejecutor, de la configuración privada; ninguno de
+los dos llega desde el navegador. El inventario descarga material público por serie y huella exactas.
+La revocación conserva motivo, operador y recibo, y queda local hasta publicar
+la CRL con el mantenimiento recuperable del despliegue
+(\cref{fig:impl-crl-mantenimiento}), durante el cual el proceso CA sigue
+disponible con PostgreSQL y Redis activos.
+
+\paragraph{Recuperación.} Tras una respuesta perdida
+(\cref{fig:impl-ca-estados}), la emisión busca el certificado de la serie
+reservada y contrasta CSR, clave pública, perfil, raíz e índice de OpenSSL; si
+el resultado es inequívoco devuelve el recibo conservado. El historial guarda
+los recibos de emisión, revocación y publicación.
+
+\paragraph{Respaldo y restauración.} El respaldo reúne el volcado completo de
+la base, con identidad y auditoría CA, el material PKI, los journals, la
+configuración privada y la KEK; una publicación pendiente añade su journal de
+mantenimiento y las CRL original y candidata para recuperarla con el mismo UUID
+sin regenerarla. La restauración cierra el servicio CA, recupera roles y
+secretos, invalida sesiones y verifica antes de reabrir. La aceptación instalada
+en \texttt{ca.qadra.com.mx} del 14 de octubre de 2026 se describe en la
 \cref{sec:pruebas-portal-ca}.
 
-La emisi\'on recibe un CSR p\'ublico y los datos de titular revisado, referencia
-y criterio de emisi\'on. Una inspecci\'on previa muestra sujeto y huellas; una
-confirmaci\'on separada selecciona \texttt{partner} o
-\texttt{document-signing}. El primer perfil corresponde al certificado Partner
-utilizado por el acceso Owner (\cref{sec:impl-vinculo-certificado}); el segundo conserva
-el prop\'osito de firma documental (\cref{sec:impl-firma-individual}). El titular
-mantiene su clave privada fuera de la CA, que no la recibe, y la emisi\'on no
-crea autom\'aticamente cuentas ni v\'inculos. El adaptador
-invoca la CLI y los scripts existentes con argumentos fijos, mientras que la
-frontera HTTP aporta la identidad del operador autenticado. Una petici\'on del
-navegador no decide el actor ni las rutas del ejecutor.
+\paragraph{Límites.} El portal opera la misma jerarquía interna, sin crear
+otra, y no cambia las garantías jurídicas de sus certificados. El vínculo
+Partner con la cuenta Owner se registra fuera del portal, con intervención
+humana y una declaración firmada por el titular
+(\cref{sec:impl-vinculo-certificado}).
 
-El v\'inculo entre un certificado Partner y la cuenta Owner se registra fuera del
-portal, mediante intervenci\'on humana y una declaraci\'on firmada por el titular.
-En el acceso por certificado, la firma del desaf\'io constituye el primer factor,
-pero no sustituye MFA ni acredita por s\'i sola una sesi\'on autenticada completa.
-La emisi\'on instalada del Partner de serie \texttt{1002}, su v\'inculo Owner R1,
-la habilitaci\'on del perfil de acceso en la release \texttt{v0.1.9} y la
-aceptaci\'on operativa del 14 de octubre de 2026 de ambos accesos se reportan en
-\cref{sec:pruebas-portal-ca}.
-
-La admisi\'on comprueba la pol\'itica del sujeto antes de reservar una emisi\'on.
-Exige nombre com\'un y que cada atributo de pa\'is y organizaci\'on coincida con
-alguno de la ra\'iz adoptada, considerando tipo y valor ASN.1. No fija esos valores
-en el c\'odigo ni modifica la pol\'itica de OpenSSL. La comprobaci\'on de la
-firma del CSR y de la ra\'iz precede a ese resultado; material inv\'alido o un
-inspector no disponible no se interpretan como incompatibilidad demostrada.
-
-Cada mutaci\'on tiene un UUID y un journal persistido antes del efecto, bajo
-el bloqueo compartido \texttt{deploy.lock}. Repetir el mismo UUID con otros
-par\'ametros produce conflicto. Despu\'es de una respuesta perdida, la emisi\'on
-busca el certificado de la serie reservada y contrasta CSR, clave p\'ublica,
-perfil, ra\'iz e \texttt{index.txt}; devuelve el recibo conservado cuando el
-resultado es inequ\'ivoco. S\'olo un estado previo completamente intacto permite
-reanudar la firma. Un efecto parcial o ambiguo bloquea otras mutaciones y no
-provoca reparaci\'on autom\'atica de OpenSSL ni una segunda emisi\'on.
-
-Una solicitud ya conservada como operaci\'on pendiente, sin haber superado esta
-admisi\'on, puede cerrarse como rechazada si la incompatibilidad queda demostrada, coinciden las huellas originales y
-permanecen intactos todos los archivos de la captura y ausentes las hojas
-previstas. El recibo conserva UUID, actor, solicitud, serie reservada y fechas,
-sin certificado ni afirmaci\'on de emisi\'on. El historial distingue este estado
-terminal de una operaci\'on pendiente; repetir el UUID devuelve el mismo rechazo.
-Una nueva solicitud requiere otra decisi\'on expl\'icita. Los fallos t\'ecnicos y
-los cambios de material mantienen la guarda de recuperaci\'on.
-
-El inventario descarga material p\'ublico por serie y huella exactas. La
-revocaci\'on conserva motivo, operador y recibo, y distingue el cambio local
-del estado publicado. La renovaci\'on CRL utiliza el mantenimiento recuperable
-del despliegue (\cref{sec:impl-despliegue}):
-candidato conservado, parada de API y web, respaldo, publicaci\'on con revisi\'on
-esperada y lectura de la sucesora antes de reabrir Qadra. El proceso CA puede
-permanecer disponible mientras PostgreSQL y Redis siguen activos. Sus guardas
-de mutaci\'on se separan de las guardas de arranque, para que un recibo pendiente
-no impida reabrir el servicio despu\'es de confirmar la confianza.
-
-El historial conserva los recibos de emisi\'on, revocaci\'on y publicaci\'on.
-El respaldo incluye identidad y auditor\'ia CA en el dump completo, material
-PKI y journals. La adopci\'on exige ubicar configuraci\'on privada y KEK bajo
-\texttt{config} para incorporarlas al mismo conjunto. Una publicaci\'on pendiente
-agrega al archivo privado su journal de mantenimiento y las CRL original y candidata,
-necesarios para recuperar el mismo UUID sin regenerarla. La restauraci\'on exige
-cierre expl\'icito del servicio CA, recuperaci\'on de roles y secretos, invalidaci\'on
-de sesiones y verificaci\'on antes de reabrir. La decisi\'on y el procedimiento
-quedan en
-\rutarepo{docs/adr/0078-separate-ca-operator-and-recoverable-operations.md} y
-\rutarepo{docs/ca/restore.md}. El portal opera la misma jerarqu\'ia interna
-descrita en S3 y no modifica las garant\'ias jur\'idicas de sus certificados.
+\Fuentes{ADR 0078 (operador CA separado y operaciones recuperables) y \rutarepo{docs/ca/restore.md}.}

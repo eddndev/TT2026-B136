@@ -1,0 +1,50 @@
+\begin{tikzpicture}[
+  est/.style={caja, text width=2.55cm, minimum height=1.05cm},
+  fin/.style={cajaOsc, text width=2.55cm, minimum height=1.05cm},
+  malo/.style={cajaError, text width=2.9cm, minimum height=1.05cm},
+  nota/.style={cajaGris, text width=2.9cm, minimum height=1.05cm},
+  ev/.style={etq, align=center}]
+
+  % Carril 1: vínculo
+  \draw[zona] (0,0) rectangle (16,-1.95);
+  \node[zonaLabel] at (0,0) {VÍNCULO DEL CERTIFICADO · LITIGANTE};
+  \node[est] (b1) at (2.0,-1.15) {\textbf{Preparado}\\ declaración de 142~B};
+  \node[fin] (b2) at (8.0,-1.15) {\textbf{Registrado}\\ con su evento de auditoría};
+  \node[fin, text width=2.9cm] (b3) at (14.0,-1.15) {\textbf{Retirado}\\ registro conservado; certificado no revocado};
+  \draw[flecha] (b1) -- node[ev, above]{prueba de posesión,} node[ev, below]{perfil, cadena y CRL} (b2);
+  \draw[flecha] (b2) -- node[ev, above]{retiro} (b3);
+
+  % Carril 2: operación documental
+  \draw[zona] (0,-2.40) rectangle (16,-6.70);
+  \node[zonaLabel] at (0,-2.40) {OPERACIÓN SOBRE UNA VERSIÓN EXACTA};
+  \node[est] (o1) at (2.0,-3.55) {\textbf{PDF revisado}\\ identificadores y digest contrastados};
+  \node[est] (o2) at (6.0,-3.55) {\textbf{Preparada}\\ consentimiento de 258~B};
+  \node[est] (o3) at (10.0,-3.55) {\textbf{Verificada}\\ contexto igual y dos firmas válidas};
+  \node[fin] (o4) at (14.0,-3.55) {\textbf{Aceptada}\\ revalidada; evidencia, recibo y auditoría juntos};
+  \draw[flecha] (o1) -- node[ev, above]{firma 1} node[ev, below]{del PDF} (o2);
+  \draw[flecha] (o2) -- node[ev, above]{firma 2} node[ev, below]{y envío} (o3);
+  \draw[flecha] (o3) -- node[ev, above]{sello} node[ev, below]{RFC 3161} (o4);
+  \draw[flechaSuave] (b2.south) -- node[ev, right, pos=0.4]{vínculo vigente} (8.0,-2.90) -| (o2.north);
+
+  % Salidas alternativas
+  \node[malo] (e2) at (6.0,-5.50) {\textbf{Nuevo consentimiento}\\ si cambian cuenta, confianza o vínculo};
+  \node[malo] (e3) at (10.0,-5.50) {\textbf{No confirmada}\\ respuesta TSA incorrecta o ausente};
+  \node[nota, text width=3.4cm, anchor=north] (e4) at (13.70,-4.62)
+    {Reintento exacto o consulta: \textbf{mismo recibo}. Otra prueba: \textbf{conflicto}. Concurrencia: gana la primera; la segunda recupera su recibo};
+  \node[nota] (e1) at (2.0,-5.50) {Solo Litigante, con pertenencia y expediente activo};
+  \draw[flechaError] (o2) -- (e2);
+  \draw[flechaError] (o3) -- (e3);
+  \draw[flechaSuave] (e4.north |- o4.south) -- (e4.north);
+  \draw[flechaSuave] (e1) -- (o1);
+
+  % Carril 3: verificación posterior
+  \draw[zona] (0,-7.20) rectangle (16,-8.85);
+  \node[zonaLabel] at (0,-7.20) {VERIFICACIÓN POSTERIOR · TRES RESPUESTAS SEPARADAS};
+  \node[cajaClara, text width=4.4cm, minimum height=0.9cm] (v1) at (2.75,-8.1)
+    {\textbf{Histórica}: evidencia capturada al instante de aceptación};
+  \node[cajaClara, text width=4.4cm, minimum height=0.9cm] (v2) at (8.0,-8.1)
+    {\textbf{Certificado hoy}: válido, rechazado o confianza no disponible};
+  \node[cajaClara, text width=4.4cm, minimum height=0.9cm] (v3) at (13.25,-8.1)
+    {\textbf{Retiro del vínculo}: fecha, si existe};
+  \draw[flecha] (o4.east) -- (15.78,-3.55) -- (15.78,-7.20);
+\end{tikzpicture}

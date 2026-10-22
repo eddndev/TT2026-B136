@@ -1,0 +1,42 @@
+\begin{tikzpicture}[
+  ent/.style={cajaClara, text width=1.5cm, minimum height=0.75cm, font=\diag},
+  etapa/.style={caja, text width=2.3cm, minimum height=1.75cm},
+  cuota/.style={font=\diag, text=ESCOMAzul}]
+
+  % Entradas
+  \node[ent] (e1) at (0.9,-0.55) {Carga binaria};
+  \node[ent] (e2) at (2.85,-0.55) {Carga con clasificación};
+  \node[ent] (e3) at (4.8,-0.55) {Nueva versión};
+  \foreach \n in {e1,e2,e3} \draw[draw=ESCOMAzulOscuro, line width=0.6pt] (\n.south) -- (\n.south |- 0,-1.3);
+  \draw[draw=ESCOMAzulOscuro, line width=0.6pt] (0.9,-1.3) -- (4.8,-1.3);
+
+  % Controles previos y memfd
+  \node[etapa, text width=1.9cm] (pre) at (1.05,-2.75) {\textbf{Antes de admitir}\\ sesión y acceso; nombre seguro; hasta 16~MiB};
+  \draw[flecha] (1.05,-1.3) -- (pre.north);
+  \node[etapa, text width=1.9cm] (mfd) at (3.65,-2.75) {\textbf{memfd sellado}\\ sin escritura, crecimiento ni reducción};
+  \draw[flecha] (pre) -- (mfd);
+
+  % Procesos aislados
+  \draw[zona] (5.2,-1.2) rectangle (13.3,-3.95);
+  \node[zonaLabel, anchor=north east] at (13.3,-1.2) {PROCESOS AISLADOS · 15 s DE CPU · VENCE A 20 s};
+  \node[etapa] (ins) at (6.6,-2.75) {\textbf{1 Inspección}\\ estructura de las ocho familias\\ {\diag\color{ESCOMAzul}5~s CPU · 256~MiB\\ 10~s transcurridos}};
+  \node[etapa] (son) at (9.25,-2.75) {\textbf{2 Sonda}\\ solo JPEG, PNG, MP3, WAV y MP4; ffprobe revisa las pistas\\ {\diag\color{ESCOMAzul}2~s CPU · 512~MiB}};
+  \node[etapa] (dec) at (11.9,-2.75) {\textbf{3 Decodificación}\\ FFmpeg~9.0.2 restringido, sin red; todas las pistas a salida nula\\ {\diag\color{ESCOMAzul}8~s CPU · 512~MiB}};
+  \draw[flecha] (mfd) -- node[etq, above=1pt, pos=0.3]{fd} (ins);
+  \draw[flecha] (ins) -- (son);
+  \draw[flecha] (son) -- (dec);
+
+  % Admitido
+  \node[cajaOsc, text width=2.15cm, minimum height=1.75cm] (ok) at (14.8,-2.75)
+    {\textbf{Admitido}\\ los bytes originales pasan a huella y cifrado};
+  \draw[flecha] (dec) -- (ok);
+  \draw[flecha] ([xshift=-9mm]ins.north) -- ([xshift=-9mm]ins.north |- 0,-0.95) -- node[etq, above, pos=0.5]{PDF, DOCX y TXT: basta la inspección} (14.8,-0.95) -- (ok.north);
+
+  % Rechazos
+  \node[cajaError, text width=1.9cm, minimum height=1.25cm] (no0) at (1.05,-5.05)
+    {\textbf{Rechazo}\\ sin inspección};
+  \draw[flechaError] (pre.south) -- (no0.north);
+  \node[cajaError, text width=12.6cm, minimum height=1.25cm] (no) at (9.45,-5.05)
+    {\textbf{Rechazo del validador}: no se cifra ni se guarda. Cuatro clases: formato no admitido, formato inválido, límite de validación y validador no disponible.};
+  \foreach \n in {ins,son,dec} \draw[flechaError] (\n.south) -- (\n.south |- no.north);
+\end{tikzpicture}

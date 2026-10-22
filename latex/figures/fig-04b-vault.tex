@@ -1,0 +1,24 @@
+\begin{tikzpicture}[
+  campo/.append style={font=\scriptsize\diagsans},
+  tam/.append style={font=\diag},
+  offset/.append style={font=\fontsize{6.6}{7.8}\selectfont\ttfamily, text=ESCOMAzul},
+  titulo/.style={anchor=south west, font=\diag\bfseries, text=ESCOMAzulOscuro, inner sep=1pt},
+  nota/.style={font=\diag, text=ESCOMTinta, align=center}]
+
+  % Formato del archivo
+  \node[titulo] at (0,0.05) {Archivo DVLT1 (desplazamientos en bytes)};
+  \Tira{0}{-1.2}{1.8/campo/{\texttt{DVLT1}\\ ASCII}/0/5 B,
+                 2.0/campo/{longitud $N$\\ big-endian}/5/4 B,
+                 5.4/campoRel/{DEK envuelta\\ nonce $\Vert$ cifrado $\Vert$ etiqueta}/9/N B,
+                 6.8/campoFirma/{documento sellado\\ nonce $\Vert$ cifrado $\Vert$ etiqueta}/{9+N}/resto}
+  \node[nota] at (6.5,-1.75) {bajo la KEK, con AAD vacío};
+  \node[nota] at (12.6,-1.75) {bajo la DEK, con el AAD del documento};
+
+  % AAD del documento
+  \node[titulo] at (0,-2.05) {AAD del documento (20 B)};
+  \Tira{0}{-3.25}{2.6/campoRel/{UUID del documento}/0/16 B,
+                  1.8/campo/{versión\\ big-endian}/16/4 B}
+  \node[cajaError, text width=10.6cm, align=left, anchor=west, minimum height=0.85cm] at (5.0,-2.825)
+    {Al descifrar se rehace el AAD con la identidad y la versión que afirma quien llama: otro UUID u otra versión producen el mismo rechazo opaco que un criptograma alterado.};
+
+\end{tikzpicture}

@@ -1,0 +1,47 @@
+\begin{tikzpicture}[
+  comp/.style={caja, text width=3.55cm, minimum height=0.8cm},
+  compOsc/.style={cajaOsc, text width=3.55cm, minimum height=0.8cm},
+  compClara/.style={cajaClara, text width=3.55cm, minimum height=0.8cm}]
+
+  % Entrada: cuenta y autorización
+  \node[cajaOsc, text width=15.4cm, minimum height=0.7cm] (aut) at (8,-1.25)
+    {Cuenta de Owner, Litigante, Paralegal o Cliente, revalidada en la transacción auditada: cuenta activa, rol, pertenencia vigente y recurso exacto};
+
+  % Zonas
+  \draw[zona] (0,-2.25) rectangle (4.6,-5.85);
+  \draw[zona] (5.7,-2.25) rectangle (10.3,-5.85);
+  \draw[zona] (11.4,-2.25) rectangle (16,-5.85);
+  \node[zonaLabel] at (0,-2.25) {EXPEDIENTE Y ACCESO};
+  \node[zonaLabel] at (5.7,-2.25) {ADMINISTRACIÓN PENAL};
+  \node[zonaLabel] at (11.4,-2.25) {DIRECTORIO DEL EXPEDIENTE};
+  \foreach \x in {2.3,8.0,13.7}
+    \draw[flecha] (\x,-1.6) -- (\x,-2.25);
+
+  % Expediente y acceso
+  \node[compOsc] (raiz) at (2.3,-3.25) {Raíz inmutable: UUID, creador, fecha y metadatos originales};
+  \node[comp] (asig) at (2.3,-4.3) {Asignaciones de cuentas; solo Owner las administra};
+  \node[compClara] (bas) at (2.3,-5.3) {API básica: UUID, título, referencia y creador};
+
+  % Administración
+  \node[comp] (adm) at (8.0,-3.25) {Revisiones administrativas: título, referencia, estado y perfil penal};
+  \node[compClara] (eta) at (8.0,-4.3) {Registro inicial de etapa ligado a la primera revisión};
+  \node[comp] (idx) at (8.0,-5.3) {Índice, detalle e historia con cursor};
+
+  % Directorio
+  \node[comp] (fic) at (13.7,-3.25) {Fichas por rol: manuales y tipificadas};
+  \node[comp] (sub) at (13.7,-4.3) {Identidades representadas};
+  \node[compClara] (dec) at (13.7,-5.3) {Declaración firmada y confianza publicada};
+
+  % Relaciones
+  \draw[flecha] (raiz) -- node[etq, above=1pt, align=center]{valores\\ actuales} (adm);
+  \draw[flechaError] (adm) -- node[etq, above=1pt, align=center, text=IPNGuinda]{cierre:\\ bloquea} (fic);
+  \draw[flecha] (fic) -- node[etq, right=1pt]{revisión exacta} (sub);
+  \draw[flechaSuave] (dec) -- node[etq, right=1pt]{fija} (sub);
+  \draw[flechaSuave] (dec.east) -- ++(0.3,0) |- (fic.east);
+
+  % Bitácora
+  \node[cajaOsc, text width=15.4cm, minimum height=0.7cm] (bit) at (8,-6.6)
+    {Bitácora encadenada: cada alta, edición, cambio de estado y lectura (incluso vacía) confirma su evento antes de responder};
+  \foreach \x in {2.3,8.0,13.7}
+    \draw[flechaSuave] (\x,-5.85) -- (\x,-6.25);
+\end{tikzpicture}

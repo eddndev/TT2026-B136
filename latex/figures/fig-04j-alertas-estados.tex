@@ -1,0 +1,42 @@
+\begin{tikzpicture}[
+  est/.style={caja, rounded corners=7pt, text width=2.0cm, minimum width=2.2cm, minimum height=0.8cm},
+  fin/.style={est, cajaOsc, rounded corners=7pt},
+  gris/.style={est, cajaGris, rounded corners=7pt},
+  rot/.style={font=\scriptsize\diagsans\bfseries, text=ESCOMAzulOscuro, anchor=north west, inner sep=2pt, text width=2.5cm, align=left},
+  nota/.style={font=\diag, text=ESCOMGris, align=left},
+  sepr/.style={draw=ESCOMGris!45, line width=0.4pt}]
+
+  % (a) Plan
+  \node[rot] at (0,0) {Plan de cada\\ ocurrencia};
+  \node[est] (pp) at (3.6,-0.45) {planificado};
+  \node[fin] (pa) at (9.2,-0.45) {activado};
+  \node[gris] (ps) at (3.6,-2.0) {sustituido};
+  \draw[flecha] (pp) -- node[etq, above, align=center]{umbral cruzado; actividad\\ y destinatario vigentes} (pa);
+  \draw[flecha] ([xshift=-6mm]pp.south) -- node[etq, left=3pt, align=right]{otra fecha o preferencia;\\ umbral más próximo} ([xshift=-6mm]ps.north);
+  \draw[flecha] ([xshift=6mm]ps.north) -- node[etq, right=3pt, align=left]{recupera elegibilidad\\ y nunca notificó} ([xshift=6mm]pp.south);
+  \node[nota, anchor=west, text width=5.2cm] at (10.6,-0.45) {conserva su identidad: actividad, instante exacto y anticipación};
+  \draw[sepr] (0,-2.75) -- (16,-2.75);
+
+  % (b) Episodio
+  \node[rot] at (0,-2.85) {Episodio de\\ un plazo};
+  \node[gris] (e0) at (3.6,-3.4) {sin episodio};
+  \node[est] (e1) at (8.2,-3.4) {abierto\\ genera su aviso};
+  \node[fin] (e2) at (12.8,-3.4) {cerrado};
+  \draw[flecha] (e0) -- node[etq, above, align=center]{vencido sin atención o\\ revisión requerida} (e1);
+  \draw[flecha] (e1) -- node[etq, above, align=center]{atención registrada o\\ corrección aceptada} (e2);
+  \node[nota, anchor=north, text width=8.8cm, align=center, execute at begin node={\hyphenpenalty=10000}] at (11.45,-3.9) {se cierra en la escritura del plazo y persiste aunque se reabra antes del siguiente escaneo; un cambio posterior abre otro episodio con otra ocurrencia};
+  \draw[sepr] (0,-4.85) -- (16,-4.85);
+
+  % (c) Aviso
+  \node[rot] at (0,-4.95) {Aviso en\\ la bandeja};
+  \node[est] (a0) at (3.6,-5.5) {activo};
+  \node[fin] (a1) at (7.4,-5.5) {resuelto};
+  \draw[flecha] (a0) -- (a1);
+  \node[nota, anchor=north, text width=6.6cm] at (5.5,-6.05)
+    {motivo: sustituido, atención registrada, actividad retirada, audiencia cancelada o ya no elegible};
+  \node[est] (l0) at (11.0,-5.5) {sin leer};
+  \node[fin] (l1) at (14.6,-5.5) {leído};
+  \draw[flecha] (l0) -- (l1);
+  \node[nota, anchor=north, text width=5.4cm] at (12.95,-6.05)
+    {independiente de la resolución; leer no registra atención ni altera el plazo};
+\end{tikzpicture}

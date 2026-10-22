@@ -1,0 +1,29 @@
+\begin{tikzpicture}[
+  campo/.append style={font=\scriptsize\diagsans},
+  tam/.append style={font=\diag, text=ESCOMTinta, align=center},
+  offset/.append style={font=\diag\bfseries, text=ESCOMAzul, text height=1.7ex, text depth=0.45ex},
+  hue/.style={caja, text width=3.3cm, minimum height=1.25cm, align=left},
+  tit/.style={anchor=south west, font=\diag\bfseries, text=ESCOMAzulOscuro, inner sep=1pt}]
+
+  \node[tit] at (0,0.05) {Contenido de una revisión en bytes canónicos (V2 no reinterpreta V1)};
+  \Tira{0}{-1.35}{1.85/campoRel/{Entrada}/V1 y V2/{},
+                  1.85/campoRel/{Resultado}/V1 y V2/{},
+                  1.9/campo/{Perfil y\\ dependencias}/V1 y V2/{},
+                  1.75/campo/{Responsable}/V1 y V2/{},
+                  1.45/campo/{Atención}/V1 y V2/{},
+                  2.25/campoFirma/{Políticas y estado\\ de revisión}/solo V2/{},
+                  2.05/campoFirma/{Observaciones}/solo V2/{},
+                  1.5/campo/{Autor}/V1 y V2/{},
+                  1.35/campoFirma/{Causa}/solo V2/{}}
+
+  \node[tit] at (0,-1.8) {Huellas del recibo};
+  \node[hue] (rv) at (1.75,-2.75) {\textbf{Huella de contenido} {\color{ESCOMGris}(DLRV1/2)}\\ contenido revisado y sus metadatos históricos};
+  \node[hue] (st) at (5.85,-2.75) {\textbf{Huella con administración} {\color{ESCOMGris}(DLST1/2)}\\ contenido revisado más la administración capturada};
+  \node[hue, cajaClara] (t1) at (9.95,-2.75) {\textbf{Recibo V1} {\color{ESCOMGris}(DLTX1)}\\ actor, expediente, plazo, operación, acción, base y motivo};
+  \node[hue, cajaOsc, text width=3.6cm] (t2) at (14.15,-2.75) {\textbf{Recibo V2} {\color{white!75!ESCOMGris}(DLTX2)}\\ además: observaciones, ambas huellas del predecesor y causa};
+  \draw[flecha] (rv) -- (st);
+  \draw[flecha] (rv.south) -- ++(0,-0.45) -| node[etq, pos=0.25, below=1pt]{huella revisada} (t1.south);
+  \draw[flecha] (t1) -- node[etq, above=1pt]{V2} (t2);
+  \node[font=\diag, text=ESCOMTinta, align=left, text width=15.6cm, anchor=north west] at (0,-4.25)
+    {Separar contenido y administración permite que un alta o corrección capture una administración más reciente sin alterar el contenido confirmado.\\ Toda mutación humana o técnica produce V2; V1 sigue legible, y un recibo V2 inválido se rechaza sin reinterpretarlo como V1.};
+\end{tikzpicture}

@@ -1,0 +1,32 @@
+\begin{tikzpicture}[
+  actor/.append style={minimum width=2.6cm, text width=2.4cm},
+  tramo/.style={draw=ESCOMGris, dotted, line width=0.5pt},
+  tramoL/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, fill=white,
+    anchor=west, inner sep=1.5pt}]
+  \Actores{uc/1.4/{Caso de uso},emi/4.65/{Emisor local},ver/7.9/{Verificador\\ RFC 3161},ossl/11.15/{\texttt{openssl ts}\\ (subproceso)},fs/14.5/{Archivos de la TSA y temporales}}{-9.2}
+
+  % ==== Emisión ====
+  \draw[tramo] (0,-0.85) -- (16,-0.85);
+  \node[tramoL] at (0.1,-0.85) {EMISIÓN};
+  \Msg{1.4}{4.65}{-1.28}{\textbf{1} digest SHA-256}
+  \Msg{4.65}{11.15}{-1.71}{\texttt{-query}: solicitud con SHA-256}
+  \draw[msg] (4.65,-2.14) -- node[msgL, pos=0.17]{lock de \texttt{serial.lock}} (14.5,-2.14);
+  \Msg{4.65}{11.15}{-2.57}{\texttt{-reply}: firma la respuesta}
+  \Msg{11.15}{14.5}{-3.00}{lee, incrementa y escribe la serie}
+  \Paso{14.5}{-3.13}{2.6}{Sin el lock, esa secuencia no atómica acuñaría series duplicadas}
+  \Msg[msgR]{11.15}{4.65}{-3.60}{token DER}
+  \Msg[msgR]{4.65}{1.4}{-4.03}{\textbf{2} token como bytes opacos}
+
+  % ==== Verificación ====
+  \draw[tramo] (0,-4.55) -- (16,-4.55);
+  \node[tramoL] at (0.1,-4.55) {VERIFICACIÓN EN DOS ETAPAS};
+  \Msg{1.4}{7.9}{-4.98}{\textbf{3} token, digest esperado y ancla PEM}
+  \node[paso, text width=3.0cm, anchor=north] (nat) at (7.9,-5.11) {\textbf{Etapa nativa}: decodifica respuesta o token CMS, extrae \texttt{TSTInfo}, exige OID id-sha256 e igualdad del imprint, lee el instante en RFC 3339};
+  \node[pasoError, text width=2.3cm] (err) at (3.025,0 |- nat.west) {Indecodificable o imprint distinto: causa precisa, sin subproceso};
+  \draw[flecha] (nat.west) -- node[etq, above=1pt]{falla} (err.east);
+  \draw[msg] (7.9,-7.05) -- node[msgL, pos=0.245]{\textbf{delegada}: dir. temporal 0700} (14.5,-7.05);
+  \Msg{7.9}{11.15}{-7.48}{\texttt{-verify}: firma CMS y cadena}
+  \Msg[msgR]{11.15}{7.9}{-7.91}{acepta o rechaza}
+  \draw[msg] (7.9,-8.34) -- node[msgL, pos=0.245]{borra el directorio} (14.5,-8.34);
+  \Msg[msgR]{7.9}{1.4}{-8.86}{\textbf{4} válido con su instante,\\ o token no confiable con diagnóstico}
+\end{tikzpicture}

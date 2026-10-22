@@ -1,0 +1,30 @@
+\begin{tikzpicture}[
+  est/.style={caja, rounded corners=5pt, text width=2.2cm, minimum width=2.4cm, minimum height=0.85cm},
+  fin/.style={est, text width=4.0cm, minimum width=4.2cm}]
+
+  \node[est] (q) at (1.25,0) {\textbf{En cola}};
+
+  \draw[zona] (2.95,1.0) rectangle (10.25,-0.75);
+  \node[zonaLabel] at (2.95,1.0) {EN PROCESO · CONCESIÓN Y RENOVACIÓN DE 2 MIN};
+  \node[est] (cap) at (4.6,0) {\textbf{Capturando}};
+  \node[est] (ren) at (8.6,0) {\textbf{Renderizando}\\ PDF y CSV};
+
+  \node[fin, cajaOsc] (ok) at (13.8,0) {\textbf{Disponible}\\ ambos formatos, aviso e intención de correo};
+  \node[fin, cajaError] (ko) at (13.8,-1.75) {\textbf{Fallida}\\ aviso de fallo};
+  \node[fin, cajaError] (rv) at (13.8,-3.5) {\textbf{Acceso revocado}\\ no entrega la captura};
+  \node[est, text width=2.8cm, minimum width=3.0cm] (rt) at (5.6,-2.3)
+    {\textbf{Espera de reintento}\\ 30 s × número de intento};
+
+  \draw[flecha] (q) -- node[etq, above=2pt]{toma} (cap);
+  \draw[flecha] (cap) -- node[etq, above=2pt, align=center]{captura\\ guardada} (ren);
+  \draw[flecha] (ren) -- node[etq, above=2pt, pos=0.6, align=center]{una sola\\ confirmación} (ok);
+  \draw[flecha] (4.9,-0.75) -- node[etq, left, align=right]{servicio o renderizador no\\ disponible, intento < 5} (4.9,0 |- rt.north);
+  \draw[flecha] (6.3,0 |- rt.north) -- node[etq, right, align=left]{vence la espera: retoma\\ la fase pendiente} (6.3,-0.75);
+  \draw[flechaError] (10.0,-0.75) |- node[etq, pos=0.75, above, align=center]{otro error o\\ 5 intentos} (ko.west);
+  \draw[flechaError] (q.south) |- (rv.west);
+  \draw[draw=IPNGuinda, line width=0.6pt] (rt.south) -- node[etq, left=2pt, pos=0.45]{sin acceso al retomarlo} (rt.south |- rv.west);
+  \draw[draw=IPNGuinda, line width=0.6pt] (9.5,-0.75) -- node[etq, right=2pt, pos=0.7]{pierde acceso} (9.5,-3.5);
+  \fill[IPNGuinda] (rt.south |- rv.west) circle (1.5pt) (9.5,-3.5) circle (1.5pt);
+  \draw[flechaSuave] (9.9,1.0) .. controls (9.9,1.6) and (8.0,1.6) .. (8.0,1.0)
+    node[etq, pos=0.5, above]{concesión vencida: otro intento retoma la misma fase sin recapturar};
+\end{tikzpicture}

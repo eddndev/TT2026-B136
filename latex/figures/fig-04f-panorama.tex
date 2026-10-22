@@ -1,0 +1,22 @@
+\begin{tikzpicture}[
+  parte/.style={caja, text width=2.45cm, minimum height=1.5cm, anchor=north}]
+
+  % Zona del servidor
+  \draw[zona] (0,0) rectangle (16.55,-2.9);
+  \node[zonaLabel] at (0,0) {SERVIDOR RUST · SERVICIO DOCUMENTAL};
+
+  \node[cajaOsc, text width=15.75cm, minimum height=0.55cm] (api) at (8.275,-0.75)
+    {\textbf{API por expediente}, usada por Qadra: sesión, rol y pertenencia};
+
+  % Partes del repositorio, en el orden de las subsecciones
+  \foreach \n/\x/\t in {
+      sel/1.4/{\textbf{Sellado y firma}\\ evidencia y TSA local\\ {\color{ESCOMGris}\ref{sec:impl-http-documentos}, \ref{sec:impl-firma-individual}}},
+      adm/4.15/{\textbf{Admisión}\\ general y PDF/DOCX\\ {\color{ESCOMGris}\ref{sec:impl-admision-documental}, \ref{sec:impl-formatos}}},
+      con/6.9/{\textbf{Consultas}\\ solo metadatos\\ {\color{ESCOMGris}\ref{sec:impl-http-consultas}}},
+      ver/9.65/{\textbf{Versiones}\\ cifradas e inmutables\\ {\color{ESCOMGris}\ref{sec:impl-http-versiones}}},
+      cla/12.4/{\textbf{Clasificación}\\ revisiones propias\\ {\color{ESCOMGris}\ref{sec:impl-http-clasificacion}}},
+      cnt/15.15/{\textbf{Contenido original}\\ e incidentes\\ {\color{ESCOMGris}\ref{sec:impl-contenido-documental}}}} {
+    \node[parte] (\n) at (\x,-1.3) {\t};
+    \draw[flecha] (\n.north |- api.south) -- (\n.north);
+  }
+\end{tikzpicture}

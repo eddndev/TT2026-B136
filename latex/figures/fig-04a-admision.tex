@@ -1,0 +1,24 @@
+\begin{tikzpicture}[
+  et/.style={caja, text width=3.2cm, minimum height=1.25cm},
+  alt/.style={caja, text width=3.2cm, minimum height=1.1cm}]
+
+  \node[et] (a) at (1.8,0) {\textbf{Cupo de peticiones}\\ 8 por defecto; se toma antes de leer el cuerpo};
+  \node[et] (b) at (5.9,0) {\textbf{Cuerpo acotado}\\ límite propio de cada familia de rutas};
+  \node[et] (c) at (10.0,0) {\textbf{Espera de trabajador}\\ 2 por defecto; conserva el cupo de petición};
+  \node[et, cajaOsc] (d) at (14.1,0) {\textbf{Caso de uso síncrono}\\ PostgreSQL y Redis en un hilo bloqueante};
+  \draw[flecha] (a) -- (b);
+  \draw[flecha] (b) -- (c);
+  \draw[flecha] (c) -- (d);
+
+  \node[alt, cajaError] (ea) at (1.8,-2.2) {Sin cupo: rechazo inmediato (503), sin cola ni ejecución};
+  \node[alt, cajaGris] (ec) at (10.0,-2.2) {Cancelación en espera: se retira sin ejecutar};
+  \node[alt, cajaGris] (ed) at (14.1,-2.2) {Cancelación en ejecución: el permiso sigue tomado hasta terminar; lo confirmado no se revierte};
+  \draw[flechaError] (a) -- (ea);
+  \draw[flechaSuave] (c) -- (ec);
+  \draw[flechaSuave] (d) -- (ed);
+
+  \node[caja, cajaClara, text width=7.3cm, minimum height=0.9cm] (h) at (3.85,-3.85)
+    {La consulta de salud queda fuera de la admisión. El contenido documental verificado toma además un permiso de entrega hasta liberar sus bytes; sin él, también \texttt{503}};
+  \node[caja, cajaClara, text width=7.3cm, minimum height=0.9cm] (s) at (12.1,-3.85)
+    {Ante una señal detiene HTTP y los consumidores: deja de admitir y retiene el trabajo bloqueante iniciado; no hay plazo máximo si una dependencia síncrona no responde};
+\end{tikzpicture}
