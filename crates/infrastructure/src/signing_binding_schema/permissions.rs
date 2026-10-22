@@ -1,3 +1,4 @@
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
 use postgres::GenericClient;
 
@@ -30,7 +31,7 @@ pub(crate) fn grant_runtime<C: GenericClient>(
         .map_err(port)
 }
 
-pub(crate) fn validate_runtime<C: GenericClient>(
+pub(crate) fn validate_runtime<C: CatalogClient>(
     client: &mut C,
     role: &str,
     tables: &[&str],
@@ -76,7 +77,7 @@ pub(crate) fn validate_runtime<C: GenericClient>(
     Ok(())
 }
 
-fn exposed_acl<C: GenericClient>(
+fn exposed_acl<C: CatalogClient>(
     client: &mut C,
     role: &str,
     tables: &[&str],

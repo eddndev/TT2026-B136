@@ -1,6 +1,6 @@
 use super::{incomplete, port, MIGRATIONS, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 pub(super) const CALLABLE: [&str; 3] = [
     "alert_time_valid(bigint,integer)",
@@ -15,7 +15,7 @@ pub(super) const TRIGGERS: [&str; 5] = [
     "validate_alert_outbox_ledger()",
 ];
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for signature in CALLABLE.into_iter().chain(TRIGGERS) {
         let callable = CALLABLE.contains(&signature);
         let payload = signature.starts_with("alert_payload_valid(");

@@ -1,7 +1,7 @@
 //! Catalog expressions for migrations/0014_procedural_facts.sql.
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 const CHECKS: &[(&str, &str, &str)] = &[
     (
@@ -126,7 +126,7 @@ END"#,
         r#"procedural_fact_submission(submission_canonical)"#,
     ),
 ];
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     key(client, TABLES[0], "p", &["family", "id"], None)?;
     key(client, TABLES[0], "u", &["family", "id", "case_id"], None)?;
     key(client, TABLES[1], "p", &["family", "id", "revision"], None)?;
@@ -195,7 +195,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     }
     expressions(client)
 }
-fn key<C: GenericClient>(
+fn key<C: CatalogClient>(
     client: &mut C,
     table: &str,
     kind: &str,
@@ -215,7 +215,7 @@ fn key<C: GenericClient>(
     }
     Ok(())
 }
-fn expressions<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+fn expressions<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let checks = client.query(
         "SELECT conrelid::regclass::text,conname::text,pg_get_expr(conbin,conrelid),convalidated,connoinherit
          FROM pg_constraint WHERE conrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND contype='c'",

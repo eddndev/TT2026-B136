@@ -1,6 +1,6 @@
 use super::{incomplete, port, MIGRATIONS, TABLE};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 pub(super) const KEYS: &[(&str, &str, bool)] = &[
     ("password_reset_capabilities_pkey", "id", true),
@@ -37,7 +37,7 @@ const CHECKS: &[&str] = &[
     "password_reset_consumption_check",
 ];
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for &(name, column, primary) in KEYS {
         let kind = if primary { "p" } else { "u" };
         let valid: bool = client.query_one(

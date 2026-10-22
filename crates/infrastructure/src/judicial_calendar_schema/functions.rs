@@ -1,6 +1,6 @@
 use super::{incomplete, port, HELPERS, TRIGGERS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 const SQL: [&str; 5] = [
     include_str!("../../../../migrations/0013_judicial_calendar_primitives.sql"),
     include_str!("../../../../migrations/0013_judicial_calendar_sources.sql"),
@@ -8,7 +8,7 @@ const SQL: [&str; 5] = [
     include_str!("../../../../migrations/0013_judicial_calendar_receipts.sql"),
     include_str!("../../../../migrations/0013_judicial_calendar_guards.sql"),
 ];
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for signature in HELPERS.into_iter().chain(TRIGGERS) {
         let row=client.query_opt("SELECT p.prosrc,p.provolatile::text,p.prorettype::regtype::text,p.prosecdef,p.proconfig,p.proisstrict,p.proleakproof,l.lanname,n.oid=c.relnamespace,quote_ident(n.nspname),p.prokind::text,p.proparallel::text FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_class c ON c.oid='judicial_calendars'::regclass WHERE p.oid=to_regprocedure($1)",&[&signature]).map_err(port)?.ok_or_else(incomplete)?;
         let name = signature.split('(').next().ok_or_else(incomplete)?;

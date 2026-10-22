@@ -1,8 +1,8 @@
 use super::{constraints, functions, incomplete, port, FUNCTIONS, SEQUENCE, SOURCES, TABLE};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let valid: bool = client
         .query_one(
             "SELECT EXISTS(SELECT 1 FROM pg_class WHERE oid=to_regclass($1)
@@ -35,7 +35,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     Ok(())
 }
 
-fn columns<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+fn columns<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let expected = [
         ("sequence", "bigint", true, ""),
         ("source_kind", "text", true, ""),
@@ -73,7 +73,7 @@ fn columns<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
     Ok(())
 }
 
-fn sequence<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+fn sequence<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let valid: bool = client.query_one("SELECT EXISTS(SELECT 1 FROM pg_class c
         JOIN pg_sequence s ON s.seqrelid=c.oid JOIN pg_class t ON t.oid='deadline_source_events'::regclass
         WHERE c.oid=to_regclass($1) AND c.relnamespace=t.relnamespace AND c.relkind='S'
@@ -90,7 +90,7 @@ fn sequence<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
     Ok(())
 }
 
-fn trigger<C: GenericClient>(
+fn trigger<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,

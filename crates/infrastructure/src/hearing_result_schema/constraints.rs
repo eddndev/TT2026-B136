@@ -1,8 +1,8 @@
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for (table, key) in [
         (TABLES[0], vec!["id"]),
         (TABLES[1], vec!["result_id", "revision"]),
@@ -129,7 +129,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     }
     Ok(())
 }
-fn key_constraint<C: GenericClient>(
+fn key_constraint<C: CatalogClient>(
     client: &mut C,
     table: &str,
     kind: &str,

@@ -1,6 +1,6 @@
 use super::{incomplete, port, TABLE};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 pub(super) const COLUMNS: &[(&str, &str, bool)] = &[
     ("id", "uuid", true),
@@ -17,7 +17,7 @@ pub(super) const COLUMNS: &[(&str, &str, bool)] = &[
     ("audit_sequence", "bigint", false),
 ];
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let rows = client.query(
         "SELECT a.attname::text,format_type(a.atttypid,a.atttypmod),a.attnotnull,
         a.attgenerated::text,a.attidentity::text,

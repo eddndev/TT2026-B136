@@ -4,10 +4,10 @@ pub(super) const TRIGGERS: [&str; 3] = [
     "guard_member_access()",
     "preserve_member_accounts()",
 ];
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for signature in TRIGGERS {
         let types: &[&str] = &[];
         let row = client

@@ -1,4 +1,5 @@
 use super::{port, FUNCTIONS, SEQUENCE, TABLE};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
 use postgres::GenericClient;
 const INPUTS: [&str; 6] = [
@@ -48,7 +49,7 @@ pub(crate) fn grant_runtime<C: GenericClient>(
         .map_err(port)
 }
 
-pub(crate) fn validate_runtime_role<C: GenericClient>(
+pub(crate) fn validate_runtime_role<C: CatalogClient>(
     client: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {

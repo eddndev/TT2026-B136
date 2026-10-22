@@ -1,6 +1,6 @@
 use super::{constraints, incomplete, port, HELPERS, TABLES, TRIGGERS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 const SQL: [&str; 10] = [
     include_str!("../../../../migrations/0014_procedural_fact_primitives.sql"),
@@ -14,7 +14,7 @@ const SQL: [&str; 10] = [
     include_str!("../../../../migrations/0014_procedural_fact_source_guards.sql"),
     include_str!("../../../../migrations/0014_procedural_facts_guards.sql"),
 ];
-pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         let valid: bool = client.query_one(
             "SELECT EXISTS(SELECT 1 FROM pg_class WHERE oid=to_regclass($1) AND relkind='r'
@@ -109,7 +109,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     }
     Ok(())
 }
-fn columns<C: GenericClient>(
+fn columns<C: CatalogClient>(
     client: &mut C,
     table: &str,
     expected: &[(&str, &str, bool, &str)],
@@ -134,7 +134,7 @@ fn columns<C: GenericClient>(
     }
     Ok(())
 }
-fn functions<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+fn functions<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for signature in HELPERS.into_iter().chain(TRIGGERS) {
         let row = client.query_opt(
             "SELECT p.prosrc,p.provolatile::text,p.prorettype::regtype::text,p.prosecdef,p.proconfig,

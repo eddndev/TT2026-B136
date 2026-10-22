@@ -1,7 +1,7 @@
 //! Exact catalog expressions for migrations/0016_deadline_profile_tables.sql.
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 const CHECKS: &[(&str, &str)] = &[
     ("deadline_profile_algorithm", r#"(algorithm = 1)"#),
     (
@@ -71,7 +71,7 @@ END"#,
         r#"deadline_profile_submission(submission_canonical)"#,
     ),
 ];
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let checks=client.query("SELECT conname::text,pg_get_expr(conbin,conrelid),convalidated,connoinherit FROM pg_constraint WHERE conrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND contype='c'", &[&&TABLES[..]]).map_err(port)?;
     if checks.len() != CHECKS.len()
         || CHECKS.iter().any(|(name, expression)| {

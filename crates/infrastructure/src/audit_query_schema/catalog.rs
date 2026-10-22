@@ -1,6 +1,6 @@
 use super::{functions, incomplete, port};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 const COLUMNS: &[(&str, &str, &str)] = &[
     ("sequence", "bigint", ""),
@@ -14,7 +14,7 @@ const COLUMNS: &[(&str, &str, &str)] = &[
     ("context_json", "text", ""),
 ];
 
-pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let valid: bool = client
         .query_one(
             "SELECT EXISTS(SELECT 1 FROM pg_class c
@@ -151,7 +151,7 @@ fn normalize(value: &str) -> String {
         .collect()
 }
 
-fn index<C: GenericClient>(
+fn index<C: CatalogClient>(
     client: &mut C,
     name: &str,
     primary: bool,

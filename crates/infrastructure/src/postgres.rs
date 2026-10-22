@@ -4,9 +4,11 @@ use crate::postgres_connection::{port_error, require_utf8};
 use application::ApplicationError;
 use postgres::{Client, NoTls};
 
+mod catalog_client;
 mod migration_lock;
 mod migrations;
 mod runtime_role;
+pub(crate) use catalog_client::CatalogClient;
 use migrations::*;
 use runtime_role::validate_runtime_role;
 

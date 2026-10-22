@@ -1,8 +1,8 @@
 use super::{constraints, incomplete, port, HELPERS, TABLES, TRIGGERS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         if !client
             .query_one("SELECT to_regclass($1) IS NOT NULL", &[&table])
@@ -135,7 +135,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     }
     Ok(())
 }
-fn columns<C: GenericClient>(
+fn columns<C: CatalogClient>(
     client: &mut C,
     table: &str,
     expected: &[(&str, &str, bool, &str)],
@@ -162,7 +162,7 @@ fn columns<C: GenericClient>(
     }
     Ok(())
 }
-fn function_kind<C: GenericClient>(
+fn function_kind<C: CatalogClient>(
     client: &mut C,
     name: &str,
     volatility: &str,

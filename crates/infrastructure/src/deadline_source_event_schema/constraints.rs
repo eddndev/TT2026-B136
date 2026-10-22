@@ -1,6 +1,6 @@
 use super::{incomplete, port, TABLE};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 const CHECKS: &[(&str, &str)] = &[
     (
@@ -28,7 +28,7 @@ const GENERATED: &[(&str, &str)] = &[
     ("profile_id", "CASE WHEN (source_kind = 'profile'::text) THEN source_id ELSE NULL::uuid END"),
 ];
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     key(client, "deadline_source_event_primary", "p", &["sequence"])?;
     key(
         client,
@@ -94,7 +94,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     expressions(client)
 }
 
-fn key<C: GenericClient>(
+fn key<C: CatalogClient>(
     client: &mut C,
     name: &str,
     kind: &str,
@@ -113,7 +113,7 @@ fn key<C: GenericClient>(
     Ok(())
 }
 
-fn expressions<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+fn expressions<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let rows = client
         .query(
             "SELECT conname::text,pg_get_expr(conbin,conrelid),convalidated,connoinherit

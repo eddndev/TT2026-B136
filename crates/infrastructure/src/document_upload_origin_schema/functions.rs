@@ -3,10 +3,10 @@ pub(super) const TRIGGERS: [&str; 2] = [
     "preserve_document_upload_origin_history()",
     "enforce_document_upload_origin()",
 ];
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for signature in TRIGGERS {
         let types: &[&str] = &[];
         let row = client

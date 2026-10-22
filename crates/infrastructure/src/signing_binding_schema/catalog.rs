@@ -1,8 +1,8 @@
 use super::{columns, constraints, functions, incomplete, indexes, port, triggers, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(crate) fn validate_schema<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate_schema<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     validate_tables(client, &TABLES, incomplete, port)?;
     columns::validate(client)?;
     constraints::validate(client)?;
@@ -11,7 +11,7 @@ pub(crate) fn validate_schema<C: GenericClient>(client: &mut C) -> Result<(), Ap
     triggers::validate(client)
 }
 
-pub(crate) fn validate_tables<C: GenericClient>(
+pub(crate) fn validate_tables<C: CatalogClient>(
     client: &mut C,
     tables: &[&str],
     incomplete: fn() -> ApplicationError,

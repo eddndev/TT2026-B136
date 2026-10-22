@@ -2,11 +2,12 @@ use application::ApplicationError;
 use postgres::GenericClient;
 
 use super::storage::{inconsistent, port};
+use crate::postgres::CatalogClient;
 
 const AUTHORITY: &str = "participant_credential_authority";
 const REVISIONS: &str = "participant_credential_trust_revisions";
 
-pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let present: bool = client
         .query_one(
             "SELECT current_setting('server_encoding')='UTF8'
@@ -167,7 +168,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     Ok(())
 }
 
-fn columns<C: GenericClient>(
+fn columns<C: CatalogClient>(
     client: &mut C,
     table: &str,
     expected: &[(&str, &str)],
@@ -189,7 +190,7 @@ fn columns<C: GenericClient>(
     }
     Ok(())
 }
-fn key<C: GenericClient>(
+fn key<C: CatalogClient>(
     client: &mut C,
     table: &str,
     kind: &str,
@@ -205,7 +206,7 @@ fn key<C: GenericClient>(
     }
     Ok(())
 }
-fn foreign_key<C: GenericClient>(
+fn foreign_key<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,
@@ -270,7 +271,7 @@ pub(crate) fn grant_runtime<C: GenericClient>(
         .map_err(port)
 }
 
-pub(crate) fn validate_runtime_role<C: GenericClient>(
+pub(crate) fn validate_runtime_role<C: CatalogClient>(
     client: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {

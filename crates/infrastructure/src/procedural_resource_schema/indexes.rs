@@ -1,7 +1,7 @@
 //! Exact index keys, ordering, collation and operator semantics.
 use super::{incomplete, port, specifications::KEYS, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 const LOOKUPS: &[(&str, &str, &[&str])] = &[(
     "case_procedural_resources",
@@ -9,7 +9,7 @@ const LOOKUPS: &[(&str, &str, &[&str])] = &[(
     &["case_id", "id"],
 )];
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for &(table, name, columns, primary) in KEYS {
         validate_one(client, table, name, columns, primary, true)?;
     }
@@ -33,7 +33,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     Ok(())
 }
 
-fn validate_one<C: GenericClient>(
+fn validate_one<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,

@@ -1,9 +1,10 @@
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
 use postgres::{Client, GenericClient};
 use time::format_description::well_known::Rfc3339;
 use time::{OffsetDateTime, UtcOffset};
 
-pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let present: bool = client.query_one(
         "SELECT pg_catalog.to_regclass('case_participants') IS NOT NULL
          AND pg_catalog.to_regclass('case_participant_revisions') IS NOT NULL

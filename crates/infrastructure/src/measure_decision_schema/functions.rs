@@ -8,10 +8,10 @@ pub(super) const TRIGGERS: [&str; 7] = [
     "enforce_measure_decision_hearing_anchor()",
     "enforce_measure_administration_capture()",
 ];
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for signature in TRIGGERS {
         let types: &[&str] = &[];
         let row = client

@@ -1,9 +1,9 @@
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::Client;
 
 const TABLE: &str = "case_stage_revisions";
 
-pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let exists: bool = client
         .query_one("SELECT to_regclass($1) IS NOT NULL", &[&TABLE])
         .map_err(port)?
@@ -117,7 +117,7 @@ pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
     }
     validate_columns(client)
 }
-fn validate_columns(client: &mut Client) -> Result<(), ApplicationError> {
+fn validate_columns<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let columns = [
         ("case_id", "uuid", true),
         ("revision", "bigint", true),

@@ -10,6 +10,7 @@ pub(crate) mod permissions;
 mod specifications;
 mod triggers;
 
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
 pub(crate) use catalog::validate_schema;
 pub(crate) use inventory::validate_inventory;
@@ -34,7 +35,7 @@ pub(crate) fn grant_runtime<C: GenericClient>(
     )
 }
 
-pub(crate) fn validate_runtime<C: GenericClient>(
+pub(crate) fn validate_runtime<C: CatalogClient>(
     client: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {

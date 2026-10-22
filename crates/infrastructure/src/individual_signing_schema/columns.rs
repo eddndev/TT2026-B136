@@ -1,6 +1,6 @@
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 fn expected(_: &str) -> &'static [(&'static str, &'static str)] {
     &[
@@ -35,7 +35,7 @@ pub(super) fn names(table: &str) -> Vec<&'static str> {
     expected(table).iter().map(|column| column.0).collect()
 }
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         let rows = client.query(
             "SELECT a.attname::text,format_type(a.atttypid,a.atttypmod),a.attnotnull,

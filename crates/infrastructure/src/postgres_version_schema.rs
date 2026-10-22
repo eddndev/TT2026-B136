@@ -1,8 +1,9 @@
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
 use postgres::Client;
 
 /// Checks structural protection and metadata continuity once when runtime opens.
-pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let present: bool = client
         .query_one(
             "SELECT pg_catalog.to_regclass('document_series') IS NOT NULL

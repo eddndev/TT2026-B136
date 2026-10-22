@@ -1,6 +1,6 @@
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 pub(super) fn expected(table: &str) -> Vec<(String, String)> {
     let (prefix, expressions): (&str, &[(&str, &str)]) = match table {
@@ -77,7 +77,7 @@ pub(super) fn expected(table: &str) -> Vec<(String, String)> {
         .collect()
 }
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         let rows = client
             .query(

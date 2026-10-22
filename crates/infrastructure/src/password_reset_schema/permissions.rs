@@ -1,4 +1,5 @@
 use super::{columns::COLUMNS, function_specs::SPECS, port, TABLE};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
 use postgres::GenericClient;
 
@@ -34,7 +35,7 @@ pub(crate) fn grant_runtime<C: GenericClient>(
     )).map_err(port)
 }
 
-pub(crate) fn validate_runtime<C: GenericClient>(
+pub(crate) fn validate_runtime<C: CatalogClient>(
     client: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {

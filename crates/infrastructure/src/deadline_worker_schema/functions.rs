@@ -1,8 +1,8 @@
 use super::{function_specs::FUNCTIONS, incomplete, port, MIGRATIONS, RESULTS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for spec in FUNCTIONS {
         let row = client
             .query_opt(
