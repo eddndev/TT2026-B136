@@ -1,9 +1,9 @@
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::Client;
 
 const VALUES_ARGS: &str = "text,text,text,text,text,text,text,text[],text,text";
 
-pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let tables = [
         "cases",
         "case_administration_revisions",
@@ -173,7 +173,11 @@ pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
     validate_columns(client)
 }
 
-fn require_key(client: &mut Client, table: &str, key: &[&str]) -> Result<(), ApplicationError> {
+fn require_key<C: CatalogClient>(
+    client: &mut C,
+    table: &str,
+    key: &[&str],
+) -> Result<(), ApplicationError> {
     let valid: bool = client.query_one("SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_constraint c WHERE c.conrelid=$1::text::regclass AND c.contype='p' AND (SELECT array_agg(a.attname::text ORDER BY k.n) FROM unnest(c.conkey) WITH ORDINALITY k(num,n) JOIN pg_catalog.pg_attribute a ON a.attrelid=c.conrelid AND a.attnum=k.num)=$2::text[])", &[&table,&key]).map_err(port)?.get(0);
     if valid {
         Ok(())
@@ -182,7 +186,7 @@ fn require_key(client: &mut Client, table: &str, key: &[&str]) -> Result<(), App
     }
 }
 
-fn validate_columns(client: &mut Client) -> Result<(), ApplicationError> {
+fn validate_columns<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for (table, columns) in [
         (
             "cases",

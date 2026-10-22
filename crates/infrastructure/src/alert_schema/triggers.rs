@@ -1,8 +1,8 @@
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         for (name, function, kind) in [
             ("alert_lock", "lock_alert_mutations()", 22_i16),
@@ -59,7 +59,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     Ok(())
 }
 
-fn ordinary<C: GenericClient>(
+fn ordinary<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,

@@ -1,8 +1,8 @@
 use super::{columns, constraints, functions, incomplete, indexes, port, triggers, TABLE};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(crate) fn validate_schema<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate_schema<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let valid: bool = client
         .query_one(
             "SELECT EXISTS(SELECT 1 FROM pg_class c JOIN pg_class u ON u.oid='users'::regclass

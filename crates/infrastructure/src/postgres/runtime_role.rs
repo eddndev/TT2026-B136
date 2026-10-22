@@ -1,7 +1,7 @@
 use crate::postgres_connection::port_error;
 use application::ApplicationError;
 
-pub(super) fn validate_runtime_role<C: postgres::GenericClient>(
+pub(super) fn validate_runtime_role<C: super::CatalogClient>(
     client: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {

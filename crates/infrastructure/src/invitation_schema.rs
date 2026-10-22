@@ -1,4 +1,5 @@
 //! Schema and least-privilege runtime access for recoverable invitations.
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
 use postgres::GenericClient;
 
@@ -29,7 +30,7 @@ pub(crate) fn grant_runtime<C: GenericClient>(
     ))
     .map_err(port)
 }
-pub(crate) fn validate_schema<C: GenericClient>(c: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate_schema<C: CatalogClient>(c: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         let valid:bool=c.query_one("SELECT EXISTS(SELECT 1 FROM pg_class c JOIN pg_class u ON u.oid='users'::regclass WHERE c.oid=to_regclass($1) AND c.relnamespace=u.relnamespace AND c.relowner=u.relowner AND c.relkind='r' AND c.relpersistence='p' AND NOT c.relrowsecurity AND NOT c.relforcerowsecurity AND NOT c.relispartition)",&[&table]).map_err(port)?.get(0);
         if !valid {
@@ -71,7 +72,7 @@ pub(crate) fn validate_schema<C: GenericClient>(c: &mut C) -> Result<(), Applica
     }
     Ok(())
 }
-pub(crate) fn validate_runtime<C: GenericClient>(
+pub(crate) fn validate_runtime<C: CatalogClient>(
     c: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {

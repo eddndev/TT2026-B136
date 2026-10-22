@@ -1,6 +1,6 @@
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 pub(super) fn expected(_table: &str) -> Vec<String> {
     [
@@ -17,7 +17,7 @@ pub(super) fn expected(_table: &str) -> Vec<String> {
         "((recorded_at_nanoseconds >= 0) AND (recorded_at_nanoseconds <= 999999999))",
     ].into_iter().map(str::to_owned).collect()
 }
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         let rows = client
             .query(

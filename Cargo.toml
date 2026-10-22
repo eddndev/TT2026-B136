@@ -105,3 +105,22 @@ opt-level = 3
 
 [profile.dev.package.rsa]
 opt-level = 3
+
+# Every PostgreSQL connection authenticates with SCRAM-SHA-256, whose client
+# derives the key with 4096 HMAC-SHA-256 iterations. Unoptimized builds spend
+# about 48 ms per connection there, and database tests open many connections.
+# Optimize only that derivation and its hashing kernels.
+[profile.dev.package.postgres-protocol]
+opt-level = 3
+
+[profile.dev.package.hmac]
+opt-level = 3
+
+[profile.dev.package.sha2]
+opt-level = 3
+
+[profile.dev.package.digest]
+opt-level = 3
+
+[profile.dev.package.block-buffer]
+opt-level = 3

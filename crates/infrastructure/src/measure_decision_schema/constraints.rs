@@ -3,10 +3,10 @@ use super::{
     specifications::{FOREIGN_KEYS, KEYS},
     TABLES,
 };
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for &(table, name, columns, primary) in KEYS {
         let kind = if primary { "p" } else { "u" };
         let valid: bool = client

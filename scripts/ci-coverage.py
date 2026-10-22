@@ -2,7 +2,9 @@
 import hashlib
 import os
 from pathlib import Path
+import shutil
 import subprocess
+import time
 
 
 def cache_key(root, environment, toolchain):
@@ -24,6 +26,25 @@ def cache_key(root, environment, toolchain):
     return digest.hexdigest()[:24]
 
 
+def prune_caches(directory, keep=3, now=None, idle_seconds=6 * 3600):
+    """Keep the newest coverage builds; each Cargo or toolchain change adds another."""
+    now = time.time() if now is None else now
+    os.utime(directory, (now, now))
+    siblings = []
+    for path in directory.parent.iterdir():
+        if path == directory or path.is_symlink() or not path.is_dir():
+            continue
+        siblings.append((path.stat().st_mtime, path))
+    removed = []
+    for modified, path in sorted(siblings, reverse=True)[max(keep - 1, 0):]:
+        # A cache touched recently may belong to a job still running on this host.
+        if now - modified < idle_seconds:
+            continue
+        shutil.rmtree(path)
+        removed.append(path.name)
+    return removed
+
+
 def clear_measurements(directory, report):
     report.unlink(missing_ok=True)
     for pattern in ("*.profraw", "*.profdata", "*-profraw-list"):
@@ -39,6 +60,7 @@ def main():
     target = Path(os.environ["CARGO_TARGET_DIR"]).resolve()
     directory = target.parent / "coverage" / cache_key(root, os.environ, toolchain)
     directory.mkdir(parents=True, exist_ok=True)
+    prune_caches(directory)
     report = root / "coverage.json"
     clear_measurements(directory, report)
     environment = {**os.environ, "CARGO_LLVM_COV_TARGET_DIR": str(directory)}

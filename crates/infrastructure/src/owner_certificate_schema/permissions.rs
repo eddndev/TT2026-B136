@@ -1,4 +1,5 @@
 use super::{columns, functions::TRIGGERS, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
 use postgres::GenericClient;
 
@@ -27,7 +28,7 @@ pub(crate) fn grant_runtime<C: GenericClient>(
         .map_err(port)
 }
 
-pub(crate) fn validate_runtime<C: GenericClient>(
+pub(crate) fn validate_runtime<C: CatalogClient>(
     client: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {
@@ -69,7 +70,7 @@ pub(crate) fn validate_runtime<C: GenericClient>(
     Ok(())
 }
 
-fn exposed_acl<C: GenericClient>(client: &mut C, role: &str) -> Result<bool, ApplicationError> {
+fn exposed_acl<C: CatalogClient>(client: &mut C, role: &str) -> Result<bool, ApplicationError> {
     client.query_one(
         "SELECT EXISTS(SELECT 1 FROM pg_class c,
             LATERAL aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a

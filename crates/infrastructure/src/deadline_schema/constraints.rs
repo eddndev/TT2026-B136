@@ -1,7 +1,7 @@
 use super::{incomplete, port};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for (table, name, kind, names) in [
         (
             "case_deadlines",

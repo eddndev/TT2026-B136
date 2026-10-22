@@ -1,12 +1,12 @@
 use super::{incomplete, port, FUNCTIONS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 const SQL: [&str; 2] = [
     include_str!("../../../../migrations/0015_deadline_source_events.sql"),
     include_str!("../../../../migrations/0016_deadline_profile_events.sql"),
 ];
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for signature in FUNCTIONS {
         let row = client.query_opt("SELECT p.prosrc,p.provolatile::text,p.prorettype::regtype::text,
             p.prosecdef,p.proconfig,p.proisstrict,p.proleakproof,l.lanname,n.oid=c.relnamespace,

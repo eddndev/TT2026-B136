@@ -8,6 +8,7 @@ mod inventory;
 mod specifications;
 mod triggers;
 
+use crate::postgres::CatalogClient;
 use crate::signing_binding_schema::{catalog, permissions};
 use application::ApplicationError;
 pub(crate) use inventory::validate_inventory;
@@ -18,7 +19,7 @@ pub(crate) const MIGRATIONS: &[&str] = &[include_str!(
 )];
 const TABLES: [&str; 1] = ["individual_document_signatures"];
 
-pub(crate) fn validate_schema<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate_schema<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     catalog::validate_tables(client, &TABLES, incomplete, port)?;
     columns::validate(client)?;
     constraints::validate(client)?;
@@ -41,7 +42,7 @@ pub(crate) fn grant_runtime<C: GenericClient>(
     )
 }
 
-pub(crate) fn validate_runtime<C: GenericClient>(
+pub(crate) fn validate_runtime<C: CatalogClient>(
     client: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {

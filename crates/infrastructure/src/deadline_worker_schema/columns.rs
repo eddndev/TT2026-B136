@@ -1,6 +1,6 @@
 use super::{incomplete, port, ATTEMPTS, RESULTS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 pub(super) const RESULT_COLUMNS: &[(&str, &str, bool)] = &[
     ("job_id", "uuid", true),
@@ -41,7 +41,7 @@ pub(super) fn names(table: &str) -> Vec<&'static str> {
     columns.iter().map(|column| column.0).collect()
 }
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for (table, expected) in [(RESULTS, RESULT_COLUMNS), (ATTEMPTS, ATTEMPT_COLUMNS)] {
         let rows = client
             .query(

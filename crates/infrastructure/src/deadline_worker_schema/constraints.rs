@@ -1,9 +1,9 @@
 //! Exact keys and references; CHECK predicates are validated separately.
 use super::{checks, incomplete, port, ATTEMPTS, RESULTS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for (table, name, kind, columns) in [
         (
             RESULTS,

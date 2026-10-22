@@ -1,7 +1,7 @@
 use super::{constraints, expressions, functions, incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
-pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         let valid:bool=client.query_one("SELECT EXISTS(SELECT 1 FROM pg_class WHERE oid=to_regclass($1) AND relkind='r' AND relpersistence='p' AND NOT relispartition AND NOT relrowsecurity AND NOT relforcerowsecurity AND NOT EXISTS(SELECT 1 FROM pg_inherits WHERE inhrelid=to_regclass($1) OR inhparent=to_regclass($1)))",&[&table]).map_err(port)?.get(0);
         if !valid {
@@ -119,7 +119,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     }
     Ok(())
 }
-fn columns<C: GenericClient>(
+fn columns<C: CatalogClient>(
     client: &mut C,
     table: &str,
     expected: &[(&str, &str, bool, &str)],

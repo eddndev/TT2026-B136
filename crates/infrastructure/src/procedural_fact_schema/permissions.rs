@@ -2,6 +2,7 @@ use application::ApplicationError;
 use postgres::GenericClient;
 
 use super::{port, HELPERS, TABLES, TRIGGERS};
+use crate::postgres::CatalogClient;
 
 pub(crate) fn grant_runtime<C: GenericClient>(
     client: &mut C,
@@ -22,7 +23,7 @@ pub(crate) fn grant_runtime<C: GenericClient>(
         .map_err(port)
 }
 
-pub(crate) fn validate_runtime_role<C: GenericClient>(
+pub(crate) fn validate_runtime_role<C: CatalogClient>(
     client: &mut C,
     role: &str,
 ) -> Result<(), ApplicationError> {

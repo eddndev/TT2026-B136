@@ -1,8 +1,8 @@
 use super::{function_specs::SPECS, incomplete, port, MIGRATIONS, TABLE};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for spec in SPECS {
         let all: Vec<&str> = spec.inputs.iter().chain(spec.outputs).copied().collect();
         let row = client

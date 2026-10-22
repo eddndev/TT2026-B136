@@ -1,8 +1,8 @@
 use super::{incomplete, port, CANDIDATES, MIGRATIONS, TRIGGER_FUNCTIONS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let signatures: Vec<&str> = std::iter::once(CANDIDATES)
         .chain(TRIGGER_FUNCTIONS)
         .collect();

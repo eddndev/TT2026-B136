@@ -1,7 +1,7 @@
 //! Index keys, predicates and comparison semantics for durable dispatch.
 use super::{incomplete, port, CURSOR, JOBS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 struct Index {
     table: &'static str,
@@ -70,7 +70,7 @@ const INDEXES: &[Index] = &[
     },
 ];
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for spec in INDEXES {
         let valid: bool = client
             .query_one(

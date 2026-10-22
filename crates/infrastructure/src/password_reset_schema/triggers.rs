@@ -1,8 +1,8 @@
 use super::{constraints::FOREIGN, incomplete, port, TABLE};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let valid: bool = client.query_one(
         "SELECT EXISTS(SELECT 1 FROM pg_trigger g JOIN pg_constraint c ON c.oid=g.tgconstraint
         JOIN pg_class t ON t.oid=g.tgrelid WHERE g.tgrelid=$1::text::regclass
@@ -35,7 +35,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     validate_audit_triggers(client)
 }
 
-fn foreign_key<C: GenericClient>(
+fn foreign_key<C: CatalogClient>(
     client: &mut C,
     name: &str,
     target: &str,
@@ -79,7 +79,7 @@ fn foreign_key<C: GenericClient>(
     Ok(())
 }
 
-pub(crate) fn validate_audit_triggers<C: GenericClient>(
+pub(crate) fn validate_audit_triggers<C: CatalogClient>(
     client: &mut C,
 ) -> Result<(), ApplicationError> {
     crate::audit_query_schema::validate_reference_triggers(client)

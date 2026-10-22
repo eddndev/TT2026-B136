@@ -1,8 +1,8 @@
 use super::{incomplete, port, MIGRATION};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let row = client
         .query_opt(
             "SELECT p.prosrc,p.provolatile::text,p.prorettype::regtype::text,

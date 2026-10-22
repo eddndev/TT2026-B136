@@ -1,6 +1,6 @@
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bool)] {
     match table {
@@ -133,7 +133,7 @@ pub(super) fn mutable(table: &str) -> &'static [&'static str] {
     }
 }
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         let expected = expected(table);
         let rows = client

@@ -1,6 +1,6 @@
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 pub(super) fn expected(_: &str) -> Vec<String> {
     let mut values: Vec<String> = [
@@ -36,7 +36,7 @@ pub(super) fn expected(_: &str) -> Vec<String> {
     values
 }
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let rows = client
         .query(
             "SELECT pg_get_expr(c.conbin,c.conrelid),c.convalidated AND NOT c.connoinherit

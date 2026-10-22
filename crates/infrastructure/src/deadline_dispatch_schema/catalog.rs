@@ -1,8 +1,8 @@
 use super::{constraints, functions, incomplete, indexes, port, CURSOR, JOBS, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         let valid: bool = client
             .query_one(
@@ -109,7 +109,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     Ok(())
 }
 
-fn columns<C: GenericClient>(
+fn columns<C: CatalogClient>(
     client: &mut C,
     table: &str,
     expected: &[(&str, &str, bool)],
@@ -143,7 +143,7 @@ fn columns<C: GenericClient>(
     Ok(())
 }
 
-fn trigger<C: GenericClient>(
+fn trigger<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,

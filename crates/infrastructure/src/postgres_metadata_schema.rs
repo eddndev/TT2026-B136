@@ -1,8 +1,9 @@
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
 use postgres::Client;
 
 /// Validates organizational history protection before opening a runtime adapter.
-pub(crate) fn validate(client: &mut Client) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let present: bool = client.query_one(
         "SELECT pg_catalog.to_regclass('document_metadata_revisions') IS NOT NULL
          AND pg_catalog.to_regprocedure('document_metadata_bytes(text,text,text[])') IS NOT NULL

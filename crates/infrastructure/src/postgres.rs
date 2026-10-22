@@ -4,9 +4,12 @@ use crate::postgres_connection::{port_error, require_utf8};
 use application::ApplicationError;
 use postgres::{Client, NoTls};
 
+mod catalog_client;
 mod migration_lock;
 mod migrations;
 mod runtime_role;
+pub(crate) use catalog_client::CatalogClient;
+use catalog_client::PreparedCatalog;
 use migrations::*;
 use runtime_role::validate_runtime_role;
 
@@ -179,44 +182,49 @@ pub(crate) fn unlock_startup_schema(
 }
 
 pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationError> {
-    crate::postgres_version_schema::validate(client)?;
-    crate::postgres_metadata_schema::validate(client)?;
-    crate::document_upload_origin_schema::validate(client)?;
-    crate::postgres_participant_schema::validate(client)?;
-    crate::postgres_case_administration_schema::validate(client)?;
-    crate::postgres_case_stages_schema::validate(client)?;
-    crate::credential_trust_postgres::schema::validate(client)?;
-    crate::typed_participant_schema::validate(client)?;
-    crate::hearing_schema::validate(client)?;
-    crate::hearing_result_schema::validate(client)?;
-    crate::judicial_calendar_schema::validate(client)?;
-    crate::procedural_fact_schema::validate(client)?;
-    crate::deadline_profile_schema::validate(client)?;
-    crate::deadline_schema::validate(client)?;
-    crate::deadline_source_event_schema::validate(client)?;
-    crate::deadline_dispatch_schema::validate(client)?;
-    crate::deadline_worker_schema::validate(client)?;
-    crate::alert_schema::validate(client)?;
-    crate::procedural_resource_schema::validate(client)?;
-    crate::resource_activity_schema::validate(client)?;
-    crate::resource_hearing_schema::validate(client)?;
-    crate::precautionary_hearing_schema::validate(client)?;
-    crate::measure_decision_schema::validate(client)?;
-    crate::hearing_derived_deadline_schema::validate(client)?;
-    crate::document_integrity_schema::validate(client)?;
-    crate::member_schema::validate(client)?;
-    crate::case_report_schema::validate(client)?;
-    crate::audit_query_schema::validate(client)?;
-    crate::password_reset_schema::validate_schema(client)?;
-    crate::owner_certificate_schema::validate_schema(client)?;
-    crate::signing_binding_schema::validate_schema(client)?;
-    crate::individual_signing_schema::validate_schema(client)?;
-    crate::invitation_schema::validate_schema(client)?;
-    let role: String = client
-        .query_one("SELECT current_user", &[])
-        .map_err(port_error)?
-        .get(0);
-    validate_runtime_role(client, &role)?;
+    // Catalog and role checks reuse statements only within this call; see
+    // docs/adr/0083-call-scoped-prepared-catalog-statements.md.
+    {
+        let mut catalog = PreparedCatalog::new(client);
+        crate::postgres_version_schema::validate(&mut catalog)?;
+        crate::postgres_metadata_schema::validate(&mut catalog)?;
+        crate::document_upload_origin_schema::validate(&mut catalog)?;
+        crate::postgres_participant_schema::validate(&mut catalog)?;
+        crate::postgres_case_administration_schema::validate(&mut catalog)?;
+        crate::postgres_case_stages_schema::validate(&mut catalog)?;
+        crate::credential_trust_postgres::schema::validate(&mut catalog)?;
+        crate::typed_participant_schema::validate(&mut catalog)?;
+        crate::hearing_schema::validate(&mut catalog)?;
+        crate::hearing_result_schema::validate(&mut catalog)?;
+        crate::judicial_calendar_schema::validate(&mut catalog)?;
+        crate::procedural_fact_schema::validate(&mut catalog)?;
+        crate::deadline_profile_schema::validate(&mut catalog)?;
+        crate::deadline_schema::validate(&mut catalog)?;
+        crate::deadline_source_event_schema::validate(&mut catalog)?;
+        crate::deadline_dispatch_schema::validate(&mut catalog)?;
+        crate::deadline_worker_schema::validate(&mut catalog)?;
+        crate::alert_schema::validate(&mut catalog)?;
+        crate::procedural_resource_schema::validate(&mut catalog)?;
+        crate::resource_activity_schema::validate(&mut catalog)?;
+        crate::resource_hearing_schema::validate(&mut catalog)?;
+        crate::precautionary_hearing_schema::validate(&mut catalog)?;
+        crate::measure_decision_schema::validate(&mut catalog)?;
+        crate::hearing_derived_deadline_schema::validate(&mut catalog)?;
+        crate::document_integrity_schema::validate(&mut catalog)?;
+        crate::member_schema::validate(&mut catalog)?;
+        crate::case_report_schema::validate(&mut catalog)?;
+        crate::audit_query_schema::validate(&mut catalog)?;
+        crate::password_reset_schema::validate_schema(&mut catalog)?;
+        crate::owner_certificate_schema::validate_schema(&mut catalog)?;
+        crate::signing_binding_schema::validate_schema(&mut catalog)?;
+        crate::individual_signing_schema::validate_schema(&mut catalog)?;
+        crate::invitation_schema::validate_schema(&mut catalog)?;
+        let role: String = catalog
+            .query_one("SELECT current_user", &[])
+            .map_err(port_error)?
+            .get(0);
+        validate_runtime_role(&mut catalog, &role)?;
+    }
     crate::postgres_version_schema::validate_inventory(client)?;
     crate::postgres_metadata_schema::validate_inventory(client)?;
     crate::document_upload_origin_schema::validate_inventory(client)?;

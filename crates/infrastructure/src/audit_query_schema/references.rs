@@ -1,10 +1,10 @@
 //! Only the exact built-in audit foreign-key triggers may attach to audit rows.
 use application::ApplicationError;
-use postgres::GenericClient;
 
 use super::{incomplete, port};
+use crate::postgres::CatalogClient;
 
-pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for (table, constraint, deferred) in [
         (
             "password_reset_capabilities",

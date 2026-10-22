@@ -1,7 +1,7 @@
 use super::{function_specs::FUNCTIONS, incomplete, port, MIGRATIONS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for spec in FUNCTIONS {
         let signature = spec.signature;
         let row=client.query_opt("SELECT p.prosrc,p.provolatile::text,p.prorettype::regtype::text,p.prosecdef,p.proconfig,p.proisstrict,p.proleakproof,l.lanname,n.oid=c.relnamespace,quote_ident(n.nspname),p.prokind::text,p.proparallel::text,p.proretset,p.pronargdefaults,p.provariadic FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_class c ON c.oid='case_deadlines'::regclass WHERE p.oid=to_regprocedure($1)",&[&signature]).map_err(port)?.ok_or_else(incomplete)?;

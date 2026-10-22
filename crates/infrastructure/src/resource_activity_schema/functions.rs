@@ -4,10 +4,10 @@ pub(super) const TRIGGERS: [&str; 3] = [
     "lock_resource_activity_history()",
     "enforce_resource_activity_sequence()",
 ];
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for signature in TRIGGERS {
         let types: &[&str] = &[];
         let row = client

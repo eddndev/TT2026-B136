@@ -1,7 +1,7 @@
 //! Exact catalog expressions for the versioned deadline table contract.
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 const CHECKS: &[(&str, &str, &str)] = &[
     (
         "case_deadlines",
@@ -247,7 +247,7 @@ END"#,
         r#"((deadline_tracking(tracking_canonical) ->> 'administration_revision'::text))::bigint"#,
     ),
 ];
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let checks=client.query("SELECT c.relname::text,k.conname::text,pg_get_expr(k.conbin,k.conrelid),k.convalidated,k.connoinherit FROM pg_constraint k JOIN pg_class c ON c.oid=k.conrelid WHERE k.conrelid IN (SELECT t::regclass FROM unnest($1::text[]) t) AND k.contype='c'", &[&&TABLES[..]]).map_err(port)?;
     if checks.len() != CHECKS.len()
         || CHECKS.iter().any(|(table, name, expression)| {

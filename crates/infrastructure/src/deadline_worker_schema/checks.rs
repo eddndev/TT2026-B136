@@ -1,7 +1,7 @@
 //! Exact deparsed CHECK expressions for both immutable worker ledgers.
 use super::{incomplete, port, ATTEMPTS, RESULTS};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
 const CHECKS: &[(&str, &str, &str)] = &[
     (
@@ -61,7 +61,7 @@ const CHECKS: &[(&str, &str, &str)] = &[
     ),
 ];
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     let rows = client
         .query(
             "SELECT t.relname::text,c.conname::text,pg_catalog.pg_get_expr(c.conbin,c.conrelid),

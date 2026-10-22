@@ -1,8 +1,8 @@
 use super::{incomplete, port, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for table in TABLES {
         ordinary(
             client,
@@ -68,7 +68,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     )
 }
 
-fn ordinary<C: GenericClient>(
+fn ordinary<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,
@@ -93,7 +93,7 @@ fn ordinary<C: GenericClient>(
     Ok(())
 }
 
-fn complete<C: GenericClient>(
+fn complete<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,

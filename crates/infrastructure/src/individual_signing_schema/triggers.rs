@@ -1,8 +1,8 @@
 use super::{incomplete, port, specifications::FOREIGN_KEYS, TABLES};
+use crate::postgres::CatalogClient;
 use application::ApplicationError;
-use postgres::GenericClient;
 
-pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
+pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), ApplicationError> {
     for &(table, name, _, target, _, deferred) in FOREIGN_KEYS {
         foreign_key(client, table, name, target, deferred)?;
     }
@@ -47,7 +47,7 @@ pub(super) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     Ok(())
 }
 
-fn deferred<C: GenericClient>(
+fn deferred<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,
@@ -73,7 +73,7 @@ fn deferred<C: GenericClient>(
     Ok(())
 }
 
-fn ordinary<C: GenericClient>(
+fn ordinary<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,
@@ -98,7 +98,7 @@ fn ordinary<C: GenericClient>(
     Ok(())
 }
 
-fn foreign_key<C: GenericClient>(
+fn foreign_key<C: CatalogClient>(
     client: &mut C,
     table: &str,
     name: &str,
