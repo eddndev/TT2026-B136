@@ -33,3 +33,9 @@ the main campaign keeps the advisory and policy gates current. A main commit
 whose tree differs from every tested merge ref, for example after merging an
 outdated branch, still runs the full suite. Flaky failures that did not appear
 in the reused run are not retried. The evidence expires after seven days.
+
+Because the test job now depends on `reuse`, which is skipped outside main
+pushes, the coverage gate states its own status condition: it runs whenever
+the test job and the deployment backup check succeeded. Without it, GitHub
+skipped the coverage gate on every pull request from the introduction of this
+decision until the condition was added.
