@@ -1,0 +1,156 @@
+\section{Análisis de costos}\label{sec:costos}
+
+Con el alcance fijado por los requerimientos y el plan de diez iteraciones (\cref{fig:03a-iteraciones}), esta sección estima el costo del prototipo. El recurso humano se valora por su costo de oportunidad y cada rubro se registra aunque hoy cueste cero, para dejar claro que fue evaluado.
+
+\subsection{Metodología de estimación}\label{sec:costos-metodologia}
+
+El costo de oportunidad es el salario de mercado que cada integrante percibiría como desarrollador full-stack junior o intermedio en la Zona Metropolitana del Valle de México, convertido a tarifa por hora. Los rangos se triangularon con seis fuentes (\cref{tab:fuentes-salariales}); Data México promedia todas las experiencias y regiones del país, así que su cifra solo sirve como límite inferior.
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \caption{Fuentes salariales consultadas.}
+  \label{tab:fuentes-salariales}
+  \begin{tabularx}{\linewidth}{@{}X L{0.36\linewidth}R{0.15\linewidth}@{}}
+    \toprule
+    \textbf{Fuente} & \textbf{Rango mensual (MXN)} & \textbf{Fecha} \\
+    \midrule
+    Glassdoor MX (Jr Full-Stack) & \$11,854 a \$20,114 & Marzo 2026 \\
+    Jobted MX (Jr Full-Stack) & \$11,650 promedio Jr & 2026 \\
+    Indeed MX (Programador Jr) & \$12,784 promedio & Febrero 2026 \\
+    Coderhouse (Jr Full-Stack) & \$22,000 a \$28,000 & 2025 \\
+    Talently (Jr Full-Stack MX) & ${\approx}$\$29,000 (${\approx}$\$1,436 USD) & Mayo 2024 \\
+    Data México (ENOE, primer trimestre) & \$8,410 promedio nacional & 2025 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Con estas fuentes se definen tres escenarios (\cref{tab:escenarios-salariales}). La tarifa supone 160 horas al mes bajo un esquema de honorarios, que ya incorpora el sobrecosto por la ausencia de prestaciones de ley (cerca de 30 a 35\,\% sobre una nómina tradicional). Los cálculos usan el escenario más probable, \textbf{\$156.25 MXN por hora}; los otros dos acotan el intervalo posible.
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \caption{Escenarios salariales y tarifa por hora (MXN).}
+  \label{tab:escenarios-salariales}
+  \begin{tabularx}{\linewidth}{@{}L{0.14\linewidth}R{0.10\linewidth}R{0.10\linewidth}X@{}}
+    \toprule
+    \textbf{Escenario} & \textbf{Mensual} & \textbf{Por hora} & \textbf{Justificación} \\
+    \midrule
+    Optimista & \$18,000 & \$112.50 & Zona media-alta del rango junior de Glassdoor (\$11,854 a \$20,114). \\
+    Más probable & \$25,000 & \$156.25 & Mediana del rango junior a intermedio (Coderhouse, Glassdoor). \\
+    Pesimista & \$32,000 & \$200.00 & Techo del rango intermedio, con prima criptográfica. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Capacidad del equipo y presupuesto base}\label{sec:costos-capacidad}
+
+Los integrantes son estudiantes de último semestre con carga académica simultánea, lo que reduce su disponibilidad a 30 horas por semana. Las prácticas de XP restan otro 20\,\%: 15\,\% por escribir las pruebas antes del código (TDD) y 5\,\% por las reuniones de cada iteración. En la programación en pareja se cuentan las horas de ambos, aunque producen una sola línea de trabajo. La \cref{fig:costos-capacidad} lleva estas cifras, durante las cinco semanas de codificación intensiva de la fase II, hasta el costo base.
+
+\begin{figure}[htbp]
+  \centering
+  \input{figures/fig-03e-capacidad}
+  \caption{De la disponibilidad semanal al costo base; cada flecha aplica un factor.}
+  \label{fig:costos-capacidad}
+\end{figure}
+
+\subsection{Desglose y resumen financiero}\label{sec:costos-desglose}
+
+En la \cref{tab:desglose-costos}, los rubros sin costo lo son por decisiones técnicas deliberadas, no por omisión; la reserva de contingencia es el valor monetario esperado (VME) total de la \cref{sec:riesgos}.
+
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \caption{Desglose de costos y resumen financiero del prototipo (MXN).}
+  \label{tab:desglose-costos}
+  \begin{tabularx}{\linewidth}{@{}L{0.25\linewidth}X R{0.14\linewidth}@{}}
+    \toprule
+    \textbf{Rubro} & \textbf{Proveedor o herramienta} & \textbf{Costo} \\
+    \midrule
+    Recurso humano & Dos desarrolladores, 240 horas-persona a \$156.25. & \$37,500.00 \\
+    Sellado de tiempo externo & Sandbox de Cincel, prestador de servicios de certificación (PSC): API sin garantía operativa y pago con precios no transparentes; la evidencia usa la TSA local. & No contratado \\
+    Servidor & Servidor virtual (VPS) que ya poseía el equipo. & \$0.00 \\
+    Correo transaccional & Resend, plan gratuito. & \$0.00 \\
+    Herramientas y bases de datos & Rust, Axum, Astro, Svelte, Git, PostgreSQL y Redis (código abierto). & \$0.00 \\
+    Certificados TLS & Let's Encrypt, gratuito y automatizado. & \$0.00 \\
+    \midrule
+    \multicolumn{2}{@{}l}{Costo total conocido sin contingencia} & \$37,500.00 \\
+    \multicolumn{2}{@{}l}{Reserva de contingencia (VME total de la línea base)} & \$43,703.13 \\
+    \multicolumn{2}{@{}l}{\textbf{Presupuesto conocido, sin el sandbox del PSC}} & \textbf{\$81,203.13} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La reserva equivale al 116.5\,\% del costo base, reflejo del alto riesgo técnico de integrar servicios criptográficos sin tolerancia a fallos en cinco semanas. El presupuesto es una cota inferior: quedan fuera el sandbox del PSC, hasta contar con una tarifa verificable, y los rubros de producción (sellado externo estable, infraestructura dedicada con respaldos, dominio y certificados).
+
+\section{Análisis de riesgos}\label{sec:riesgos}
+
+El análisis prioriza los riesgos del desarrollo con una matriz cualitativa de severidad y con el valor monetario esperado de cada riesgo. Cada riesgo recibe un nivel de probabilidad y otro de impacto en tiempo, ambos de 1 a 3, y su producto es la severidad. La probabilidad es baja por debajo de 20\,\%, media de 20 a 60\,\% y alta por encima de 60\,\%. El impacto es bajo hasta 16 horas de retraso, que se absorben en la iteración; medio de 17 a 40 horas, que obligan a repriorizar historias; y alto por encima de 40 horas, que comprometen la entrega. El impacto financiero de un riesgo materializado es $\mathrm{IF} = H \times N \times T$, donde $H$ son las horas de retraso, $N$ los desarrolladores afectados (1 o 2) y $T$ la tarifa de \$156.25 por hora; el valor monetario esperado lo pondera por la probabilidad: $\mathrm{VME} = P \times \mathrm{IF}$. La \cref{fig:matriz-riesgos} ubica los doce riesgos y la respuesta que exige cada nivel.
+
+Los doce riesgos suman un VME de línea base de \textbf{\$43,703.13 MXN}, la reserva de contingencia de la \cref{tab:desglose-costos}. Si RTC-01, RLC-01 y ROP-01 ocurrieran a la vez, el retraso combinado sería de 113 horas para ambos desarrolladores, es decir, 226 horas-persona: el 94\,\% de las 240 horas-persona de capacidad, o casi cinco de las cinco semanas de codificación.
+
+\begin{figure}[htbp]
+  \centering
+  \input{figures/fig-03e-matriz-riesgos}
+  \caption{Matriz de severidad con los doce riesgos. El color indica la respuesta exigida; ningún riesgo cae en la celda crítica y RTC-01 es el único de probabilidad alta.}
+  \label{fig:matriz-riesgos}
+\end{figure}
+
+% Fila de riesgo: datos en la primera línea y respuesta en la segunda.
+\newcommand{\RiesgoFila}[8]{\textbf{#1} & #2 & #3 & #4 & #5 & #6 & #7 \\*
+  \multicolumn{7}{@{}>{\raggedright\arraybackslash\leftskip=1em}p{\linewidth}@{}}{#8} \\ \addlinespace[4pt]}
+\newcommand{\RiesgoEnc}{\toprule
+  \textbf{ID} & \textbf{Riesgo} & \textbf{P} & \textbf{I} & \textbf{Severidad} & \textbf{VME} & \textbf{Objetivos} \\
+  \midrule}
+
+\subsection{Registro de riesgos}\label{sec:riesgos-tecnicos}
+
+La \cref{tab:riesgos} agrupa los doce riesgos en técnicos y criptográficos (RTC), legales y de cumplimiento (RLC) y operativos (ROP). El más probable es la integración con el PSC que sella el tiempo (RTC-01), el único de probabilidad alta, y de hecho se materializó. Bajo los datos de cada riesgo (probabilidad P e impacto I) aparecen su mitigación y su contingencia o, si ya ocurrió, su estado.
+
+{\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}L{0.075\linewidth}L{0.315\linewidth}L{0.08\linewidth}L{0.085\linewidth}L{0.135\linewidth}R{0.09\linewidth}L{0.115\linewidth}@{}}
+  \caption{Registro de riesgos del proyecto.}\label{tab:riesgos}\label{tab:rtc-01}\label{tab:rtc-02}\label{tab:rlc-01} \\
+  \RiesgoEnc\endfirsthead
+  \RiesgoEnc\endhead
+  \bottomrule\endlastfoot
+  \multicolumn{7}{@{}l}{\textbf{Técnicos y criptográficos}} \\* \addlinespace[2pt]
+  \RiesgoFila{RTC-01}{Integración inestable con el PSC (RFC 3161)}{3 (70\,\%)}{2 (30 h)}{6 Grave}{\$6,562.50}{OE-3}
+    {\textit{Mitigación:} validar el contrato con una exploración técnica y aislar al proveedor tras la interfaz de sellado. \textit{Contingencia prevista:} simular las respuestas del PSC con un servicio sustituto local. \textit{Estado:} materializado (\cref{sec:riesgo-psc-materializado}). \textit{Respuesta aplicada:} TSA local cuyo certificado emite la CA interna, etiquetada como evidencia interna que no sustituye a un PSC autorizado.}
+  \RiesgoFila{RTC-02}{AES-256-GCM inseguro por IV predecible o repetido}{2 (40\,\%)}{3 (45 h)}{6 Grave}{\$5,625.00}{OE-4}
+    {\textit{Mitigación:} programación en pareja obligatoria en el módulo y pruebas TDD que validen la aleatoriedad y la no reutilización del vector de inicialización (IV). \textit{Contingencia:} revertir el código, rotar las llaves maestras y rehacer la lógica criptográfica.}
+  \RiesgoFila{RTC-03}{Almacenamiento inaccesible o mal configurado}{2 (30\,\%)}{1 (15 h)}{2 Menor}{\$703.13}{OE-1, OE-6}
+    {\textit{Mitigación:} configuración de mínimo privilegio documentada en el repositorio. \textit{Contingencia:} un desarrollador corrige la infraestructura mientras el otro usa temporalmente el disco local del servidor.}
+  \RiesgoFila{RTC-04}{Pérdida de la clave maestra de cifrado}{1 (15\,\%)}{3 (150 h)}{3 Moderado}{\$7,031.25}{OE-4}
+    {\textit{Mitigación:} resguardar la clave separada de los datos cifrados. \textit{Contingencia:} restaurar la copia de seguridad de las claves; sin respaldo, declarar incidente crítico de pérdida de datos y notificar a los interesados.}
+  \RiesgoFila{RTC-05}{Certificado X.509 de firma vencido en producción}{2 (40\,\%)}{2 (20 h)}{4 Significativo}{\$2,500.00}{OE-3, OE-5}
+    {\textit{Mitigación:} alerta preventiva configurable antes del vencimiento (por ejemplo, a 30 y 7 días). \textit{Contingencia:} emitir un certificado de reemplazo, avisar a los firmantes y reprogramar las firmas pendientes.}
+  \multicolumn{7}{@{}l}{\textbf{Legales y de cumplimiento}} \\* \addlinespace[2pt]
+  \RiesgoFila{RLC-01}{Resumen SHA-256 discrepante al sellar por serialización inconsistente (NOM-151)}{2 (50\,\%)}{3 (48 h)}{6 Grave}{\$7,500.00}{OE-3, OE-4}
+    {\textit{Mitigación:} estudiar el anexo técnico de la NOM-151 y auditar los resúmenes generados en Rust contra OpenSSL en línea de comandos. \textit{Contingencia:} detener las firmas, validar la estructura del resumen y corregir la serialización antes de un nuevo envío.}
+  \RiesgoFila{RLC-02}{Bitácora de auditoría modificable (CNPP, arts.~227 y 228)}{1 (15\,\%)}{2 (24 h)}{2 Menor}{\$1,125.00}{OE-2, OE-6}
+    {\textit{Mitigación:} impedir desde el diseño que el rol operativo de PostgreSQL modifique o borre la bitácora, que solo admite agregar. \textit{Contingencia:} restaurar el respaldo previo, auditar los registros afectados y bloquear la mutación en la base de datos.}
+  \RiesgoFila{RLC-03}{Fuga de datos por falla de autorización (LFPDPPP, art.~19)}{1 (10\,\%)}{3 (50 h)}{3 Moderado}{\$1,562.50}{OE-4, OE-5}
+    {\textit{Mitigación:} restringir por rol y ámbito toda consulta y verificar el aislamiento con pruebas automatizadas. \textit{Contingencia:} modo de mantenimiento, rotación de credenciales y corrección del control.}
+  \RiesgoFila{RLC-04}{PSC (Cincel) indisponible o degradado}{2 (30\,\%)}{2 (20 h)}{4 Significativo}{\$1,875.00}{OE-3}
+    {\textit{Mitigación:} interfaz abstracta para cambiar de PSC sin tocar la lógica central y pruebas deterministas independientes del proveedor. \textit{Estado:} materializado parcialmente como inestabilidad de la API, no como interrupción total. \textit{Contingencia:} encolar y reintentar con límites; usar la TSA interna para continuidad técnica, sin conmutación silenciosa y sin presentar sus tokens como constancias de un tercero.}
+  \multicolumn{7}{@{}l}{\textbf{Operativos y de la metodología XP}} \\* \addlinespace[2pt]
+  \RiesgoFila{ROP-01}{Curva de aprendizaje de TDD en criptografía}{2 (50\,\%)}{2 (35 h)}{4 Significativo}{\$5,468.75}{OE-3 a OE-5}
+    {\textit{Mitigación:} TDD estricto solo en los flujos criptográficos centrales (resumen, cifrado y validación X.509). \textit{Contingencia:} pasar a pruebas de integración posteriores en componentes secundarios si una prueba bloquea más de cuatro horas.}
+  \RiesgoFila{ROP-02}{Crecimiento del alcance de las interfaces}{2 (50\,\%)}{2 (20 h)}{4 Significativo}{\$3,125.00}{OE-1, OE-2}
+    {\textit{Mitigación:} congelar las historias visuales y reutilizar componentes; la interfaz se construye después del hito criptográfico, así que el riesgo residual recae en la gestión procesal (OE-2). \textit{Contingencia:} recortar funciones no críticas, como los reportes visuales (RF-19).}
+  \RiesgoFila{ROP-03}{Pareja interrumpida por ausencia de un integrante}{2 (25\,\%)}{1 (16 h)}{2 Menor}{\$625.00}{OE-1 a OE-6}
+    {\textit{Mitigación:} propiedad colectiva del código e integración continua diaria. \textit{Contingencia:} el desarrollador activo toma tareas de menor riesgo técnico hasta restablecer la pareja.}
+\end{longtable}}
+
+\subsection{Materialización del riesgo del proveedor de sellado}\label{sec:riesgo-psc-materializado}
+
+El registro en el entorno de Cincel se completó, pero RTC-01 se materializó al consumir el servicio: la API no respondió con la estabilidad necesaria para ser una dependencia determinista de las pruebas o la demostración, y su entorno de pruebas (sandbox) requiere pago con precios no transparentes. Por ello la prueba contra el entorno de pruebas de Cincel se conserva, desactivada, como referencia, y la evidencia de Cincel queda fuera del prototipo. La probabilidad de 70\,\% y el VME de \$6,562.50 se conservan como línea base por trazabilidad, no como costo incurrido; el impacto efectivo no se cuantifica porque no se pagó el uso del entorno de pruebas. La misma inestabilidad de la API materializa en parte el riesgo RLC-04 (PSC indisponible o degradado), aunque no llegó a una interrupción total; por eso ambos riesgos registran su estado.
+
+La respuesta aplicada supera la contingencia de simulación prevista (\cref{fig:sellado-psc}). La CA interna emite un certificado exclusivo para una TSA local que produce tokens RFC 3161 reales, verificables con OpenSSL, detrás de la misma interfaz de sellado que usaría el adaptador del PSC; así se construyeron la API, la persistencia y la interfaz web sin depender del proveedor. Esa TSA aporta evidencia técnica, pero no la independencia de un tercero ni una constancia NOM-151 de un PSC autorizado. El servidor no consulta a Cincel ni cambia de emisor en silencio. En un despliegue con PSC, una falla externa deberá encolarse o informarse al usuario, y adoptar una TSA regulada será una sustitución consciente del adaptador y de su ancla de confianza.
+
+\begin{figure}[htbp]
+  \centering
+  \input{figures/fig-03e-sellado-psc}
+  \caption{Respuesta a la materialización de RTC-01. La evidencia del prototipo proviene de la TSA local; el adaptador del PSC sigue disponible, pero solo se activaría por una sustitución deliberada.}
+  \label{fig:sellado-psc}
+\end{figure}

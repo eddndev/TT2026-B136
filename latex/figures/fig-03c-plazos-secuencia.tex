@@ -1,0 +1,34 @@
+\begin{tikzpicture}[actor/.append style={minimum width=2.3cm, text width=2.1cm},
+  fase/.style={font=\diag\bfseries, text=ESCOMGris, anchor=west, fill=white, inner sep=1.5pt},
+  sep/.style={draw=ESCOMGris!45, line width=0.4pt}]
+  \Actores{lit/1.15/{Litigante},qad/3.85/{Qadra\\ (navegador)},api/6.55/{API},pg/9.25/{PostgreSQL},srv/11.95/{Procesos\\ internos},mail/14.65/{Correo\\ (Resend)}}{-13.85}
+  % Programación (CU-08)
+  \draw[sep] (0,-0.7) -- (15.8,-0.7);
+  \node[fase] at (0,-0.7) {Programar audiencia};
+  \Msg{1.15}{3.85}{-1.15}{\textbf{1} datos de la audiencia}
+  \Msg{3.85}{6.55}{-1.7}{\textbf{2} preparar y confirmar}
+  \Paso{6.55}{-1.85}{2.4}{Comprueba que el tipo corresponda a la etapa vigente}
+  \Msg{6.55}{9.25}{-3.1}{audiencia + auditoría}
+  \Msg[msgR]{6.55}{3.85}{-3.6}{recibo; entra a la agenda}
+  % Resultado y plazo (CU-08)
+  \draw[sep] (0,-3.95) -- (15.8,-3.95);
+  \node[fase] at (0,-3.95) {Resultado y plazo derivado};
+  \Msg{1.15}{3.85}{-4.7}{\textbf{3} resultado declarado\\ y perfil del plazo}
+  \Msg{3.85}{6.55}{-5.25}{\textbf{4} preparar}
+  \Paso{6.55}{-5.4}{2.4}{Calcula el vencimiento con el perfil y el calendario; puede quedar bloqueado}
+  \Msg[msgR]{6.55}{3.85}{-6.95}{cálculo o bloqueo}
+  \Msg{3.85}{6.55}{-7.5}{\textbf{5} confirmar}
+  \Msg{6.55}{9.25}{-8.25}{resultado + plazo\\ + auditoría y evento}
+  \Paso{9.25}{-8.4}{2.3}{Una sola transacción}
+  % Avisos (CU-10)
+  \draw[sep] (0,-9.1) -- (15.8,-9.1);
+  \node[fase] at (0,-9.1) {Avisos};
+  \Msg{11.95}{9.25}{-9.55}{\textbf{6} recorre actividades}
+  \Paso{11.95}{-9.7}{2.4}{Anticipación configurada (48 h y 24 h por omisión), vencido sin atención o revisión requerida}
+  \Msg{11.95}{9.25}{-11.9}{aviso interno, correo\\ pendiente y auditoría}
+  \Msg{11.95}{14.65}{-12.45}{\textbf{7} aviso genérico}
+  \Msg[msgR]{14.65}{11.95}{-12.95}{aceptado}
+  \Paso{14.65}{-13.1}{2.3}{No acredita entrega ni lectura}
+  \Msg{3.85}{6.55}{-12.5}{\textbf{8} bandeja y agenda}
+  \Msg[msgR]{6.55}{3.85}{-13.45}{aviso, tras\\ revalidar acceso}
+\end{tikzpicture}

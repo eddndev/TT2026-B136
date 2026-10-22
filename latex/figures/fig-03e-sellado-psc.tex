@@ -1,0 +1,34 @@
+\begin{tikzpicture}[
+  bloque/.style={caja, text width=2.7cm, minimum height=0.95cm}]
+  % Zonas
+  \draw[zona] (0,0.45) rectangle (11.0,-4.1);
+  \draw[zona, fill=white] (11.4,0.45) rectangle (16,-4.1);
+  \node[zonaLabel] at (0,0.45) {PROTOTIPO (SERVIDOR DEL EQUIPO)};
+  \node[zonaLabel] at (11.4,0.45) {PROVEEDOR EXTERNO};
+
+  % Prototipo
+  \node[bloque, text width=2.5cm] (puerto) at (1.6,-1.6) {\textbf{Servicio de sellado}\\ interfaz única del\\ sistema};
+  \node[bloque, minimum height=0.6cm] (ca) at (5.55,-0.3) {\textbf{CA interna}};
+  \node[cajaOsc, text width=2.7cm, minimum height=0.95cm] (tsa) at (5.55,-1.6)
+    {\textbf{TSA local}\\ OpenSSL, uso actual};
+  \node[cajaGris, text width=2.7cm, minimum height=0.95cm] (adap) at (5.55,-2.9)
+    {\textbf{Adaptador del PSC}\\ disponible, sin uso pagado};
+  \node[cajaClara, text width=2.6cm, minimum height=0.95cm] (token) at (9.3,-1.6)
+    {\textbf{Token RFC 3161}\\ evidencia técnica\\ interna};
+  \node[caja, text width=2.6cm, minimum height=0.6cm] (ossl) at (9.3,-0.3)
+    {Verificable con OpenSSL};
+
+  \draw[flecha] (ca) -- node[etq, right]{certificado de TSA} (tsa);
+  \draw[flecha] (puerto) -- (tsa);
+  \draw[flechaSuave] (puerto.south) |- (adap.west);
+  \node[font=\diag, text=ESCOMTinta, anchor=north west, align=left] at (1.7,-2.98) {sustitución consciente,\\ sin conmutación\\ silenciosa};
+  \draw[flecha] (tsa) -- (token);
+  \draw[flecha] (token) -- (ossl);
+
+  % Proveedor externo
+  \node[cajaError, text width=3.9cm, align=left, minimum height=1.5cm] (cincel) at (13.7,-2.4)
+    {\textbf{API de Cincel}\\ registro completado\\ respuesta inestable\\ sandbox de pago, precio\\ no transparente};
+  \node[cajaGris, text width=3.9cm, minimum height=0.95cm] (nom) at (13.7,-0.5)
+    {Constancia NOM-151 de un\\ PSC autorizado: fuera\\ del alcance};
+  \draw[flechaError] (adap.east) -- node[etq, below, pos=0.45]{sin uso en la evidencia} (adap.east -| cincel.west);
+\end{tikzpicture}

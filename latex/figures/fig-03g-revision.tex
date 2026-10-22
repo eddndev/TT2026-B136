@@ -1,0 +1,21 @@
+\begin{tikzpicture}
+  \Actores{q/2.2/{Qadra},s/8.0/{Servidor Rust},p/13.8/{PostgreSQL}}{-6.75}
+  \Msg{2.2}{8.0}{-0.9}{\textbf{1} cambio y revisión vigente esperada}
+  \Paso{8.0}{-1.05}{4.2}{Autentica la sesión, revalida el permiso y prepara cifrado o sello si aplica}
+  \Msg{8.0}{13.8}{-2.0}{\textbf{2} transacción con el cambio}
+  \Paso{13.8}{-2.15}{3.8}{Compara la revisión esperada\\ con la vigente}
+
+  % Alternativa: solo ocurre una de las dos ramas
+  \draw[draw=ESCOMGris, dashed, line width=0.5pt] (0,-2.95) rectangle (16,-5.75);
+  \draw[draw=ESCOMGris, dashed, line width=0.5pt] (0,-4.3) -- (16,-4.3);
+  \node[font=\diag\bfseries, text=ESCOMGris, anchor=north west, inner sep=2pt] at (0,-2.95) {si es distinta};
+  \node[font=\diag\bfseries, text=ESCOMGris, anchor=north west, inner sep=2pt] at (0,-4.3) {si es igual};
+
+  \Msg[msgE]{13.8}{8.0}{-3.5}{se revierte}
+  \Msg[msgE]{8.0}{2.2}{-3.5}{\textbf{3a} conflicto}
+  \Paso[pasoError]{2.2}{-3.65}{3.8}{Conserva el borrador;\\ el usuario decide}
+  \Paso[pasoOsc]{13.8}{-4.5}{3.8}{Agrega la revisión siguiente y su\\ evento encadenado, y confirma\\ ambos en una sola transacción}
+  \Msg[msgR]{13.8}{8.0}{-5.55}{confirmado}
+  \Msg[msgR]{8.0}{2.2}{-5.55}{\textbf{3b} revisión nueva y su huella}
+  \Paso{2.2}{-5.9}{3.8}{Si la respuesta se pierde, consulta la\\ revisión exacta antes de repetir}
+\end{tikzpicture}

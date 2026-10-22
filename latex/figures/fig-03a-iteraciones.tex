@@ -1,0 +1,54 @@
+\begin{tikzpicture}[
+    it/.style={caja, inner sep=2.5pt, anchor=north},
+    itOsc/.style={it, fill=ESCOMAzulOscuro, draw=ESCOMAzulOscuro, text=white},
+    sem/.style={font=\diag, text=ESCOMGris, anchor=south, inner sep=1.5pt},
+  ]
+  % Contenido de una iteración: título y objetivo, alineados arriba.
+  \def\Iter#1#2{\parbox[c][2.05cm][t]{2.6cm}{\raggedright
+    {\bfseries #1}\par\vspace{1.5pt}{\diag #2}}}
+  % Fase I: semanas 1 a 5
+  \foreach \k/\t/\d [count=\i from 0] in {
+      1/{Requisitos y fundamentos}/{Normativa de firma, fecha y datos personales; bases criptográficas; requisitos},
+      2/{Entorno y sistemas similares}/{Normativa procesal penal en el medio digital; brechas de sistemas similares},
+      3/{Riesgos y modelado}/{Matriz de riesgos; historias de usuario priorizadas; casos de uso},
+      4/{Arquitectura y datos}/{Backend, frontend y flujos de seguridad; base híbrida SQL y clave-valor},
+      5/{Calidad y cierre del diseño}/{Matriz de pruebas funcionales, de integración y criptográficas}} {
+    \node[it] (i\k) at ({1.4+3.15*\i},0) {\Iter{\t}{\d}};
+    \node[sem] at (i\k.north) {Semana \k};
+    \node[numero, anchor=south west] at ($(i\k.north west)+(0,0.04)$) {\k};
+  }
+  % Fase II: semanas 6 a 10
+  \foreach \k/\t/\d/\st [count=\i from 0] in {
+      6/{Andamiaje y núcleo base}/{Proyecto base e integración continua; SHA-256 y AES-256-GCM; spike de sellado}/itOsc,
+      7/{PKI interna y firma}/{CA raíz, certificados X.509 y CRL; firma RSA-3072 con SHA-256}/itOsc,
+      8/{Sellado, acceso y auditoría}/{Sellado RFC~3161; Argon2id y TOTP; bitácora encadenada; demostración en consola}/itOsc,
+      9/{Persistencia y gestión procesal}/{PostgreSQL y Redis; sesiones y roles; expedientes, documentos y web mínima}/it,
+      10/{Pruebas y cierre}/{Matriz de pruebas, usabilidad, refactorización y manuales}/it} {
+    \node[\st] (i\k) at ({1.4+3.15*\i},-3.75) {\Iter{\t}{\d}};
+    \node[sem] at (i\k.north) {Semana \k};
+    \node[numero, anchor=south west] at ($(i\k.north west)+(0,0.04)$) {\k};
+  }
+  % Secuencia
+  \foreach \a/\b in {1/2,2/3,3/4,4/5,6/7,7/8,8/9,9/10}
+    \draw[flecha] (i\a.east) -- (i\b.west);
+  \draw[flecha] (i5.south) -- ++(0,-0.3) -| ($(i6.west)+(-0.3,0)$) -- (i6.west);
+  % Agrupación de la Fase II
+  \coordinate (b) at ($(i6.south)+(0,-0.22)$);
+  \draw[ESCOMAzulOscuro, line width=0.7pt]
+    ($(i6.west|-b)+(0,0.12)$) -- (i6.west|-b) -- (i8.east|-b) -- ++(0,0.12);
+  \node[font=\diag\bfseries, text=ESCOMAzulOscuro, anchor=north, inner sep=2pt] (g1)
+    at ($(i6.west|-b)!0.5!(i8.east|-b)$)
+    {Núcleo criptográfico: se demuestra de extremo a extremo antes de las vistas};
+  \draw[ESCOMAzul, line width=0.7pt]
+    ($(i9.west|-b)+(0,0.12)$) -- (i9.west|-b) -- (i10.east|-b) -- ++(0,0.12);
+  \node[font=\diag, text=ESCOMAzul, anchor=north, inner sep=2pt] (g2)
+    at ($(i9.west|-b)!0.5!(i10.east|-b)$)
+    {Sistema y vistas sobre servicios ya probados};
+  % Zonas
+  \begin{scope}[on background layer]
+    \node[zona, fit=(i1)(i5), inner ysep=6pt, yshift=3pt, inner xsep=6pt] (f1) {};
+    \node[zona, fit=(i6)(i10)(g1)(g2), inner ysep=6pt, yshift=3pt, inner xsep=6pt] (f2) {};
+  \end{scope}
+  \node[zonaLabel] at ($(f1.north west)+(0,0.38)$) {Fase I: exploración, diseño y spikes};
+  \node[zonaLabel] at ($(f2.north west)+(0,0.38)$) {Fase II: construcción, pruebas y refactorización};
+\end{tikzpicture}

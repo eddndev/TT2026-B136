@@ -1,0 +1,223 @@
+\section{Diseño de arquitectura del sistema}\label{sec:arquitectura}
+
+Esta sección describe cómo se organiza el prototipo para cumplir los requerimientos de las \cref{sec:requerimientos-funcionales,sec:requerimientos-no-funcionales}, desde los atributos de calidad hasta las fronteras de confianza. Las vistas siguen el modelo C4 de Brown \cite{brown2024} y el modelo 4+1 de Kruchten \cite{kruchten1995}, adaptados al alcance del prototipo. Las decisiones principales se registran como ADR (Architecture Decision Record) según Nygard \cite{nygard2011} en la \cref{sec:adrs}, y su correspondencia con los requerimientos se resume en la \cref{sec:trazabilidad}.
+
+\subsection{Atributos de calidad que guían el diseño}\label{sec:drivers-calidad}
+
+La norma ISO/IEC 25010:2011 \cite{iso25010} clasifica la calidad del software en ocho características. El prototipo prioriza las que más pesan en un dominio jurídico y criptográfico, como resume la \cref{tab:atributos-calidad}. Ante un conflicto entre dos atributos se favorece el de mayor prioridad.
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{Atributos de calidad priorizados, su motivación y la respuesta de la arquitectura.}
+  \label{tab:atributos-calidad}
+  \begin{tabularx}{\linewidth}{@{}L{0.22\linewidth}L{0.25\linewidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Atributo} & \textbf{Motivación} & \textbf{Respuesta de diseño} \\
+    \midrule
+    1. Seguridad & RNF-01, RNF-02, RNF-03 & Lenguaje con seguridad de memoria, cifrado de sobre (\cref{sec:cifrado-reposo}) y puertos criptográficos intercambiables. \\
+    2. Integridad y trazabilidad & RNF-04, RNF-11 & Cada cambio y su evento de auditoría se confirman juntos en PostgreSQL; una cadena SHA-256 permite comprobar la bitácora. \\
+    3. Evolvabilidad & Cambiar PSC, base de datos o correo & Un sistema externo nuevo solo exige otro adaptador. \\
+    4. Testabilidad & XP y TDD (\cref{sec:metodologia}) & El dominio se prueba con dobles, sin infraestructura real. \\
+    5. Mantenibilidad & Bajo acoplamiento, alta cohesión & Cada capa es un módulo de compilación distinto. \\
+    6. Observabilidad y desempeño & Operación del servicio & Trazas estructuradas; retroalimentación interactiva en menos de 300 ms (RNF-07). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La evolvabilidad se entiende, con Ford, Parsons y Kua, como la capacidad de un sistema para cambiar de forma guiada \cite{ford2023}. La integridad tiene un límite explícito: los administradores de la base de datos forman parte de la base de confianza, y el anclaje externo de la cabeza de la cadena se contempla como protección adicional frente a un truncamiento final (\cref{sec:postgresql}).
+
+\subsection{Vista de contexto del sistema}\label{sec:vista-contexto}
+
+La vista de contexto, primer nivel del modelo C4, trata al sistema como una caja negra y muestra con quién se comunica (\cref{fig:contexto}). Los cuatro perfiles del despacho usan Qadra desde el navegador; Qadra consume la API HTTP autenticada del despacho. El operador de la CA interna trabaja en un portal y un proceso separados, y la API del despacho confía en los certificados que emite esa CA y en su lista de revocación (CRL). El sellado de tiempo pasa por un puerto que hoy conecta una TSA local de demostración y que admite un PSC externo; la TSA local no sustituye a un PSC. El correo transaccional de invitaciones, recuperación de contraseña, informes y alertas sale por la API HTTPS de Resend y se activa de forma explícita en el servidor; que el proveedor acepte un mensaje no acredita que llegue a la bandeja.
+
+\begin{figure}[tbp]
+  \centering
+  \input{figures/fig-03f-contexto}
+  \caption{Vista de contexto. El despacho y la CA interna son sistemas separados; la línea discontinua marca integraciones opcionales o de solo confianza.}
+  \label{fig:contexto}
+\end{figure}
+
+Quedan fuera del alcance la firma realizada por entidades ajenas al despacho, como la e.firma del SAT (\cref{sec:firma-digital}), y la integración con tribunales o fiscalías. La arquitectura permitiría añadir esta última como nuevos adaptadores de entrada sin modificar el dominio.
+
+\subsection{Selección del estilo arquitectónico}\label{sec:estilo-arquitectonico}
+
+El estilo arquitectónico condiciona la organización del código, el manejo de dependencias y la estrategia de pruebas. Se evaluaron seis alternativas de la literatura (\cref{tab:comparativa-estilos}). Las capas tradicionales hacen que el dominio dependa de la persistencia, lo que impide probarlo sin infraestructura real. Los microservicios exigen orquestación, descubrimiento de servicios y observabilidad distribuida \cite{newman2021}, una carga desproporcionada para un equipo de dos personas; Fowler recomienda empezar con un monolito modular \cite{fowler2015}.
+
+\begin{table}[H]
+  \centering
+  \small
+  \caption{Comparativa de estilos arquitectónicos frente a los atributos priorizados.}
+  \label{tab:comparativa-estilos}
+  \begin{tabularx}{\linewidth}{@{}L{0.3\linewidth}C{0.13\linewidth}C{0.14\linewidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Estilo} & \textbf{Testabilidad} & \textbf{Evolvabilidad} & \textbf{Adecuación al alcance} \\
+    \midrule
+    Capas tradicionales (N-tier) & Baja & Baja & Inadecuada: dominio atado a la base de datos \\
+    Clean Architecture \cite{martin2017} & Alta & Alta & Adecuada, pero más prescriptiva \\
+    Onion Architecture & Alta & Alta & Equivalente a la hexagonal, menos clara \\
+    Hexagonal \cite{cockburn2005} & Alta & Alta & La más adecuada \\
+    Microservicios & Media & Alta & Desproporcionada en operación \\
+    Monolito modular sin puertos & Media & Media & No impone la dirección de dependencias \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Clean, Onion y hexagonal comparten la regla de dependencias hacia adentro: el dominio no conoce la infraestructura. Se elige la hexagonal por tres razones. Su formulación es la más simple, pues solo distingue puertos de entrada y de salida. Comunica que los adaptadores son intercambiables. Y se corresponde directamente con Rust: los puertos son interfaces (traits) y el grafo de dependencias entre módulos de compilación impide las importaciones prohibidas (\cref{sec:workspace-cargo}). La decisión se registra como ADR-01.
+
+\subsection{Arquitectura hexagonal: definición y aplicación}\label{sec:hexagonal-definicion}
+
+La arquitectura hexagonal de Cockburn \cite{cockburn2005}, refinada por Vernon \cite{vernon2013} en el marco del diseño guiado por el dominio \cite{evans2003}, organiza el software en tres anillos: dominio al centro, aplicación alrededor y adaptadores en el exterior (\cref{fig:hexagonal}).
+
+\begin{figure}[H]
+  \centering
+  \input{figures/fig-03f-hexagonal}
+  \caption{Arquitectura hexagonal del prototipo. Todas las flechas apuntan hacia el dominio: los adaptadores de entrada invocan casos de uso y los de salida implementan puertos.}
+  \label{fig:hexagonal}
+\end{figure}
+
+El \textbf{dominio} define las reglas del despacho: cuentas y permisos, expedientes, etapas y participantes, audiencias y sus resultados, recursos y medidas cautelares, calendarios y plazos, documentos y sus versiones, firmas individuales, evidencia criptográfica, alertas y auditoría. Los valores procesales son declaraciones del despacho y no acreditan identidad jurídica ni la validez de un acto. El dominio no importa ninguna otra capa; solo usa bibliotecas básicas para tipos, serialización, fechas, errores y borrado de secretos en memoria.
+
+La \textbf{aplicación} implementa los casos de uso y declara en sus puertos las dependencias externas y las fronteras transaccionales. Las operaciones con soportes documentales y las audiencias se preparan primero y se confirman después en una transacción auditada; un recibo permite conciliar una respuesta incierta sin reenvío automático.
+
+Los \textbf{adaptadores} concretan los puertos. Las entradas son la API del despacho, la API del portal de la CA y la línea de comandos. Las salidas incluyen PostgreSQL, Redis, la criptografía con OpenSSL, la TSA local o un PSC opcional, procesos aislados que inspeccionan formatos documentales y el correo. Los avisos internos se guardan en PostgreSQL y la interfaz los consulta por HTTP, sin un canal WebSocket. La regla es estricta: ninguna capa interior importa una exterior, y el compilador comprueba que cada adaptador cumple el contrato de su puerto. El \cref{cap:implementacion} muestra los puertos y adaptadores concretos (\cref{fig:hexagonal-completa}).
+
+\subsection{Vista de componentes}\label{sec:vista-componentes}
+
+Un contexto delimitado (bounded context) es una zona del modelo donde cada término tiene un significado único \cite{evans2003}. El sistema se descompone en siete contextos (\cref{fig:componentes}). Seis son funcionales y cada uno corresponde a uno de los seis grupos de casos de uso de la \cref{fig:cu-panorama}, con el mismo nombre; el séptimo, Servicios criptográficos, es compartido.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/fig-03f-componentes}
+  \caption{Vista de componentes. Cada flecha va del contexto que depende al contexto que utiliza; los servicios criptográficos atienden a documentos y firma.}
+  \label{fig:componentes}
+\end{figure}
+
+Cada contexto reparte sus tipos, casos de uso y adaptadores entre las capas hexagonales; los resultados de audiencia, las medidas cautelares, las actuaciones, los recursos procesales y el seguimiento técnico de los plazos tienen módulos propios. Identidad, expedientes, documentos y criptografía son la base del calendario procesal, la firma individual y la supervisión.
+
+\subsection{Estructura del workspace de Cargo}\label{sec:workspace-cargo}
+
+El proyecto es un workspace de Cargo, el sistema de compilación y paquetes de Rust, con seis módulos de compilación (crates). Cinco forman el servidor y reproducen las capas hexagonales; el sexto implementa la criptografía local del navegador sin depender de los anteriores (\cref{fig:workspace}).
+
+\begin{figure}[tbp]
+  \centering
+  \input{figures/fig-03f-workspace}
+  \caption{Workspace de Cargo. Las flechas son dependencias declaradas: todas bajan hacia \texttt{domain}, que no depende de nadie; el crate del navegador queda aparte.}
+  \label{fig:workspace}
+\end{figure}
+
+Con esta organización las dependencias prohibidas no son una convención: son imposibles. Si el dominio intentara usar un adaptador de infraestructura, la compilación fallaría con un error de importación no resuelta, porque su manifiesto no declara esa dependencia. El crate \texttt{bin} es la raíz de composición. Al iniciar, el servidor crea la TSA local, los repositorios de PostgreSQL, el estado de autenticación en Redis, los validadores documentales aislados y los procesos internos de plazos, alertas, informes y correo, y los conecta con los servicios de aplicación. Sustituir un adaptador consiste en entregar otra implementación del mismo puerto. El crate del navegador se compila a WebAssembly y genera claves y firmas en un worker (\cref{sec:impl-criptografia-local}).
+
+\subsection{Stack tecnológico}\label{sec:stack-tecnologico}
+
+\subsubsection{Rust en el servidor}\label{sec:rust-backend}
+
+El servidor se escribe en Rust \cite{klabnik2023}. Su sistema de propiedad de memoria, verificado al compilar, elimina los errores de manejo de memoria sin recolector de basura; Microsoft atribuye a esa clase de errores cerca del 70\,\% de las vulnerabilidades de sus productos en una década \cite{msrc2019}. Sus tipos de resultado obligan a tratar cada error de forma explícita, algo valioso cuando una firma puede fallar por un certificado revocado o un documento demasiado grande. Frente a Java o Node.js evita una máquina virtual o un intérprete en ejecución, y frente a Python ofrece bibliotecas criptográficas auditadas y mantenidas. Su operación depende de PostgreSQL, Redis, OpenSSL y de las herramientas fijadas para la admisión documental (qpdf y FFmpeg).
+
+\subsubsection{Axum para la API HTTP}\label{sec:axum}
+
+Axum, construido sobre bibliotecas estándar del ecosistema asíncrono de Rust, no impone una organización del código, lo que facilita el estilo hexagonal; cada manejador recibe los casos de uso que necesita. El enrutador comparte los límites de admisión entre todas las rutas, valida cuerpos y cabeceras y prohíbe el almacenamiento en caché de las respuestas. La \cref{fig:peticion} resume el recorrido de una petición.
+
+\subsubsection{Astro y Svelte en la interfaz}\label{sec:frontend-astro}
+
+La interfaz usa Astro como marco de páginas y Svelte para los componentes. La arquitectura de islas \cite{sylormiller2019} motivó la evaluación de Astro, pero las vistas autenticadas son muy interactivas, por lo que cada vista autenticada es una página estática que carga un componente interactivo en el navegador. Qadra y el portal de la CA son aplicaciones separadas con un sistema de diseño compartido. Frente a Next.js con React, Svelte genera paquetes más ligeros; frente a SvelteKit, Astro entrega archivos estáticos sin un servidor que genere las páginas.
+
+\subsubsection{Persistencia híbrida}\label{sec:persistencia-hibrida}
+
+PostgreSQL guarda usuarios, expedientes, asignaciones, documentos cifrados y auditoría; Redis guarda sesiones y controles efímeros de autenticación. Así, cada cambio documental comparte transacción con su evento y el estado de sesión tiene una vida limitada. El modelo se desarrolla en la \cref{sec:bd-hibrida}.
+
+\subsubsection{Bibliotecas del workspace}\label{sec:inventario-crates}
+
+Las bibliotecas que más pesan en el diseño son las criptográficas: hash y cifrado AES-GCM, firma RSA-3072, lectura de certificados X.509, autenticación con contraseña y segundo factor, y lectura de sellos RFC 3161. El resto cubre datos, HTTP, línea de comandos, trazas y pruebas. Los manifiestos y el archivo de bloqueo fijan sus versiones; el inventario concreto y la versión mínima del compilador se detallan en las \cref{sec:impl-workspace,sec:impl-servicios}.
+
+\subsection{Patrones arquitectónicos transversales}\label{sec:patrones-transversales}
+
+Cuatro patrones atraviesan todas las capas: errores tipados, concurrencia acotada, composición explícita de dependencias y observabilidad estructurada. La \cref{fig:peticion} muestra cómo se combinan en una petición autenticada que modifica datos.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-03f-peticion}
+  \caption{Recorrido de una petición autenticada. La admisión acota la carga antes de trabajar, la identidad se recarga en cada operación y el cambio se confirma junto con su auditoría.}
+  \label{fig:peticion}
+\end{figure}
+
+\subsubsection{Manejo de errores}\label{sec:manejo-errores}
+
+Cada capa tiene sus propios errores tipados: el dominio expresa invariantes rotas, la aplicación fallos de casos de uso y puertos, y la capa web traduce el resultado a una respuesta HTTP sin exponer detalles internos ni secretos. Los adaptadores convierten los errores de almacenamiento en errores del puerto; solo la raíz de composición usa un tipo de error genérico.
+
+\subsubsection{Modelo de concurrencia asíncrona}\label{sec:concurrencia-asincrona}
+
+El transporte HTTP se atiende de forma asíncrona, mientras los casos de uso, PostgreSQL, Redis y la preparación criptográfica se ejecutan como trabajo bloqueante acotado. El servidor limita cuántas peticiones y cuántas operaciones costosas atiende a la vez y rechaza el exceso de inmediato, sin formar colas; ambos límites son configurables según la memoria y el costo criptográfico del equipo de despliegue. Una operación costosa conserva su lugar hasta terminar, aunque el cliente cancele (\cref{fig:peticion}), porque aún puede confirmar un cambio. Las conexiones a Redis tienen un tiempo máximo de espera, salvo el intercambio inicial con el servidor, que todavía requiere un control propio. El servidor se detiene de forma ordenada y espera las operaciones en curso. Los pendientes de transporte se resumen en la \cref{sec:vista-seguridad}.
+
+\subsubsection{Inyección de dependencias por composición}\label{sec:inyeccion-dependencias}
+
+La inyección de dependencias se hace de forma explícita en el crate \texttt{bin} (\cref{sec:workspace-cargo}), sin contenedor especializado. Los servicios de firma individual reciben puertos de verificación pública, de confianza y de persistencia. La clave del titular nunca llega al servidor: la sesión solo lo autoriza a presentar sus pruebas y consultar su recibo. El material privado del servidor se usa para el sellado interno y no para construir firmas personales.
+
+\subsubsection{Observabilidad estructurada}\label{sec:observabilidad}
+
+Los registros operativos son estructurados; el diseño propone además trazas por petición y su envío a un agregador. El identificador de petición generado por el servidor relaciona los registros de acceso con los eventos de auditoría que lo conservan. Una política de tratamiento de secretos controla los campos emitidos. La auditoría es una responsabilidad distinta: sus eventos y su encadenamiento viven en PostgreSQL, de modo que el registro durable de una operación no depende de los registros del proceso.
+
+\subsection{Vista de seguridad: fronteras de confianza}\label{sec:vista-seguridad}
+
+Esta vista complementa el diseño criptográfico de la \cref{sec:diseno-cripto}: en lugar de los algoritmos, muestra en qué zona vive cada componente y qué control se aplica al cruzar de una zona a otra. Sigue el principio de defensa en profundidad de Saltzer y Schroeder \cite{saltzer1975} y la guía OWASP ASVS \cite{owasp2021}. La \cref{fig:zonas-confianza} presenta las cinco zonas, que corresponden a las fronteras de la implementación (\cref{fig:fronteras-confianza}).
+
+\begin{figure}[H]
+  \centering
+  \input{figures/fig-03f-zonas}
+  \caption{Zonas de confianza y cruces de frontera. Cada número indica el control principal del cruce; la clave privada del titular nunca sale de Z1.}
+  \label{fig:zonas-confianza}
+\end{figure}
+
+El cruce 1 se complementa dentro de la API con límites de carga por petición (\cref{sec:concurrencia-asincrona}); el control de orígenes para la interfaz de navegador sigue propuesto, y un despliegue público deberá añadir límites de conexiones, tiempos de recepción y plazos de ejecución. En el cruce 2 la identidad sale de la sesión, el usuario y su rol se recargan de PostgreSQL y los documentos exigen además pertenencia vigente al expediente. En el cruce 3 la cuenta operativa de PostgreSQL está separada de la que aplica migraciones y no puede reescribir la auditoría ni la evidencia protegida; un despliegue público requiere además protección de la configuración y los respaldos, y las mejoras de conexiones internas descritas en la \cref{sec:despliegue}.
+
+Los servicios de Z5 tienen autoridad propia y el sistema los invoca de forma explícita (cruce 4). La TSA local de demostración no sale de la infraestructura del prototipo; un PSC externo usaría TLS; Resend recibe solicitudes HTTPS hacia un destino fijo con una credencial tomada del entorno. Ningún resultado se acepta sin verificación local: un sello se comprueba contra la cadena de certificados del emisor antes de incorporarse al expediente. La revisión de amenazas sigue el modelo STRIDE de Shostack \cite{shostack2014}. Quedan abiertos el anclaje externo de la bitácora, la revisión de carga y transporte, la evaluación del manejo de claves y de la resistencia de la firma RSA frente a ataques de canal lateral, y la ampliación de la confianza temporal cuando se incorpore una autoridad externa.
+
+\subsection{Decisiones arquitectónicas significativas}\label{sec:adrs}
+
+Las decisiones cuya reversión implicaría una refactorización amplia se registran como ADR en el formato de Nygard \cite{nygard2011}: contexto, alternativas, decisión y consecuencias. La \cref{tab:adrs} resume las cinco principales.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \caption{Decisiones arquitectónicas significativas.}
+  \label{tab:adrs}
+  \renewcommand{\arraystretch}{1.1}
+  \begin{tabularx}{\linewidth}{@{}L{0.05\linewidth}L{0.2\linewidth}L{0.22\linewidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{ADR} & \textbf{Decisión} & \textbf{Alternativas} & \textbf{Consecuencias} \\
+    \midrule
+    01 & Monolito modular con arquitectura hexagonal & Capas, Clean, Onion, microservicios desde el inicio, monolito sin puertos & Dominio aislado y fácil de probar; adaptadores intercambiables; regla de dependencias comprobada al compilar. Un solo ejecutable, sin comunicación entre servicios. Cuesta una indirección por cada cruce de capa, y el sistema se escala y despliega como un todo. \\
+    02 & Rust en el servidor & Go, Java o Kotlin, Node.js, Python & Seguridad de memoria sin recolector, tipos expresivos, bibliotecas auditadas, ejecutable único. Curva de aprendizaje y compilación lenta. \\
+    03 & Axum como marco HTTP & actix-web, rocket, warp & Marco ligero que no impone estructura; componentes intermedios reutilizables. Documentación todavía en evolución. \\
+    04 & Astro y Svelte en la interfaz & Next.js con React, SvelteKit, Remix & Archivos estáticos sin servidor de renderizado; Qadra y portal de la CA separados con diseño común. Exige mantener dos aplicaciones de interfaz. \\
+    05 & PostgreSQL y Redis & Solo PostgreSQL o solo Redis & Integridad transaccional para datos con valor probatorio (\cref{sec:postgresql}) y baja latencia para el estado efímero (\cref{sec:redis}). Dos motores que operar y sin transacción común: la auditoría se confirma en PostgreSQL y el estado de Redis se retira o expira aparte. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Trazabilidad entre arquitectura y requerimientos}\label{sec:trazabilidad}
+
+La \cref{tab:trazabilidad} completa, del lado del diseño, la cadena de la \cref{fig:req-trazabilidad}: relaciona cada componente con los requerimientos funcionales (RF) y no funcionales (RNF) que atiende, de modo que cada componente responde a un requerimiento o a un atributo de calidad. La matriz completa, con los diecisiete casos de uso y los catorce requerimientos no funcionales, se entrega como anexo electrónico.
+
+\begin{table}[!htbp]
+  \centering
+  \small
+  \caption{Componentes de la arquitectura y requerimientos que atienden.}
+  \label{tab:trazabilidad}
+  \begin{tabularx}{\linewidth}{@{}L{0.26\linewidth}L{0.21\linewidth}L{0.26\linewidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Componente} & \textbf{Requerimientos} & \textbf{Componente} & \textbf{Requerimientos} \\
+    \midrule
+    Identidad y acceso & RF-01 a RF-03; RNF-01, RNF-02, RNF-05 & Operación y monitoreo & RF-18 a RF-20; RNF-04, RNF-06, RNF-07 \\
+    Gestión procesal & RF-04 a RF-06; RNF-04, RNF-10 & Puertos y regla de dependencias & RNF-13 \\
+    Calendario, plazos y alertas & RF-07 a RF-10; RNF-06, RNF-10 & Admisión HTTP e identidad & RF-01 (sesiones opacas), RF-02 \\
+    Documentos y custodia & RF-11, RF-12; RNF-03, RNF-04 & Fronteras de confianza & RNF-01, RNF-02, RNF-03 \\
+    Servicios criptográficos & RF-13 a RF-17; RNF-03, RNF-04, RNF-11 & Bitácora encadenada & RF-20, RNF-04 \\
+    Firma & RF-15 a RF-17; RNF-11 & Trazas estructuradas & Atributo de calidad 6 (\cref{tab:atributos-calidad}) \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsubsection{Fitness functions}\label{sec:fitness-functions}
+
+Siguiendo a Ford, Parsons y Kua \cite{ford2023}, la coherencia entre la arquitectura prescrita y el código se comprueba con fitness functions: pruebas automáticas de propiedades arquitectónicas que se ejecutan en integración continua y bloquean un cambio si fallan. Además del grafo de dependencias, que verifica la compilación, se comprueba que ningún registro contenga secretos, que cada interfaz tenga su implementación y su sustituto de prueba, que los módulos criptográficos alcancen la cobertura mínima y que el ejecutable no exceda su tamaño máximo (\cref{tab:impl-fitness}). Exigir una traza por cada manejador HTTP queda como ampliación del diseño de calidad.

@@ -1,0 +1,32 @@
+\begin{tikzpicture}[
+  fase/.style={font=\diag\bfseries, text=ESCOMGris, anchor=west, fill=white, inner sep=1.5pt},
+  sep/.style={draw=ESCOMGris!45, line width=0.4pt}]
+  \Actores{usr/1.4/{Usuario en Qadra},api/5.8/{API},doc/10.2/{Servicio documental},pg/14.6/{PostgreSQL}}{-13.45}
+  % Carga (CU-11)
+  \draw[sep] (0,-0.75) -- (15.9,-0.75);
+  \node[fase] at (0,-0.75) {Carga (CU-11)};
+  \Msg{1.4}{5.8}{-1.25}{\textbf{1} archivo y clasificación}
+  \Msg{5.8}{10.2}{-1.85}{admitir y cifrar}
+  \Paso{10.2}{-2.0}{3.9}{Reconoce el formato por su contenido (ocho familias, hasta 16 MiB)\\
+    Calcula la huella SHA-256 del original\\
+    Cifra con AES-256-GCM, ligado a documento y versión}
+  \Msg[msgE]{10.2}{1.4}{-3.8}{formato no admitido: rechazo, no se guarda nada}
+  \Msg{10.2}{14.6}{-4.65}{versión 1 cifrada, huella,\\ clasificación y auditoría}
+  \Paso{14.6}{-4.8}{2.4}{Una sola transacción}
+  \Msg[msgR]{10.2}{1.4}{-5.45}{documento, versión y huella}
+  % Consulta (CU-12)
+  \draw[sep] (0,-5.9) -- (15.9,-5.9);
+  \node[fase] at (0,-5.9) {Consulta (CU-12)};
+  \Msg{1.4}{5.8}{-6.4}{\textbf{2} contenido de una versión}
+  \Paso{5.8}{-6.55}{2.6}{Revalida sesión, rol y pertenencia al expediente}
+  \Msg{5.8}{10.2}{-7.6}{leer y comprobar}
+  \Msg{10.2}{14.6}{-8.2}{\textbf{3} paquete cifrado}
+  \Msg[msgR]{14.6}{10.2}{-8.75}{paquete}
+  \Paso{10.2}{-8.9}{3.9}{Descifra: AES-GCM detecta cualquier cambio del cifrado\\
+    Recalcula SHA-256 y la compara con la huella de la carga}
+  \Msg{10.2}{14.6}{-10.75}{si coincide: acceso\\ autorizado + auditoría}
+  \Msg[msgR]{10.2}{1.4}{-11.35}{bytes originales}
+  \Msg[msgE]{10.2}{14.6}{-12.25}{si falla: incidente\\ en otra transacción}
+  \Paso[pasoError]{14.6}{-12.4}{2.4}{El Owner lo ve en su buzón de incidentes}
+  \Msg[msgE]{10.2}{1.4}{-12.9}{rechazo, sin entregar contenido}
+\end{tikzpicture}

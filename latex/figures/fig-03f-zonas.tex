@@ -1,0 +1,68 @@
+\begin{tikzpicture}[
+  comp/.style={caja, text width=3.3cm, minimum height=0.8cm},
+  srv/.style={caja, text width=4.3cm, minimum height=0.75cm},
+  cruce/.style={etq, align=left}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (9.05,-1.7);
+  \draw[zona, fill=white] (0,-2.55) rectangle (16,-4.0);
+  \draw[zona] (0,-4.85) rectangle (9.05,-7.75);
+  \draw[zona] (0,-8.6) rectangle (9.05,-11.1);
+  \draw[zona] (10.35,-4.85) rectangle (16,-11.1);
+  \node[zonaLabel] at (0,0) {Z1 · EQUIPO DEL TITULAR};
+  \node[zonaLabel] at (0,-2.55) {Z2 · FRONTERA PÚBLICA};
+  \node[zonaLabel] at (0,-4.85) {Z3 · APLICACIÓN Y DOMINIO (BINARIO RUST)};
+  \node[zonaLabel] at (0,-8.6) {Z4 · PERSISTENCIA PRIVADA Y SECRETOS};
+  \node[zonaLabel] at (10.35,-4.85) {Z5 · SERVICIOS CON AUTORIDAD PROPIA};
+
+  % Z1
+  \node[comp, text width=3.2cm] (nav) at (2.15,-0.95) {Navegador con Qadra};
+  \node[cajaOsc, text width=3.7cm, minimum height=0.8cm] (wk) at (6.95,-0.95)
+    {Worker Rust/WASM: clave cifrada y frase, solo locales};
+  \draw[flechaD] (nav) -- (wk);
+
+  % Fuera del control del sistema
+  \node[cajaError, text width=4.4cm, minimum height=0.8cm] (adv) at (13.45,-0.95)
+    {Internet: actores adversarios potenciales, fuera del control del sistema};
+
+  % Z2
+  \node[comp, text width=2.6cm] (proxy) at (3.0,-3.35) {Proxy de entrada};
+  \node[caja, text width=6.2cm, minimum height=0.8cm] (api) at (8.3,-3.35)
+    {API Axum: valida entradas, aplica límites y autentica};
+  \draw[flecha] (proxy) -- (api);
+
+  % Z3
+  \node[comp] (web)  at (2.2,-5.75) {Adaptador HTTP};
+  \node[comp] (appl) at (6.65,-5.75) {Casos de uso};
+  \node[cajaOsc, text width=3.3cm, minimum height=0.8cm] (dom) at (2.2,-7.05) {Dominio: reglas y puertos};
+  \node[comp] (inf)  at (6.65,-7.05) {Adaptadores de infraestructura};
+  \draw[flecha] (web) -- (appl);
+  \draw[flecha] (appl) -- (dom);
+  \draw[flecha] (inf) -- (dom);
+  \draw[flecha] (inf) -- (appl);
+
+  % Z4
+  \node[comp] (rd) at (2.2,-9.95) {Redis: sesiones y controles efímeros};
+  \node[comp] (pg) at (6.65,-9.95) {PostgreSQL: datos y auditoría};
+  \node[font=\diag, text=ESCOMTinta, align=center] at (4.45,-10.8)
+    {documentos cifrados y claves de servicio};
+
+  % Z5
+  \node[srv] (ca)  at (13.65,-5.75) {CA interna: portal y proceso separados};
+  \draw[flechaSuave] (ca.west) -- node[etq, above, align=center, pos=0.57]{CRL y\\ confianza} (appl.east);
+  \node[srv] (tsa) at (13.65,-7.05) {TSA local de demostración\\ (RFC 3161)};
+  \node[srv] (mail) at (13.65,-8.3) {Resend: entrega de correo};
+  \node[srv, cajaGris, dashed] (psc) at (13.65,-9.55) {PSC externo (opcional)};
+
+  % Cruces de frontera
+  \draw[flechaError] (11.6,-1.35) -- node[etq, right, pos=0.45]{peticiones no confiables} (11.6,-2.55);
+  \draw[flecha, line width=0.9pt] (nav.south -| 3.7,0) -- node[cruce, right, pos=0.45]{\textbf{1} TLS y límites de transporte (control de orígenes: propuesto)} (proxy.north -| 3.7,0);
+  \draw[flecha, line width=0.9pt] (api.south -| appl) -- node[cruce, right, pos=0.45]{\textbf{2} sesión opaca revocable, validación y permisos por rol} (appl.north);
+  \draw[flecha, line width=0.9pt] (inf.south) -- node[cruce, left, pos=0.33]{\textbf{3} consultas parametrizadas, cifrado de sobre, cuenta restringida} (pg.north);
+  \draw[flecha, line width=0.9pt] (6.65,-9.15) -| (rd.north);
+  \draw[line width=0.9pt, draw=ESCOMAzulOscuro] (inf.east) -- node[cruce, above, pos=0.5, align=center]{\textbf{4} canal explícito,\\ resultado\\ verificado} (11.0,-7.05);
+  \draw[line width=0.9pt, draw=ESCOMAzulOscuro] (11.0,-7.05) -- (11.0,-9.55);
+  \draw[flecha, line width=0.9pt] (11.0,-7.05) -- (tsa.west);
+  \draw[flecha, line width=0.9pt] (11.0,-8.3) -- (mail.west);
+  \draw[flechaSuave, line width=0.7pt] (11.0,-9.55) -- (psc.west);
+\end{tikzpicture}

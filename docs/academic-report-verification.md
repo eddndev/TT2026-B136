@@ -1,5 +1,41 @@
 # Verificación de la actualización académica
 
+## Rediseño del capítulo de análisis y diseño: 22 de octubre de 2026
+
+El capítulo 3 se dividió en ocho archivos de sección y se reescribió para
+reducir densidad y tecnicismos. Las historias de usuario pasaron a una tabla
+con su caso de uso; los casos de uso, a fichas compactas con trazabilidad; los
+requerimientos y los riesgos, a tablas por categoría. Las diecisiete figuras de
+casos de uso y las imágenes raster `image24.png`, `image25.png` y `image27.png`
+se sustituyeron por treinta figuras TikZ de bloques, secuencia y estructura,
+con los estilos compartidos de `latex/config/diagramas.tex`. Esos estilos usan
+TeX Gyre Heros, incluida en TeX Live. Los subarchivos de informes, bitácora,
+participantes y audiencias se integraron en las nuevas secciones.
+
+Cada sección se contrastó contra su texto anterior y la documentación de
+`docs/` para no añadir afirmaciones ni perder limitaciones de alcance. Se
+revisaron después el capítulo integrado página por página y su coherencia entre
+secciones. En el análisis de riesgos, los VME de RTC-05 y RLC-04 se recalcularon
+con la fórmula declarada (probabilidad, horas, desarrolladores y tarifa) y el
+impacto de RTC-04 se expresó en horas coherentes con su VME; la reserva pasó a
+\$43,703.13 y el presupuesto conocido a \$81,203.13.
+
+Fuera del capítulo 3 se sustituyeron por comas, paréntesis o dos puntos los
+guiones largos visibles de veinte archivos, y el glosario dejó de formar
+guiones largos en el encabezado PEM. Quedan cinco en títulos oficiales de
+normas ISO de la bibliografía.
+
+Se compiló con LuaHBTeX 1.17.0 (TeX Live 2023), biber 2.22 y latexmk 4.88 en
+la copia de trabajo, con el nombre de trabajo `main-rework`. Produjo
+**406 páginas**, 1992913 bytes, SHA-256
+`16f9e62ee0081cab87c7535711a4c9abd3e1e09db2750332587974f1e1b6a9ea`, sin
+referencias ni citas sin resolver, etiquetas duplicadas ni glifos ausentes. El
+capítulo 3 ocupa las páginas lógicas 30 a 81, frente a 30 a 135 de la revisión
+anterior. Persisten dos avisos `Overfull hbox` menores, ninguno en el capítulo 3.
+Se inspeccionaron todas las páginas físicas 47 a 100 y se corrigieron
+solapes, huecos de maquetación y referencias imprecisas. El PDF generado no se
+añadió a Git.
+
 ## Catálogo de identidad de una sola instancia: 21 de octubre de 2026
 
 Por indicación del autor se retiró del manuscrito el registro comercial de

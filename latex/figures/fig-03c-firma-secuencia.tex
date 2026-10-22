@@ -1,0 +1,20 @@
+\begin{tikzpicture}[actor/.append style={minimum width=2.5cm, text width=2.3cm}]
+  \Actores{tit/1.45/{Equipo\\ del titular},qad/4.65/{Qadra},api/8.0/{API},tsa/11.3/{TSA local},pg/14.6/{PostgreSQL}}{-12.55}
+  \Msg{4.65}{8.0}{-1.1}{\textbf{1} versión PDF exacta}
+  \Msg[msgR]{8.0}{1.45}{-1.7}{PDF y su huella}
+  \Paso{1.45}{-1.85}{2.7}{\textbf{Firma 1}: firma el PDF en su equipo (ayudante de Qadra u OpenSSL)}
+  \Msg{1.45}{8.0}{-3.45}{\textbf{2} firma del PDF}
+  \Paso{8.0}{-3.6}{2.7}{Prepara el consentimiento que liga la cuenta con la versión y la firma del PDF}
+  \Msg[msgR]{8.0}{1.45}{-5.35}{consentimiento}
+  \Paso{1.45}{-5.5}{2.7}{\textbf{Firma 2}: revisa y firma el consentimiento}
+  \Msg{1.45}{8.0}{-6.55}{\textbf{3} consentimiento y dos firmas, sin la clave}
+  \Paso{8.0}{-6.7}{2.7}{Verifica ambas firmas y que el certificado no esté revocado}
+  \Msg{8.0}{11.3}{-8.15}{\textbf{4} huella del PDF}
+  \Msg[msgR]{11.3}{8.0}{-8.7}{sello de tiempo}
+  \Paso{8.0}{-8.85}{2.7}{Valida el sello y vuelve a comprobar permisos}
+  \Paso[pasoError]{11.3}{-8.85}{2.4}{Fallo o espera agotada: no se confirma ni se reintenta solo}
+  \Msg{8.0}{14.6}{-10.6}{\textbf{5} evidencia, recibo\\ y auditoría}
+  \Paso{14.6}{-10.75}{2.3}{Una sola transacción}
+  \Msg[msgR]{8.0}{4.65}{-11.35}{recibo}
+  \Paso{4.65}{-11.5}{2.6}{Si se pierde la respuesta, puede consultar el recibo}
+\end{tikzpicture}

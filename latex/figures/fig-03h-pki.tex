@@ -1,0 +1,52 @@
+\begin{tikzpicture}[
+  hoja/.style={caja, text width=3.3cm, minimum height=0.95cm},
+  bloque/.style={caja, text width=3.4cm, minimum height=0.85cm},
+  uso/.style={cajaClara, text width=2.9cm, minimum height=0.85cm}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (16,-3.4);
+  \draw[zona] (0,-3.9) rectangle (7.75,-7.85);
+  \draw[zona] (8.25,-3.9) rectangle (16,-7.85);
+  \node[zonaLabel] at (0,0) {CA INTERNA (PORTAL SEPARADO CON MFA)};
+  \node[zonaLabel, anchor=south west] at (0,-7.85) {EQUIPO DEL TITULAR};
+  \node[zonaLabel, anchor=south east] at (16,-7.85) {SERVIDOR DEL DESPACHO};
+
+  % Jerarquía de la CA
+  \node[cajaOsc, text width=5.0cm, minimum height=0.8cm] (raiz) at (8,-0.85)
+    {Raíz interna autofirmada\\ RSA-3072, vigencia de 5 años};
+  \node[hoja] (c2) at (2.15,-2.6) {Acceso del Owner\\ desde CSR (1 año)};
+  \node[hoja] (c1) at (6.05,-2.6) {Firma documental\\ desde CSR (1 año)};
+  \node[hoja] (c3) at (9.95,-2.6) {TSA local\\ solo sellado (1 año)};
+  \node[cajaClara, text width=3.3cm, minimum height=0.95cm] (c4) at (13.85,-2.6)
+    {CRL firmada por la raíz\\ (vigencia de 7 días)};
+  \draw[ESCOMAzulOscuro, line width=0.6pt] (raiz.south) -- (8,-1.65);
+  \draw[ESCOMAzulOscuro, line width=0.6pt] (2.15,-1.65) -- (13.85,-1.65);
+  \foreach \c/\x in {c1/6.05,c2/2.15,c3/9.95,c4/13.85}
+    \draw[flecha] (\x,-1.65) -- (\c.north);
+
+  % Titular: un uso por certificado
+  \node[uso] (acc) at (2.15,-5.0) {Firma desafíos de acceso del Owner};
+  \node[uso] (fir) at (6.05,-5.0) {Firma vínculo, PDF y consentimiento};
+  \node[cajaOsc, text width=3.3cm, minimum height=0.85cm] (priv) at (2.15,-6.6)
+    {Clave RSA-3072 generada con el ayudante local u OpenSSL; cifrada, nunca sale del equipo};
+  \draw[flecha] (priv.north) -- (acc.south);
+  \draw[flecha] (priv.north east) -- (fir.south west);
+
+  % Intercambio con la CA: CSR de subida, certificado de bajada
+  \foreach \c/\b/\x in {c2/acc/2.15,c1/fir/6.05} {
+    \draw[flecha] (\x-0.75,-4.575) -- node[etq, pos=0.6]{CSR} (\x-0.75,-3.075);
+    \draw[flecha] (\x+0.75,-3.075) -- node[etq, pos=0.4]{certificado} (\x+0.75,-4.575);
+  }
+
+  % Servidor
+  \node[bloque] (tsa) at (9.95,-4.95) {TSA local (OpenSSL)\\ sella digests SHA-256};
+  \node[bloque] (conf) at (13.85,-4.95) {Revisión de confianza\\ (raíz + CRL publicadas)};
+  \node[bloque] (vin) at (13.85,-6.95) {Vínculo cuenta y certificado;\\ verifica las firmas};
+  \draw[flecha] (conf) -- node[etq, right]{se captura} (vin);
+  \draw[flecha] (c3) -- node[etq, pos=0.45]{certificado} (tsa);
+  \draw[flecha] (c4) -- node[etq, pos=0.45]{publicación} (conf);
+
+  % Material público hacia el servidor
+  \draw[flecha] ($(fir.south)+(0.6,0)$) |- node[etq, below, pos=0.8, align=center]
+    {certificado y firmas\\ (material público)} (vin.west);
+\end{tikzpicture}

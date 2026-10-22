@@ -1,0 +1,60 @@
+\begin{tikzpicture}[
+  celda/.style={draw=white, line width=1.2pt},
+  sev/.style={font=\diag\bfseries, anchor=north west, inner sep=3pt},
+  rid/.style={draw=ESCOMAzulOscuro, fill=white, text=ESCOMTinta, rounded corners=1pt,
+    font=\scriptsize\diagsans\bfseries, inner sep=1.6pt, minimum width=1.3cm},
+  eje/.style={font=\scriptsize\diagsans, text=ESCOMTinta},
+  ejeT/.style={font=\scriptsize\diagsans\bfseries, text=ESCOMAzulOscuro}]
+  % Celdas: columna = impacto (1..3), fila = probabilidad (1..3).
+  % Severidad 1-2: claro; 3-4: azul; 6: azul oscuro; 9: guinda.
+  \def\W{3.3}\def\H{1.4}
+  \foreach \i/\p/\col/\txt/\name in {
+      1/1/ESCOMAzulClaro/ESCOMTinta/{1 Trivial},
+      2/1/ESCOMAzulClaro/ESCOMTinta/{2 Menor},
+      3/1/ESCOMAzul/white/{3 Moderado},
+      1/2/ESCOMAzulClaro/ESCOMTinta/{2 Menor},
+      2/2/ESCOMAzul/white/{4 Significativo},
+      3/2/ESCOMAzulOscuro/white/{6 Grave},
+      1/3/ESCOMAzul/white/{3 Moderado},
+      2/3/ESCOMAzulOscuro/white/{6 Grave},
+      3/3/IPNGuinda/white/{9 Crítico}} {
+    \fill[\col] ({(\i-1)*\W},{(\p-1)*\H}) rectangle ({\i*\W},{\p*\H});
+    \draw[celda] ({(\i-1)*\W},{(\p-1)*\H}) rectangle ({\i*\W},{\p*\H});
+    \node[sev, text=\txt] at ({(\i-1)*\W},{\p*\H}) {\name};
+  }
+  % Riesgos ubicados en su celda.
+  % Probabilidad media (2), impacto bajo.
+  \node[rid] at (0.92, 2.01) {RTC-03};
+  \node[rid] at (2.38, 2.01) {ROP-03};
+  % Probabilidad media, impacto medio: cuatro riesgos en dos líneas.
+  \node[rid] at (4.22, 2.26) {RTC-05};
+  \node[rid] at (5.68, 2.26) {RLC-04};
+  \node[rid] at (4.22, 1.82) {ROP-01};
+  \node[rid] at (5.68, 1.82) {ROP-02};
+  % Probabilidad media, impacto alto.
+  \node[rid] at (7.52, 2.01) {RTC-02};
+  \node[rid] at (8.98, 2.01) {RLC-01};
+  % Probabilidad baja (1).
+  \node[rid] at (4.95, 0.57) {RLC-02};
+  \node[rid] at (7.52, 0.57) {RTC-04};
+  \node[rid] at (8.98, 0.57) {RLC-03};
+  % Probabilidad alta (3).
+  \node[rid] at (4.95, 3.41) {RTC-01};
+  % Ejes
+  \foreach \k/\t in {1/{Bajo (1)}, 2/{Medio (2)}, 3/{Alto (3)}} {
+    \node[eje, anchor=east] at (-0.1, {(\k-0.5)*\H}) {\t};
+    \node[eje, anchor=north] at ({(\k-0.5)*\W}, -0.08) {\t};
+  }
+  \node[ejeT, rotate=90, anchor=south] at (-1.55, {1.5*\H}) {Probabilidad};
+  \node[ejeT, anchor=north] at ({1.5*\W}, -0.5) {Impacto en tiempo};
+  % Leyenda: respuesta por nivel de severidad, a la derecha de la matriz.
+  \node[ejeT, anchor=west] at (10.25, 4.2) {Respuesta};
+  \foreach \y/\col/\t in {
+      3.65/ESCOMAzulClaro/{1\textendash 2: aceptar y\\ monitorear},
+      2.95/ESCOMAzul/{3\textendash 4: mitigar y definir\\ contingencia},
+      2.25/ESCOMAzulOscuro/{6: priorizar\\ mitigación activa},
+      1.55/IPNGuinda/{9: escalar de\\ inmediato}} {
+    \fill[\col] (10.3,\y-0.16) rectangle ++(0.32,0.32);
+    \node[font=\diag, text=ESCOMTinta, anchor=west, align=left] at (10.7,\y) {\t};
+  }
+\end{tikzpicture}

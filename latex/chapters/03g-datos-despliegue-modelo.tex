@@ -1,0 +1,97 @@
+\section{Modelado de base de datos híbrida}\label{sec:bd-hibrida}
+
+El sistema guarda su información en dos almacenes con funciones separadas. PostgreSQL, una base de datos relacional con transacciones, conserva todo lo que tiene valor probatorio: expedientes, documentos cifrados, directorio, actividad procesal, alertas y bitácora. Redis, un almacén clave-valor en memoria, conserva solo el estado breve de la autenticación. La división responde a RF-20 (bitácora de actividad), a RNF-04 (inmutabilidad de registros críticos) y a la necesidad de un estado de sesión efímero y revocable. Cada instalación atiende a un solo despacho: RNF-01 y RNF-05 expresan el aislamiento y la privacidad de su información dentro de su propia instancia, lo que evita la complejidad de separar varios clientes en una misma base.
+
+\subsection{Almacenes y transacción auditada}\label{sec:diagrama-datos}
+
+La \cref{fig:modelo-datos} muestra qué guarda cada almacén, agrupado por familias y no por tablas, y la regla central del diseño: el cambio y su evento de auditoría se confirman o se revierten juntos.
+
+\begin{figure}[!tbp]
+  \centering
+  \input{figures/fig-03g-persistencia}
+  \caption{PostgreSQL agrupa las familias de datos durables y la bitácora que registra cada cambio; Redis solo guarda estado que expira. La flecha gruesa es la única transacción que confirma juntos el cambio y su evento.}
+  \label{fig:modelo-datos}
+\end{figure}
+
+Cada documento pertenece a su expediente y cada asignación a una cuenta. Los permisos se derivan del rol de la cuenta y de su asignación al expediente, sin tablas de permisos ni caché de autorización. Una asignación solo concede acceso: no crea fichas del directorio, y el directorio no vincula a una persona representada con una cuenta ni la deduce de nombres coincidentes. Las relaciones entre familias se muestran en la \cref{fig:modelo-expediente}; su forma física se describe en el \cref{cap:implementacion}.
+
+\subsection{PostgreSQL: datos persistentes con valor probatorio}\label{sec:postgresql}
+
+Las familias del expediente (administración, etapas, documentos y su clasificación, directorio, audiencias y plazos) siguen el mismo patrón: una raíz estable y revisiones inmutables que conservan valores, huella y autor (\cref{sec:modelo-juridico}). Los archivos se guardan cifrados junto con su evidencia de firma y sello; los datos de organización, como la clasificación o las fichas del directorio, permanecen en claro y se protegen con autorización por expediente.
+
+La bitácora encadena cada evento con el anterior mediante un hash SHA-256 (\cref{fig:modelo-datos}). Las escrituras se ordenan para que cada evento tenga un único sucesor en la cadena, y las verificaciones y exportaciones también revalidan el acceso y confirman su evento antes de entregar el resultado.
+
+El rol operativo de la base no puede modificar ni borrar eventos, y la base impide modificar la evidencia sellada o reasignar un documento a otro expediente. La cadena comprueba la coherencia de los eventos conservados, pero no detecta por sí sola que se haya eliminado su extremo final; para ello se propone anclar la cabeza de la cadena fuera del sistema. Las tareas administrativas y los respaldos requieren controles independientes.
+
+\subsection{Redis: estado efímero de autenticación}\label{sec:redis}
+
+Redis guarda las sesiones opacas: tokens aleatorios de los que el almacén solo conserva el hash. Una sesión dura como máximo 24 horas, admite un plazo de inactividad configurable y puede revocarse en cualquier momento. Cada sesión guarda un contador de su cuenta que se compara con PostgreSQL en cada uso, y la autorización consulta en PostgreSQL el rol y la pertenencia vigentes; así, una revocación surte efecto en la siguiente petición aunque la sesión siga abierta.
+
+Los demás registros son controles de un solo uso o de ventana corta, con las vigencias de la \cref{fig:modelo-datos}, y cada cambio sobre ellos es atómico. Un desafío MFA se consume antes de comprobar su único intento. Si el Owner entra con certificado, verificarlo solo le permite pasar al segundo factor. Un código TOTP aceptado no puede reutilizarse, y las cuotas limitan los intentos de contraseña, de acceso por certificado, de invitación y de recuperación.
+
+Redis no actúa como caché ni como canal de mensajes: las alertas, sus preferencias y sus entregas se conservan en PostgreSQL y Qadra las consulta mediante la API (\cref{sec:implementacion-alertas}). Como su pérdida interrumpe las sesiones y los controles efímeros, la operación de Redis debe contemplar recuperación y disponibilidad.
+
+\section{Modelo de datos jurídico-técnico}\label{sec:modelo-juridico}
+
+El proceso penal descrito en el marco teórico impone dependencias que la base de datos debe reflejar: un expediente avanza por etapas, sus actos se apoyan en documentos concretos y sus participantes tienen roles definidos por el CNPP. Por eso el modelo no usa tablas genéricas, sino familias que conservan la historia de cada declaración (\cref{fig:modelo-expediente}). Los resultados de audiencia, las medidas cautelares, los recursos de revocación y apelación y los calendarios jurisdiccionales siguen el mismo esquema con reglas propias, descritas en el \cref{cap:implementacion}.
+
+\begin{figure}[!tbp]
+  \centering
+  \input{figures/fig-03g-expediente}
+  \caption{Cada familia del expediente tiene una raíz estable y una cadena de revisiones inmutables; la de borde grueso es la vigente. Ningún cambio reescribe una revisión anterior y cada uno deja su evento en la bitácora.}
+  \label{fig:modelo-expediente}
+\end{figure}
+
+En todas las familias, editar exige indicar la revisión vigente que el usuario tenía a la vista (\cref{fig:revision-esperada}); la nueva revisión guarda valores, huella, instante y autor. Cambiar solo el estado conserva los valores vigentes. En documentos y directorio, también las consultas exigen autorización y un evento confirmado.
+
+\begin{figure}[!tbp]
+  \centering
+  \input{figures/fig-03g-revision}
+  \caption{Cambio con revisión esperada. Un conflicto no sobrescribe nada; un cambio aceptado agrega una revisión y su evento en una sola confirmación.}
+  \label{fig:revision-esperada}
+\end{figure}
+
+\paragraph{Expediente y perfil penal.} La raíz del expediente conserva su identidad y los hechos de su creación; las revisiones administrativas añaden título, referencia, estado y perfil penal. El perfil contiene el número único de caso (NUC) y la carpeta judicial con sus autoridades, los delitos en orden y la información complementaria que declara el despacho. El NUC y la carpeta judicial no pueden repetirse dentro de la instalación, ni siquiera en expedientes cerrados; se comparan tal como se escribieron, y corregirlos libera el valor anterior y conserva su historia. Esta regla no acredita unicidad nacional ni verificación institucional. El cierre organiza el trabajo del despacho, sin declarar terminado el proceso judicial: bloquea los cambios en documentos, directorio y audiencias, pero conserva la consulta, la historia, la verificación y la exportación autorizadas.
+
+\paragraph{Etapas.} Un expediente registrado con su perfil completo inicia en Investigación. Uno registrado con datos básicos no tiene etapa, ni siquiera al completar su perfil, hasta que el usuario le asigna una con soporte documental. Después avanza de Investigación a Intermedia y de Intermedia a Juicio, siempre con el documento que lo respalda. Este registro no es un motor completo de actividad procesal, y la interoperabilidad con sistemas judiciales queda fuera del alcance.
+
+\paragraph{Documentos y clasificación.} Cada documento tiene una identidad estable y versiones inmutables con cifrado y evidencia propios. El listado muestra la versión más reciente, y el historial permite consultar otra sin sustituirla. La clasificación (tipo, categoría y etiquetas) lleva una historia aparte; no se agrega al contenido cifrado, no altera una firma o un sello anteriores y no modifica permisos. Una carga clasificada confirma documento, archivo y clasificación en una sola transacción auditada.
+
+\subsection{Identidades representadas, perfiles y declaraciones}\label{sec:diseno-participantes-tipificados}
+
+El directorio separa tres identidades: la cuenta que actúa en Qadra, la persona u órgano representado en un expediente y la ficha que le atribuye un rol. Una identidad representada puede tener fichas de varios roles en el mismo expediente, pero no concede acceso al sistema. Cada ficha guarda la revisión y la huella exactas de la identidad que usó, de modo que consultar la identidad actual no altera esa referencia (flecha vertical de la \cref{fig:modelo-expediente}).
+
+Una persona física registra su nombre o una etiqueta de persona no identificada con su motivo, su CURP o el motivo de desconocerla, y un soporte documental. Un órgano institucional registra su denominación, su identificador declarado o el motivo de desconocerlo, y su soporte; nunca se le asigna una CURP. El contacto y las medidas de protección remiten a documentos cifrados, sin copiar su contenido al directorio, y su consulta sigue la política de esos documentos. El catálogo comprende once perfiles: imputado, víctima u ofendido, defensor, Ministerio Público, asesor jurídico, juez de control, tribunal de enjuiciamiento, perito, policía, supervisión de medidas cautelares y otro. La validación comprueba la forma, los límites y la coherencia de los valores de cada perfil.
+
+Antes de aceptar una identidad, el sistema presenta candidatos por nombre, identificador declarado, huella de certificado o soporte documental. Los homónimos no se fusionan: reutilizar una identidad exige consultar su detalle, y declararla distinta exige motivo y soporte. Tampoco se admite una segunda ficha del mismo rol para la misma identidad, aunque la primera esté archivada.
+
+Las fichas de defensor y de juez de control requieren además una firma personal sobre una declaración del prototipo. El titular elige un certificado emitido por la CA interna, descarga la declaración y la firma fuera de Qadra; el servidor recibe solo el certificado y la firma separada. Esta evidencia prueba el control de la clave bajo el perfil interno y fija los valores declarados. La implementación se describe en la \cref{sec:impl-participantes-tipificados}.
+
+El directorio organiza la información del despacho; no acredita identidad civil, profesión, nombramiento, designación judicial ni representación. No consulta registros civiles o profesionales, solo detecta coincidencias ya registradas sin demostrar la ausencia de duplicados en la realidad, y no es un canal de comunicación; tampoco promete reserva del contacto frente a un rol que ya puede leer sus soportes. La firma de la declaración no equivale a FIREL, y el criterio FIREL del requerimiento RF-06 (\cref{tab:rf-06}) sigue pendiente.
+
+\subsection{Programación de audiencias e historia de sus declaraciones}\label{sec:diseno-audiencias}
+
+Una audiencia es una raíz del expediente con un tipo que no cambia y revisiones sucesivas de su programación. Cada revisión conserva la fecha y hora con su desfase horario, la modalidad, la sede o conexión, una nota opcional y referencias exactas a las fichas seleccionadas. Reprogramar agrega una revisión con motivo, y cancelar conserva los valores de la revisión base. Una ficha seleccionada mantiene el nombre, perfil e identidad de su revisión original aunque el directorio cambie.
+
+El catálogo comprende siete familias: inicial, intermedia, debate de juicio, individualización de sanciones y reparación del daño, medidas cautelares, alegatos de apelación y revocación escrita. Las audiencias inicial, intermedia, de debate de juicio y de individualización exigen la etapa correspondiente (Investigación, Intermedia o Juicio), y la individualización requiere además un antecedente de condena declarado con soporte. Programar exige perfil completo, expediente activo y las revisiones administrativa y procesal esperadas. La agenda reúne las citas vigentes de los expedientes autorizados, ordenadas por fecha, sin notas, conexiones ni participantes.
+
+En materia cautelar se registran por separado la convocatoria, la decisión declarada y cada medida, con su sujeto, clase, condiciones y vigencia dentro de un catálogo cerrado de clases. La implementación de las audiencias y del registro cautelar se describe en la \cref{sec:impl-audiencias} y la \cref{sec:impl-cautelares}.
+
+Estos registros ordenan la captura, pero no certifican hechos jurídicos. Los estados programada y cancelada son organizativos: una fecha pasada no demuestra que la audiencia se celebró, ninguna selección de fichas demuestra asistencia, cancelar no declara la nulidad de un acto procesal y la agenda no es un calendario judicial de días hábiles. La compatibilidad entre tipo y etapa no certifica la procedencia jurídica de la audiencia. Clasificar una medida no la recomienda ni decide su procedencia; ni el reloj, ni el cierre administrativo, ni el cambio de etapa declaran su cese, revocación o vencimiento, y el registro cautelar no extrae obligaciones del texto ni genera plazos, porque los resultados de audiencia y sus plazos derivados tienen un flujo propio. El catálogo es finito y no pretende cobertura jurídica universal.
+
+\section{Vista de despliegue}\label{sec:despliegue}
+
+La \cref{fig:despliegue} muestra cómo se instala el sistema. El navegador descarga la interfaz Qadra y consulta la API mediante HTTPS a través de un proxy nginx. Los servicios de la aplicación se ejecutan con una cuenta sin privilegios y solo aceptan conexiones desde el propio servidor; la publicación HTTPS del despacho se configura aparte (\cref{sec:anexo-despliegue}).
+
+\begin{figure}[!tbp]
+  \centering
+  \input{figures/fig-03g-despliegue}
+  \caption{Despliegue. Un solo ejecutable Rust reúne la API y sus tareas de fondo, que comparten PostgreSQL; las cajas grises discontinuas son servicios externos opcionales.}
+  \label{fig:despliegue}
+\end{figure}
+
+Un solo programa ejecuta la API y las tareas de fondo (alertas, informes, correo y reevaluación de plazos) y, al detenerse, espera a que terminen las operaciones en curso; su composición se describe en la \cref{sec:workspace-cargo}. El servidor no acepta peticiones si qpdf o FFmpeg no superan su comprobación inicial. El recorrido de una petición se resume en la \cref{fig:peticion}; el control de orígenes para la interfaz de navegador permanece propuesto.
+
+Para los sellos de tiempo, el servidor usa una autoridad de sellado local basada en OpenSSL que emite tokens RFC 3161. Esa TSA local no es un Prestador de Servicios de Certificación ni produce la constancia de la NOM-151. Existe además un adaptador para un PSC remoto, disponible solo desde la línea de comandos: su prueba contra el sandbox de Cincel se conserva como referencia ignorada (\cref{sec:riesgo-psc-materializado}) y las pruebas deterministas usan un simulador local. Conectarlo a un PSC exige configurar su acceso, establecer sus anclas de confianza y verificar sus respuestas.
+
+Una cuenta administrativa prepara la base antes del arranque, y el servidor se conecta después con el rol operativo restringido. El prototipo usa conexiones sencillas a PostgreSQL y Redis; antes de un despliegue público deben revisarse su rendimiento bajo carga y el cifrado de esas conexiones internas.

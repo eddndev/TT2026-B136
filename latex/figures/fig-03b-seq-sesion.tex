@@ -1,0 +1,35 @@
+\begin{tikzpicture}[
+  tramo/.style={draw=ESCOMGris, dotted, line width=0.5pt},
+  tramoL/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, fill=white,
+    anchor=west, inner sep=1.5pt}]
+  \Actores{usr/1.5/{Usuario\\ (Qadra)},api/5.6/{API del despacho},rds/9.9/{Redis},pg/14.3/{PostgreSQL}}{-12.95}
+
+  % ==== CU-03 ====
+  \draw[tramo] (0,-0.85) -- (16,-0.85);
+  \node[tramoL] at (2.95,-0.85) {CU-03: contraseña y segundo factor};
+  \Msg{1.5}{5.6}{-1.35}{\textbf{1} correo y contraseña}
+  \Paso{1.5}{-1.5}{2.8}{\textbf{1, alternativa Owner:} firma una declaración con su certificado en vez de la contraseña; si es válida, recibe el mismo desafío de segundo factor}
+  \Msg{5.6}{14.3}{-1.8}{consulta la cuenta}
+  \Paso{5.6}{-1.95}{3.2}{Verifica la contraseña con Argon2id. Cinco fallos bloquean el correo 15 minutos; el error no revela si la cuenta existe}
+  \Msg{5.6}{9.9}{-3.75}{desafío de segundo factor (5 min)}
+  \Msg[msgR]{5.6}{1.5}{-4.2}{desafío}
+  \Msg{1.5}{5.6}{-4.75}{\textbf{2} código TOTP o de recuperación}
+  \Msg{5.6}{9.9}{-5.2}{consume el desafío}
+  \Paso[pasoError]{5.6}{-5.35}{3.2}{Código inválido: rechazo y regreso a la contraseña}
+  \Paso{9.9}{-5.35}{3.2}{Un solo uso, aunque el código falle; un mismo TOTP no se acepta dos veces}
+  \Msg{5.6}{14.3}{-6.75}{revalida que la cuenta siga activa}
+  \Msg{5.6}{9.9}{-7.2}{sesión: resumen SHA-256 del token}
+  \Paso{9.9}{-7.35}{3.2}{Máximo 24 h; límite de inactividad solo si se configura}
+  \Msg[msgR]{5.6}{1.5}{-7.65}{token de sesión}
+
+  % ==== CU-04 ====
+  \draw[tramo] (0,-8.45) -- (16,-8.45);
+  \node[tramoL] at (2.95,-8.45) {CU-04: cada solicitud protegida};
+  \Msg{1.5}{5.6}{-8.95}{\textbf{3} solicitud con token}
+  \Msg{5.6}{9.9}{-9.4}{localiza la sesión y comprueba su vigencia}
+  \Msg{5.6}{14.3}{-9.85}{perfil, estado y asignaciones}
+  \Paso{5.6}{-10.0}{3.2}{Aplica el permiso del perfil y la asignación al expediente}
+  \Msg{5.6}{14.3}{-11.0}{evento de acceso: concedido o denegado}
+  \Msg[msgR]{5.6}{1.5}{-11.45}{respuesta}
+  \Paso[pasoError]{1.5}{-11.6}{2.8}{Sin permiso: acceso denegado. Expediente ajeno: misma respuesta que uno inexistente}
+\end{tikzpicture}
