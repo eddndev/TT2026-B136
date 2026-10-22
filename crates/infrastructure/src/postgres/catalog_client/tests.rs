@@ -35,7 +35,7 @@ fn sample<C: CatalogClient>(client: &mut C) -> Vec<Vec<Vec<Option<String>>>> {
     results
 }
 
-fn prepared_statements(client: &mut Client) -> String {
+pub(super) fn prepared_statements(client: &mut Client) -> String {
     let messages = client
         .simple_query("SELECT count(*) FROM pg_catalog.pg_prepared_statements")
         .unwrap();
