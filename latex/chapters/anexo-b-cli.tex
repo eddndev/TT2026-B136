@@ -39,7 +39,7 @@ despacho-cli [--json]
       verify-chain | show}
 \end{lstlisting}
 
-Tres convenciones gobiernan a los subcomandos administrativos. Primera, la separación de flujos: los resultados se escriben en la salida estándar (\texttt{stdout}) y los diagnósticos en el flujo de error (\texttt{stderr}), de modo que la salida pueda encadenarse en tuberías sin contaminación; el nivel de diagnóstico se controla con la variable de entorno \texttt{RUST\_LOG}. Segunda, la bandera global \texttt{--json}: cuando está activa, cada operación finita imprime un objeto JSON legible por máquina en lugar del texto para humanos; \texttt{vault decrypt} sin \texttt{--out} escribe el claro crudo y \texttt{serve} es un proceso persistente cuyo contrato se consume por HTTP. Tercera, los códigos de salida: el proceso termina con código distinto de cero ante cualquier error y también ---de forma deliberada, para que los scripts puedan bifurcar directamente--- cuando un resultado criptográfico es un rechazo: un veredicto de verificación no válido, una contraseña que no coincide, un código TOTP rechazado, una cadena de auditoría rota o un paquete de evidencia que no verifica antes de exportarse. La bandera \texttt{--help} está disponible en todos los niveles; \texttt{--version}, en el mando raíz.
+Tres convenciones gobiernan a los subcomandos administrativos. Primera, la separación de flujos: los resultados se escriben en la salida estándar (\texttt{stdout}) y los diagnósticos en el flujo de error (\texttt{stderr}), de modo que la salida pueda encadenarse en tuberías sin contaminación; el nivel de diagnóstico se controla con la variable de entorno \texttt{RUST\_LOG}. Segunda, la bandera global \texttt{--json}: cuando está activa, cada operación finita imprime un objeto JSON legible por máquina en lugar del texto para humanos; \texttt{vault decrypt} sin \texttt{--out} escribe el claro crudo y \texttt{serve} es un proceso persistente cuyo contrato se consume por HTTP. Tercera, los códigos de salida: el proceso termina con código distinto de cero ante cualquier error y también (de forma deliberada, para que los scripts puedan bifurcar directamente) cuando un resultado criptográfico es un rechazo: un veredicto de verificación no válido, una contraseña que no coincide, un código TOTP rechazado, una cadena de auditoría rota o un paquete de evidencia que no verifica antes de exportarse. La bandera \texttt{--help} está disponible en todos los niveles; \texttt{--version}, en el mando raíz.
 
 El binario carga un archivo \texttt{.env} del directorio de trabajo cuando existe (nunca se versiona; la plantilla comentada es \texttt{.env.example}). La \cref{tab:cli-variables-entorno} resume las variables reconocidas; de ellas solo se registra en el diagnóstico su presencia, jamás su valor.
 
@@ -52,16 +52,16 @@ El binario carga un archivo \texttt{.env} del directorio de trabajo cuando exist
     \textbf{Variable} & \textbf{Propósito} & \textbf{Default} \\
     \midrule
     \texttt{RUST\_LOG} & Filtro del diagnóstico emitido por \texttt{stderr}. & \texttt{info} \\
-    \texttt{KEK\_BASE64} & Llave de cifrado de llaves: 32 bytes aleatorios codificados en base64; la leen \texttt{vault}, \texttt{serve} y \texttt{database import}. & --- \\
-    \texttt{NEW\_KEK\_BASE64} & Llave de reemplazo; la lee solo \texttt{vault rotate-kek}. & --- \\
+    \texttt{KEK\_BASE64} & Llave de cifrado de llaves: 32 bytes aleatorios codificados en base64; la leen \texttt{vault}, \texttt{serve} y \texttt{database import}. & Ninguno \\
+    \texttt{NEW\_KEK\_BASE64} & Llave de reemplazo; la lee solo \texttt{vault rotate-kek}. & Ninguno \\
     \texttt{PKI\_CA\_DIR} & Directorio de trabajo de la CA interna. & \texttt{pki-ca} \\
     \texttt{TSA\_DIR} & Directorio de trabajo de la TSA local, junto al de la CA. & \texttt{pki-tsa} \\
-    \texttt{CINCEL\_BASE\_URL} & URL base del proveedor remoto de sellado de tiempo. & --- \\
-    \texttt{CINCEL\_API\_KEY} & Credencial del proveedor remoto (secreto). & --- \\
+    \texttt{CINCEL\_BASE\_URL} & URL base del proveedor remoto de sellado de tiempo. & Ninguno \\
+    \texttt{CINCEL\_API\_KEY} & Credencial del proveedor remoto (secreto). & Ninguno \\
     \texttt{AUDIT\_LOG\_PATH} & Archivo de bitácora offline; HTTP usa PostgreSQL. & \texttt{audit-log.jsonl} \\
     \texttt{USER} & Actor que registra \texttt{audit append}. & \texttt{unknown} \\
-    \texttt{DATABASE\_URL} & Conexión PostgreSQL: administrativa en \texttt{database}, restringida en \texttt{serve}. & --- \\
-    \texttt{REDIS\_URL} & Cadena Redis obligatoria para sesiones, desafíos y límites al ejecutar \texttt{serve}. & --- \\
+    \texttt{DATABASE\_URL} & Conexión PostgreSQL: administrativa en \texttt{database}, restringida en \texttt{serve}. & Ninguno \\
+    \texttt{REDIS\_URL} & Cadena Redis obligatoria para sesiones, desafíos y límites al ejecutar \texttt{serve}. & Ninguno \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -406,8 +406,8 @@ Produce un reporte de cuatro componentes sobre el documento: integridad (el resu
     \texttt{--sig} & ruta & obligatorio & Firma separada. \\
     \texttt{--cert} & ruta & obligatorio & Certificado del firmante. \\
     \texttt{--ca} & ruta & obligatorio & Certificado de la autoridad emisora. \\
-    \texttt{--tsr} & ruta & --- & Token de sello de tiempo; sin él, los componentes que dependen del token se reportan omitidos con su razón. \\
-    \texttt{--crl} & ruta & --- & Lista de revocación; sin ella no se comprueba revocación y el reporte lo dice. \\
+    \texttt{--tsr} & ruta & Ninguno & Token de sello de tiempo; sin él, los componentes que dependen del token se reportan omitidos con su razón. \\
+    \texttt{--crl} & ruta & Ninguno & Lista de revocación; sin ella no se comprueba revocación y el reporte lo dice. \\
     \texttt{--tsa-cert} & ruta & \texttt{--ca} & Ancla de confianza para el token; por defecto el propio emisor, que ancla a las autoridades internas. \\
     \texttt{--at} & instante RFC 3339 & ahora & Instante de evaluación del estado del certificado. \\
     \bottomrule
@@ -490,7 +490,7 @@ El grupo \texttt{auth} cubre el hashing de contraseñas con Argon2id, su calibra
   \end{tabularx}
 \end{table}
 
-\texttt{calibrate} mide el costo real de un hash nuevo en el hardware local: ejecuta cinco corridas de Argon2id sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva de 500 a 1\,000 milisegundos, con veredicto por debajo, dentro o por encima de la banda. La configuración vigente es $m=262144$ KiB, $t=3$, $p=1$; la media debe medirse en cada entorno. La salida de 529.4 ms reproducida abajo corresponde a la corrida histórica con dos pasadas y no constituye una medición de la configuración actual. \texttt{hash-password} emite una cadena PHC con los parámetros utilizados para ese hash. El ejemplo histórico \texttt{\$argon2id\$v=19\$m=262144,t=2,p=1\$\ldots} conserva sus dos pasadas; los hashes nuevos registran tres. \texttt{verify-password} toma los parámetros del PHC almacenado y responde \texttt{match} o \texttt{mismatch} ---con código de salida distinto de cero en el segundo caso---, sin reescribir los hashes históricos; un hash almacenado ilegible es un error, nunca un \texttt{mismatch}. \texttt{totp enroll} genera el secreto compartido, imprime el URI de aprovisionamiento \texttt{otpauth} y los ocho códigos de recuperación de un solo uso, y escribe el secreto base32 en el archivo indicado. \texttt{totp verify} acepta un desfase de un paso de 30 segundos a cada lado; la CLI conserva verificación sin estado, mientras la API rechaza la reutilización mediante un reclamo atómico en Redis.
+\texttt{calibrate} mide el costo real de un hash nuevo en el hardware local: ejecuta cinco corridas de Argon2id sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva de 500 a 1\,000 milisegundos, con veredicto por debajo, dentro o por encima de la banda. La configuración vigente es $m=262144$ KiB, $t=3$, $p=1$; la media debe medirse en cada entorno. La salida de 529.4 ms reproducida abajo corresponde a la corrida histórica con dos pasadas y no constituye una medición de la configuración actual. \texttt{hash-password} emite una cadena PHC con los parámetros utilizados para ese hash. El ejemplo histórico \texttt{\$argon2id\$v=19\$m=262144,t=2,p=1\$\ldots} conserva sus dos pasadas; los hashes nuevos registran tres. \texttt{verify-password} toma los parámetros del PHC almacenado y responde \texttt{match} o \texttt{mismatch} (con código de salida distinto de cero en el segundo caso), sin reescribir los hashes históricos; un hash almacenado ilegible es un error, nunca un \texttt{mismatch}. \texttt{totp enroll} genera el secreto compartido, imprime el URI de aprovisionamiento \texttt{otpauth} y los ocho códigos de recuperación de un solo uso, y escribe el secreto base32 en el archivo indicado. \texttt{totp verify} acepta un desfase de un paso de 30 segundos a cada lado; la CLI conserva verificación sin estado, mientras la API rechaza la reutilización mediante un reclamo atómico en Redis.
 
 \begin{lstlisting}[numbers=none]
 + $REPO/target/debug/despacho-cli auth calibrate
@@ -516,7 +516,7 @@ Con \texttt{--json}: \texttt{calibrate} emite \texttt{runs}, \texttt{mean\_ms}, 
 
 \section{Grupo audit: bitácora encadenada}\label{sec:cli-audit}
 
-El grupo \texttt{audit} opera la bitácora offline de solo anexado, separada de la cadena PostgreSQL del servidor: un archivo JSON Lines cuya ruta se toma de \texttt{AUDIT\_LOG\_PATH}, donde cada entrada almacena, además de sus campos, un valor de cadena SHA-256 que la enlaza con la anterior desde un génesis fijo. \texttt{append} registra un evento con las opciones \texttt{--action} y \texttt{--resource} (cadenas, obligatorias); el actor se toma de la variable \texttt{USER} y el instante del reloj del sistema, e imprime la secuencia y el valor de cadena asignados, de modo que la terminal del operador retenga un registro informal de la cabeza de la cadena. \texttt{verify-chain} recomputa cada eslabón desde el génesis y nombra el índice del primer eslabón roto; \texttt{show} lista las entradas en orden de inserción. Los subcomandos de lectura rehúsan operar sobre una bitácora inexistente ---reportar una ruta equivocada o un archivo borrado como cadena vacía válida frustraría la verificación---; solo \texttt{append} crea el archivo. La verificación no detecta el truncado de la cola, limitación documentada en \texttt{docs/adr/0007-audit-chain-anchoring.md}.
+El grupo \texttt{audit} opera la bitácora offline de solo anexado, separada de la cadena PostgreSQL del servidor: un archivo JSON Lines cuya ruta se toma de \texttt{AUDIT\_LOG\_PATH}, donde cada entrada almacena, además de sus campos, un valor de cadena SHA-256 que la enlaza con la anterior desde un génesis fijo. \texttt{append} registra un evento con las opciones \texttt{--action} y \texttt{--resource} (cadenas, obligatorias); el actor se toma de la variable \texttt{USER} y el instante del reloj del sistema, e imprime la secuencia y el valor de cadena asignados, de modo que la terminal del operador retenga un registro informal de la cabeza de la cadena. \texttt{verify-chain} recomputa cada eslabón desde el génesis y nombra el índice del primer eslabón roto; \texttt{show} lista las entradas en orden de inserción. Los subcomandos de lectura rehúsan operar sobre una bitácora inexistente: reportar una ruta equivocada o un archivo borrado como cadena vacía válida frustraría la verificación; solo \texttt{append} crea el archivo. La verificación no detecta el truncado de la cola, limitación documentada en \texttt{docs/adr/0007-audit-chain-anchoring.md}.
 
 El actor \texttt{USER} de esta herramienta offline no autentica una identidad
 HTTP. Para comprobar la cadena del servidor se usa la ruta protegida
@@ -539,4 +539,4 @@ audit chain valid (2 entries)
 Error: audit chain broken at index 1
 \end{lstlisting}
 
-Con \texttt{--json}: \texttt{append} emite \texttt{sequence}, \texttt{timestamp}, \texttt{actor}, \texttt{action}, \texttt{resource} y \texttt{chain}; \texttt{show} emite un arreglo de objetos con esos mismos campos; \texttt{verify-chain} emite \texttt{\{valid, entries\}} cuando la cadena es válida o \texttt{\{valid: false, first\_broken\_index\}} ---impreso antes de terminar con código distinto de cero--- cuando está rota.
+Con \texttt{--json}: \texttt{append} emite \texttt{sequence}, \texttt{timestamp}, \texttt{actor}, \texttt{action}, \texttt{resource} y \texttt{chain}; \texttt{show} emite un arreglo de objetos con esos mismos campos; \texttt{verify-chain} emite \texttt{\{valid, entries\}} cuando la cadena es válida o \texttt{\{valid: false, first\_broken\_index\}} (impreso antes de terminar con código distinto de cero) cuando está rota.

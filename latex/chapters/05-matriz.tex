@@ -79,7 +79,7 @@ El criterio del objetivo OE-6 exige, por lo menos, un caso positivo y uno negati
   \addlinespace
   S5 & Un token recién emitido verifica como válido con hora plausible, igual que el token CMS desnudo extraído de la respuesta. & Un token sobre otro digest es discrepancia de huella, detectada sin lanzar subprocesos; bytes aleatorios o DER truncado son token malformado; un ancla ajena deja el token como no confiable. \\
   \addlinespace
-  S6 & Con los cuatro componentes aprobados el veredicto es válido; la evidencia no aportada se reporta omitida con su razón y no envenena el veredicto. & Cada componente se hace fallar por separado ---firma rechazada, certificado expirado o revocado, emisor no confiable, huella discrepante--- y el veredicto pasa a no válido nombrando la causa. \\
+  S6 & Con los cuatro componentes aprobados el veredicto es válido; la evidencia no aportada se reporta omitida con su razón y no envenena el veredicto. & Cada componente se hace fallar por separado (firma rechazada, certificado expirado o revocado, emisor no confiable, huella discrepante) y el veredicto pasa a no válido nombrando la causa. \\
   \addlinespace
   S7 & La cadena PHC emitida registra los parámetros fijados por el diseño y la contraseña correcta verifica como coincidencia. & La contraseña incorrecta termina con código distinto de cero; un hash almacenado corrupto es un error, nunca una simple no coincidencia. \\
   \addlinespace
@@ -90,7 +90,7 @@ El criterio del objetivo OE-6 exige, por lo menos, un caso positivo y uno negati
   S10 & Los comandos del instructivo del paquete, extraídos y ejecutados literalmente, aceptan el documento, la firma, el certificado y el token. & La exportación se rehúsa ante una firma alterada o una CRL ajena, sin escribir el ZIP; un byte volteado en un miembro extraído lo detectan los propios comandos y el CRC del formato. \\
 \end{longtable}
 
-Una convención del inventario merece mención explícita porque determina cómo se lee: cada función de prueba se nombra como una oración conductual que enuncia la garantía comprobada, de modo que el inventario del Anexo~\ref{anexo:matriz} funciona como una especificación ejecutable del comportamiento del sistema ---el nombre declara la garantía y la función la comprueba---. Dos ejemplos: \texttt{version\_rejects\_zero} y \texttt{an\_empty\_log\_verifies\_as\_valid}.
+Una convención del inventario merece mención explícita porque determina cómo se lee: cada función de prueba se nombra como una oración conductual que enuncia la garantía comprobada, de modo que el inventario del Anexo~\ref{anexo:matriz} funciona como una especificación ejecutable del comportamiento del sistema: el nombre declara la garantía y la función la comprueba. Dos ejemplos: \texttt{version\_rejects\_zero} y \texttt{an\_empty\_log\_verifies\_as\_valid}.
 
 \subsection{Entorno reproducible y aislamiento}\label{sec:pruebas-backends}
 

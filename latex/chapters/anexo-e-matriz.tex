@@ -76,7 +76,7 @@ La \cref{tab:matriz-resumen} resume la distribución de las 520 funciones por cr
   \endfoot
   \bottomrule
   \endlastfoot
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{domain}} --- 69 funciones en \texttt{src/} y 16 en \texttt{tests/}} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{domain}}: 69 funciones en \texttt{src/} y 16 en \texttt{tests/}} \\
   \midrule
   \texttt{src/audit/chain.rs} & 10 & Unit. & \texttt{an\_intact\_chain\_verifies\_as\_valid}\newline
     \texttt{truncating\_the\_tail\_is\_not\_detected\_by\_verification\_alone} \\
@@ -109,7 +109,7 @@ La \cref{tab:matriz-resumen} resume la distribución de las 520 funciones por cr
   \texttt{tests/\allowbreak{}cases.rs} & 7 & Unit., Integr. & \texttt{case\_policy\_covers\_every\_role\_and\_membership\_state}\newline\texttt{client\_case\_visibility\_does\_not\_grant\_document\_permissions} \\
   \texttt{tests/\allowbreak{}persisted\_invariants.rs} & 6 & Unit. & \texttt{maximum\_document\_version\_returns\_an\_error\_without\_wrapping}\newline\texttt{persisted\_recovery\_sets\_require\_exactly\_the\_issued\_slot\_count} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{application}} --- 39 funciones en \texttt{src/} y 85 en \texttt{tests/}, con dobles de los puertos} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{application}}: 39 funciones en \texttt{src/} y 85 en \texttt{tests/}, con dobles de los puertos} \\
   \midrule
   \texttt{src/audit.rs} & 8 & Unit. & \texttt{append\_takes\_the\_timestamp\_from\_the\_clock\_and\_returns\_the\_stored\_entry}\newline
     \texttt{verify\_reports\_the\_first\_index\_whose\_chain\_does\_not\_match} \\
@@ -145,7 +145,7 @@ La \cref{tab:matriz-resumen} resume la distribución de las 520 funciones por cr
   \texttt{tests/\allowbreak{}case\_document\_workflow.rs} & 10 & Integr. & \texttt{session\_revocation\_during\_preparation\_prevents\_every\_commit}\newline\texttt{wrong\_case\_errors\_from\_storage\_are\_preserved\_even\_for\_owner} \\
   \texttt{tests/\allowbreak{}identity\_support/\allowbreak{}failure\_tests.rs} & 6 & Integr. & \texttt{audit\_failure\_discards\_sessions\_created\_by\_either\_second\_factor}\newline\texttt{logout\_audit\_failure\_keeps\_the\_session\_revoked} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{infrastructure}} --- 86 funciones en \texttt{src/} y 143 en \texttt{tests/} (una ignorada)} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{infrastructure}}: 86 funciones en \texttt{src/} y 143 en \texttt{tests/} (una ignorada)} \\
   \midrule
   \texttt{src/archive.rs} & 6 & Unit., vect. & \texttt{crc32\_matches\_the\_standard\_check\_value}\newline
     \texttt{output\_is\_deterministic} \\
@@ -227,7 +227,7 @@ La \cref{tab:matriz-resumen} resume la distribución de las 520 funciones por cr
   \texttt{tests/\allowbreak{}redis\_session\_atomicity.rs} & 6 & Integr. & \texttt{concurrent\_callers\_can\_take\_a\_challenge\_exactly\_once}\newline\texttt{reading\_a\_locked\_legacy\_counter\_repairs\_its\_missing\_expiration} \\
   \texttt{tests/\allowbreak{}redis\_timeouts.rs} & 2 & Integr. & \texttt{an\_established\_connection\_times\_out\_when\_a\_command\_never\_receives\_a\_reply}\newline\texttt{zero\_connection\_or\_io\_timeouts\_are\_rejected} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{bin} (\texttt{despacho-cli})} --- 3 funciones en \texttt{src/} y 53 en \texttt{tests/}} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{bin} (\texttt{despacho-cli})}: 3 funciones en \texttt{src/} y 53 en \texttt{tests/}} \\
   \midrule
   \texttt{src/cli.rs} & 1 & Unit. & \texttt{command\_tree\_is\_valid} \\
   \texttt{src/timestamp\_cmd.rs} & 2 & Unit. & \texttt{the\_token\_suffix\_keeps\_the\_original\_extension}\newline
@@ -256,7 +256,7 @@ La \cref{tab:matriz-resumen} resume la distribución de las 520 funciones por cr
   \texttt{tests/verify\_cli.rs} & 9 & E2E, mut. & \texttt{an\_intact\_document\_verifies\_valid\_on\_every\_component}\newline
     \texttt{a\_revoked\_certificate\_reports\_its\_serial\_from\_the\_fresh\_crl} \\
   \midrule
-  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{web}} --- 6 funciones en \texttt{src/} y 20 en \texttt{tests/}} \\
+  \multicolumn{4}{@{}l@{}}{\textbf{Crate \texttt{web}}: 6 funciones en \texttt{src/} y 20 en \texttt{tests/}} \\
   \midrule
   \texttt{src/\allowbreak{}lib.rs} & 1 & Unit. & \texttt{health\_endpoint\_reports\_ready} \\
   \texttt{src/\allowbreak{}runtime/\allowbreak{}tests.rs} & 5 & Integr. & \texttt{cancelling\_http\_future\_does\_not\_release\_running\_blocking\_work}\newline\texttt{admission\_rejects\_before\_reading\_an\_extra\_request\_body\_and\_recovers} \\
@@ -446,7 +446,7 @@ La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umb
     \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
     \texttt{web}            & 578 & 683 & 84.6\,\% & informativo \\
     \midrule
-    \textbf{Workspace}      & \textbf{8\,026} & \textbf{8\,845} & \textbf{90.7\,\%} & --- \\
+    \textbf{Workspace}      & \textbf{8\,026} & \textbf{8\,845} & \textbf{90.7\,\%} & No aplica \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -467,7 +467,7 @@ La medición del 14 de septiembre de 2026 registró 8\,256 líneas cubiertas de 
     \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
     \texttt{web}            & 637 & 737 & 86.4\,\% & informativo \\
     \midrule
-    \textbf{Workspace}      & \textbf{8\,256} & \textbf{9\,071} & \textbf{91.0\,\%} & --- \\
+    \textbf{Workspace}      & \textbf{8\,256} & \textbf{9\,071} & \textbf{91.0\,\%} & No aplica \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -488,7 +488,7 @@ La ejecución instrumentada de versiones inmutables del mismo día aprobó 577 p
     \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
     \texttt{web}            & 821 & 927 & 88.6\,\% & informativo \\
     \midrule
-    \textbf{Workspace}      & \textbf{8\,908} & \textbf{9\,719} & \textbf{91.7\,\%} & --- \\
+    \textbf{Workspace}      & \textbf{8\,908} & \textbf{9\,719} & \textbf{91.7\,\%} & No aplica \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -509,7 +509,7 @@ La clasificación registra 9\,854 de 10\,670 líneas cubiertas, equivalentes a 9
     \texttt{bin}            & 834 & 1\,086 & 76.8\,\% & informativo \\
     \texttt{web}            & 1\,090 & 1\,199 & 90.9\,\% & informativo \\
     \midrule
-    \textbf{Workspace}      & \textbf{9\,854} & \textbf{10\,670} & \textbf{92.4\,\%} & --- \\
+    \textbf{Workspace}      & \textbf{9\,854} & \textbf{10\,670} & \textbf{92.4\,\%} & No aplica \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -530,7 +530,7 @@ La cobertura del directorio registra 10\,994 de 11\,838 líneas, equivalentes a 
     \texttt{bin}            & 834 & 1\,093 & 76.3\,\% & informativo \\
     \texttt{web}            & 1\,361 & 1\,474 & 92.3\,\% & informativo \\
     \midrule
-    \textbf{Workspace}      & \textbf{10\,994} & \textbf{11\,838} & \textbf{92.9\,\%} & --- \\
+    \textbf{Workspace}      & \textbf{10\,994} & \textbf{11\,838} & \textbf{92.9\,\%} & No aplica \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -551,7 +551,7 @@ La administración penal cubre 12\,613 de 13\,506 líneas, equivalentes a 93.4\,
     \texttt{bin}            & 834 & 1\,096 & 76.1\,\% & informativo \\
     \texttt{web}            & 1\,726 & 1\,863 & 92.6\,\% & informativo \\
     \midrule
-    \textbf{Workspace}      & \textbf{12\,613} & \textbf{13\,506} & \textbf{93.4\,\%} & --- \\
+    \textbf{Workspace}      & \textbf{12\,613} & \textbf{13\,506} & \textbf{93.4\,\%} & No aplica \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -572,7 +572,7 @@ El corte de etapas del 15 de septiembre de 2026 aprobó 933 pruebas, con una ext
     \texttt{bin}            & 836 & 1\,116 & 74.9\,\% & informativo \\
     \texttt{web}            & 2\,129 & 2\,271 & 93.7\,\% & informativo \\
     \midrule
-    \textbf{Workspace}      & \textbf{15\,817} & \textbf{17\,064} & \textbf{92.7\,\%} & --- \\
+    \textbf{Workspace}      & \textbf{15\,817} & \textbf{17\,064} & \textbf{92.7\,\%} & No aplica \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -593,7 +593,7 @@ La primera campaña instrumentada de identidades y participantes tipificados, de
     \texttt{bin}            & 911 & 1\,200 & 75.9\,\% & informativo \\
     \texttt{web}            & 3\,275 & 3\,568 & 91.8\,\% & informativo \\
     \midrule
-    \textbf{Workspace}      & \textbf{21\,968} & \textbf{23\,773} & \textbf{92.4\,\%} & --- \\
+    \textbf{Workspace}      & \textbf{21\,968} & \textbf{23\,773} & \textbf{92.4\,\%} & No aplica \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -608,7 +608,7 @@ El comando \texttt{auth calibrate} mide el costo real de un hash nuevo con la co
 
 El mismo guion invoca \rutarepo{scripts/api-concurrency-demo.sh}, en el que dos procesos del servidor compiten por sellar la misma versión, y \rutarepo{scripts/api-migration-demo.sh}, que importa cuatro documentos con 46 entradas históricas y restaura la base; sus resultados y comprobaciones se detallan en las \cref{sec:pruebas-atomicidad,sec:pruebas-migracion}. Estas ejecuciones emplean datos generados, no documentación del usuario.
 
-La batería también fija el orden entre revocación y commit, rollback de documento y auditoría ante fallos y reconciliación de marcadores y recibos. Sus límites ---transmisión de una respuesta ya confirmada antes de revocar, ausencia de una transacción distribuida entre PostgreSQL y Redis, limpieza de credenciales por caducidad cuando Redis tampoco responde y política actual de OpenSSL para la TSA frente a la validación del firmante en el instante del sello--- se precisan en las \cref{sec:pruebas-permisos,sec:pruebas-migracion}. No se midieron carga de producción ni usabilidad. La ausencia de anclaje externo de auditoría y de una constancia de PSC impide presentar estos ensayos como prueba de independencia temporal o cumplimiento jurídico.
+La batería también fija el orden entre revocación y commit, rollback de documento y auditoría ante fallos y reconciliación de marcadores y recibos. Sus límites (transmisión de una respuesta ya confirmada antes de revocar, ausencia de una transacción distribuida entre PostgreSQL y Redis, limpieza de credenciales por caducidad cuando Redis tampoco responde y política actual de OpenSSL para la TSA frente a la validación del firmante en el instante del sello) se precisan en las \cref{sec:pruebas-permisos,sec:pruebas-migracion}. No se midieron carga de producción ni usabilidad. La ausencia de anclaje externo de auditoría y de una constancia de PSC impide presentar estos ensayos como prueba de independencia temporal o cumplimiento jurídico.
 
 \subsection{Re-ejecución continua}\label{sec:matriz-ci}
 
