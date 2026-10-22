@@ -1,0 +1,45 @@
+\begin{tikzpicture}[
+  grupo/.style={cajaClara, text width=2.2cm, minimum width=2.45cm, minimum height=1.55cm},
+  efim/.style={caja, text width=3.95cm, minimum width=4.1cm, minimum height=0.72cm}]
+
+  % Servidor y preparación criptográfica
+  \node[cajaOsc, text width=4.6cm] (srv) at (7.3,0)
+    {\textbf{Servidor Rust}\\ casos de uso autenticados y autorizados};
+  \node[caja, text width=3.9cm] (cripto) at (2.1,0)
+    {Cifrado, firma y sello de tiempo\\ se preparan antes de la transacción};
+  \draw[flecha] (cripto) -- (srv);
+
+  % Zonas
+  \draw[zona] (0,-1.3) rectangle (11.0,-6.95);
+  \draw[zona] (11.35,-1.3) rectangle (16,-6.95);
+  \node[zonaLabel] at (0,-1.3) {POSTGRESQL · ESTADO DURABLE CON VALOR PROBATORIO};
+  \node[zonaLabel] at (11.35,-1.3) {REDIS · ESTADO EFÍMERO};
+
+  % PostgreSQL
+  \node[grupo] (g1) at (1.5,-2.4) {\textbf{Identidad y acceso}\\ cuentas, roles y asignaciones};
+  \node[grupo] (g2) at (4.15,-2.4) {\textbf{Expedientes}\\ raíz, revisiones y etapas};
+  \node[grupo] (g3) at (6.8,-2.4) {\textbf{Documentos}\\ versiones cifradas y clasificación};
+  \node[grupo] (g4) at (9.45,-2.4) {\textbf{Directorio}\\ identidades y fichas por rol};
+  \node[grupo] (g5) at (1.5,-4.15) {\textbf{Audiencias}\\ programación, resultados y medidas};
+  \node[grupo] (g6) at (4.15,-4.15) {\textbf{Recursos procesales}\\ revocación y apelación};
+  \node[grupo] (g7) at (6.8,-4.15) {\textbf{Calendarios y plazos}\\ reglas, cómputos e historia};
+  \node[grupo] (g8) at (9.45,-4.15) {\textbf{Alertas}\\ preferencias, avisos e intentos de correo};
+  \node[cajaOsc, text width=10.1cm, minimum height=0.95cm] (bit) at (5.475,-6.2)
+    {\textbf{Bitácora encadenada}: secuencia, instante, actor, acción, recurso y hash\\
+     del evento anterior. El rol operativo solo inserta y lee.};
+  \draw[flecha] (5.475,-5.0) -- node[etq, right=2pt]{cada mutación confirma su evento} (bit.north);
+
+  % Redis
+  \node[efim] (r1) at (13.675,-2.1) {\textbf{Sesiones opacas}: hash del token, máx. 24 h};
+  \node[efim] (r2) at (13.675,-3.0) {\textbf{Desafíos MFA}: 5 min, un intento};
+  \node[efim] (r3) at (13.675,-3.9) {\textbf{Desafío de certificado}: un uso};
+  \node[efim] (r4) at (13.675,-4.8) {\textbf{Códigos TOTP usados}: 90 s};
+  \node[efim] (r5) at (13.675,-5.9)
+    {\textbf{Límites de intentos}: contraseña (5 fallos, 15 min), certificado, invitación y recuperación};
+
+  % Conexiones
+  \draw[flecha, line width=1.1pt] (8.6,0 |- srv.south) -- node[etq, left=3pt, align=right]
+    {mutación y evento de auditoría\\ en una sola transacción} (8.6,-1.3);
+  \draw[flechaSuave, line width=0.7pt] (srv.east) -| node[etq, pos=0.75, align=center]
+    {fuera de esa\\ transacción} (13.675,-1.3);
+\end{tikzpicture}

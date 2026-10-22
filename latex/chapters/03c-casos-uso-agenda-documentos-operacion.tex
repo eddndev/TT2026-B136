@@ -1,0 +1,231 @@
+% =============================================================================
+%  03c: casos de uso CU-08 a CU-17 (agenda, documentos, firma y operación)
+% =============================================================================
+
+% Fichas de casos de uso: cada fila es una tabla propia para que la ficha
+% pueda continuar en la página siguiente sin flotar. El argumento opcional de
+% \CUcFicha fija cuántas líneas deben caber antes de empezarla. La opción p de
+% \CUcFila impide el salto antes de la fila, de modo que Postcondición y
+% Trazabilidad nunca quedan solas en la página siguiente.
+\newcommand{\CUcFicha}[2][7]{\par\medskip\Needspace{#1\baselineskip}\begingroup
+  \captionof{table}{#2}}
+\newcommand{\CUcFila}[3][]{\par\ifx b#1\nopagebreak[4]\fi\ifx p#1\nopagebreak[4]\fi
+  \noindent\footnotesize
+  \begin{tabularx}{\linewidth}{@{}>{\bfseries}L{2.65cm} X@{}}
+    \ifx t#1\toprule\fi #2 & #3 \\ \ifx b#1\bottomrule\fi
+  \end{tabularx}\par}
+\newcommand{\CUcFin}{\endgroup\par\medskip}
+
+\subsection{Calendario jurídico, plazos y alertas}\label{sec:cu-calendario}
+
+Estos tres casos cubren la agenda del despacho: programar audiencias, derivar
+plazos de sus resultados, mantener los calendarios de días hábiles y avisar a
+tiempo a la persona responsable. La \cref{fig:cu-08} muestra cómo colaboran el
+navegador, la API, la base de datos y los procesos internos que trabajan sin
+que nadie los invoque. Cada plazo nace de una instrucción explícita del
+operador; la activación automática a partir del resultado de una audiencia y
+la calificación jurídica de los perfiles de plazo siguen pendientes. El envío
+de alertas por correo solo se probó contra un servidor local de ensayo; no se
+ha verificado su entrega a un buzón externo.
+
+\CUcFicha{CU-08: Programación de audiencia y activación de plazos.}\label{tab:cu-08}\nopagebreak[4]
+\CUcFila[t]{Actores}{Litigante asignado (el Owner también puede); apoyo: servicio de cómputo de plazos.}
+\CUcFila{Precondición}{Expediente activo con su perfil penal completo y una etapa procesal registrada.}
+\CUcFila{Flujo principal}{1. El Litigante elige un tipo del catálogo de audiencias (\cref{sec:diseno-audiencias}), la fecha, la modalidad y los participantes. 2. El sistema comprueba que el tipo corresponda a la etapa vigente, presenta la propuesta y la registra con su historia. 3. Tras la audiencia, el Litigante declara la sesión y su resultado y, en la misma instrucción, el plazo que deriva de él: perfil, responsable y calendario. 4. El sistema calcula el vencimiento con el perfil y el calendario elegidos; el perfil expresa la regla de cómputo que el despacho configura (por ejemplo, las del artículo 94 del CNPP). 5. El Litigante revisa el cálculo y confirma; resultado y plazo se guardan juntos.}
+\CUcFila{Flujos alternos}{2a. El tipo no corresponde a la etapa vigente: se rechaza la programación. 3a. El resultado no genera plazo: se registra solo. 4a. Faltan datos o una condición del perfil: el plazo queda bloqueado con su explicación y sin fecha operativa.}
+\CUcFila[p]{Postcondición}{La audiencia aparece en la agenda del despacho. El plazo, si existe, queda activo con su vencimiento y disponible para los avisos.}
+\CUcFila[b]{Trazabilidad}{HU-19, HU-20, HU-21; RF-07, RF-08; RNF-10.}
+\CUcFin
+
+\begin{figure}[htb]
+  \centering
+  \input{figures/fig-03c-plazos-secuencia}
+  \caption{Audiencia, resultado, plazo y aviso (CU-08 y CU-10). Cada escritura se
+  revisa y se confirma con su auditoría; los avisos salen de procesos internos.}
+  \label{fig:cu-08}
+\end{figure}
+
+\CUcFicha{CU-09: Configuración del calendario judicial.}\label{tab:cu-09}\nopagebreak[4]
+\CUcFila[t]{Actores}{Owner; apoyo: servicio de reevaluación de plazos.}
+\CUcFila{Precondición}{El Owner tiene sesión activa.}
+\CUcFila{Flujo principal}{1. El Owner declara el ámbito del calendario: fuero federal o local, entidades federativas, autoridad y órgano. 2. Registra la cobertura, el patrón semanal y las excepciones (recesos, feriados y días inhábiles), cada una con su fuente pública. 3. El sistema publica una revisión nueva sin alterar las anteriores. 4. Los plazos que siguen ese calendario se recalculan en segundo plano (\cref{fig:cu-09}).}
+\CUcFila{Flujos alternos}{2a. Un supuesto que no puede clasificarse con certeza se marca como no resuelto y el cómputo se detiene en él. 4a. El plazo conserva una revisión fija del calendario: mantiene su cálculo. 4b. La nueva fecha queda próxima: el responsable recibe un aviso de cambio de fecha.}
+\CUcFila[p]{Postcondición}{El calendario queda versionado. Owner, Litigante y Paralegal lo consultan, y cada cómputo indica qué revisión utilizó.}
+\CUcFila[b]{Trazabilidad}{HU-22; RF-08; RNF-10.}
+\CUcFin
+
+\CUcFicha{CU-10: Monitoreo de plazos y emisión de alertas.}\label{tab:cu-10}\nopagebreak[4]
+\CUcFila[t]{Actores}{Sistema (proceso automático); receptores: Litigante responsable y miembros del expediente; correo transaccional.}
+\CUcFila{Precondición}{Existen audiencias programadas o plazos activos con vencimiento comprobado.}
+\CUcFila{Flujo principal}{1. Un proceso interno recorre periódicamente audiencias y plazos activos. 2. Cuando se cruza una anticipación configurada (48 y 24 horas por omisión; cada usuario puede elegir hasta ocho), genera un aviso. 3. El aviso aparece en la bandeja de Qadra y, si el usuario habilitó el canal y el transporte de correo está configurado, se envía un correo genérico con un enlace, sin datos del expediente. 4. La activación y cada intento de correo quedan en la bitácora.}
+\CUcFila{Flujos alternos}{2a. El plazo venció sin atención declarada: aviso de vencimiento de nivel crítico. 2b. El plazo requiere revisión humana o su fecha cambió: aviso específico. 3a. El proveedor de correo falla: se reintenta el mismo mensaje dentro de un límite de intentos.}
+\CUcFila[p]{Postcondición}{El responsable fue avisado y el envío quedó registrado. Leer un aviso no equivale a atender el plazo. Que el proveedor acepte un correo no acredita que llegó al buzón.}
+\CUcFila[b]{Trazabilidad}{HU-23, HU-24; RF-09, RF-10; RNF-06.}
+\CUcFin
+
+\begin{figure}[htb]
+  \centering
+  \input{figures/fig-03c-reevaluacion}
+  \caption{Reevaluación tras publicar un calendario (CU-09). Solo un calendario
+  seguido recalcula la fecha; los demás casos conservan el cálculo anterior.}
+  \label{fig:cu-09}
+\end{figure}
+
+\subsection{Gestión documental y cadena de custodia}\label{sec:cu-documental}
+
+La carga y la consulta forman los dos extremos de la cadena de custodia. Al
+cargar se fija una huella SHA-256 (un resumen de 32 bytes que cambia ante
+cualquier modificación) y el contenido se cifra con AES-256-GCM, que además de
+ocultar los datos detecta cualquier alteración del texto cifrado. Al consultar,
+ambas comprobaciones se repiten antes de entregar un solo byte
+(\cref{fig:cu-11}).
+
+\CUcFicha[12]{CU-11: Carga y clasificación de documentos.}\label{tab:cu-11}\nopagebreak[4]
+\CUcFila[t]{Actores}{Litigante; también Owner y Paralegal asignado.}
+\CUcFila{Precondición}{Existe el expediente y el usuario tiene permiso de carga en él.}
+\CUcFila{Flujo principal}{1. El usuario elige el archivo y le asigna tipo documental, clasificación y etiquetas. 2. El sistema reconoce el formato por su contenido (PDF, DOCX, TXT, JPEG, PNG, MP3, WAV o MP4). 3. Calcula la huella del original. 4. Cifra el documento y lo guarda como versión 1. 5. Registra la carga en la bitácora: usuario, instante, huella y estado.}
+\CUcFila{Flujos alternos}{2a. Formato no admitido o contenido inválido: se rechaza con su motivo y el borrador se conserva. 2b. El archivo supera 16 MiB: se rechaza.}
+\CUcFila[p]{Postcondición}{El documento queda cifrado, con su huella y su clasificación, visible para los perfiles autorizados. Las versiones posteriores no alteran las anteriores.}
+\CUcFila[b]{Trazabilidad}{HU-25, HU-26, HU-28, HU-30, HU-32; RF-12, RF-13, RF-14; RNF-03, RNF-04.}
+\CUcFin
+
+\CUcFicha{CU-12: Consulta de documentos con verificación de integridad.}\label{tab:cu-12}\nopagebreak[4]
+\CUcFila[t]{Actores}{Litigante o Paralegal asignado; Owner en cualquier expediente.}
+\CUcFila{Precondición}{El usuario tiene acceso al expediente que contiene el documento.}
+\CUcFila{Flujo principal}{1. El usuario elige una versión exacta. 2. El sistema revalida sesión, rol y pertenencia. 3. Descifra el contenido. 4. Recalcula la huella y la compara con la de la carga. 5. Si coincide, registra el acceso y entrega los bytes originales.}
+\CUcFila{Flujos alternos}{2a. Sin permiso sobre el expediente: acceso denegado. 3a. Falla la autenticación del cifrado, o 4a. la huella no coincide: no se entrega contenido, el usuario recibe un rechazo explícito y se registra un incidente que el Owner consulta en su buzón. El incidente describe el fallo observado, no su causa.}
+\CUcFila[p]{Postcondición}{El usuario recibe el documento íntegro o un rechazo explícito; ambos resultados quedan registrados. La verificación de firmas y sellos es una operación aparte (CU-14).}
+\CUcFila[b]{Trazabilidad}{HU-27, HU-29, HU-31, HU-33; RF-11, RF-12, RF-13, RF-14; RNF-03, RNF-04.}
+\CUcFin
+
+\begin{figure}[htb]
+  \centering
+  \input{figures/fig-03c-documentos-secuencia}
+  \caption{Carga y consulta de un documento (CU-11 y CU-12). Las flechas guindas
+  son rechazos: un formato no admitido no deja rastro en el almacén, y un fallo de
+  integridad no entrega contenido, pero sí deja un incidente.}
+  \label{fig:cu-11}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \input{figures/fig-03c-firma-secuencia}
+  \caption{Firma individual de un contrato (CU-13). El titular produce dos
+  firmas en su equipo; el servidor solo recibe material público, pide el sello
+  sobre la huella del PDF y confirma todo en una transacción.}
+  \label{fig:cu-13}
+\end{figure}
+
+\subsection{Firma de contratos y constancia de fecha}\label{sec:cu-firma}
+
+La firma individual separa tres cosas: quién es la cuenta, qué certificado
+usa y qué versión autoriza. El titular firma en su propio equipo
+(\cref{fig:cu-13}); qué se firma se detalla en la
+\cref{fig:cripto-consentimiento}. La firma resultante es una firma electrónica
+simple: el certificado emitido por la autoridad certificadora interna no
+acredita identidad civil ni equivale a la FIREL, y la TSA local no sustituye la
+constancia de un PSC autorizado conforme a la NOM-151.
+
+\CUcFicha{CU-13: Firma digital de contrato con sellado de tiempo.}\label{tab:cu-13}\nopagebreak[4]
+\CUcFila[t]{Actores}{Litigante firmante; apoyo: TSA configurada (local en la demostración).}
+\CUcFila{Precondición}{Existe una versión PDF exacta sin sellar en un expediente activo. El Litigante está asignado, tiene sesión con segundo factor y un vínculo propio vigente con un certificado de firma de la autoridad certificadora interna.}
+\CUcFila{Flujo principal}{1. El Litigante elige expediente, documento y versión, y revisa el PDF. 2. Lo firma en su equipo. 3. El sistema prepara un consentimiento (\cref{sec:firma-digital}); el titular lo firma por separado. 4. El sistema verifica ambas firmas y pide a la TSA un sello sobre la huella del PDF. 5. Valida el sello, vuelve a comprobar identidad, permisos y vigencia, y guarda evidencia, recibo y auditoría en una transacción. 6. Presenta el recibo y permite exportar la evidencia.}
+\CUcFila{Flujos alternos}{Certificado revocado o vencido, confianza cambiada o prueba incorrecta: no hay aceptación. Fallo o espera agotada de la TSA: no se confirma ni se reintenta de forma implícita. Si se pierde la respuesta, el usuario puede consultar el recibo; repetir la misma solicitud no crea una segunda firma.}
+\CUcFila[p]{Postcondición}{La versión conserva la prueba de su contenido y del consentimiento de la cuenta. El instante de aceptación consta en el registro auditado; el sello cubre solo la huella del PDF y no atestigua por sí solo el consentimiento.}
+\CUcFila[b]{Trazabilidad}{HU-34, HU-35; RF-15, RF-16; RNF-03, RNF-11.}
+\CUcFin
+
+\CUcFicha[18]{CU-14: Verificación de firma digital y sello de tiempo.}\label{tab:cu-14}\nopagebreak[4]
+\CUcFila[t]{Actores}{Usuario autenticado con acceso al contrato (Owner, Litigante o Paralegal asignado).}
+\CUcFila{Precondición}{El contrato fue firmado y tiene un sello de tiempo asociado.}
+\CUcFila{Flujo principal}{1. El usuario elige la versión exacta. 2. El sistema descifra el contenido y recalcula su huella. 3. Verifica las firmas del PDF, del vínculo y del consentimiento con el material capturado. 4. Evalúa la confianza en los instantes registrados y comprueba el sello contra la huella del PDF. 5. Consulta aparte el certificado bajo la confianza actual y el posible retiro del vínculo. 6. Presenta ambos resultados por separado (\cref{fig:cu-14}).}
+\CUcFila{Flujos alternos}{Una alteración del contenido, de la declaración o de una prueba impide aceptar la verificación. Un sello inválido impide afirmar su validez. La revocación, expiración o retiro actuales se informan sin reescribir el resultado histórico; sin confianza vigente, el estado actual se presenta como no disponible.}
+\CUcFila[p]{Postcondición}{El usuario obtiene el resultado histórico y el estado actual disponible. Los contratos sellados antes de que existiera la firma individual no se atribuyen a ninguna persona.}
+\CUcFila[b]{Trazabilidad}{HU-36, HU-37; RF-17; RNF-11.}
+\CUcFin
+
+\begin{figure}[htb]
+  \centering
+  \input{figures/fig-03c-verificacion}
+  \caption{Verificación de una firma (CU-14). La columna izquierda responde si la
+  firma era válida cuando se hizo; la derecha, qué pasó después con el
+  certificado y el vínculo.}
+  \label{fig:cu-14}
+\end{figure}
+
+\subsection{Operación y monitoreo}\label{sec:cu-operacion}
+
+Los tres casos de operación dan al despacho una vista de conjunto: un tablero
+inmediato, informes que se generan en segundo plano y la consulta de la
+bitácora de actividad.
+
+\CUcFicha{CU-15: Consulta del tablero de control.}\label{tab:cu-15}\nopagebreak[4]
+\CUcFila[t]{Actores}{Owner o Litigante.}
+\CUcFila{Precondición}{El usuario tiene sesión activa.}
+\CUcFila{Flujo principal}{1. El usuario abre el tablero. 2. El sistema revalida cuenta y pertenencias y calcula los indicadores: expedientes activos, plazos vencidos o por vencer en 48 horas y en siete días, revisiones pendientes, contratos cuya versión actual no tiene sello interno y carga de expedientes por litigante. 3. Presenta los indicadores diferenciados por urgencia y registra la consulta.}
+\CUcFila{Flujos alternos}{2a. Hay plazos a menos de 48 horas: se destacan con un indicador crítico. 2b. Litigante: solo ve sus expedientes y la carga de sus colegas en expedientes compartidos.}
+\CUcFila[p]{Postcondición}{El usuario ve el estado actual del despacho. Solo cuentan los plazos con vencimiento comprobado; la urgencia describe proximidad y no califica un plazo como fatal. El indicador de sello interno no dice si el contrato tiene firma personal.}
+\CUcFila[b]{Trazabilidad}{HU-38; RF-18; RNF-07.}
+\CUcFin
+
+\CUcFicha[12]{CU-16: Generación de informes.}\label{tab:cu-16}\nopagebreak[4]
+\CUcFila[t]{Actores}{Owner (y Litigante para sus expedientes); apoyo: proceso interno de generación.}
+\CUcFila{Precondición}{El usuario tiene sesión activa.}
+\CUcFila{Flujo principal}{1. El usuario elige el tipo de informe (estado de expedientes o actividad registrada), el intervalo y los filtros (litigante, estado). 2. El sistema registra la solicitud y deja la generación pendiente para un proceso interno. 3. Confirma la recepción y muestra el progreso con una estimación inicial. 4. El proceso interno captura los datos autorizados, publica el informe en PDF y CSV y deja un aviso interno (\cref{fig:cu-16}). 5. El usuario lo descarga.}
+\CUcFila{Flujos alternos}{3a. El volumen supera el umbral de procesamiento inmediato: el sistema informa el tiempo estimado y envía un correo cuando el informe está listo. 5a. El usuario perdió acceso a algún expediente capturado: el informe no se entrega.}
+\CUcFila[p]{Postcondición}{El informe queda disponible para descarga y la interfaz sigue respondiendo durante la generación.}
+\CUcFila[b]{Trazabilidad}{HU-39; RF-19; RNF-06, RNF-07.}
+\CUcFin
+
+\begin{figure}[htb]
+  \centering
+  \input{figures/fig-03c-informes-secuencia}
+  \caption{Generación de un informe en segundo plano (CU-16). La petición solo
+  registra la solicitud; la captura y la generación ocurren después y la descarga
+  vuelve a comprobar el acceso a todo lo capturado.}
+  \label{fig:cu-16}
+\end{figure}
+
+\subsubsection{Informes de estado y actividad registrada}\label{sec:diseno-informes}
+
+El RF-19 (\cref{tab:rf-19}) pide informes sobre el estado de los casos y la
+actividad del despacho; el diseño los concreta en dos modalidades. El informe
+de estado describe los expedientes creados en un periodo y su carga de
+asignaciones, con el estado observado al generarlo; no es un censo histórico ni
+una calificación de desempeño. El informe de actividad cuenta, por Litigante,
+documentos originales cargados, actuaciones registradas y plazos atendidos. Las
+nuevas versiones, lecturas, rectificaciones o repeticiones no suman, una reasignación no
+transfiere cantidades y, si falta el autor de un documento antiguo, el informe
+lo indica como cobertura incompleta en lugar de presentar un cero. Ninguna
+de las dos modalidades puntúa ni compara el éxito jurídico.
+
+Cada informe cubre como máximo un año y es privado de quien lo pide; Paralegal
+y Cliente no acceden a estos agregados. El aviso por correo de un informe
+concreto todavía no se ha ejercitado en producción, y la precisión de la
+estimación solo se comprobó en un ensayo local (\cref{sec:pruebas-informes}).
+
+\CUcFicha{CU-17: Consulta de bitácora de actividad.}\label{tab:cu-17}\nopagebreak[4]
+\CUcFila[t]{Actores}{Owner.}
+\CUcFila{Precondición}{El Owner tiene sesión activa.}
+\CUcFila{Flujo principal}{1. El Owner abre la consulta de actividad. 2. Define un intervalo y filtros por actor, operación y recurso. 3. El sistema revalida sus permisos, registra la propia consulta y presenta los eventos en orden cronológico: actor, operación, recurso, instante y, en los eventos nuevos, dirección IP observada y origen.}
+\CUcFila{Flujos alternos}{Ninguno de modificación: la bitácora es de solo lectura. Sin coincidencias, la respuesta es una página vacía y la consulta también se registra.}
+\CUcFila[p]{Postcondición}{El Owner ve los registros solicitados. Nadie, incluido el Owner, puede modificarlos ni eliminarlos.}
+\CUcFila[b]{Trazabilidad}{HU-40; RF-20; RNF-04.}
+\CUcFin
+
+\subsubsection{Alcance de la consulta de actividad}\label{sec:diseno-bitacora}
+
+La consulta se limita a intervalos de hasta un año y se presenta por páginas;
+los eventos nuevos no alteran una consulta en curso. Leer la bitácora y
+verificarla son operaciones distintas: la lectura selecciona registros
+autorizados y la verificación criptográfica recalcula los eslabones de la
+cadena. Una página no verifica el historial completo, y ninguna de las dos
+demuestra por sí sola que no se haya retirado el último tramo de una cadena
+válida; el anclaje externo que cubriría ese caso sigue pendiente.
+
+Los eventos históricos guardan el actor como texto, no como identificador de
+una cuenta. Los eventos nuevos añaden la cuenta comprobada, la dirección IP
+observada, el origen (web, línea de comandos o interno) y la correlación de la
+solicitud; lo que no pudo establecerse queda ausente, y la dirección de red no
+demuestra identidad personal. El criterio de menos de 500 milisegundos de
+RF-20 se mide hasta que cada registro queda guardado, no con un promedio.

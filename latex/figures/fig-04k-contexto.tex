@@ -1,0 +1,48 @@
+\begin{tikzpicture}[
+  pz/.style={caja, text width=2.7cm, minimum width=2.9cm, minimum height=1.05cm},
+  grp/.style={draw=ESCOMAzulMedio, line width=0.5pt},
+  grpL/.style={font=\diag, text=ESCOMAzulOscuro, anchor=north, align=center}]
+
+  % Captura del contexto
+  \node[pz, cajaOsc] (p1) at (1.45,0) {Petición a una ruta de producto reconocida};
+  \node[pz] (p2) at (4.75,0) {Frontera HTTP: UUID de petición e IP del par};
+  \node[pz] (p3) at (8.05,0) {Sesión vigente admitida: UUID de cuenta};
+  \node[pz] (p4) at (11.35,0) {El contexto acompaña a la operación hasta su escritura};
+  \node[pz, cajaClara] (p5) at (14.65,0) {Evento de negocio con su mutación};
+  \draw[flecha] (p1) -- (p2);
+  \draw[flecha] (p2) -- (p3);
+  \draw[flecha] (p3) -- (p4);
+  \draw[flecha] (p4) -- (p5);
+  \node[paso, text width=6.0cm, anchor=south] (xff) at (4.75,0.85)
+    {Solo se acepta la IP reenviada por un proxy local de confianza, si así se configura};
+  \draw[flechaSuave] (xff.south) -- (p2.north);
+
+  % Resultado de acceso
+  \node[pz] (h) at (11.35,-1.95) {Resultado del manejador};
+  \node[caja, text width=3.6cm, minimum width=3.8cm, align=left, cajaClara] (ac) at (7.45,-1.95)
+    {\textbf{Evento de acceso}, inserción posterior:\\
+     2xx: concedido\\
+     401 o 403: denegado\\
+     5xx: fallido\\
+     otro: rechazado};
+  \node[pz, cajaError] (er) at (3.4,-1.95) {Si falla: 500 genérico; no prueba reversión ni justifica reintento};
+  \node[pz, cajaGris] (cli) at (14.65,1.45) {Otro origen: CLI o proceso interno};
+  \draw[flechaSuave] (cli) -- node[etq, left=3pt]{solo el origen; sin IP, petición ni usuario} (p5);
+  \draw[flecha] (p4) -- (h);
+  \draw[flecha] (h) -- (ac);
+  \draw[flechaError] (ac) -- (er);
+
+  % Fila persistida
+  \node[zonaLabel, anchor=south west] at (0.0,-3.40) {FILA PERSISTIDA EN LA BITÁCORA};
+  \Tira{0.1}{-4.50}{1.45/campoRel/secuencia//,1.75/campoRel/instante canónico//,1.3/campoRel/actor//,1.3/campoRel/acción//,1.3/campoRel/recurso//,1.5/campoFirma/cadena (32 B)//,1.5/campo/segundos//,1.65/campo/nano\-segundos//,3.85/campo/{contexto JSON: cuenta, IP, origen y petición}/{}/{hasta 1024 B o nulo}}
+  \draw[flecha] (p5.south) -- node[etq, right, align=left]{inserta una fila en\\ la misma transacción} (14.65,-3.45);
+  \draw[flecha] (ac.south) -- node[etq, right]{inserta una fila} (7.45,-3.45);
+
+  \draw[grp] (0.1,-4.90) -- (8.7,-4.90);
+  \draw[grp] (8.7,-4.90) -- (11.85,-4.90);
+  \draw[grp] (11.85,-4.90) -- (15.7,-4.90);
+  \foreach \x in {0.1,8.7,11.85,15.7} \draw[grp] (\x,-4.80) -- (\x,-5.00);
+  \node[grpL] at (4.4,-5.00) {seis columnas originales; los históricos conservan bytes y hashes};
+  \node[grpL] at (10.27,-5.00) {claves añadidas después,\\ índice con la secuencia};
+  \node[grpL] at (13.78,-5.00) {columna añadida después; si existe,\\ entra en la cadena};
+\end{tikzpicture}

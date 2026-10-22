@@ -1,0 +1,43 @@
+\begin{tikzpicture}[
+  dato/.style={caja, text width=3.0cm, minimum height=0.85cm},
+  op/.style={cajaClara, text width=3.3cm, minimum height=1.1cm},
+  sec/.style={cajaOsc, text width=3.0cm, minimum height=0.85cm},
+  campo/.append style={font=\scriptsize\diagsans},
+  tam/.append style={font=\diag}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (10.6,-4.4);
+  \draw[zona] (11.1,0) rectangle (16,-4.4);
+  \node[zonaLabel] at (0,0) {SERVIDOR DE LA API};
+  \node[zonaLabel] at (11.1,0) {POSTGRESQL};
+
+  % Entradas
+  \node[dato] (doc) at (1.85,-1.0) {Versión del documento en claro};
+  \node[sec] (dek) at (1.85,-2.25) {DEK aleatoria de 32~B, una por versión};
+  \node[sec] (kek) at (1.85,-3.5) {KEK del servidor (configuración)};
+
+  % Operaciones
+  \node[op] (g1) at (6.6,-1.0) {\textbf{AES-256-GCM}\\ nonce nuevo de 12 B\\ AAD = UUID + versión};
+  \node[op] (g2) at (6.6,-3.5) {\textbf{AES-256-GCM}\\ nonce nuevo de 12 B\\ AAD vacío};
+  \draw[flecha] (doc) -- node[etq, above]{texto claro} (g1);
+  \draw[flecha] ($(dek.east)+(0,0.2)$) -| node[etq, above, pos=0.3]{clave} (g1.south);
+  \draw[flecha] ($(dek.east)+(0,-0.2)$) -| node[etq, below, pos=0.3]{texto claro} (g2.north);
+  \draw[flecha] (kek) -- node[etq, above]{clave} (g2);
+
+  % Salidas
+  \node[dato] (c1) at (13.55,-1.0) {Documento cifrado};
+  \node[dato] (c2) at (13.55,-3.5) {DEK envuelta};
+  \draw[flecha] (g1) -- (c1);
+  \draw[flecha] (g2) -- (c2);
+
+  % Formato común
+  \node[anchor=south west, font=\diag\bfseries, text=ESCOMAzulOscuro, inner sep=1pt]
+    at (0,-5.05) {Formato de ambos paquetes cifrados};
+  \Tira{0}{-6.15}{2.0/campo/{nonce}//12 B,
+                  4.6/campoRel/{texto cifrado}//,
+                  2.4/campoFirma/{etiqueta GCM}//16 B}
+
+  % Rotación
+  \node[paso, font=\scriptsize\diagsans, text width=6.1cm, anchor=north west] at (9.75,-5.0)
+    {\textbf{Rotación de la KEK.} Cada DEK se abre con la KEK vigente y se vuelve a envolver con la nueva. El documento cifrado no cambia, así que el costo no depende de su tamaño.};
+\end{tikzpicture}

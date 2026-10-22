@@ -1,0 +1,44 @@
+\begin{tikzpicture}[
+  job/.style={caja, text width=2.2cm, minimum height=0.62cm},
+  disp/.style={cajaClara, text width=2.3cm, minimum height=0.6cm},
+  wf/.style={caja, text width=3.2cm, minimum height=0.85cm}]
+
+  % Disparadores
+  \node[zonaLabel] at (0,0) {DISPARADORES};
+  \node[disp] (push) at (1.3,-0.95) {push a la rama principal};
+  \node[disp] (pr) at (1.3,-1.95) {pull request};
+  \node[disp] (man) at (1.3,-2.95) {invocación manual};
+
+  % Workflow principal
+  \draw[zona] (3.25,0) rectangle (11.55,-5.55);
+  \node[zonaLabel] at (3.25,0) {ci.yml};
+  \node[job] (fmt) at (4.85,-0.95) {\textbf{format}\\ formato};
+  \node[job] (lint) at (7.4,-0.95) {\textbf{lint}\\ sin advertencias};
+  \node[job] (msrv) at (9.95,-0.95) {\textbf{msrv}\\ Rust 1.88};
+  \node[job] (deny) at (4.85,-1.95) {\textbf{deny}\\ dependencias};
+  \node[job] (size) at (7.4,-1.95) {\textbf{binary-size}\\ FF-5};
+  \node[job] (bkp) at (9.95,-1.95) {{\diag\bfseries deployment-backup}\\ respaldos};
+  \node[job, cajaClara, dashed, minimum height=1.15cm] (reuse) at (4.85,-3.45)
+    {\textbf{reuse}: solo en push; busca un PR aprobado con el mismo árbol};
+  \node[job, cajaOsc, minimum height=1.15cm] (test) at (7.4,-3.45)
+    {\textbf{test}: shards con PostgreSQL y Redis; \mbox{FF-1} a \mbox{FF-3}};
+  \node[job, cajaOsc, minimum height=1.15cm] (cov) at (9.95,-3.45)
+    {\textbf{coverage}\\ $\geq$ 90\,\% (FF-4)};
+  \draw[flecha] (reuse) -- (test);
+  \draw[flecha] (test) -- (cov);
+  \draw[flecha] (bkp) -- (cov);
+  \node[caja, cajaGris, dashed, text width=7.6cm, minimum height=0.5cm] (med) at (7.4,-4.85)
+    {\textbf{dispatch-measurement}: con la opción de medición manual corre solo este job};
+
+  \draw[flecha] (push.east) -- (3.25,-0.95);
+  \draw[flecha] (pr.east) -- (3.25,-1.95);
+  \draw[flecha] (man.east) -- (3.25,-2.95);
+  \draw[flechaSuave] (man.south) |- (med.west);
+
+  % Otros workflows
+  \node[zonaLabel] at (12.4,0) {OTROS WORKFLOWS};
+  \node[wf] (web) at (14.1,-0.95) {\textbf{web.yml}: aplicaciones de navegador y \texttt{browser-crypto}};
+  \node[wf] (docs) at (14.1,-2.05) {\textbf{documents.yml}: compila este documento};
+  \node[wf, cajaClara] (dep) at (14.1,-3.45) {\textbf{deploy.yml}: empaqueta y despliega cada versión etiquetada};
+  \draw[flecha] (dep.west) -- node[etq, above=1pt]{invoca} (11.55,-3.45);
+\end{tikzpicture}

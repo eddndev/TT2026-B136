@@ -1,0 +1,60 @@
+\begin{tikzpicture}[
+  comp/.style={caja, text width=2.9cm, minimum height=0.85cm},
+  dato/.style={caja, text width=3.3cm, minimum height=1.05cm}]
+
+  % Usuarios
+  \node[cajaOsc, text width=7.2cm, minimum height=0.5cm] (op) at (3.85,-0.25)
+    {\textbf{Operador de la CA}: contraseña y TOTP};
+  \node[cajaOsc, text width=7.2cm, minimum height=0.5cm] (us) at (12.15,-0.25)
+    {\textbf{Usuarios del despacho}};
+
+  % Zonas de proceso
+  \draw[zona] (0,-0.85) rectangle (7.7,-3.8);
+  \draw[zona] (8.3,-0.85) rectangle (16,-3.8);
+  \node[zonaLabel, anchor=north east] at (7.7,-0.85) {PORTAL CA · ORIGEN ca.qadra.com.mx};
+  \node[zonaLabel, anchor=north east] at (16,-0.85) {DESPACHO · ORIGEN qadra.com.mx};
+
+  % Portal CA
+  \node[comp] (px) at (1.75,-1.75) {Proxy HTTPS propio};
+  \node[comp] (wb) at (5.95,-1.75) {Interfaz web de la CA};
+  \node[cajaOsc, text width=2.9cm, minimum height=0.85cm] (ex) at (1.75,-3.05)
+    {Ejecutor: CLI y scripts existentes con argumentos fijos};
+  \node[comp] (api) at (5.95,-3.05)
+    {API \texttt{qadra-ca}: solo el UUID y correo configurados};
+  \draw[flecha] (1.75,0 |- op.south) -- (px.north);
+  \draw[flecha] (px) -- (wb);
+  \draw[flecha] (wb) -- (api);
+  \draw[flecha] (api) -- node[etq, above]{actor y} node[etq, below]{comando} (ex);
+
+  % Despacho
+  \node[comp] (pxd) at (10.15,-1.75) {Proxy HTTPS del despacho};
+  \node[comp] (wbd) at (14.05,-1.75) {Interfaz web Qadra};
+  \node[comp] (apid) at (14.05,-3.05) {API del despacho};
+  \node[font=\diag\itshape, text=ESCOMTinta, text width=3.4cm, align=left] (nota) at (10.15,-3.05)
+    {API y web del despacho se\\ detienen al publicar la CRL;\\ el portal CA sigue activo};
+  \draw[flecha] (10.15,0 |- us.south) -- (pxd.north);
+  \draw[flecha] (pxd) -- (wbd);
+  \draw[flecha] (wbd) -- (apid);
+
+  % Servicios compartidos
+  \draw[zona] (0,-4.55) rectangle (16,-7.25);
+  \node[zonaLabel, anchor=south east] at (16,-7.25) {SERVICIOS COMPARTIDOS DEL HOST · IDENTIDADES SEPARADAS};
+  \node[cajaOsc, text width=3.3cm, minimum height=1.05cm] (pki) at (1.75,-5.6)
+    {Material PKI: raíz, índice OpenSSL y journals};
+  \node[dato] (pgca) at (5.95,-5.6)
+    {Misma base PostgreSQL, esquema fijo \texttt{qadra\_ca}: operador y auditoría};
+  \node[dato] (rd) at (10.15,-5.6)
+    {Redis, prefijo \texttt{ca-identity}: sesiones, desafíos, cuotas y marcas TOTP};
+  \node[dato] (pgd) at (14.05,-5.6)
+    {PostgreSQL, esquema del despacho: cuentas y confianza publicada};
+  \node[font=\diag, text=ESCOMTinta, anchor=west, align=left] at (0.2,-6.6)
+    {El rol operativo de la API CA no tiene acceso al esquema del despacho ni autoridad de creación.\\
+     La CRL se publica en ese esquema por el runtime de despliegue (SQL auditado).};
+
+  % Accesos a datos
+  \draw[flecha] (ex) -- node[etq, right, align=left, pos=0.3]{bajo\\ \texttt{deploy.lock}} (pki);
+  \draw[flecha] (5.4,0 |- api.south) -- (5.4,0 |- pgca.north);
+  \draw[flecha] (6.5,0 |- api.south) -- (6.5,-4.1) -| (9.6,0 |- rd.north);
+  \draw[flecha] (13.5,0 |- apid.south) -- (13.5,-4.3) -| (10.7,0 |- rd.north);
+  \draw[flecha] (14.6,0 |- apid.south) -- (14.6,0 |- pgd.north);
+\end{tikzpicture}

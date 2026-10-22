@@ -1,0 +1,55 @@
+% Fases de la sesión en Qadra y su efecto sobre la guarda y los borradores.
+% Fases de web/apps/qadra/src/lib/session-lifecycle.mjs: signed-out, active,
+% hidden, checking, expired y disposed. Efectos sobre borradores según
+% web/apps/qadra/src/lib/draft-registry.mjs.
+\begin{tikzpicture}[
+  est/.style={caja, text width=3.85cm, minimum height=1.55cm, align=center},
+  g/.style={font=\diag, text=ESCOMGris},
+  t/.style={etq, align=center}]
+
+  % Fila superior: fuera de una sesión aceptada
+  \node[est, cajaGris] (out) at (2.1,0)
+    {\textbf{Sin sesión}\\[1pt] guarda cerrada; sin credencial\\[1pt] {\diag borradores: ninguno}};
+  \node[est, cajaGris, dashed, text=ESCOMTinta, text width=4.1cm] (aut) at (8,0)
+    {\textbf{Autenticación} {\diag (paso, no fase)}\\ contraseña o certificado del Owner, y MFA\\[1pt]
+     {\diag plazos confirmados con reloj monótono\\ misma cuenta: conserva las capturas\\ otra cuenta: las descarta\\ rechazo MFA: vuelve a la contraseña\\ (el servidor consumió el desafío)}};
+  \node[est, cajaError] (exp) at (13.9,0)
+    {\textbf{Vencida}\\[1pt] guarda cerrada; credencial y vistas protegidas retiradas\\[1pt] {\diag captura síncrona de los editores registrados}};
+  \draw[flecha] (out) -- node[t, above] {inicio} (aut);
+  \draw[flecha] (exp) -- node[t, above] {reingreso} (aut);
+
+  % Zona de sesión aceptada
+  \begin{scope}[on background layer]
+    \node[zona, fit={(0.05,-2.05) (15.95,-5.55)}] (acc) {};
+  \end{scope}
+  \node[zonaLabel, anchor=south east, yshift=2.5pt] at (acc.south east) {SESIÓN ACEPTADA};
+
+  \node[est, cajaOsc] (act) at (2.1,-3.65)
+    {\textbf{Activa}\\[1pt] guarda abierta hasta el plazo confirmado\\[1pt] {\diag recuperación de borradores a petición, tras consultar de nuevo el destino}};
+  \node[est] (hid) at (8,-3.65)
+    {\textbf{Oculta}\\[1pt] guarda cerrada: admisión suspendida\\[1pt] {\diag borradores sin cambios}};
+  \node[est] (chk) at (13.9,-3.65)
+    {\textbf{Comprobación}\\[1pt] guarda cerrada; consulta nueva del estado\\[1pt] {\diag error de red: cerrada hasta decisión explícita o vencimiento; borradores sin cambios}};
+
+  % Autenticación concluida
+  \draw[flecha] (aut.south west) ++(0.3,0) coordinate (a0) -- node[t, pos=0.22, above left=1pt, fill=none] {pestaña\\ visible} (act.north east);
+  \draw[flecha] (aut.south) -- node[t, right, pos=0.66] {pestaña oculta: el primer\\ montaje espera la consulta} (hid.north);
+
+  % Ciclo de visibilidad
+  \draw[flecha] (act.east) -- node[t, above] {pestaña oculta} (hid.west);
+  \draw[flecha] ([yshift=3mm]hid.east) -- node[t, above] {pestaña visible} ([yshift=3mm]chk.west);
+  \draw[flecha] ([yshift=-3mm]chk.west) -- node[t, below] {pestaña oculta} ([yshift=-3mm]hid.east);
+  \draw[flecha] (chk.south) -- ++(0,-0.45) -| node[t, pos=0.25, above] {estado confirmado} (act.south);
+
+  % Salidas desde cualquier fase aceptada
+  \draw[flecha] (0.45,-2.05) -- node[t, right=3pt] {cierre voluntario: pide revocar;\\ retira acceso y borradores\\ aunque no se confirme} (0.45,-0.78);
+  \draw[flechaError] (15.6,-2.05) -- node[t, left] {plazo vencido, rechazo\\ o estado inválido} (15.6,-0.78);
+
+  % Notas
+  \node[caja, cajaGris, text width=4.95cm, align=left, anchor=north west, font=\diag] at (0.05,-6.0)
+    {\textbf{Guarda cerrada:} Qadra rechaza localmente las solicitudes protegidas; solo la consulta de estado y la revocación quedan exentas.};
+  \node[caja, cajaGris, text width=4.95cm, align=left, anchor=north, font=\diag] at (8,-6.0)
+    {\textbf{Solo en memoria:} token, desafío MFA y material de enrolamiento; nada en el almacenamiento persistente del navegador.};
+  \node[caja, cajaGris, text width=4.95cm, align=left, anchor=north east, font=\diag] at (15.95,-6.0)
+    {\textbf{Desmontada:} desde cualquier fase, la aplicación descarta los borradores, retira la credencial y cierra la admisión.};
+\end{tikzpicture}

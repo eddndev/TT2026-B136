@@ -1,0 +1,103 @@
+Este capítulo lleva las necesidades del despacho hasta el diseño del prototipo. Primero presenta la metodología de trabajo (\cref{sec:metodologia}) y recoge esas necesidades como historias de usuario (\cref{sec:historias-usuario}). Las historias se formalizan en casos de uso (\cref{sec:casos-uso}), y estos se traducen en requerimientos funcionales y no funcionales (\cref{sec:requerimientos}). Con los requerimientos definidos se estiman los costos (\cref{sec:costos}) y se analizan los riesgos (\cref{sec:riesgos}); ambos análisis van antes del diseño porque el análisis de riesgos fija el orden de construcción. Por último se describen la arquitectura (\cref{sec:arquitectura}), el modelo de datos y el despliegue (\cref{sec:bd-hibrida}) y el diseño criptográfico (\cref{sec:diseno-cripto}). Así, cada decisión de diseño puede seguirse hasta el requerimiento y la historia que la originan.
+
+\section{Metodología}\label{sec:metodologia}
+
+El desarrollo sigue Extreme Programming (XP), metodología ágil propuesta por Beck y Andres \cite{beck2004} para equipos pequeños con requisitos técnicos inciertos. Sus prácticas centrales son la programación en pares, el desarrollo guiado por pruebas (TDD), los \emph{spikes} (pruebas de concepto breves que resuelven una duda técnica antes de comprometer el diseño) y la integración continua con propiedad colectiva del código. Se eligió por tres razones: el equipo tiene dos integrantes, lo que favorece trabajar en pares sobre ceremonias de coordinación pesadas; la firma digital, el sellado de tiempo, el cifrado autenticado y la comunicación con una Autoridad de Sellado de Tiempo (TSA) implican una incertidumbre técnica alta, que XP atiende con \emph{spikes} y ciclos cortos; y TDD es adecuado para los servicios criptográficos, donde un error silencioso puede invalidar toda la evidencia generada.
+
+El plan abarca diez semanas, con una iteración por semana, en dos fases de cinco semanas (\cref{fig:03a-iteraciones}). La Fase~I reúne la investigación normativa, el modelado y el diseño técnico. La Fase~II es el ciclo de codificación con pares, TDD y entregas continuas, y antepone el núcleo criptográfico a las vistas: el análisis de riesgos (\cref{sec:riesgos}) prescribe resolver primero los riesgos criptográficos graves y no construir vistas web sin haber comprobado el sellado de tiempo. Por eso la semana~8 cierra con una demostración por línea de comandos de la criptografía de extremo a extremo, y solo después se integran la persistencia, el control de acceso y la gestión procesal.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/fig-03a-iteraciones}
+  \caption{Plan de diez iteraciones semanales. Las cajas oscuras forman el núcleo criptográfico, que se completa y demuestra antes de construir la gestión procesal y las vistas.}
+  \label{fig:03a-iteraciones}
+\end{figure}
+
+\section{Historias de usuario}\label{sec:historias-usuario}
+
+Las historias de usuario son el instrumento de captura de requerimientos de XP. Cada una se redacta desde la perspectiva de un actor y en lenguaje del dominio jurídico, e indica quién la plantea, qué necesita y para qué. El socio del despacho corresponde al perfil Owner del sistema, nombre que se usa desde los casos de uso en adelante. Las cuarenta historias se agrupan en siete módulos funcionales, desde la gestión de identidad hasta la operación del despacho (\cref{tab:historias-usuario}). Forman el primer eslabón de una cadena de trazabilidad: cada historia se formaliza en un caso de uso (\cref{sec:casos-uso}), que fija actores, flujos, precondiciones y postcondiciones, y cada caso de uso se traduce a su vez en requerimientos funcionales y no funcionales verificables (\cref{sec:requerimientos}). La última columna de la tabla indica el caso de uso que formaliza cada historia.
+
+{\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}p{1.05cm}L{2.35cm}L{11.15cm}p{1.15cm}@{}}
+  \caption{Historias de usuario agrupadas por módulo y caso de uso que las formaliza.}\label{tab:historias-usuario}\\
+  \toprule
+  \textbf{ID} & \textbf{Actor} & \textbf{Necesidad (qué y para qué)} & \textbf{CU} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{4}{@{}l}{\footnotesize\itshape Continuación de la \cref{tab:historias-usuario}}\\
+  \toprule
+  \textbf{ID} & \textbf{Actor} & \textbf{Necesidad (qué y para qué)} & \textbf{CU} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{4}{@{}r}{\footnotesize\itshape Continúa en la página siguiente}\\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  \multicolumn{4}{@{}l}{\bfseries\color{ESCOMAzulOscuro}Autenticación, acceso y gestión de identidad}\\
+  HU-01 & Socio fundador & Crear la primera cuenta administradora de la instancia del despacho, para empezar a gestionar expedientes y equipo. & CU-01 \\
+  HU-02 & Socio fundador & Recibir su segundo factor y códigos de recuperación al crear esa cuenta, para que la administración quede protegida desde el primer acceso. & CU-01 \\
+  HU-03 & Socio & Invitar colaboradores por correo con perfil Litigante o Paralegal, para que entren con los permisos de su función. & CU-02 \\
+  HU-04 & Colaborador invitado & Aceptar la invitación y completar su registro, para incorporarse con el perfil asignado. & CU-02 \\
+  HU-05 & Usuario & Autenticarse con correo y contraseña, para usar las funciones de su perfil. & CU-03 \\
+  HU-06 & Socio & Iniciar sesión presentando su certificado digital, como alternativa a la contraseña, seguida siempre del segundo factor. & CU-03 \\
+  HU-07 & Cliente & Confirmar su identidad con un código temporal tras la contraseña, para proteger su expediente ante el robo de la contraseña. & CU-03 \\
+  HU-08 & Usuario & Recuperar su contraseña por correo, para restablecer el acceso sin acudir al administrador. & CU-03 \\
+  HU-09 & Usuario & Que la sesión se cierre tras un periodo de inactividad, para evitar accesos si deja el equipo abierto. & CU-03 \\
+  HU-10 & Socio & Que cada miembro acceda solo a los módulos y operaciones de su perfil, para reservar las operaciones sensibles a personas autorizadas. & CU-04 \\
+  HU-11 & Socio & Dar de baja a un colaborador, para revocar de inmediato su acceso al sistema y a los expedientes. & CU-02 \\
+  \addlinespace
+  \multicolumn{4}{@{}l}{\bfseries\color{ESCOMAzulOscuro}Gestión procesal penal (ciclo de vida del expediente)}\\
+  HU-12 & Litigante & Registrar un expediente con Número Único de Caso, carpeta judicial, delito y datos generales, para que inicie en etapa de investigación. & CU-05 \\
+  HU-13 & Litigante & Vincular al expediente a las personas y autoridades del proceso con su rol, para conformar el directorio de participantes. & CU-06 \\
+  HU-14 & Litigante & Avanzar de etapa cargando el documento que lo habilita (acusación, auto de apertura), para registrar el cambio y habilitar la nueva etapa. & CU-07 \\
+  HU-15 & Litigante & Que no se pueda avanzar de etapa sin el documento requerido, para evitar secuencias procesales inconsistentes. & CU-07 \\
+  HU-16 & Litigante & Consultar la línea de tiempo de transiciones con fecha, responsable y documento, para verificar que la secuencia esté íntegra. & CU-07 \\
+  HU-17 & Litigante & Actualizar los datos generales del expediente sin alterar su historial de transiciones, para mantener la información vigente. & CU-05 \\
+  HU-18 & Paralegal & Ver solo los expedientes que tiene asignados, para concentrarse en ellos sin exponerse a otros asuntos. & CU-05 \\
+  \addlinespace
+  \multicolumn{4}{@{}l}{\bfseries\color{ESCOMAzulOscuro}Calendario jurídico, plazos y alertas}\\
+  HU-19 & Litigante & Agendar una audiencia con tipo, fecha, hora, participantes y modalidad, para vincularla al expediente. & CU-08 \\
+  HU-20 & Litigante & Que el resultado de una audiencia active los plazos que deriva, para no depender del cálculo manual de términos. & CU-08 \\
+  HU-21 & Litigante & Que los vencimientos descuenten fines de semana y días inhábiles de la entidad, para obtener fechas conforme al CNPP. & CU-08 \\
+  HU-22 & Socio & Configurar los días inhábiles por entidad federativa y fuero, para que los cómputos reflejen cada jurisdicción. & CU-09 \\
+  HU-23 & Litigante & Recibir alertas por correo y en el sistema antes de que venza un plazo, para actuar a tiempo. & CU-10 \\
+  HU-24 & Litigante & Ver en un calendario único las audiencias y plazos de sus casos, con acceso al expediente, para gestionar su agenda desde una vista. & CU-10 \\
+  \addlinespace
+  \multicolumn{4}{@{}l}{\bfseries\color{ESCOMAzulOscuro}Gestión documental y cadena de custodia}\\
+  HU-25 & Litigante & Cargar un documento procesal a un expediente, para que quede protegido y disponible para las personas autorizadas. & CU-11 \\
+  HU-26 & Litigante & Asignar tipo, clasificación y etiquetas a cada documento, para organizarlo y encontrarlo después. & CU-11 \\
+  HU-27 & Paralegal & Consultar y descargar documentos de sus expedientes asignados, sin acceder a asuntos ajenos. & CU-12 \\
+  HU-28 & Litigante & Que cada carga, consulta, descarga o movimiento quede registrado con fecha y responsable, para respaldar la cadena de custodia. & CU-11 \\
+  HU-29 & Litigante & Que nadie, ni el socio, pueda modificar ni borrar ese historial, para que la trazabilidad sea confiable ante un requerimiento judicial. & CU-12 \\
+  \addlinespace
+  \multicolumn{4}{@{}l}{\bfseries\color{ESCOMAzulOscuro}Servicios de protección de la información}\\
+  HU-30 & Litigante & Que cada documento cargado reciba una huella digital única, para comprobar en el futuro si fue alterado. & CU-11 \\
+  HU-31 & Litigante & Que cada consulta verifique que el documento no cambió y alerte ante una discrepancia, para tener certeza de su integridad. & CU-12 \\
+  HU-32 & Litigante & Que los documentos se almacenen protegidos, para que una intrusión no exponga la información de sus clientes. & CU-11 \\
+  HU-33 & Litigante & Que una manipulación directa de los archivos del servidor se detecte y se rechace su entrega, para que todo intento de alteración quede en evidencia. & CU-12 \\
+  \addlinespace
+  \multicolumn{4}{@{}l}{\bfseries\color{ESCOMAzulOscuro}Firma de contratos y constancia de fecha}\\
+  HU-34 & Litigante & Firmar un contrato vinculando su identidad con el contenido, para que ninguna parte pueda negar haberlo suscrito. & CU-13 \\
+  HU-35 & Litigante & Obtener al firmar una constancia de fecha y hora emitida por una autoridad de sellado, para dar valor probatorio a la fecha de firma. & CU-13 \\
+  HU-36 & Usuario autorizado & Verificar si la firma es válida, el certificado está vigente y la constancia de fecha es auténtica, sin depender de un tercero. & CU-14 \\
+  HU-37 & Usuario autorizado & Que la verificación indique con claridad que un contrato alterado tras la firma ya no es válido y por qué. & CU-14 \\
+  \addlinespace
+  \multicolumn{4}{@{}l}{\bfseries\color{ESCOMAzulOscuro}Operación y monitoreo}\\
+  HU-38 & Socio & Consultar un tablero con casos activos, plazos por vencer, contratos aún sin sellar y carga por abogado, para ver el estado de la operación. & CU-15 \\
+  HU-39 & Socio & Generar informes descargables filtrados por periodo, abogado o estado, para analizar el desempeño del despacho. & CU-16 \\
+  HU-40 & Socio & Consultar un registro inalterable de quién hizo qué, sobre qué recurso y cuándo, para responder a auditorías o requerimientos judiciales. & CU-17 \\
+\end{longtable}
+}
+
+Las historias expresan la necesidad del usuario; el caso de uso correspondiente fija el alcance que cubre el prototipo. En varios casos ese alcance es más acotado:
+
+\begin{itemize}
+  \item \mbox{HU-06}: el inicio de sesión con certificado es opcional y solo para la cuenta del Owner, se activa expresamente y siempre va seguido del segundo factor. El certificado lo emite la autoridad certificadora (CA) interna, no acredita identidad civil y no equivale a la FIREL.
+  \item \mbox{HU-08} y \mbox{HU-09}: la recuperación de contraseña está activa, pero aún no se ha comprobado un restablecimiento real en producción. El cierre por inactividad depende de una configuración que la instalación todavía no activa.
+  \item \mbox{HU-20}: la activación automática de plazos a partir del resultado de una audiencia sigue pendiente.
+  \item \mbox{HU-23}: que el proveedor de correo acepte una alerta no acredita que haya llegado al destinatario.
+  \item \mbox{HU-34} y \mbox{HU-35}: la firma de contratos produce una firma electrónica simple. El sello de tiempo lo emite una TSA local, que aporta evidencia técnica pero no sustituye a un prestador de servicios de certificación (PSC) autorizado ni a la constancia que este emite.
+  \item \mbox{HU-39}: los informes se descargan y generan avisos internos; el aviso por correo de un informe concreto aún no se ha ejercitado en producción.
+\end{itemize}

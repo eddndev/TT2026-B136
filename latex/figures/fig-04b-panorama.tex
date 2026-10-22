@@ -1,0 +1,81 @@
+\begin{tikzpicture}[
+  srv/.style={caja, text width=2.0cm, minimum height=1.05cm},
+  ent/.style={caja, draw=ESCOMGris, text=ESCOMTinta, text width=1.75cm, minimum height=1.15cm},
+  ossl/.style={draw=ESCOMGris, fill=white, font=\diag, text=ESCOMGris,
+    rounded corners=1pt, inner sep=1.5pt}]
+
+  % Zonas
+  \draw[zona] (0,0.3) rectangle (16,-5.35);
+  \node[zonaLabel] at (0,0.3) {EVIDENCIA DOCUMENTAL};
+  \draw[zona] (0,-5.75) rectangle (7.8,-8.4);
+  \node[zonaLabel] at (0,-5.75) {ACCESO};
+  \draw[zona] (8.2,-5.75) rectangle (16,-8.4);
+  \node[zonaLabel] at (8.2,-5.75) {TRAZABILIDAD};
+
+  % PKI
+  \node[cajaClara, text width=8.2cm, minimum height=0.6cm] (s3) at (10.2,-0.4)
+    {\textbf{S3 PKI interna}: raíz RSA-3072, certificados X.509 y CRL};
+  \node[ossl, anchor=west] at ([xshift=2pt]s3.east) {OpenSSL};
+
+  % Cadena documental: el mismo digest de S1 alimenta firma y sello
+  \node[ent] (doc) at (1.05,-2.5) {Versión del documento};
+  \node[srv] (s1) at (3.55,-2.5) {\textbf{S1 Hash}\\ SHA-256\\ por bloques};
+  \node[srv, text width=2.2cm] (s4) at (7.35,-1.85) {\textbf{S4 Firma}\\ RSA-3072\\ PKCS\#1 v1.5};
+  \node[srv, text width=2.2cm] (s5) at (7.35,-3.25) {\textbf{S5 Sello}\\ RFC 3161\\ TSA local};
+  \node[ossl, anchor=north] at ([yshift=-2pt]s5.south) {OpenSSL};
+  \draw[flecha] (doc) -- (s1);
+  \draw[ESCOMAzulOscuro, line width=0.6pt] (s1.east) -- node[etq, above=1pt]{digest} (5.55,-2.5);
+  \draw[flecha] (5.55,-2.5) |- (s4.west);
+  \draw[flecha] (5.55,-2.5) |- (s5.west);
+
+  % Evidencia sellada
+  \node[caja, text width=1.75cm, minimum height=2.55cm] (evi) at (10.3,-2.55)
+    {\textbf{Evidencia sellada}\\[2pt] firma, token, certificados y CRL};
+  \draw[flecha] (s4.east) -- node[etq, above=1pt]{firma} (s4.east -| evi.west);
+  \draw[flecha] (s5.east) -- node[etq, above=1pt]{token} (s5.east -| evi.west);
+
+  % Verificación y paquete
+  \node[srv, text width=2.4cm, minimum height=0.8cm] (s6) at (14.05,-1.7) {\textbf{S6 Verificación}\\ compone S1, S3, S4, S5};
+  \node[cajaOsc, text width=2.4cm, minimum height=0.8cm] (s10) at (14.05,-3.45)
+    {\textbf{S10 Paquete}\\ ZIP verificable\\ con OpenSSL};
+  \draw[flecha] (s6.west -| evi.east) -- node[etq, above=1pt]{verifica} (s6.west);
+  \draw[flecha] (s10.west -| evi.east) -- node[etq, above=1pt]{empaqueta} (s10.west);
+  \draw[flechaSuave] (s10.north) -- node[etq, right=3pt]{se verifica fuera} (s6.south);
+
+  % Material de S3
+  \foreach \n/\t in {s4/certificado, evi/{certificados y CRL}, s6/{raíz y CRL}}
+    \draw[flecha] (\n |- s3.south) -- node[etq]{\t} (\n.north);
+
+  % Cifrado
+  \node[srv, text width=2.6cm, minimum height=0.85cm] (s2) at (3.95,-4.7)
+    {\textbf{S2 Cifrado} AES-256-GCM\\ DEK por versión, KEK};
+  \node[caja, text width=2.4cm, minimum height=0.85cm] (vlt) at (7.35,-4.7)
+    {Archivo DVLT1 en PostgreSQL};
+  \draw[flecha] (doc.south) |- (s2.west);
+  \draw[flecha] (s2) -- (vlt);
+
+  % Acceso
+  \node[ent, text width=1.75cm, minimum height=0.75cm] (pw) at (1.05,-6.45) {Contraseña};
+  \node[ent, text width=1.75cm, minimum height=0.75cm] (cod) at (1.05,-7.85) {Código TOTP\\ o de recuperación};
+  \node[srv, text width=2.3cm, minimum height=0.75cm] (s7) at (3.85,-6.45)
+    {\textbf{S7 Argon2id}\\ 256 MiB, 3 pasadas};
+  \node[srv, text width=2.3cm, minimum height=0.75cm] (s8) at (3.85,-7.85)
+    {\textbf{S8 TOTP} y códigos\\ de recuperación};
+  \node[cajaOsc, text width=1.45cm, minimum height=1.9cm] (ses) at (6.8,-7.17)
+    {Sesión opaca};
+  \draw[flecha] (pw) -- (s7);
+  \draw[flecha] (cod) -- (s8);
+  \draw[flecha] (s8.north) -- node[etq, right=1pt]{hash de los códigos} (s7.south);
+  \draw[flecha] (s7.east) -- (s7.east -| ses.west);
+  \draw[flecha] (s8.east) -- (s8.east -| ses.west);
+
+  % Trazabilidad
+  \node[ent, text width=2.3cm, minimum height=1.3cm] (mut) at (9.65,-7.17)
+    {Evento de cada mutación: identidad, expedientes, documentos};
+  \node[cajaOsc, text width=2.5cm, minimum height=1.3cm] (s9) at (12.45,-7.17)
+    {\textbf{S9 Cadena de auditoría}\\ SHA-256 encadenado con el hash de S1};
+  \node[srv, text width=1.75cm, minimum height=1.3cm] (ver) at (14.95,-7.17)
+    {Verificación desde el génesis};
+  \draw[flecha] (mut) -- (s9);
+  \draw[flecha] (s9) -- (ver);
+\end{tikzpicture}

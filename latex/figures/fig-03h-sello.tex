@@ -1,0 +1,36 @@
+\begin{tikzpicture}[
+  ent/.style={caja, text width=3.2cm, minimum height=0.7cm},
+  pasoV/.style={cajaClara, text width=3.2cm, minimum height=1.45cm}]
+
+  % Entradas
+  \node[ent] (tsr) at (1.75,0) {Respuesta del sello (.tsr)};
+  \node[ent] (pdf) at (6.0,0) {Documento original};
+  \node[ent] (anc) at (14.25,0) {Ancla de confianza};
+
+  % Pasos
+  \node[pasoV] (p1) at (1.75,-1.75) {Extraer el token de la respuesta};
+  \node[pasoV] (p2) at (6.0,-1.75) {Recalcular SHA-256 del documento y compararlo con la huella del token};
+  \node[pasoV] (p3) at (10.0,-1.75) {Verificar la firma de la TSA sobre el token};
+  \node[pasoV] (p4) at (14.25,-1.75) {Validar el certificado de la TSA contra el ancla};
+  \foreach \p/\n in {p1/1,p2/2,p3/3,p4/4}
+    \node[numero] at (\p.north west) {\n};
+  \draw[flecha] (tsr) -- (p1);
+  \draw[flecha] (pdf) -- (p2);
+  \draw[flecha] (anc) -- (p4);
+  \draw[flecha] (p1) -- (p2);
+  \draw[flecha] (p2) -- (p3);
+  \draw[flecha] (p3) -- (p4);
+
+  % Resultados
+  \node[cajaError, text width=11.6cm, minimum height=0.7cm] (rech) at (5.95,-3.55)
+    {Si cualquier paso falla, la verificación del sello se rechaza};
+  \foreach \p in {p1,p2,p3} \draw[flechaError] (\p.south) -- (\p.south |- rech.north);
+  \draw[flechaError] ($(p4.south)+(-1.3,0)$) |- (rech.east);
+  \node[cajaOsc, text width=2.3cm, minimum height=0.7cm] (ok) at (14.8,-3.55)
+    {Instante válido para ese digest};
+  \draw[flecha] ($(p4.south)+(0.55,0)$) -- (ok.north -| {$(p4.south)+(0.55,0)$});
+
+  % Anclas posibles
+  \node[cajaGris, text width=15.4cm, align=left, anchor=north west] at (0,-4.45)
+    {\textbf{Ancla según el emisor.} TSA local: la raíz interna del prototipo. Constancia externa: la cadena del PSC hasta la ACR2-SE.};
+\end{tikzpicture}

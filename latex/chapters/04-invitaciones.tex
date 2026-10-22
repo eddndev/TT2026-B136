@@ -1,53 +1,18 @@
 \subsection{Invitaciones y enrolamiento recuperable}\label{sec:impl-invitaciones}
 
-El alta por invitaci\'on permite que el destinatario elija su contrase\~na y
-configure MFA sin entregar esos secretos al Owner. El administrador indica
-correo y perfil Litigante o Paralegal; no se solicitan otros datos personales.
-Una cuenta existente, activa o inactiva,
-conserva su administraci\'on ordinaria. Este recorrido se implementa mediante
-\rutarepo{crates/application/src/identity/invitations/} y el contrato
-\rutarepo{docs/member-invitations-api.md}.
+La invitación realiza el alta de integrantes de CU-02 y RF-03 (\cref{tab:cu-02,tab:rf-acceso}; diseño y estados en las \cref{fig:cu-seq-alta,fig:impl-invitacion-estados}): el destinatario elige contraseña y MFA sin entregar esos secretos al Owner, que indica solo correo y perfil Litigante o Paralegal. Una cuenta existente, activa o inactiva, no se invita.
 
-Cada emisi\'on dispone de una capacidad aleatoria de 32 bytes, revisi\'on propia
-y vigencia de 24 horas. PostgreSQL conserva su huella con separaci\'on de
-prop\'osito; el material necesario para el correo se cifra con AES-GCM y queda
-ligado a invitaci\'on, revisi\'on y finalidad. El reenv\'io es expreso: crea otra
-revisi\'on e invalida el enlace y la preparaci\'on MFA anteriores. El Owner
-consulta solamente metadatos y estados del registro y de la entrega.
+\begin{figure}[!htb]
+  \centering
+  \input{figures/fig-04c-invitacion-estados}
+  \caption{Estados de una invitación y de su entrega. Preparar no crea una cuenta utilizable; solo finalizar la crea, y después se entra con contraseña y MFA.}
+  \label{fig:impl-invitacion-estados}
+\end{figure}
 
-El destinatario abre el enlace y establece su contrase\~na. El servicio prepara
-TOTP y c\'odigos de recuperaci\'on, pero todav\'ia no crea una cuenta utilizable.
-La preparaci\'on cifrada permite recuperar el mismo material con la capacidad
-vigente y la misma contrase\~na. Confirmar TOTP crea la cuenta, consume el enlace,
-retira los secretos pendientes y registra auditor\'ia y recibo en una transacci\'on.
-Despu\'es se requiere el inicio de sesi\'on normal con contrase\~na y MFA.
+\paragraph{Operaciones.} PostgreSQL guarda la huella de la capacidad (\cref{tab:anexo-canones}); el material del correo se cifra con AES-GCM ligado a invitación, revisión y finalidad, y el Owner solo consulta metadatos y estados. Preparación, confirmación y reenvío llevan UUID de operación distintos: una respuesta incierta se reconcilia repitiendo el comando exacto o con el recibo, que verifica la contraseña sin reentregar secretos MFA; cambiar el contenido de una operación aplicada da conflicto.
 
-Los UUID de operaci\'on distinguen preparaci\'on, confirmaci\'on y reenv\'io.
-Una respuesta incierta conserva su identidad para consultar el recibo o repetir
-el comando exacto; cambiar el contenido de una operaci\'on aplicada produce
-conflicto. La consulta del recibo verifica la contrase\~na de la cuenta resultante
-y no vuelve a entregar secretos MFA. Las revisiones se transportan como cadenas
-decimales para preservar su valor completo en el navegador.
+\paragraph{Cliente.} Qadra retira la capacidad del fragmento de la URL y solo persiste identificadores operativos y fase, nunca token, contraseña ni secretos MFA; el correo original permite retomar tras cerrar la página.
 
-Qadra retira la capacidad del fragmento de la URL antes de usarla. Token,
-contrase\~na y secretos MFA permanecen fuera del almacenamiento persistente del
-cliente; solo se conservan identificadores operativos y fase de recuperaci\'on.
-El correo original permite retomar el enlace tras cerrar la p\'agina. Las rutas
-p\'ublicas comparten el presupuesto HTTP y tienen un l\'imite independiente de
-intentos, sin crear una sesi\'on ni adjuntar la de otra cuenta.
+\paragraph{Límites.} La aceptación del proveedor no acredita la llegada al buzón. La activación es independiente, deshabilitada por omisión, y exige remitente, origen HTTPS y secreto del proveedor. Las rutas públicas, con límite propio de intentos, no crean ni adjuntan sesiones. Tras restaurar una copia, con admisión cerrada y escritores y consumidores detenidos, una operación administrativa expresa con la comprobación de la \cref{tab:impl-cli-catalogo}, nunca automática al arrancar, anula las invitaciones pendientes con su preparación MFA y sus entregas, sin tocar cuentas ni aceptaciones. Se verifica en la \cref{sec:pruebas-invitaciones}.
 
-La entrega se persiste y un consumidor reclama un intento con una reserva
-temporal acotada (lease).
-Conserva la identidad del proveedor y el cuerpo en sus reintentos; una respuesta
-incierta puede repetirse dentro de la vigencia y ventana original. La aceptaci\'on
-del proveedor no acredita llegada al buz\'on. El transporte no sigue redirecciones
-ni repite por su cuenta. La activaci\'on de invitaciones es independiente,
-deshabilitada por defecto y exige remitente, origen HTTPS y secreto del proveedor.
-
-Tras restaurar una copia, una operaci\'on administrativa expresa compara base,
-esquema y antecedente auditado con los esperados antes de anular invitaciones
-pendientes. Borra preparaci\'on MFA y entregas pendientes junto con un recibo,
-sin modificar cuentas o aceptaciones conservadas. Requiere admisi\'on cerrada y
-escritores y consumidores detenidos durante la restauraci\'on; no se ejecuta
-autom\'aticamente al iniciar el servidor. Este mecanismo y el alta por invitaci\'on
-no modifican la limitaci\'on del alta directa (\cref{sec:impl-http-identidad}).
+\Fuentes{\rutarepo{docs/member-invitations-api.md}; ADR 0075.}

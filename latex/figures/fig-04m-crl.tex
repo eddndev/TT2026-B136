@@ -1,0 +1,32 @@
+\begin{tikzpicture}[
+  est/.style={caja, text width=2.6cm, minimum width=2.8cm, minimum height=1.25cm},
+  ev/.style={etq, align=center, font=\diag}]
+
+  % Fila 1
+  \node[est] (s0) at (1.5,0)    {\textbf{original}\\ CA, CRL, contador y revisión SQL coinciden};
+  \node[est] (s1) at (5.67,0)   {\textbf{candidata}\\ con la clave existente; conserva revocaciones};
+  \node[est] (s2) at (9.83,0)   {\textbf{detenido}\\ API y web paradas; respaldo y sus huellas};
+  \node[est] (s3) at (14.0,0)   {\textbf{marcado}\\ marcador durable sincronizado};
+  \draw[flecha] (s0) -- node[ev, above]{prepara} (s1);
+  \draw[flecha] (s1) -- node[ev, above]{detiene y\\ compara} (s2);
+  \draw[flecha] (s2) -- node[ev, above]{instala\\ marcador} (s3);
+
+  % Fila 2
+  \node[est] (s4) at (14.0,-2.3)  {\textbf{instalado}\\ contador avanzado y CRL nueva en disco};
+  \node[est] (s5) at (9.83,-2.3)  {\textbf{publicado}\\ revisión sucesora y su evento de auditoría};
+  \node[est] (s6) at (5.67,-2.3)  {\textbf{confirmado}\\ la sucesora exacta se lee en SQL};
+  \node[cajaOsc, text width=2.6cm, minimum width=2.8cm, minimum height=1.25cm] (s7) at (1.5,-2.3)
+    {\textbf{reabierto}\\ misma versión, salud válida};
+  \draw[flecha] (s3) -- node[ev, right=1pt]{recompara\\ y avanza} (s4);
+  \draw[flecha] (s4) -- node[ev, above]{publica} (s5);
+  \draw[flecha] (s5) -- node[ev, above]{relee} (s6);
+  \draw[flecha] (s6) -- node[ev, above]{retira\\ marcador} (s7);
+
+  % Fallo y reanudación
+  \node[cajaError, text width=15.4cm, minimum width=15.7cm, anchor=north west] (fz) at (0.15,-3.6)
+    {\textbf{ingreso cerrado}: mientras exista, el marcador impide arrancar la API y el proxy o cambiar de versión, incluso tras reiniciar el host; si el material no concuerda, requiere investigación. La reanudación recomprueba archivos y respaldo; publica la misma candidata o confirma la sucesora, sin republicar ni rebajar el contador.};
+  \draw[flechaError] (s4.south) -- node[ev, right=1pt]{fallo} (s4.south |- fz.north);
+  \draw[flechaError] (s5.south) -- node[ev, right=1pt]{fallo} (s5.south |- fz.north);
+  \draw[flechaError] (s7.south) -- node[ev, right=1pt]{salud inválida} (s7.south |- fz.north);
+  \draw[flecha] (fz.north -| s6.south) -- node[ev, right=1pt]{reanudar con el\\ mismo identificador} (s6.south);
+\end{tikzpicture}

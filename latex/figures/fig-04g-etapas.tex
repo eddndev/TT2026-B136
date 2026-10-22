@@ -1,0 +1,36 @@
+\begin{tikzpicture}[
+  estado/.style={cajaOsc, text width=2.1cm, minimum width=2.3cm, minimum height=0.85cm,
+    font=\scriptsize\diagsans\bfseries},
+  inicio/.style={cajaGris, text width=2.3cm, minimum width=2.5cm, minimum height=0.75cm},
+  sinEtapa/.style={caja, dashed, text width=2.3cm, minimum width=2.5cm, minimum height=0.75cm},
+  lbl/.style={font=\diag, text=ESCOMTinta, inner sep=1pt, align=center}]
+
+  % Orígenes
+  \node[inicio] (completa) at (1.3,0) {Alta con perfil\\ penal completo};
+  \node[inicio] (basica) at (1.3,2.3) {Alta básica o\\ expediente legado};
+  \node[sinEtapa] (sin) at (8.0,2.3) {\textbf{Sin etapa}\\ ausencia explícita};
+
+  % Estados
+  \node[estado] (inv) at (5.0,0) {Investigación};
+  \node[estado] (int) at (9.8,0) {Intermedia};
+  \node[estado] (jui) at (14.6,0) {Juicio};
+
+  % Registro inicial y alta básica
+  \draw[flecha] (completa) -- node[lbl, above=4pt, text width=1.1cm]{registro\\ inicial} (inv);
+  \draw[flecha] (basica) -- node[lbl, above=2pt, text width=3.6cm]{completar el perfil después\\ no asigna etapa} (sin);
+
+  % Adopción: una sola vez, hacia cualquiera de las tres
+  \draw[flecha] (7.5,1.92) -- (inv.north east);
+  \draw[flecha] (8.0,1.92) -- (int.north west);
+  \draw[flecha] (8.5,1.92) .. controls (10.4,1.15) and (13.8,1.15) .. (jui.north);
+  \node[lbl, anchor=east] at (6.55,1.35) {adopción\\ (una sola vez)};
+  \node[paso, anchor=west, text width=4.9cm] at (10.4,2.3)
+    {\textbf{Adopción}: motivo, fecha conocida y soporte. Crea la primera revisión sin etapa anterior; no reconstruye actos previos.};
+
+  % Avances ordinarios
+  \draw[flecha] (inv) -- (int);
+  \draw[flecha] (int) -- (jui);
+  \node[lbl, anchor=north, text width=2.2cm] at (7.4,-0.12) {escrito de\\ acusación y\\ fecha declarada};
+  \node[lbl, anchor=north, text width=2.2cm] at (12.2,-0.12) {auto de apertura:\\ emisión, recepción\\ y tribunal receptor};
+
+\end{tikzpicture}

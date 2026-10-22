@@ -1,0 +1,37 @@
+\begin{tikzpicture}[
+  ver/.style={caja, text width=2.75cm, minimum height=1.3cm, align=left, font=\diag},
+  rev/.style={caja, text width=2.75cm, minimum height=1.1cm, align=left, font=\diag},
+  vig/.style={line width=1.5pt}]
+
+  % Raíz
+  \node[cajaOsc, text width=2.9cm, minimum height=1.5cm] (raiz) at (1.65,-2.2)
+    {\textbf{Raíz documental}\\ UUID y expediente fijos\\ primera versión disponible};
+  \node[paso, text width=2.9cm, anchor=north] at (1.65,-3.1)
+    {Importación: si solo llega la versión~7, esa es la primera disponible y la siguiente es la~8; no se inventan las versiones 1 a 6.};
+
+  % Versiones de contenido
+  \draw[zona] (3.7,0) rectangle (16,-2.25);
+  \node[zonaLabel] at (3.7,0) {VERSIONES DE CONTENIDO · INMUTABLES};
+  \node[ver] (v1) at (5.35,-1.25) {\textbf{v1} · nombre\\ huella SHA-256\\ DVLT1, DEK propia\\ AAD: UUID + 1\\ evidencia: capturada};
+  \node[ver] (v2) at (9.75,-1.25) {\textbf{v2} · nombre\\ huella SHA-256\\ DVLT1, DEK propia\\ AAD: UUID + 2\\ evidencia: ausente};
+  \node[ver, vig] (v3) at (14.15,-1.25) {\textbf{v3} · nombre\\ huella SHA-256\\ DVLT1, DEK propia\\ AAD: UUID + 3\\ evidencia: ausente\\ \textbf{vigente}: la mayor};
+  \draw[flecha] (v1) -- node[etq, above]{anexar} node[etq, below, align=center]{con versión\\ esperada} (v2);
+  \draw[flecha] (v2) -- node[etq, above]{anexar} (v3);
+
+  % Clasificación
+  \draw[zona] (3.7,-2.55) rectangle (16,-4.4);
+  \node[zonaLabel] at (3.7,-2.55) {CLASIFICACIÓN · HISTORIA PROPIA};
+  \node[rev, draw=ESCOMGris, text=ESCOMGris, dashed] (r0) at (5.35,-3.62) {\textbf{r0} implícita\\ sin decisión: campos ausentes, etiquetas vacías, sin autor ni fecha};
+  \node[rev] (r1) at (9.75,-3.62) {\textbf{r1}\\ tipo, categoría, etiquetas\\ huella DMETA1\\ autor e instante};
+  \node[rev, vig] (r2) at (14.15,-3.62) {\textbf{r2 · vigente}\\ tipo, categoría, etiquetas\\ huella DMETA1\\ autor e instante};
+  \draw[flecha] (r0) -- node[etq, above]{clasificar} (r1);
+  \draw[flecha] (r1) -- node[etq, above]{reemplazar} node[etq, below, align=center]{con revisión\\ esperada} (r2);
+
+  % Raíz hacia ambas historias
+  \draw[flecha] (raiz.north) |- (3.7,-1.25);
+  \draw[flecha] (raiz.east) -- ++(0.3,0) |- (3.7,-3.62);
+
+  % Independencia
+  \node[cajaClara, text width=12.05cm, align=left, anchor=north west, font=\diag] at (3.7,-4.65)
+    {\textbf{Historias independientes}: reclasificar no compara la versión, y anexar, sellar, verificar o exportar no comparan la revisión. La clasificación no entra en registro, AAD, DVLT1, firma, sello, certificados ni ZIP.};
+\end{tikzpicture}

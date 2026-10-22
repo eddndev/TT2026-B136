@@ -1,0 +1,18 @@
+\begin{tikzpicture}
+  \Actores{nav/1.3/{Navegador (Qadra)},api/4.6/{API: admisión},app/8.0/{Aplicación},pg/11.6/{PostgreSQL},rd/14.6/{Redis}}{-8.45}
+  \Msg{1.3}{4.6}{-0.95}{\textbf{1} petición con token opaco}
+  \Paso{4.6}{-1.1}{3.0}{Admite si hay cupo y la petición es válida}
+  \Msg[msgE]{4.6}{1.3}{-2.1}{sin cupo: rechazo inmediato, sin cola}
+  \Msg{4.6}{8.0}{-2.6}{\textbf{2} caso de uso}
+  \Paso{6.3}{-2.85}{2.6}{Trabajo bloqueante acotado: el permiso se conserva hasta terminar, aunque el cliente cancele}
+  \draw[msg] (8.0,-3.0) -- node[msgL, pos=0.75]{\textbf{3} valida la sesión} (14.6,-3.0);
+  \draw[msgR] (14.6,-3.5) -- node[msgL, pos=0.25]{cuenta de la sesión} (8.0,-3.5);
+  \Msg{8.0}{11.6}{-4.0}{\textbf{4} recarga usuario activo y rol}
+  \Msg{8.0}{11.6}{-4.95}{\textbf{5} una transacción: revalida\\ pertenencia, aplica el cambio\\ y su evento de auditoría}
+  \Paso{11.6}{-5.1}{2.5}{Confirma el cambio y la auditoría juntos o ninguno}
+  \Msg[msgR]{11.6}{8.0}{-6.15}{confirmado}
+  \Msg[msgR]{8.0}{4.6}{-6.6}{resultado}
+  \draw[msg] (4.6,-7.15) -- node[msgL, pos=0.3]{\textbf{6} registra el resultado} (11.6,-7.15);
+  \Paso{11.6}{-7.3}{2.5}{Bitácora encadenada de las peticiones admitidas}
+  \Msg[msgR]{4.6}{1.3}{-8.2}{respuesta sin caché}
+\end{tikzpicture}

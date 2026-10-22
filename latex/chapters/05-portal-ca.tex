@@ -139,8 +139,9 @@ clientes PostgreSQL dentro de Tokio, el cierre bloqueante provoc\'o SIGABRT.
 El journal a\'un no hab\'ia sido modificado y el despacho sigui\'o activo.
 Una prueba con el binario real, PostgreSQL y Redis desechables reprodujo el
 aborto al enviar SIGTERM; exigi\'o salida cero sin usar terminaci\'on forzada
-como resultado aceptable. La correcci\'on conserva los due\~nos finales fuera
-de \texttt{block\_on}, como se describe en \cref{sec:impl-portal-ca}. Despu\'es
+como resultado aceptable. La correcci\'on mantiene los clientes PostgreSQL bajo due\~nos s\'incronos,
+fuera del runtime de Tokio, de modo que su cierre bloqueante ya no se ejecuta
+dentro de \'el (\cref{sec:impl-portal-ca}). Despu\'es
 aprobaron los seis casos nativos de enrolamiento y los dos de servicio,
 incluido el cierre por SIGTERM. La correcci\'on se integr\'o el 14 de octubre
 con los gates de la solicitud de integraci\'on y de la rama principal aprobados.

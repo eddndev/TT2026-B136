@@ -1,0 +1,16 @@
+\begin{tikzpicture}[
+  bq/.style={caja, minimum width=2.15cm, text width=1.95cm, minimum height=1.05cm},
+  op/.style={etq, above=1pt, font=\scriptsize\diagsans\bfseries, text=ESCOMAzulOscuro},
+  nota/.style={font=\scriptsize\diagsans, text=ESCOMTinta, align=center, below=1pt}]
+  \node[bq, fill=ESCOMAzulClaro] (a) at (0,0)
+    {\textbf{30 h}/semana\\ disponibles por\\ desarrollador};
+  \node[bq] (b) at (3.4,0) {\textbf{24 h}/semana\\ efectivas por\\ desarrollador};
+  \node[bq] (c) at (6.8,0) {\textbf{48 h-persona}\\ por semana\\ del equipo};
+  \node[bq] (d) at (10.2,0) {\textbf{240 h-persona}\\ de capacidad\\ total};
+  \node[bq, fill=ESCOMAzulOscuro, draw=ESCOMAzulOscuro, text=white] (e) at (13.85,0)
+    {Costo base\\ \textbf{\$37,500.00}\\ MXN};
+  \draw[flecha] (a) -- node[op]{$-$20\,\%} node[nota]{TDD y\\ reuniones} (b);
+  \draw[flecha] (b) -- node[op]{$\times$\,2} node[nota]{en\\ pareja} (c);
+  \draw[flecha] (c) -- node[op]{$\times$\,5} node[nota]{semanas} (d);
+  \draw[flecha] (d) -- node[op]{$\times$\,\$156.25} node[nota]{por hora} (e);
+\end{tikzpicture}

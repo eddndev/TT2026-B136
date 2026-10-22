@@ -1,0 +1,161 @@
+\section{Diseño criptográfico del prototipo}\label{sec:diseno-cripto}
+
+Las decisiones de esta sección aplican los estándares del NIST, las RFC del IETF y las guías de OWASP del marco teórico a las restricciones jurídicas y técnicas del prototipo. Cubren cuatro servicios: integridad y autoría mediante firma digital, existencia en el tiempo mediante sellado, confidencialidad en reposo mediante cifrado, y autenticación con control de acceso.
+
+\subsection{Nivel de seguridad objetivo}\label{sec:nivel-seguridad}
+
+El prototipo adopta un nivel de fortaleza de 128 bits conforme a NIST SP 800-57 \cite{barker2020}. Ninguna primitiva ofrece menos, de modo que no existe un eslabón débil en el que un atacante racional pueda concentrar su esfuerzo. Es el primer nivel que NIST acepta para uso general sin restricción temporal; el de 112 bits, que corresponde a RSA-2048, queda como uso heredado y no se recomienda para proteger información nueva después de 2030. La diferencia importa porque un documento firmado puede presentarse como prueba judicial años después. La e.firma del SAT usa RSA-2048; la CA interna permite elegir parámetros por encima de ese piso. La \cref{tab:cripto-primitivas} resume cada primitiva. AES-256 supera el objetivo; se eligió por su margen adicional, con un costo de rendimiento pequeño.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Primitivas criptográficas, uso, parámetros, fuerza y norma.}
+  \label{tab:cripto-primitivas}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}L{2.55cm} X L{3.3cm} L{1.75cm} L{2.0cm}@{}}
+    \toprule
+    \textbf{Primitiva} & \textbf{Uso en el sistema} & \textbf{Parámetros} & \textbf{Fuerza (bits)} & \textbf{Norma} \\
+    \midrule
+    SHA-256 & Huella de cada versión, de las firmas y de los consentimientos; digest que sella la TSA & Salida de 32 B & 128 (colisión) & FIPS 180-4 \cite{nist2015fips1804} \\
+    RSA-3072, PKCS\#1 v1.5 con SHA-256 & Firma del PDF y del consentimiento, certificados, CRL, tokens de la TSA y acceso del Owner por certificado & Clave de 3072 bits; firma de 384 B & 128 & SP 800-57 \cite{barker2020} \\
+    X.509 v3 y CRL & Certificados de la CA interna y su revocación & Raíz de 5 años, finales de 1 año, CRL obligatoria & 128 & RFC 5280 \cite{cooper2008} \\
+    Sello RFC 3161 & Existencia del digest del PDF en un instante & SHA-256; firma RSA-3072 de la TSA & 128 & RFC 3161 \cite{adams2001} \\
+    AES-256-GCM & Cifrado de cada versión documental, envoltura de las DEK y secretos TOTP & Clave de 32 B, nonce aleatorio de 12 B, etiqueta de 16 B & 256 & SP 800-38D \cite{dworkin2007} \\
+    Envoltura KEK/DEK & Separar la clave de cada versión de la clave maestra; rotar sin recifrar & Una DEK de 32 B por versión & 256 & SP 800-38F \cite{dworkin2012} \\
+    Argon2id & Contraseñas y códigos de recuperación & $m = 256$ MiB, $t = 3$, $p = 1$; sal de 16 B; salida de 32 B; resistente a memoria & Depende de la contraseña & RFC 9106 \cite{biryukov2021} \\
+    TOTP con HMAC-SHA1 & Segundo factor de acceso & 6 dígitos, periodo de 30~s, secreto de 20 B & No aplica & RFC 6238 \cite{mraihi2011}; SP 800-107 \cite{dang2012} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Qué recibe cada parte}\label{sec:cripto-fronteras}
+
+Las zonas y sus cruces se describen en la \cref{fig:zonas-confianza}; aquí se precisa qué material criptográfico ve cada parte. El servidor de la API forma parte de la frontera de confidencialidad: recibe los documentos en claro, los cifra con claves que solo él maneja y los descifra para validar su formato y entregarlos. La protección del lado del navegador se limita a la clave de firma del titular, que nunca sale de su equipo. La \cref{tab:cripto-visibilidad} lo resume.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Qué recibe o conserva cada parte del sistema y qué queda fuera de su alcance.}
+  \label{tab:cripto-visibilidad}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}L{2.4cm} X L{4.6cm}@{}}
+    \toprule
+    \textbf{Parte} & \textbf{Recibe o conserva} & \textbf{No recibe ni conserva} \\
+    \midrule
+    Navegador del titular & Clave privada cifrada y su contraseña durante la operación local; bytes preparados por el servidor (PDF, declaraciones, desafíos); firmas resultantes & No guarda la clave ni su contraseña en borradores, almacenamiento local ni registros \\
+    API (servidor) & Contraseña y código TOTP al iniciar sesión; documentos en claro al cargarlos y entregarlos; KEK; certificados públicos, firmas y consentimientos & Claves privadas de los titulares, sus contraseñas y contenedores PKCS\#12 \\
+    PostgreSQL & Documentos cifrados y DEK envueltas; hashes Argon2id; secretos TOTP cifrados; certificados, firmas, consentimientos, tokens RFC 3161, revisiones de confianza y cadena de auditoría & KEK, documentos en claro, contraseñas y claves privadas de los titulares \\
+    Redis & Sesiones opacas y revocables, desafíos MFA, contadores de intentos y huellas de códigos TOTP aceptados & El código TOTP en claro; solo su huella \\
+    CA interna & CSR público con nombre, organización y país declarados; certificados emitidos; revocaciones y CRL & Clave privada del titular y su contraseña \\
+    TSA local & Digest SHA-256 del documento & El documento y el consentimiento \\
+    Proveedor de correo & Dirección del destinatario y un mensaje genérico; en invitaciones y recuperación de contraseña, además, el enlace con su token & Datos del expediente, documentos y adjuntos \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Firma digital}\label{sec:firma-digital}
+
+El esquema de firma emplea RSA-3072 con SHA-256 y relleno PKCS\#1 v1.5. Se descartó ECDSA P-256 porque la Política de Certificados de la ACR2-SE \cite{economia_acr2se} exige claves RSA con ese algoritmo en la jerarquía PKI mexicana; ECDSA no está contemplado para certificados legalmente reconocidos bajo un PSC mexicano. Por la misma razón se prefirió PKCS\#1 v1.5 sobre PSS: coincide con la ACR2-SE y la e.firma, lo que permitiría migrar a certificados de un PSC sin rediseñar el verificador.
+
+La autoridad certificadora interna usa OpenSSL y una jerarquía sin CA intermedia: la raíz emite directamente los certificados finales (\cref{fig:cripto-pki}). Para la firma individual, el titular genera su clave RSA-3072 y la solicitud pública de certificado (CSR) en su equipo, con OpenSSL o con el ayudante local del navegador. La CA comprueba la solicitud y emite un certificado exclusivamente de firma, sin generar ni recibir la clave privada. El portal administrativo separado (\cref{sec:impl-portal-ca}) exige además la revisión y confirmación del operador.
+
+Los certificados tienen perfiles separados: uno de firma documental y otro con el que el Owner puede acceder al sistema, y el verificador de firmas solo admite el primero. Cambiar de emisor requiere adaptar y validar la política de confianza. Al vencer un certificado se emite otro y, cuando corresponde, se registra un nuevo vínculo, sin modificar la evidencia histórica.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-03h-pki}
+  \caption{PKI interna. La raíz emite los certificados finales y publica la CRL; los certificados de firma y de acceso nacen de un CSR generado en el equipo del titular, de modo que la CA nunca recibe la clave privada. Solo el certificado de firma documental firma vínculo, PDF y consentimiento.}
+  \label{fig:cripto-pki}
+\end{figure}
+
+La revocación se comprueba con una CRL obligatoria, firmada por la raíz y vigente en el instante evaluado, conforme a RFC 5280 \cite{cooper2008}. La raíz y la CRL se publican en el servidor como una revisión explícita de confianza. Un nuevo vínculo o consentimiento captura esa revisión y la vuelve a comparar al confirmar. Las revisiones históricas conservan su material, de modo que las pruebas originales se evalúan sin sustituirlas por la CRL actual.
+
+Una firma con certificado de la CA interna usa los mismos mecanismos técnicos que una con certificado de la e.firma o de un PSC: RSA-3072, SHA-256, X.509 v3 y verificación de cadena. Cambia el emisor y, con él, el nivel de confianza jurídica. La CA interna permite demostrar integridad y autoría en el alcance académico, pero no se presenta como equivalente a una firma avanzada.
+
+La custodia del titular se separa de la operación de la CA. El navegador permite usar una clave cifrada y su contraseña dentro de un proceso local aislado, o importar firmas hechas con una herramienta externa. La API recibe solamente material público. El vínculo explícito identifica una cuenta del sistema y exige prueba de posesión de la clave; el nombre o el correo del certificado no crean ese vínculo ni acreditan identidad civil. La \cref{sec:impl-criptografia-local} detalla el formato cifrado y la confianza depositada en el código del navegador.
+
+La autorización de firma se modela aparte de la posesión de la clave. Primero, una declaración canónica vincula el certificado con la cuenta y con una revisión de confianza. Después, cada operación documental requiere dos firmas del titular (\cref{fig:cripto-consentimiento}): la del PDF y la de un consentimiento que fija expediente, documento, versión, digest del PDF y digest de esa primera firma. Por ello, un consentimiento no puede trasladarse a otra cuenta ni a otra versión, aunque los bytes del PDF coincidan. Ninguna de las dos firmas confirma por sí sola la operación.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-03h-consentimiento}
+  \caption{Qué se firma en la firma individual. La firma del PDF entra al consentimiento a través de su digest, y la misma clave firma ambos mensajes en el equipo del titular. El sello RFC 3161 cubre solo el digest del PDF.}
+  \label{fig:cripto-consentimiento}
+\end{figure}
+
+\subsection{Sellado de tiempo}\label{sec:sellado-tiempo}
+
+El sellado de tiempo se aísla en un componente intercambiable. El servidor usa una TSA local con OpenSSL; un adaptador para un PSC externo existe, pero no está seleccionado. En ambos casos el flujo sigue RFC 3161 \cite{adams2001}: se calcula el SHA-256 del documento firmado, se solicita el sello al emisor configurado y la respuesta se guarda como archivo independiente (.tsr) en formato ASN.1 DER. Así, la TSA local puede sustituirse por Cincel, SeguriData, CECOBAN u otra TSA compatible sin modificar la lógica central. La equivalencia es de protocolo, no de confianza: solo un PSC autorizado y contratado produce la constancia prevista por la NOM-151-SCFI-2016.
+
+Cincel, PSC acreditado con entorno de pruebas RFC 3161 \cite{cincel2024}, no se usa como evidencia del prototipo y queda como adaptador opcional por lo expuesto en la \cref{sec:riesgo-psc-materializado}.
+
+Guardar el token como archivo .tsr, en lugar de incrustarlo en CAdES-T o PAdES-T, permite inspeccionar por separado documento, firma, sello y certificado con herramientas estándar. CAdES-T y PAdES-T exigirían ingeniería de formatos (estructuras CMS o firmas internas del PDF) sin aportar al objetivo criptográfico. El alcance jurídico depende de la autoridad emisora y su cadena de confianza \cite{nom151_2016}, no del contenedor; un despliegue productivo podría migrar a CAdES-T o PAdES-T reutilizando el mismo token.
+
+El paquete de evidencia es un ZIP con el PDF original, su firma separada, el token RFC 3161 y la confianza capturada. En una firma individual agrega las declaraciones de vínculo y consentimiento con sus firmas, la raíz y la CRL del registro y una representación pública de sus tiempos. Sus instrucciones permiten comprobar todo con OpenSSL sin acceso a la plataforma, siguiendo los cuatro pasos de la \cref{fig:cripto-sello}. El sello del servidor nunca sustituye la firma del titular.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-03h-sello}
+  \caption{Verificación de un sello RFC 3161 en cuatro pasos. La huella se compara antes de revisar la firma y la cadena; el ancla depende de quién emitió el sello.}
+  \label{fig:cripto-sello}
+\end{figure}
+
+El instante del token corresponde al digest del PDF, no al consentimiento personal. La aceptación individual queda en un recibo y un evento auditado, bajo el reloj y la frontera de confianza de la plataforma. Por ello, un sello válido del contenido no demuestra por sí solo que el titular autorizó esa versión en ese instante. La verificación conserva las pruebas históricas y presenta aparte la vigencia y revocación actuales del certificado y el posible retiro del vínculo.
+
+\subsection{Cifrado en reposo}\label{sec:cifrado-reposo}
+
+Los documentos se cifran con AES-256-GCM conforme a NIST SP 800-38D \cite{dworkin2007}, mediante envoltura de claves (\emph{envelope encryption}) conforme a NIST SP 800-38F \cite{dworkin2012}. Una clave maestra del servidor (KEK) envuelve una clave de datos (DEK) aleatoria y propia de cada versión (\cref{fig:cripto-sobre}). Los datos adicionales autenticados (AAD) del documento contienen su UUID y su versión, así que descifrarlo bajo otro contexto falla. El cifrado no detecta por sí solo que se restaure un respaldo antiguo, pero válido, de documentos y auditoría; esa protección requiere un anclaje externo, que queda pendiente.
+
+Cada operación usa un nonce aleatorio de 96 bits generado con un generador aleatorio criptográfico (CSPRNG), en lugar de un contador. Un contador exige un estado persistente; si se reinicia por un error, una restauración de respaldo o una condición de carrera, repite un valor y GCM pierde tanto la confidencialidad como la autenticación. Con nonces aleatorios, SP 800-38D limita cada clave a $2^{32}$ cifrados. Como cada DEK cifra una sola versión, ese límite solo afecta a la KEK, que envuelve todas las DEK y cifra algunos secretos pequeños (TOTP e invitaciones); por eso debe considerarse al planear su rotación.
+
+Se descartaron dos alternativas. Una clave única para todo el repositorio concentra el riesgo y obliga a recifrar todo al rotarla. Derivar una clave por documento con HKDF evita guardar claves envueltas, pero el compromiso de la clave maestra expone todas las derivadas y la unicidad del contexto reintroduce un problema de estado. Con la envoltura, el compromiso de una DEK expone una sola versión y el de la KEK exige además acceso al almacenamiento cifrado; es el patrón de AWS KMS, Google Cloud KMS y Azure Key Vault. El prototipo implementa y documenta la rotación de la KEK; ejecutarla periódicamente queda fuera del alcance de la demostración.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-03h-sobre}
+  \caption{Envoltura de claves. Cada versión tiene su DEK; para los documentos, la KEK solo envuelve claves de 32 B, por lo que rotarla no toca los documentos cifrados.}
+  \label{fig:cripto-sobre}
+\end{figure}
+
+\subsection{Autenticación y control de acceso}\label{sec:autenticacion}
+
+Las contraseñas se almacenan con Argon2id (RFC 9106) \cite{biryukov2015,biryukov2021}, la variante recomendada por OWASP \cite{owasp_pwstorage2024} y NIST SP 800-63B Rev 4 \cite{nist2024}. Los hashes nuevos usan $m = 256$~MiB, $t = 3$, $p = 1$, sal de 16 bytes y salida de 32 bytes. El objetivo es que un hash nuevo cueste entre 0.5 y 1.0 segundos en el hardware de referencia; con tres iteraciones tardó unos 0.66~s en el equipo de referencia, dentro de esa banda (\cref{sec:calibracion-credenciales}). La banda no cubre el inicio de sesión completo ni su comportamiento bajo carga, y el hardware de un despliegue debe medirse antes de usarlo. Los hashes anteriores conservan sus parámetros y no se reescriben al verificarlos. Argon2id se prefirió a bcrypt por su dureza de memoria: bcrypt usa unos 4 KiB por intento, mientras que reservar 256 MiB encarece los ataques masivos con GPU o ASIC. Argon2, ganador de la Password Hashing Competition de 2015, tiene la variante Argon2id, que combina Argon2i, resistente a canales laterales, con Argon2d, resistente a hardware especializado.
+
+El acceso combina correo y contraseña con un segundo factor TOTP (RFC 6238) \cite{mraihi2011} o un código de recuperación de un solo uso; el recorrido completo aparece en la \cref{fig:cu-seq-sesion}. El TOTP usa HMAC-SHA1, seis dígitos, periodos de 30 segundos, tolerancia de un periodo a cada lado y secreto de 20 bytes. Para comprobar un código, la API abre el secreto cifrado con la KEK. SHA-1 está desaconsejado para firmas por sus colisiones, pero la seguridad de HMAC no depende de esa propiedad; NIST SP 800-107 \cite{dang2012} lo mantiene aceptable para autenticación, y es el único algoritmo que todas las aplicaciones autenticadoras soportan. Cada intento del segundo factor consume el desafío, y una reclamación atómica en Redis impide reutilizar un código aceptado. El acceso por certificado del Owner, deshabilitado por defecto, conserva límites propios y no sustituye al segundo factor. Ambos recorridos emiten un token opaco y revocable; los certificados de acceso del Owner y de firma documental mantienen propósitos separados y no acreditan identidad civil.
+
+El alta inicial crea al primer Owner solo mientras no existan usuarios; las altas posteriores requieren un Owner autenticado. En la creación directa, la API devuelve una sola vez el secreto TOTP, su URI \texttt{otpauth} y ocho códigos de recuperación. El secreto se guarda cifrado con AES-256-GCM y ligado al UUID del usuario, y los códigos con Argon2id. El alta por invitación separa preparación y confirmación: el destinatario elige su contraseña, recibe el material MFA y la cuenta se crea solo al confirmar un código TOTP de su dispositivo (\cref{sec:impl-invitaciones}). Qadra muestra la URI para configurarla a mano; presentarla como código QR queda como mejora de la interfaz.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Permisos por rol sobre administración, documentos, etapas y directorio.}
+  \label{tab:permisos-implementados}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}X C{0.14\linewidth} C{0.16\linewidth} C{0.16\linewidth}@{}}
+    \toprule
+    \textbf{Operación} & \textbf{Owner} & \textbf{Litigante} & \textbf{Paralegal} \\
+    \midrule
+    Consultar administración e historial & Sí & Sí & Sí \\
+    Registrar o administrar expediente & Sí & Sí & No \\
+    Consultar metadatos documentales & Sí & Sí & Sí \\
+    Cargar o añadir versión & Sí & Sí & Sí \\
+    Clasificar documento & Sí & Sí & Sí \\
+    Sellar documento & Sí & Sí & No \\
+    Verificar documento & Sí & Sí & Sí \\
+    Exportar evidencia & Sí & Sí & Sí \\
+    Consultar etapa e historial & Sí & Sí & Sí \\
+    Adoptar o avanzar etapa & Sí & Sí & No \\
+    Consultar directorio e historial & Sí & Sí & Sí \\
+    Crear, editar o archivar ficha & Sí & Sí & No \\
+    Verificar auditoría completa & Sí & No & No \\
+    \bottomrule
+  \end{tabularx}
+
+  \smallskip
+  \parbox{\linewidth}{\footnotesize Cliente no tiene ninguna de estas operaciones; solo consulta un resumen de sus expedientes.}
+\end{table}
+
+La autorización usa el rol y el estado vigentes de cada cuenta. Owner ve todos los expedientes; Litigante y Paralegal, solo los asignados; Cliente, solo un resumen básico de los suyos. Owner y Litigante administran perfiles y estado; las asignaciones quedan reservadas a Owner. En documentos, Litigante y Paralegal necesitan asignación vigente además del permiso de la \cref{tab:permisos-implementados}; Cliente queda denegado aunque esté asignado, y la asociación exacta entre documento y expediente se comprueba también para Owner. Una revocación surte efecto en la siguiente operación documental que aún no se haya confirmado.
+
+Estos permisos se combinan con pertenencia vigente, recurso exacto y estado administrativo. Un expediente cerrado conserva las lecturas y la evidencia, pero rechaza nuevas cargas, versiones, clasificaciones, sellos, ediciones del perfil, cambios del directorio y registros de etapa. Reactivarlo no modifica etapas ni reactiva participantes archivados.
+
+\subsection{Postura legal del prototipo}\label{sec:postura-legal}
+
+La firma del prototipo es una firma electrónica simple conforme al artículo 89 del Código de Comercio \cite{ccom2018}, porque sus certificados no provienen de un PSC autorizado (artículo 97, requisito 5). Es admisible como prueba, ya que el artículo 89 no condiciona la admisibilidad a un PSC, y la equivalencia funcional del artículo 100 permite argumentar la fiabilidad del método con estándares internacionales: RSA-3072 según NIST SP 800-57 \cite{barker2020} y SHA-256 según FIPS 180-4 \cite{nist2015fips1804}. La diferencia con una firma avanzada está en la carga de la prueba: quien invoca la firma simple debe acreditar la fiabilidad del método, mientras que la avanzada goza de presunción legal. Del mismo modo, el token de la TSA local demuestra el mecanismo RFC 3161, pero no aporta la fecha cierta ni la independencia de tercero que daría un sello de un PSC autorizado conforme a la NOM-151. Los puertos criptográficos permiten integrar certificados y autoridades externas mediante adaptadores, pero adoptarlos exige evaluar identidad, custodia de claves, políticas y confianza en el proveedor; cambiar el certificado no produce por sí solo una categoría jurídica distinta.

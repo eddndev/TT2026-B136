@@ -1,0 +1,46 @@
+\begin{tikzpicture}[
+  cab/.style={cajaOsc, minimum height=0.62cm, font=\scriptsize\diagsans\bfseries},
+  cat/.style={cajaClara, text width=2.6cm, minimum height=0.82cm, align=left,
+    font=\scriptsize\diagsans\bfseries},
+  ref/.style={caja, text width=2.0cm, minimum height=0.82cm},
+  req/.style={caja, text width=3.3cm, minimum height=0.82cm}]
+
+  % Columnas: categoría, historias, casos de uso, requerimientos, diseño
+  \def\xC{1.4} \def\xH{4.4} \def\xU{7.2} \def\xR{10.75} \def\xD{14.6}
+
+  \node[cab, text width=2.6cm] at (\xC,0) {Categoría};
+  \node[cab, text width=2.0cm] at (\xH,0) {Historias};
+  \node[cab, text width=2.0cm] at (\xU,0) {Casos de uso};
+  \node[cab, text width=3.3cm] at (\xR,0) {Requerimientos};
+
+  \foreach \i/\c/\h/\u/\r/\n in {
+      1/{Autenticación y control de acceso}/{HU-01 a HU-11}/{CU-01 a CU-04}/{RF-01 a RF-03}/{RNF-01, RNF-02, RNF-05},
+      2/{Gestión procesal penal}/{HU-12 a HU-18}/{CU-05 a CU-07}/{RF-04 a RF-06}/{RNF-04, RNF-10},
+      3/{Calendario, plazos y alertas}/{HU-19 a HU-24}/{CU-08 a CU-10}/{RF-07 a RF-10}/{RNF-06, RNF-10},
+      4/{Gestión documental y evidencias}/{HU-25 a HU-29}/{CU-11, CU-12}/{RF-11, RF-12}/{RNF-03, RNF-04},
+      5/{Servicios criptográficos}/{HU-30 a HU-37}/{CU-11 a CU-14}/{RF-13 a RF-17}/{RNF-03, RNF-04, RNF-11},
+      6/{Operación y monitoreo}/{HU-38 a HU-40}/{CU-15 a CU-17}/{RF-18 a RF-20}/{RNF-04, RNF-06, RNF-07}} {
+    \node[cat] (c\i) at (\xC,-1.05*\i) {\c};
+    \node[ref] (h\i) at (\xH,-1.05*\i) {\h};
+    \node[ref] (u\i) at (\xU,-1.05*\i) {\u};
+    \node[req] (r\i) at (\xR,-1.05*\i) {\r\\ {\diag\color{ESCOMGris}\n}};
+    \draw[flechaSuave, -] (c\i) -- (h\i);
+    \draw[flecha] (h\i) -- (u\i);
+    \draw[flecha] (u\i) -- (r\i);
+  }
+
+  % Requerimientos transversales sin caso de uso propio
+  \node[cat, fill=white, draw=ESCOMGris, text=ESCOMGris] (c7) at (\xC,-7.35) {Atributos transversales};
+  \node[cajaGris, text width=5.0cm, minimum height=0.82cm] (o7) at ({(\xH+\xU)/2},-7.35)
+    {Objetivos del proyecto\\ (sin caso de uso propio)};
+  \node[req] (r7) at (\xR,-7.35) {RNF-08, RNF-09\\ RNF-12 a RNF-14};
+  \draw[flechaSuave, -] (c7) -- (o7);
+  \draw[flecha] (o7) -- (r7);
+
+  % Destino de diseño
+  \node[cajaOsc, text width=1.9cm, minimum height=8.1cm, anchor=north] (d) at (\xD,0.31)
+    {Componentes de la arquitectura y del diseño criptográfico};
+  \foreach \i in {1,...,7} {
+    \draw[flecha] (r\i.east) -- (r\i.east -| d.west);
+  }
+\end{tikzpicture}

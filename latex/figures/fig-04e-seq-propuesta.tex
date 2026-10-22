@@ -1,0 +1,37 @@
+\begin{tikzpicture}[
+  tramo/.style={draw=ESCOMGris, dotted, line width=0.5pt},
+  tramoL/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, fill=white,
+    anchor=west, inner sep=1.5pt}]
+  \Actores{tit/1.45/{Titular\\ (equipo propio)},q/5.2/{Operador\\ (Qadra)},api/9.7/{API del despacho},pg/14.2/{PostgreSQL}}{-9.75}
+
+  % ==== Revisión ====
+  \draw[tramo] (0,-0.75) -- (16,-0.75);
+  \node[tramoL] at (2.0,-0.75) {1. Revisión de candidatos};
+  \Msg{5.2}{9.7}{-1.15}{identidad, rol, soportes y certificado}
+  \Msg{9.7}{14.2}{-1.5}{busca coincidencias}
+  \Msg[msgR]{9.7}{5.2}{-1.85}{propuesta, huella del directorio y candidatos}
+  \Paso{9.7}{-1.97}{3.6}{UUID propuestos, sin reservarlos}
+
+  % ==== Preparación ====
+  \draw[tramo] (0,-2.5) -- (16,-2.5);
+  \node[tramoL] at (2.0,-2.5) {2. Preparación};
+  \Msg{5.2}{9.7}{-2.9}{propuesta y decisiones}
+  \Paso{9.9}{-3.02}{6.6}{Revisa soportes con el worker de formatos y construye la declaración \texttt{PCRED1} (218 B) o, sin firma, el digest \texttt{PTXN1}}
+  \Msg[msgR]{9.7}{5.2}{-4.0}{declaración y recibo}
+  \Msg{5.2}{1.45}{-4.35}{bytes exactos y recibo}
+  \node[pasoOsc, text width=3.7cm, anchor=north west] at (0.15,-4.47)
+    {Firma fuera de Qadra con \mbox{RSA-3072}, PKCS\#1 v1.5 y SHA-256; la clave privada no sale del equipo};
+  \Msg[msgR]{1.45}{5.2}{-5.72}{firma separada (384 B)}
+
+  % ==== Confirmación ====
+  \draw[tramo] (0,-5.98) -- (16,-5.98);
+  \node[tramoL] at (2.0,-5.98) {3. Confirmación};
+  \Msg{5.2}{9.7}{-6.38}{preparación y firma}
+  \Paso{9.7}{-6.5}{4.4}{Comprueba la sesión; verifica cadena, CRL y firma fuera del bloqueo de auditoría}
+  \Msg{9.7}{14.2}{-7.45}{transacción auditada}
+  \node[paso, text width=5.5cm, anchor=north east] at (16,-7.57)
+    {Revalida cuenta, rol, pertenencia, expediente abierto, revisiones esperadas, unicidad de identidad y rol (incluso archivadas), huella del directorio, soportes y cabeza de confianza; toma el reloj tras el bloqueo y confirma identidad, ficha, decisiones, evidencia y evento juntos};
+  \Paso[pasoError]{8.6}{-7.57}{2.9}{Cualquier cambio intermedio: conflicto y reversión completa}
+  \Paso[pasoError]{5.2}{-7.57}{3.0}{Sin reintento ni UUID nuevos automáticos}
+  \Msg[msgR]{9.7}{5.2}{-9.5}{201 raíz nueva o 200 existente}
+\end{tikzpicture}

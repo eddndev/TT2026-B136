@@ -1,0 +1,31 @@
+\begin{tikzpicture}[
+  crate/.style={caja, text width=3.6cm, minimum height=0.95cm},
+  crateOsc/.style={cajaOsc, text width=3.6cm, minimum height=0.95cm}]
+
+  % Backend
+  \draw[zona] (0,1.15) rectangle (10.4,-5.85);
+  \node[zonaLabel] at (0,1.15) {SERVIDOR: CINCO CRATES};
+  \node[crateOsc, text width=4.6cm] (bin) at (5.2,0)
+    {\textbf{bin}\\ raíz de composición\\ ejecutables del despacho y de la CA};
+  \node[crate] (web) at (2.3,-1.75) {\textbf{web}\\ transporte HTTP (Axum)};
+  \node[crate] (inf) at (8.1,-1.75) {\textbf{infrastructure}\\ adaptadores concretos};
+  \node[crate] (app) at (5.2,-3.3) {\textbf{application}\\ casos de uso y puertos};
+  \node[crateOsc] (dom) at (5.2,-4.95) {\textbf{domain}\\ reglas, valores y puertos};
+
+  \draw[flecha] (bin) -- (web);
+  \draw[flecha] (bin) -- (inf);
+  \draw[flecha] (web) -- (app);
+  \draw[flecha] (inf) -- (app);
+  \draw[flecha] (app) -- (dom);
+  \draw[flecha] (web.south) |- ([yshift=1.5mm]dom.west);
+  \draw[flecha] (inf.south) |- ([yshift=1.5mm]dom.east);
+  \draw[flecha] (bin) -- (app);
+
+  % Navegador
+  \draw[zona] (11.0,1.15) rectangle (16.0,-2.05);
+  \node[zonaLabel] at (11.0,1.15) {NAVEGADOR: SEXTO CRATE};
+  \node[crate, text width=4.2cm] (wasm) at (13.5,-0.2)
+    {\textbf{browser-crypto}\\ WebAssembly en un worker:\\ claves cifradas, CSR y firmas};
+  \node[font=\diag, text=ESCOMGris, text width=4.2cm, align=center] at (13.5,-1.5)
+    {No depende de ningún crate del servidor};
+\end{tikzpicture}

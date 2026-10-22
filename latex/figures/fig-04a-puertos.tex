@@ -1,0 +1,54 @@
+\begin{tikzpicture}[
+  ent/.style={caja, text width=2.85cm, minimum height=0.9cm},
+  prt/.style={caja, text width=4.1cm, minimum height=0.46cm, inner sep=2pt},
+  adp/.style={caja, align=left, text width=6.4cm, minimum height=0.46cm, inner sep=2pt}]
+
+  % Zonas
+  \draw[zona] (3.55,0) rectangle (8.9,-4.45);
+  \draw[zona, fill=ESCOMAzulClaro] (3.55,-4.75) rectangle (8.9,-7.85);
+  \node[zonaLabel] at (3.55,0) {APPLICATION};
+  \node[zonaLabel] at (3.55,-4.75) {DOMAIN};
+  \node[zonaLabel] at (0,0) {ENTRADAS};
+  \node[zonaLabel] at (9.4,0) {ADAPTADORES (INFRASTRUCTURE)};
+
+  % Entradas
+  \node[ent] (e1) at (1.5,-1.2) {\textbf{web}: handlers Axum por dominio};
+  \node[ent] (e2) at (1.5,-3.95) {\textbf{bin}: línea de comandos (Clap)};
+  \node[ent] (e3) at (1.5,-2.75) {\textbf{bin}: portal de la CA (\texttt{qadra-ca})};
+
+  % Puertos de flujo
+  \node[cajaOsc, text width=5.0cm, minimum height=0.9cm] (wf) at (6.225,-1.20)
+    {\textbf{Puertos de flujo}: \texttt{IdentityWorkflow}, \texttt{CaseWorkflow}, \texttt{CaseDocumentWorkflow}, \texttt{HearingWorkflow} y uno por dominio; los implementan servicios de esta capa};
+  \draw[flecha] (e1) -- (wf);
+  \draw[flecha] (e2.east) -- (3.55,-3.95);
+  \draw[flecha] (e3.east) -- (3.55,-2.75);
+
+  \node[prt] (p1) at (6.225,-2.35) {\texttt{SessionStore}};
+  \node[adp] (a1) at (12.7,-2.35) {\texttt{RedisSessionStore}};
+  \draw[flechaSuave] (a1.west) -- (p1.east);
+  \node[prt] (p2) at (6.225,-2.93) {\texttt{CaseDocumentStore}};
+  \node[adp] (a2) at (12.7,-2.93) {\texttt{PostgresCaseDocumentStore}};
+  \draw[flechaSuave] (a2.west) -- (p2.east);
+  \node[prt] (p5) at (6.225,-3.51) {\texttt{DocumentUploadAdmission}};
+  \node[adp] (a5) at (12.7,-3.51) {\texttt{IsolatedDocumentUploadAdmission}};
+  \draw[flechaSuave] (a5.west) -- (p5.east);
+  \node[prt] (p6) at (6.225,-4.09) {\texttt{AlertEmailSender}};
+  \node[adp] (a6) at (12.7,-4.09) {\texttt{ResendAlertEmailSender}};
+  \draw[flechaSuave] (a6.west) -- (p6.east);
+  \node[prt] (p7) at (6.225,-5.4) {\texttt{AuditLog}};
+  \node[adp] (a7) at (12.7,-5.4) {\texttt{PostgresAuditLog} (HTTP), \texttt{FileAuditLog} (CLI)};
+  \draw[flechaSuave] (a7.west) -- (p7.east);
+  \node[prt] (p8) at (6.225,-5.98) {\texttt{DocumentSigner}};
+  \node[adp] (a8) at (12.7,-5.98) {\texttt{RsaPkcs1Signer}};
+  \draw[flechaSuave] (a8.west) -- (p8.east);
+  \node[prt] (p9) at (6.225,-6.68) {\texttt{TimestampService}};
+  \node[adp] (a9) at (12.7,-6.68) {\texttt{LocalOpensslTsa} (HTTP; CLI con \texttt{-{}-mock})\\ \texttt{CincelTsaAdapter} (CLI)};
+  \draw[flechaSuave] (a9.west) -- (p9.east);
+  \node[prt] (p12) at (6.225,-7.39) {\texttt{KeyManager}};
+  \node[adp] (a12) at (12.7,-7.39) {\texttt{EnvelopeKeyManager}};
+  \draw[flechaSuave] (a12.west) -- (p12.east);
+
+  % Composición
+  \node[cajaClara, text width=15.6cm, minimum height=0.65cm] at (8,-8.5)
+    {\textbf{Raíz de composición} (\textbf{bin}): \texttt{serve} conecta PostgreSQL, Redis, la TSA local y el correo; los comandos sin conexión usan la bitácora en archivo y pueden usar el proveedor remoto de sellado};
+\end{tikzpicture}

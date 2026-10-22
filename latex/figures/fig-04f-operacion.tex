@@ -1,0 +1,34 @@
+\begin{tikzpicture}[
+  fase/.style={zonaLabel, anchor=south, align=center},
+  carril/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, align=right, anchor=east, text width=1.5cm},
+  p/.style={caja, text width=2.85cm, minimum height=1.35cm, font=\diag},
+  fin/.style={caja, text width=1.35cm, minimum height=1.35cm, font=\diag},
+  err/.style={cajaError, minimum height=0.55cm, font=\diag},
+  comun/.style={caja, text width=1.95cm, minimum height=1.35cm, font=\diag}]
+
+  % Escritura: resumida, remite al recorrido auditado común
+  \node[carril] at (1.65,1.45) {Carga o\\ nueva versión};
+  \node[cajaClara, text width=13.45cm, minimum height=0.8cm, font=\diag] at (9.2,1.45)
+    {Admisión (\cref{fig:impl-doc-admision}), huella SHA-256 y paquete DVLT1; después, la transacción auditada de la \cref{fig:impl-operacion-auditada}. Rechazo: no se cifra ni se guarda; éxito: \textbf{201} con ficha y clasificación.};
+
+  % Encabezados de fase del contenido original
+  \node[fase] at (3.15,0.05) {1 AUTORIZA};
+  \node[fase] at (6.45,0.05) {2 PREPARA SIN\\ TRANSACCIÓN};
+  \node[fase] at (9.6,0.05) {3 REAUTENTICA};
+  \node[fase] at (12.6,0.05) {4 CONFIRMA EN\\ UNA TRANSACCIÓN};
+
+  \node[carril] at (1.65,-0.8) {Contenido\\ original};
+  \node[comun] (aut) at (3.15,-0.8) {Sesión; rol y pertenencia antes de revelar el recurso; documento ajeno: 404};
+  \node[p] (b2) at (6.45,-0.8) {Cupo de descargas; captura cifrada acotada; valida el sobre, descifra con el AAD y compara SHA-256};
+  \node[comun, cajaOsc] (rea) at (9.6,-0.8) {Principal completo, la misma identidad};
+  \node[p] (b4) at (12.6,-0.8) {Revalida cuenta, rol, pertenencia y captura; confirma \texttt{content\_authorized}};
+  \node[fin] (fin) at (15.25,-0.8) {\textbf{Entrega}: bytes originales};
+  \node[err, text width=9.0cm] (eb) at (9.6,-2.15) {validación fallida o captura cambiada: incidente en otra transacción y rechazo con cero bytes del archivo};
+
+  \draw[flecha] (aut) -- (b2);
+  \draw[flecha] (b2) -- (rea);
+  \draw[flecha] (rea) -- (b4);
+  \draw[flecha] (b4) -- (fin);
+  \draw[flechaError] (b2.south) -- (b2.south |- eb.north);
+  \draw[flechaError] (b4.south) -- (b4.south |- eb.north);
+\end{tikzpicture}

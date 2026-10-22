@@ -1,0 +1,46 @@
+\begin{tikzpicture}[
+  sel/.style={caja, text width=3.6cm, minimum height=0.9cm},
+  dst/.style={caja, text width=3.9cm, minimum height=0.9cm},
+  est/.style={caja, text width=3.2cm, minimum height=1.0cm}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (4.3,-4.0);
+  \draw[zona] (11.55,0) rectangle (16,-4.0);
+  \node[zonaLabel] at (0,0) {SELECCIÓN EXACTA};
+  \node[zonaLabel] at (11.55,0) {ACTIVIDAD QUE YA EXISTE};
+  \node[zonaLabel] at (5.0,0) {VÍNCULO: RAÍZ E HISTORIA PROPIAS};
+
+  % Selección
+  \node[sel] (rs) at (2.15,-0.95) {\textbf{Recurso}: revisión~1 y su huella};
+  \node[sel] (as) at (2.15,-2.05) {\textbf{Acto opcional}: captura conservada en la revisión~2};
+  \node[sel, cajaGris] (cb) at (2.15,-3.25) {\textbf{Cabeza esperada}: revisión~3, aparte; se contrasta al vincular y al desvincular};
+
+  % Vínculo
+  \node[est, cajaClara] (v1) at (7.9,-0.95) {\textbf{R1 vinculado}\\ selección y fuentes};
+  \node[est, cajaOsc] (v2) at (7.9,-2.75) {\textbf{R2 desvinculado}\\ con motivo; terminal};
+  \draw[flecha] (v1) -- node[etq, right=2pt]{desvincular} (v2);
+  \draw[flecha] (rs.east) -- (v1.west);
+  \draw[flecha] (as.east) -- ++(0.45,0) |- ([yshift=-2.5mm]v1.west);
+  \node[font=\diag, text=ESCOMGris, align=center] at (7.9,-3.7) {un vínculo posterior tiene otra raíz};
+
+  % Actividades
+  \node[dst] (au) at (13.775,-0.95) {\textbf{Audiencia ordinaria}: revisión y huella de envío};
+  \node[dst] (pl) at (13.775,-2.25) {\textbf{Plazo o audiencia propia}: revisión y huella de captura};
+  \draw[flecha] (v1.east) -- (au.west);
+  \draw[flecha] (v1.east) -- ++(0.55,0) |- (pl.west);
+  \node[font=\diag, text=ESCOMGris, align=center, text width=4.2cm] at (13.775,-3.35)
+    {varios vínculos con una actividad no la duplican ni duplican sus avisos};
+
+  % Lectura
+  \node[anchor=west, font=\diag\bfseries, text=ESCOMAzulOscuro, inner sep=1pt] at (0,-4.5)
+    {Lectura de detalle o lista: dos partes en una transacción autorizada};
+  \node[caja, text width=4.6cm, minimum height=1.1cm, anchor=west] (h) at (0,-5.45)
+    {\textbf{Asociación histórica}: selección y capturas tal como se vincularon};
+  \node[cajaOsc, text width=4.3cm, minimum height=1.1cm] (t) at (8,-5.45)
+    {\textbf{Instante UTC común $t$}\\ solicitud $\le t \le$ retorno del almacén};
+  \node[caja, text width=4.6cm, minimum height=1.1cm, anchor=east] (c) at (16,-5.45)
+    {\textbf{Cabeza actual} de la actividad: puede estar cancelada o sin fecha operativa};
+  \draw[flecha] (t) -- node[etq, above]{vigencia} (c);
+  \node[font=\diag, text=ESCOMGris, anchor=north west] at (0,-6.05) {no incorpora la vigencia actual};
+  \node[font=\diag, text=ESCOMGris, anchor=north] at (8,-6.05) {tomado tras el bloqueo; compartido por todas las filas de la página};
+\end{tikzpicture}

@@ -1,0 +1,41 @@
+\begin{tikzpicture}[
+  est/.style={cajaClara, text width=3.0cm, minimum height=1.15cm, rounded corners=5pt},
+  ent/.style={caja, text width=2.45cm, minimum height=0.6cm, rounded corners=5pt},
+  ev/.style={etq, align=center}]
+
+  % Estados no aceptados
+  \draw[zona] (0.15,0.6) rectangle (8.65,-2.65);
+  \node[zonaLabel] at (0.15,0.6) {NO ACEPTADAS};
+  \node[est] (i0) at (2.0,-1.7) {\textbf{Pendiente}\\ capacidad de 32 B, revisión \emph{n}, vigencia de 24 h};
+  \node[est] (i1) at (6.75,-1.7) {\textbf{Pendiente de MFA}\\ contraseña elegida; TOTP y códigos cifrados};
+  \node[cajaOsc, text width=3.0cm, minimum height=1.15cm, rounded corners=5pt] (i2) at (11.6,-1.7)
+    {\textbf{Aceptada}\\ cuenta, consumo, auditoría y recibo en una transacción};
+  \draw[flecha] (i0) -- node[ev, above=3pt]{preparar} node[ev, below=3pt]{(contraseña)} (i1);
+  \draw[flecha] (i1) -- node[ev, above=3pt]{finalizar\\ (TOTP)} (i2);
+  \draw[flechaSuave] (i1.north west) .. controls +(0.1,0.85) and +(-0.1,0.85) .. node[etq, above, align=center]{misma contraseña y capacidad\\ vigente: mismo material} (i1.north east);
+
+  % Salidas de cualquier estado no aceptado
+  \node[cajaError, text width=2.6cm, minimum height=0.9cm] (i3) at (4.6,-3.55)
+    {\textbf{Vencida}:\\ 24 h sin aceptar};
+  \node[cajaGris, text width=2.6cm, minimum height=0.9cm] (i4) at (8.0,-3.55)
+    {\textbf{Cancelada} tras restaurar una copia};
+  \draw[flechaError] (4.6,-2.65) -- (i3);
+  \draw[flecha, draw=ESCOMGris] (8.0,-2.65) -- node[etq, right=2pt]{restauración} (i4);
+
+  % Reenvío
+  \node[paso, text width=8.4cm, anchor=north, align=center] (re) at (5.0,-4.75)
+    {\textbf{Reenvío explícito} (UUID nuevo y revisión esperada): mismo ID, correo y rol;\\ revisión \emph{n}+1, otra capacidad y otras 24 h; invalida el enlace y la preparación anteriores};
+  \draw[flecha] (i3) -- (i3 |- re.north);
+  \draw[flecha] (i4) -- (i4 |- re.north);
+  \draw[flecha] (2.75,-2.65) -- (2.75,0 |- re.north);
+  \draw[flecha] (1.0,0 |- re.north) -- (1.0,0 |- i0.south);
+
+  % Entrega por revisión
+  \draw[zona] (10.25,-2.75) rectangle (16,-6.15);
+  \node[zonaLabel] at (10.25,-2.75) {ENTREGA DE CADA REVISIÓN};
+  \node[ent, text width=1.9cm, minimum height=1.0cm] (d0) at (11.45,-4.45) {\textbf{Pendiente}\\ reservada hasta 30 s};
+  \node[ent] (d1) at (14.5,-3.55) {\textbf{Enviada}: el proveedor aceptó};
+  \node[ent] (d2) at (14.5,-4.45) {\textbf{Incierta}: otro intento tras 60 s};
+  \node[ent, draw=IPNGuinda, text=IPNGuinda] (d3) at (14.5,-5.35) {\textbf{Rechazada}: exige reenvío};
+  \foreach \d in {d1,d2,d3} \draw[flecha] (d0.east) -- (\d.west);
+\end{tikzpicture}

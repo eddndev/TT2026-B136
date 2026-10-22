@@ -1,0 +1,43 @@
+\begin{tikzpicture}[
+  b/.style={caja, text width=3.6cm, minimum height=1.0cm},
+  f/.style={caja, text width=2.1cm, minimum height=1.0cm}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (4.5,-4.75);
+  \draw[zona] (5.1,0) rectangle (10.9,-4.75);
+  \draw[zona] (11.5,0) rectangle (16,-4.75);
+  \node[zonaLabel] at (0,0) {ALTA DE CUENTAS};
+  \node[zonaLabel] at (5.1,0) {ACCESO};
+  \node[zonaLabel] at (11.5,0) {CAMBIOS DE ACCESO};
+
+  % Alta
+  \node[b] (a1) at (2.25,-1.05) {\textbf{Alta inicial}: primer Owner, solo si no hay usuarios (\ref{sec:impl-http-identidad})};
+  \node[b] (a2) at (2.25,-2.4) {\textbf{Alta directa} por un Owner: el MFA se entrega una sola vez (\ref{sec:impl-miembros})};
+  \node[b] (a3) at (2.25,-3.75) {\textbf{Invitación}: el invitado elige contraseña y MFA (\ref{sec:impl-invitaciones})};
+
+  % Acceso
+  \node[f] (p1) at (6.75,-1.05) {Contraseña\\ (Argon2id)};
+  \node[f, cajaClara] (p2) at (9.25,-1.05) {Certificado del Owner (\ref{sec:impl-vinculo-certificado})};
+  \node[caja, text width=4.6cm, minimum height=0.8cm] (mfa) at (8.0,-2.4)
+    {Segundo factor: TOTP o código de recuperación};
+  \node[cajaOsc, text width=4.6cm, minimum height=0.8cm] (ses) at (8.0,-3.75)
+    {Sesión opaca y revocable en Redis};
+  \draw[flecha] (p1) -- (p1 |- mfa.north);
+  \draw[flecha] (p2) -- (p2 |- mfa.north);
+  \draw[flecha] (mfa) -- (ses);
+
+  % Cambios de acceso
+  \node[b] (c1) at (13.6,-1.05) {\textbf{Recuperación de contraseña} por correo (\ref{sec:impl-recuperacion-password})};
+  \node[b] (c2) at (13.6,-2.4) {\textbf{Cambio de rol o actividad} del miembro (\ref{sec:impl-miembros})};
+  \node[cajaOsc, text width=3.6cm, minimum height=1.0cm] (c3) at (13.6,-3.75)
+    {Generación de autenticación +1};
+  \draw[flecha] (c2) -- (c3);
+  \draw[flecha] (c1.east) -- ++(0.2,0) |- (c3.east);
+
+  % Persistencia
+  \node[cajaClara, text width=15.3cm, minimum height=0.6cm] (pg) at (8,-5.75)
+    {\textbf{PostgreSQL}: cuenta con correo único, rol, estado activo, revisión y \textbf{generación de autenticación}; MFA cifrado y bitácora};
+  \draw[flecha] (2.25,-4.75) -- node[etq, right]{cuenta y evento} (2.25,0 |- pg.north);
+  \draw[flechaSuave, <->] (ses.south) -- node[etq, right, pos=0.72]{cada petición compara la generación} (ses.south |- pg.north);
+  \draw[flecha] (c3.south) -- node[etq, left, pos=0.72]{misma transacción} (c3.south |- pg.north);
+\end{tikzpicture}

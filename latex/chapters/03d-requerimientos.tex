@@ -1,0 +1,245 @@
+\section{Requerimientos del sistema}\label{sec:requerimientos}
+
+% Ancho de las dos columnas de texto de las tablas de requerimientos.
+\newlength{\ReqAncho}
+\setlength{\ReqAncho}{\dimexpr(\linewidth-1.25cm-4\tabcolsep)/2\relax}
+
+Los requerimientos se derivan de los objetivos del proyecto y de las historias de usuario de la \cref{sec:historias-usuario}, y precisan lo que los casos de uso describen como escenarios. Se dividen en funcionales, que fijan los servicios que el sistema presta, y no funcionales, que fijan atributos de calidad y restricciones transversales. La \cref{fig:req-trazabilidad} muestra esa cadena por categoría. Cada requerimiento lleva un criterio de aceptación verificable, expresado con un umbral medible cuando es posible.
+
+\begin{figure}[H]
+  \centering
+  \input{figures/fig-03d-trazabilidad}
+  \caption{Trazabilidad por categoría: cada fila se lee de izquierda a derecha, desde las historias que expresan la necesidad hasta los requerimientos que el diseño atiende. Los atributos de la última fila no provienen de un caso de uso concreto y aplican a todo el sistema. La \cref{sec:arquitectura} y la \cref{sec:diseno-cripto} describen los componentes de la derecha.}
+  \label{fig:req-trazabilidad}
+\end{figure}
+
+\subsection{Requerimientos funcionales}\label{sec:requerimientos-funcionales}
+
+Los veinte requerimientos funcionales se agrupan en seis categorías. Cinco coinciden con los grupos de casos de uso de la \cref{sec:casos-uso}; la sexta, servicios criptográficos, reúne las capacidades que sostienen tanto la gestión documental (CU-11 y CU-12) como la firma de contratos (CU-13 y CU-14). Cada fila resume qué debe hacer el sistema y la condición observable que demuestra que lo hace.
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos funcionales de autenticación y control de acceso.}\label{tab:rf-acceso}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rf-acceso}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RF-01 & \textbf{Autenticación y gestión de sesiones.} Inicio de sesión seguro, recuperación de contraseña, expiración por inactividad y protección contra la fijación de sesión. & Tras el tiempo de inactividad configurado, la sesión se invalida y se exige una nueva autenticación sin perder datos no guardados. \\
+    RF-02 & \textbf{Control de acceso por roles.} Permisos asignados mediante roles predefinidos (Owner, Litigante, Paralegal, Cliente) que restringen módulos y operaciones sensibles. & Un Paralegal que intenta entrar a un módulo reservado a Owner o Litigante recibe una negativa explicada, y el intento queda en la bitácora. \\
+    RF-03 & \textbf{Gestión de equipos.} Invitación de miembros por correo, aceptación de la invitación y alta y baja de usuarios del despacho. & Si el invitado acepta dentro de la vigencia del enlace, queda registrado con el rol indicado; si el enlace vence, la invitación se desactiva sola. \\
+\end{longtable}}
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos funcionales de gestión procesal penal.}\label{tab:rf-procesal}\label{tab:rf-06}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rf-procesal}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RF-04 & \textbf{Expediente penal digital.} Registro y administración de casos penales con sus identificadores oficiales (NUC y Carpeta Judicial), delitos y datos generales; el alta completa inicia en Investigación. Un alta básica deja el perfil penal pendiente y sin etapa, que se adopta después (\cref{tab:cu-05}). & En el alta completa, si falta el NUC o la Carpeta Judicial, el registro se rechaza indicando el campo; con datos completos, el expediente queda guardado y disponible. \\
+    RF-05 & \textbf{Control de etapas procesales.} Transición entre Investigación, Intermedia y Juicio Oral conforme al CNPP, con un historial de cambios que no se altera. & Sin el escrito de acusación no se avanza de Investigación a Intermedia; con el documento habilitante, la transición queda registrada con fecha, responsable y documento, y no puede revertirse. \\
+    RF-06 & \textbf{Directorio de participantes.} Registro de los sujetos procesales de cada caso (imputados, víctimas, jueces, peritos) con su rol procesal y estatus jurídico. & Una misma persona puede tener roles distintos en casos diferentes sin conflicto. El registro de un juez de control exige el órgano jurisdiccional y la firma electrónica FIREL; este último criterio permanece pendiente y la credencial interna del prototipo no lo sustituye. \\
+\end{longtable}}
+
+El directorio de RF-06 no acredita por sí solo identidad civil ni representación procesal.
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos funcionales de calendario, plazos y alertas.}\label{tab:rf-calendario}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rf-calendario}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RF-07 & \textbf{Audiencias especializadas.} Programación y seguimiento de las audiencias tipificadas por el CNPP, con su modalidad, asistentes, resultados y acuerdos. & Al confirmar una audiencia inicial con vinculación a proceso se activa el plazo de investigación complementaria (2 o 6 meses) con su alerta preventiva. \\
+    RF-08 & \textbf{Blindaje de plazos.} Registro y cálculo de términos constitucionales y plazos procesales a partir de las actuaciones y audiencias registradas. & Para la investigación complementaria de 6 meses, la fecha de vencimiento excluye los días inhábiles del calendario configurado para la entidad federativa. \\
+    RF-09 & \textbf{Alertas preventivas.} Avisos automáticos ante el vencimiento próximo de plazos o audiencias, con anticipación configurable (por ejemplo, 48 h y 24 h). & Con un plazo a 48 h de vencer, la revisión periódica genera una alerta roja para el Litigante responsable en la bandeja de avisos de Qadra y, si el usuario habilitó el canal, también por correo, y registra el envío en la bitácora. \\
+    RF-10 & \textbf{Calendario jurídico integrado.} Agenda unificada del despacho por día, semana o mes, con color por tipo de evento y acceso directo al expediente. & Con 5 o más casos activos, el Litigante ve todas sus audiencias y vencimientos en una sola vista, sin recorrer cada expediente. \\
+\end{longtable}}
+
+En el prototipo, el plazo derivado de una audiencia se registra con su resultado por instrucción explícita del operador, que revisa el cálculo antes de confirmarlo; la activación automática de términos que plantea RF-07 sigue pendiente.
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos funcionales de gestión documental y evidencias.}\label{tab:rf-documental}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rf-documental}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RF-11 & \textbf{Cadena de custodia digital.} Registro de evidencias físicas y digitales y de cada movimiento (operación, evidencia, responsable, fecha y estado) en un historial cronológico de solo inserción. & Todo intento de modificar o eliminar una entrada se rechaza; cada movimiento únicamente agrega un registro nuevo. \\*
+    RF-12 & \textbf{Repositorio documental.} Carga, clasificación, consulta, intercambio y control de versiones de documentos procesales (PDF, DOCX, multimedia) asociados a expedientes; cada archivo se guarda cifrado y con su huella SHA-256. & Un Paralegal no accede a documentos de expedientes que no tiene asignados; un archivo de hasta 10 MB se recupera en menos de 3 s. \\
+\end{longtable}}
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos funcionales de servicios criptográficos.}\label{tab:rf-cripto}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rf-cripto}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RF-13 & \textbf{Verificación de integridad.} Cálculo de la huella SHA-256 de cada documento al cargarlo (un resumen de 256 bits que cambia ante cualquier alteración) y comparación en cada consulta posterior. & Si se altera un solo byte del archivo almacenado, la siguiente consulta muestra una alerta sin intervención manual. \\
+    RF-14 & \textbf{Cifrado autenticado.} Cifrado de documentos y expedientes con AES-256-GCM, que protege a la vez la confidencialidad y la integridad; cada operación usa un vector de inicialización (IV) aleatorio y único, guardado aparte del contenido cifrado. & Alterar un byte del texto cifrado hace fallar la etiqueta de autenticación y el descifrado se rechaza; la unicidad del IV se comprueba con pruebas automatizadas. \\
+    RF-15 & \textbf{Firma digital de contratos.} Firma individual de contratos PDF con certificados X.509 internos, que vincula una cuenta autenticada, una versión exacta del documento y el consentimiento del titular. El equipo del titular produce dos firmas separadas RSA-3072/SHA-256: la del PDF y la del consentimiento. & Si cambia cualquier byte del documento después de firmado, la verificación resulta inválida; la firma solo se verifica con la clave pública del certificado del firmante. \\
+    RF-16 & \textbf{Sellado de tiempo.} Obtención de un sello RFC 3161 de la autoridad de sellado (TSA) configurada para cada contrato firmado; el sello prueba que la huella del contrato existía en un momento dado. & El sello almacenado cubre la huella del contrato y se verifica con OpenSSL sin acceso al sistema; el paquete identifica si el emisor es local o regulado. \\
+    RF-17 & \textbf{Verificación de firmas y sellos.} Comprobación de la firma, la cadena X.509, el estado del certificado (vigente, revocado o expirado), el sello de tiempo y la integridad del documento. & Un contrato íntegro reporta todos los componentes como válidos; uno modificado reporta la firma inválida e indica la causa. \\
+\end{longtable}}
+
+La firma de RF-15 es una firma electrónica simple: demuestra el control de la clave y fija la versión firmada, pero no acredita por sí misma identidad civil ni representación procesal. La TSA local de demostración de RF-16 emite sellos técnicos verificables; no equivale a un prestador de servicios de certificación (PSC) ni produce la constancia NOM-151; la prueba con un PSC externo queda fuera del alcance.
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos funcionales de operación y monitoreo.}\label{tab:rf-operacion}\label{tab:rf-19}\label{tab:rf-20}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rf-operacion}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RF-18 & \textbf{Tablero ejecutivo.} Indicadores operativos del despacho: casos activos, plazos por vencer en 48 h y en 7 días, contratos cuya versión vigente aún no tiene sello interno y carga de trabajo por abogado. & Los plazos que vencen en menos de 48 h se destacan con un indicador crítico distinto del resto del tablero. \\
+    RF-19 & \textbf{Generación de reportes.} Informes en PDF o CSV en dos modalidades, estado de los expedientes y actividad registrada por abogado, filtrados por periodo, abogado o estado. & Si la generación supera 3 s, la interfaz sigue respondiendo, muestra el progreso y entrega el informe mediante una notificación, sin bloquear la sesión. \\
+    RF-20 & \textbf{Bitácora de actividad.} Registro cronológico inalterable de todas las acciones: quién actuó, qué operación hizo, sobre qué recurso, cuándo y desde qué dirección de red. & Cada operación de un usuario autenticado genera su registro en menos de 500 ms; ningún rol, incluido Owner, puede modificarlo ni eliminarlo. \\
+\end{longtable}}
+
+RF-19 mide la actividad por cuenta con cantidades (documentos, actuaciones y plazos atendidos), sin calificar el éxito jurídico. El planteamiento inicial incluía también métricas operativas generales y otros tipos de informe, que estas dos modalidades no acreditan. El umbral de 3 s de RF-19 es menos estricto que el de 2 s de RNF-06, de modo que cumplir RNF-06 cumple también RF-19; la implementación usa el umbral de 2 s para activar el aviso por correo (\cref{sec:diseno-informes}), que no se ha ejercitado en producción.
+
+
+\subsection{Requerimientos no funcionales}\label{sec:requerimientos-no-funcionales}
+
+Los catorce requerimientos no funcionales se expresan como atributos de calidad, no como tecnologías.
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos no funcionales de seguridad y protección de datos.}\label{tab:rnf-seguridad}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rnf-seguridad}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RNF-01 & \textbf{Aislamiento del despacho.} Cada instancia atiende a un solo despacho, con su propia base de datos y su propio material criptográfico; dentro de ella, ninguna consulta, operación o error expone datos a quien no está autorizado sobre el recurso. & Aun manipulando parámetros e identificadores, un usuario nunca recibe datos fuera de su ámbito; se comprueba con pruebas automatizadas que usan identificadores ajenos. \\
+    RNF-02 & \textbf{Credenciales seguras.} Contraseñas guardadas con una función de derivación lenta (Argon2 o bcrypt) y una sal aleatoria por contraseña; nunca en texto plano ni con SHA-256 o MD5. & Al inspeccionar la base de datos no aparece ninguna contraseña en claro ni como SHA-256 o MD5; verificar una contraseña tarda más de 100 ms. \\
+    RNF-03 & \textbf{Material criptográfico.} Claves guardadas aparte de los datos cifrados, IV únicos por operación y claves privadas que nunca viajan por la red ni se guardan en claro. & En los registros del sistema, con cualquier nivel de detalle, no aparece ninguna clave maestra ni privada, ni un IV junto al contenido cifrado en el mismo registro. \\
+    RNF-04 & \textbf{Registros inalterables.} Historial procesal, cadena de custodia y bitácora siguen un modelo de solo inserción. & La base de datos rechaza cualquier intento de modificar o borrar un registro, incluso desde scripts administrativos, y el intento queda registrado; se comprueba con pruebas de integración. \\
+    RNF-05 & \textbf{Privacidad.} Ninguna fuga de información hacia usuarios no autorizados ni fuera de la instancia del despacho. & En el entorno de ensayo, el 100\,\% de los accesos simulados fuera del ámbito autorizado termina en error de autorización. \\
+\end{longtable}}
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos no funcionales de rendimiento y operación.}\label{tab:rnf-rendimiento}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rnf-rendimiento}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RNF-06 & \textbf{Procesamiento asíncrono.} Notificaciones, reportes y operaciones criptográficas largas se ejecutan en segundo plano mediante colas de trabajo, sin bloquear la interfaz. & Si un reporte tarda más de 2 s, la interfaz sigue respondiendo con indicador de progreso y el usuario recibe el resultado sin mantener la pantalla abierta. \\*
+    RNF-07 & \textbf{Tiempo de respuesta.} Respuesta perceptiblemente inmediata, con actualizaciones que no recargan la página completa. & Con una red de más de 10 Mbps, toda operación interactiva no asíncrona da retroalimentación visual en menos de 300 ms. \\
+\end{longtable}}
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos no funcionales de usabilidad y experiencia de usuario.}\label{tab:rnf-usabilidad}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rnf-usabilidad}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RNF-08 & \textbf{Diseño responsivo.} La interfaz se adapta a escritorio y tableta, entre 768 y 1920 píxeles de ancho. & En una tableta de 768 píxeles, todos los elementos de cualquier módulo son accesibles y legibles sin desplazamiento horizontal. \\*
+    RNF-09 & \textbf{Localización.} Español de México por omisión: fechas DD/MM/AAAA y montos en pesos con separador de miles y dos decimales. & Todo módulo muestra fechas y montos en ese formato sin que el usuario configure su región. \\
+\end{longtable}}
+
+{\footnotesize
+\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+  \caption{Requerimientos no funcionales de cumplimiento normativo y mantenibilidad.}\label{tab:rnf-cumplimiento}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endfirsthead
+  \multicolumn{3}{@{}l}{\itshape Continuación de la \cref{tab:rnf-cumplimiento}}\\
+  \toprule
+  \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  \bottomrule
+  \endlastfoot
+    RNF-10 & \textbf{Conformidad con el CNPP.} Datos y flujos siguen la terminología, los plazos y las secuencias de etapas del Código Nacional de Procedimientos Penales. & Cada tipo de audiencia del catálogo corresponde a su artículo del CNPP (307 a 403) y activa los plazos correctos. \\
+    RNF-11 & \textbf{Conformidad con la NOM-151.} Sellado de tiempo y conservación de mensajes de datos conforme a la NOM-151-SCFI-2016 y al protocolo RFC 3161. La constancia de un PSC autorizado es condición de un despliegue regulado, no de la TSA local de demostración. & Un sello emitido se verifica con OpenSSL y su ancla de confianza; si el emisor es local, se reporta como evidencia técnica, sin atribuirle una fuente de tiempo externa sincronizada con el CENAM. \\
+    RNF-12 & \textbf{Cumplimiento de la LFPDPPP.} Los datos personales se tratan con las medidas de seguridad del artículo 19 de la LFPDPPP: guardados cifrados, accesibles solo por roles autorizados y con registro de acceso. & Se evidencian cifrado AES-256-GCM (confidencialidad), huella SHA-256 (integridad), control de acceso por roles y bitácora de solo inserción (trazabilidad). \\
+    RNF-13 & \textbf{Arquitectura mantenible.} Separación de responsabilidades, bajo acoplamiento y alta cohesión, de modo que un cambio no introduzca regresiones. & La complejidad ciclomática promedio por función no supera 10 y la cobertura de pruebas de los módulos criptográficos es de al menos 90\,\%. \\
+    RNF-14 & \textbf{Aseguramiento de calidad.} Pruebas de aceptación con usuarios al cerrar cada ciclo, junto con pruebas funcionales automatizadas y pruebas de los servicios criptográficos. & Al cerrar cada iteración, el 100\,\% de las pruebas criptográficas (huella, cifrado, firma y sello de tiempo) pasa sin errores. \\
+\end{longtable}}

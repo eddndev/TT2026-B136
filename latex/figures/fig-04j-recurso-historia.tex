@@ -1,0 +1,27 @@
+\begin{tikzpicture}[
+  rev/.style={caja, text width=1.95cm, minimum width=2.15cm, minimum height=1.2cm},
+  cab/.style={rev, line width=1.2pt},
+  sig/.style={flecha, shorten >=1pt, shorten <=1pt},
+  enc/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, anchor=south west, inner sep=1pt}]
+
+  \node[enc] at (0,0.05) {Cada intención confirma en una transacción una revisión, su recibo y su evento de auditoría};
+  \node[cajaOsc, text width=1.35cm, minimum width=1.55cm, minimum height=1.2cm] (raiz) at (0.775,-0.75)
+    {\textbf{Recurso}\\ identidad estable};
+  \node[rev] (r1) at (3.075,-0.75) {\textbf{R1} registrar\\ valores, resolución y soportes};
+  \node[rev] (r2) at (5.425,-0.75) {\textbf{R2} registrar acto\\ acto A, rev.~1};
+  \node[rev] (r3) at (7.775,-0.75) {\textbf{R3} corregir recurso, con motivo};
+  \node[rev] (r4) at (10.125,-0.75) {\textbf{R4} corregir acto\\ acto A, rev.~2};
+  \node[rev, cajaGris] (r5) at (12.475,-0.75) {\textbf{R5} archivar: conserva valores y fuentes};
+  \node[cab] (r6) at (14.825,-0.75) {\textbf{R6} reactivar\\ cabeza actual};
+  \draw[sig] (raiz) -- (r1);
+  \draw[sig] (r1) -- (r2);
+  \draw[sig] (r2) -- (r3);
+  \draw[sig] (r3) -- (r4);
+  \draw[sig] (r4) -- (r5);
+  \draw[sig] (r5) -- (r6);
+  \draw[flechaSuave] (r4.south) -- ++(0,-0.4) -| node[etq, pos=0.25, below=2pt]{la corrección referencia la captura anterior del mismo acto} (r2.south);
+  \node[font=\diag, text=IPNGuinda, anchor=north, align=center, text width=2.1cm] at (12.475,-1.4)
+    {no registra un desistimiento};
+  \node[font=\diag, text=ESCOMGris, anchor=north, align=center, text width=2.3cm, execute at begin node={\hyphenpenalty=10000}] at (14.825,-1.4)
+    {expone solo el acto de su revisión: aquí, ninguno};
+\end{tikzpicture}

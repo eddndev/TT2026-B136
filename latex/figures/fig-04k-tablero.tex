@@ -1,0 +1,43 @@
+\begin{tikzpicture}[
+  amb/.style={caja, text width=3.0cm, minimum width=3.2cm, minimum height=0.8cm},
+  src/.style={cajaClara, text width=3.0cm, minimum width=3.2cm, minimum height=0.62cm},
+  ind/.style={caja, text width=5.0cm, minimum width=5.2cm, minimum height=0.58cm, align=left},
+  win/.style={line width=2.4pt},
+  winL/.style={font=\diag, text=ESCOMTinta, anchor=south, inner sep=1pt}]
+
+  % Ámbito por rol
+  \node[cajaOsc, text width=3.0cm, minimum width=3.2cm, minimum height=0.7cm] (req) at (1.95,0)
+    {Abre el tablero};
+  \node[amb] (own) at (1.95,-1.3) {\textbf{Owner}: todo el despacho};
+  \node[amb] (lit) at (1.95,-2.6) {\textbf{Litigante}: expedientes asignados};
+  \node[amb, cajaError] (otr) at (1.95,-3.9) {\textbf{Paralegal o Cliente}: sin acceso};
+  \draw[draw=ESCOMAzulOscuro, line width=0.6pt] (req.west) -| (0.12,-3.9);
+  \foreach \n in {own,lit} \draw[flecha] (0.12,0 |- \n.west) -- (\n.west);
+  \draw[flechaError] (0.12,-3.9) -- (otr.west);
+
+  % Datos autorizados
+  \draw[zona] (4.05,0.45) rectangle (8.25,-5.15);
+  \node[zonaLabel] at (4.05,0.45) {DATOS AUTORIZADOS};
+  \node[src] (exp) at (6.15,-0.4) {Expedientes activos};
+  \node[src] (doc) at (6.15,-1.2) {Documentos: versión y tipo actuales};
+  \node[src, minimum height=1.9cm] (plz) at (6.15,-2.75) {Plazos vigentes reconstruidos y comprobados con sus fuentes};
+  \node[src] (asg) at (6.15,-4.75) {Asignaciones de litigantes activos};
+  \draw[flecha] (own.east) -- (4.05,-1.3);
+  \draw[flecha] (lit.east) -- (4.05,-2.6);
+
+  % Indicadores
+  \node[ind] (i1) at (13.4,-0.4) {\textbf{Expedientes activos}};
+  \node[ind] (i2) at (13.4,-1.2) {\textbf{Contratos sin sello interno}: última versión sin sello};
+  \node[ind] (i3) at (13.4,-1.95) {\textbf{Vencidos}: antes del instante consultado};
+  \node[ind, cajaError, align=left] (i4) at (13.4,-2.55) {\textbf{Próximos 48 h}: indicador crítico};
+  \node[ind] (i5) at (13.4,-3.15) {\textbf{Próximos 7 días}: incluye los de 48 h};
+  \node[ind] (i6) at (13.4,-3.95) {\textbf{Revisiones pendientes}: sin fecha comprobada};
+  \node[ind] (i7) at (13.4,-4.75) {\textbf{Carga por litigante}: activos; para Litigante, solo compartidos};
+  \draw[flecha] (exp.east) -- (i1.west);
+  \draw[flecha] (doc.east) -- (i2.west);
+  \draw[draw=ESCOMAzulOscuro, line width=0.6pt] (plz.east) -- (9.8,-2.75);
+  \draw[draw=ESCOMAzulOscuro, line width=0.6pt] (9.8,-1.95) -- (9.8,-3.95);
+  \foreach \y/\n in {-1.95/i3,-2.55/i4,-3.15/i5,-3.95/i6} \draw[flecha] (9.8,\y) -- (\n.west);
+  \draw[flecha] (asg.east) -- (i7.west);
+
+\end{tikzpicture}

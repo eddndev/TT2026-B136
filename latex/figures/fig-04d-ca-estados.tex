@@ -1,0 +1,33 @@
+\begin{tikzpicture}[
+  estado/.style={caja, text width=3.0cm, minimum height=0.95cm},
+  final/.style={cajaOsc, text width=3.0cm, minimum height=0.95cm},
+  malo/.style={cajaError, text width=3.0cm, minimum height=0.95cm},
+  ev/.style={etq, align=center}]
+
+  % Fila principal
+  \node[cajaGris, text width=3.0cm, minimum height=0.95cm] (sol) at (1.6,0)
+    {\textbf{Solicitud}\\ UUID nuevo y parámetros};
+  \node[estado] (pen) at (7.4,0) {\textbf{Pendiente}\\ journal persistido};
+  \node[final] (com) at (14.0,0) {\textbf{Completada}\\ recibo conservado};
+  \draw[flecha] (sol) -- node[ev, above]{journal} node[ev, below]{antes del efecto} (pen);
+  \draw[flecha] (pen) -- node[ev, above]{efecto verificado} node[ev, below]{contra el material público} (com);
+
+  % Bucles de recuperación
+  \draw[flecha] (6.6,0.48) .. controls (6.6,1.45) and (8.2,1.45) .. (8.2,0.48);
+  \node[ev, anchor=south] at (7.4,1.2) {respuesta perdida: el mismo UUID reanuda desde un\\ estado intacto o reconoce el efecto ya hecho;\\ fallo técnico o material cambiado: sigue pendiente};
+  \draw[flecha] (13.2,0.48) .. controls (13.2,1.45) and (14.8,1.45) .. (14.8,0.48);
+  \node[ev, anchor=south, text width=3.4cm] at (14.0,1.2) {mismo UUID: mismo recibo;\\ con otros parámetros: conflicto};
+
+  % Ramas
+  \node[malo] (r422) at (1.6,-2.3) {\textbf{Rechazo inmediato}\\ rechazo de validación, sin journal ni reserva};
+  \node[malo] (blo) at (6.9,-2.3) {\textbf{Bloqueada}\\ sin reparación automática ni segunda emisión};
+  \node[final] (rec) at (14.0,-2.3) {\textbf{Rechazada}\\ recibo con UUID, actor, solicitud, serie reservada y fechas; sin certificado};
+  \draw[flechaError] (sol) -- node[ev, right]{política del sujeto} (r422);
+  \draw[flechaError] (6.9,0 |- pen.south) -- node[ev, left, align=right]{efecto parcial\\ o ambiguo} (blo);
+  \draw[flecha] (8.6,0 |- pen.south) |- node[ev, above, pos=0.75]{guardada sin admisión:} node[ev, below, pos=0.75]{incompatibilidad demostrada} (rec.west);
+  \node[ev, anchor=north, text width=4.2cm, execute at begin node={\hyphenpenalty=10000}] at ([yshift=-2pt]rec.south) {repetir el UUID devuelve el mismo rechazo};
+
+  % Guarda compartida
+  \node[pasoOsc, font=\scriptsize\diagsans, text width=15.4cm, anchor=north] at (8.0,-4.25)
+    {\textbf{Guarda compartida de mutación:} con una operación pendiente o bloqueada no avanza otra emisión, revocación, publicación, despliegue ni restauración. A diferencia de la guarda de arranque, un recibo pendiente no impide reabrir tras confirmar la confianza.};
+\end{tikzpicture}

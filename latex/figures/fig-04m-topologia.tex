@@ -1,0 +1,58 @@
+\begin{tikzpicture}[
+  srv/.style={caja, text width=3.15cm, minimum width=3.35cm, minimum height=0.95cm},
+  tmr/.style={cajaClara, text width=3.4cm, minimum width=3.6cm, minimum height=0.95cm},
+  ext/.style={cajaGris, dashed, text width=3.3cm, minimum height=0.8cm},
+  tit/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, anchor=west, inner sep=1pt}]
+
+  % Exterior
+  \node[cajaOsc, text width=3.3cm, minimum height=0.8cm] (op) at (2.25,-0.6)
+    {\textbf{Operador}: túnel SSH, puerto 22022};
+  \node[ext] (rs) at (6.4,-0.6) {\textbf{Resend}: correo de alerta};
+  \node[caja, text width=3.3cm, minimum height=0.8cm] (gh) at (10.55,-0.6)
+    {\textbf{Actions}: transferencia y activación};
+  \node[ext] (pub) at (14.25,-0.6) {origen HTTPS \texttt{qadra.com.mx}: configurado aparte};
+
+  % VPS3
+  \draw[zona] (0,-1.4) rectangle (16,-7.85);
+  \node[zonaLabel, anchor=north east] at (16,-1.4) {VPS3 · UBUNTU 22.04 x86\_64};
+  \node[cajaGris, text width=4.3cm, anchor=north west] at (2.75,-1.5)
+    {runners de CI: servicios separados};
+
+  \draw[zona, fill=white] (0.2,-2.2) rectangle (15.8,-7.65);
+  \node[zonaLabel, anchor=north east] at (15.8,-2.2) {CUENTA \texttt{qadra} · SOLO 127.0.0.1};
+
+  % Servicios
+  \node[tit] at (1.0,-2.75) {servicios: puerto y techo};
+  \node[srv] (web) at (2.25,-3.4) {\textbf{nginx}: Qadra y proxy\\ :18086 · 128 MiB};
+  \node[srv] (api) at (2.25,-4.6)  {\textbf{API Rust}\\ :18087 · 2 GiB};
+  \node[srv] (pg)  at (2.25,-5.85) {\textbf{PostgreSQL 16}\\ :15486 · 768 MiB};
+  \node[srv] (rd)  at (2.25,-6.95) {\textbf{Redis} autenticado\\ :16386 · 256 MiB};
+  \draw[flecha] (web) -- (api);
+  \draw[flecha] (api) -- node[etq, right=1pt]{rol restringido} (pg);
+  \draw[flecha] (api.west) -- ++(-0.17,0) |- (rd.west);
+
+  % Renovación programada
+  \node[tit] at (4.6,-2.75) {renovación programada de la CRL};
+  \node[tmr] (tm) at (6.4,-3.4) {\textbf{timer diario}\\ 09:00 UTC + hasta 30 min};
+  \node[tmr] (rn) at (6.4,-4.75)  {\textbf{renovación}: actúa si faltan menos de 72 h; conserva sus cuatro últimos respaldos};
+  \node[tmr] (al) at (6.4,-6.3) {\textbf{alerta}: correo genérico, sin secretos};
+  \draw[flecha] (tm) -- (rn);
+  \draw[flechaError] (rn) -- node[etq, right=1pt]{si falla} (al);
+  \draw[flechaSuave] (rn.west) -- node[etq, below, pos=0.5]{detiene} (api.east);
+  \draw[flechaSuave] (rn.west) -- (web.east);
+
+  % Raíz
+  \node[tit, anchor=east] at (15.75,-2.75) {raíz \texttt{/home/qadra/qadra}};
+  \node[caja, text width=6.75cm, minimum height=0.85cm, anchor=north west] (ctl) at (8.8,-3.0)
+    {\textbf{controladores}: lanzador estable en la raíz; generación aprobada en \texttt{tools/}; un solo bloqueo \texttt{deploy.lock}};
+  \node[cajaOsc, text width=2.6cm, minimum height=2.05cm, anchor=north west] (ver) at (8.8,-4.3)
+    {\textbf{versiones}\\ \texttt{releases/}, \texttt{incoming/}\\ enlaces \texttt{current}\\ y \texttt{previous}};
+  \node[caja, text width=3.55cm, minimum height=2.05cm, anchor=north west, align=left] (est) at (11.95,-4.3)
+    {\textbf{estado persistente}\\ \texttt{config/}: contraseñas y KEK\\ \texttt{data/}: bases, CA y TSA\\ \texttt{backups/}: capturas\\ \texttt{maintenance/}: diarios};
+  \draw[flecha] (ver.north |- ctl.south) -- node[etq, right=1pt]{cambia enlaces} (ver.north);
+
+  % Conexiones externas
+  \draw[flecha, line width=0.8pt] ([xshift=-1.5cm]op.south) -- node[etq, right=1pt, pos=0.45]{túnel a :18086} ([xshift=-1.5cm]web.north);
+  \draw[flecha, line width=0.8pt] ($(gh.south)+(-1.2,0)$) -- node[etq, right=1pt, pos=0.3]{SSH Ed25519} ($(gh.south |- ctl.north)+(-1.2,0)$);
+  \draw[flechaSuave] (al.east) -- (8.45,-6.3) |- (rs.east);
+\end{tikzpicture}

@@ -1,0 +1,29 @@
+\begin{tikzpicture}[
+  est/.style={caja, text width=3.0cm, minimum height=1.25cm},
+  fin/.style={cajaOsc, text width=3.0cm, minimum height=1.25cm},
+  fallo/.style={cajaError, text width=3.0cm, minimum height=1.1cm}]
+
+  % Camino principal
+  \node[est] (s0) at (1.6,0) {\textbf{Origen detenido}\\ respaldo y mapa completo de documento a expediente};
+  \node[est] (s1) at (5.75,0) {\textbf{Inspección}\\ valida identidad, AAD, digest, firma, sello y cadena sin escribir};
+  \node[est] (s2) at (9.9,0) {\textbf{Barreras}\\ migración pendiente en documentos y bitácora del origen};
+  \node[fin] (s3) at (14.05,0) {\textbf{Confirmada}\\ documentos, prefijo histórico, evento y recibo en una transacción};
+  \draw[flecha] (s0) -- (s1);
+  \draw[flecha] (s1) -- node[etq, above=1pt]{aplicar} (s2);
+  \draw[flecha] (s2) -- node[etq, above=1pt]{commit} (s3);
+
+  % Fallos
+  \node[fallo] (e1) at (5.75,-2.4) {Rechazo: el origen se conserva para resolución manual};
+  \node[fallo] (e2) at (9.9,-2.4) {Fallo antes del commit: las barreras mantienen el origen bloqueado};
+  \node[fallo] (e3) at (14.05,-2.4) {Fallo de marcadores: confirmada, con las fuentes aún bloqueadas};
+  \draw[flechaError] (s1) -- (e1);
+  \draw[flechaError] (s2) -- (e2);
+  \draw[flechaError] (s3) -- (e3);
+
+  % Cierre
+  \node[fin] (s4) at (14.05,-4.75) {\textbf{Origen migrado}\\ marcadores de migración instalados};
+  \node[est, text width=6.6cm] (s5) at (7.85,-4.75) {\textbf{Arranque del servidor sobre el origen preservado}: reconcilia marcadores, recibo, asociaciones, documentos y cadena completa; rechaza una restauración parcial};
+  \draw[flecha] (e3) -- node[etq, left=2pt, align=right]{repetir mismas fuentes\\ y mapa: reconcilia\\ sin duplicar} (s4);
+  \draw[flecha] (s3.east) -- ++(0.3,0) |- (s4.east);
+  \draw[flecha] (s4) -- (s5);
+\end{tikzpicture}

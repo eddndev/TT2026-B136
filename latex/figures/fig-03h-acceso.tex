@@ -1,0 +1,25 @@
+\begin{tikzpicture}
+  \Actores{nav/1.6/{Navegador\\ (Qadra)},api/6.0/{API},red/10.4/{Redis},pg/14.4/{PostgreSQL}}{-8.25}
+
+  % Primer factor
+  \Msg{1.6}{6.0}{-0.95}{\textbf{1} correo y contraseña}
+  \Msg{6.0}{14.4}{-1.45}{lee la cuenta activa y su hash Argon2id}
+  \Paso{8.2}{-1.6}{3.8}{Verifica la contraseña; un fallo suma un intento}
+  \Msg{6.0}{10.4}{-2.65}{contador de fallos: 5 en 15 min bloquean}
+  \Msg{6.0}{10.4}{-3.15}{desafío MFA de 5 min}
+  \Msg[msgR]{6.0}{1.6}{-3.65}{desafío}
+
+  % Segundo factor
+  \Msg{1.6}{6.0}{-4.4}{\textbf{2} desafío + código TOTP\\ o código de recuperación}
+  \Msg{6.0}{10.4}{-4.9}{consume el desafío (atómico)}
+  \Msg{6.0}{14.4}{-5.4}{secreto TOTP cifrado o hashes de códigos}
+  \Paso{8.2}{-5.5}{3.8}{Abre el secreto con la KEK y comprueba el código (un periodo de tolerancia)}
+  \Msg[msgE]{6.0}{1.6}{-6.4}{código erróneo: rechazo\\ (el desafío ya se consumió; repetir paso 1)}
+  \Msg{6.0}{10.4}{-7.05}{reclama la huella del TOTP aceptado}
+  \Msg{6.0}{10.4}{-7.55}{sesión opaca y revocable}
+  \Msg[msgR]{6.0}{1.6}{-8.05}{token de sesión opaco}
+
+  % Alternativa del Owner
+  \node[pasoOsc, text width=15.4cm, anchor=north] at (8.0,-8.45)
+    {\textbf{Owner con certificado vinculado.} Si la instalación lo habilita (no lo está por defecto), el paso 1 puede sustituirse por la firma de un desafío temporal de un solo uso. El servidor verifica firma, cuenta, vínculo y confianza vigentes, y el paso 2 sigue siendo obligatorio.};
+\end{tikzpicture}

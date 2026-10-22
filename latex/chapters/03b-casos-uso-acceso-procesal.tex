@@ -1,0 +1,118 @@
+\section{Casos de uso}\label{sec:casos-uso}
+
+% Fichas de casos de uso: cada fila es una tabla propia para que la ficha
+% pueda continuar en la página siguiente sin flotar ni dejar huecos. La
+% última fila nunca queda sola: no se permite salto de página antes de ella.
+\newcommand{\CUbFicha}[1]{\par\medskip\Needspace{7\baselineskip}\begingroup
+  \captionof{table}{#1}}
+\newcommand{\CUbFila}[3][]{\par\ifx b#1\nopagebreak[4]\fi\noindent\footnotesize
+  \begin{tabularx}{\linewidth}{@{}>{\bfseries}L{2.65cm} X@{}}
+    \ifx t#1\toprule\fi #2 & #3 \\ \ifx b#1\bottomrule\fi
+  \end{tabularx}\par}
+\newcommand{\CUbFin}{\endgroup\par\medskip}
+
+Los casos de uso formalizan las historias de usuario de la \cref{sec:historias-usuario}. Cada uno indica quién interviene, qué debe cumplirse antes y después, qué variantes atiende el sistema y con qué historias y requerimientos se relaciona. Las fichas resumen el flujo principal en pasos cortos; los algoritmos y estándares criptográficos se especifican en los requerimientos (\cref{sec:requerimientos}), de modo que aquí solo se describe el comportamiento que observa cada actor.
+
+La \cref{fig:cu-panorama} reúne los diecisiete casos de uso en seis grupos funcionales. Los cuatro perfiles humanos (Owner, Litigante, Paralegal y Cliente) trabajan desde Qadra, la interfaz web, y la API del despacho decide qué puede hacer cada perfil. Tres actores externos completan el contexto: el servicio de correo transaccional, que entrega invitaciones, enlaces de recuperación, alertas y el aviso de que un informe está listo (este último aún no se ha ejercitado en producción); la TSA local, que emite sellos de tiempo RFC~3161 pero no sustituye a un prestador de servicios de certificación autorizado, y el operador de la CA interna, que emite certificados X.509 y listas de revocación (CRL). Las subsecciones siguientes recorren los seis grupos en el orden de la figura.
+
+\begin{figure}[!t]
+  \centering
+  \input{figures/fig-03b-panorama}
+  \caption{Casos de uso agrupados por función. Las cajas oscuras son los perfiles humanos y las grises, los actores externos; cada grupo indica qué perfiles lo usan.}
+  \label{fig:cu-panorama}
+\end{figure}
+
+\subsection{Autenticación, acceso e identidad}\label{sec:cu-autenticacion}
+
+Este grupo cubre el ciclo de vida de una cuenta, desde el alta del primer Owner hasta la comprobación de permisos en cada solicitud. Ninguna cuenta queda utilizable sin segundo factor, que en el prototipo es TOTP: un código de seis dígitos que genera una aplicación del teléfono a partir de un secreto compartido. Cada cambio de cuenta se confirma en PostgreSQL junto con su evento de bitácora; Redis guarda solo datos temporales, como desafíos, sesiones y contadores de intentos (\cref{sec:autenticacion}). En la invitación (\cref{fig:cu-seq-alta}) el integrante elige su propia contraseña, de modo que el Owner nunca conoce sus secretos.
+
+\CUbFicha{CU-01: Inicialización de la instancia y alta del Owner fundador.}\label{tab:cu-01}\nopagebreak[4]
+\CUbFila[t]{Actores}{Socio fundador, que queda registrado como Owner.}
+\CUbFila{Precondición}{La instancia está desplegada y no tiene ninguna cuenta.}
+\CUbFila{Flujo principal}{1.~El fundador ingresa correo y contraseña. 2.~El sistema comprueba que no existan usuarios, protege la contraseña de forma irreversible y genera el secreto TOTP y ocho códigos de recuperación. 3.~Registra la cuenta y su evento de bitácora en una sola transacción. 4.~Muestra la clave y los códigos una sola vez. 5.~El fundador los resguarda e inicia sesión (CU-03).}
+\CUbFila{Flujos alternos}{La instancia ya tiene usuarios, o dos altas llegan a la vez: se rechaza, sin crear un segundo Owner fundador; las cuentas siguientes entran por CU-02. Datos no válidos: no se crea la cuenta. Se pierde el material antes de resguardarlo: no se recupera y se requiere intervención administrativa.}
+\CUbFila{Postcondición}{Existe una sola cuenta Owner activa, con secreto TOTP cifrado y códigos guardados de forma irreversible (solo su hash). El evento queda en la bitácora, el alta inicial se cierra y no se inicia sesión automáticamente.}
+\CUbFila[b]{Trazabilidad}{HU-01, HU-02; RF-01, RF-02; RNF-01, RNF-02.}
+\CUbFin
+
+\begin{figure}[!t]
+  \centering
+  \input{figures/fig-03b-seq-alta}
+  \caption{Alta inicial del Owner (CU-01), invitación de un integrante (CU-02) y cambio de perfil o baja. Los recuadros azules describen lo que hace cada participante en ese punto y el guinda, el rechazo que protege al último Owner activo.}
+  \label{fig:cu-seq-alta}
+\end{figure}
+
+\CUbFicha{CU-02: Gestión del ciclo de vida de miembros del equipo.}\label{tab:cu-02}\nopagebreak[4]
+\CUbFila[t]{Actores}{Owner; integrante invitado; servicio de correo transaccional.}
+\CUbFila{Precondición}{El Owner tiene sesión activa. Las invitaciones y su envío por correo están habilitados expresamente en la instancia.}
+\CUbFila{Flujo principal (alta)}{1.~El Owner indica correo y perfil (Litigante o Paralegal). 2.~El sistema registra una invitación válida por 24 horas y el correo entrega el enlace. 3.~El invitado elige su contraseña, sin otros datos personales. 4.~Configura TOTP y confirma con un código. 5.~El sistema crea la cuenta, invalida el enlace y registra bitácora y recibo en una transacción.}
+\CUbFila{Flujo principal (cambio o baja)}{1.~El Owner confirma el nuevo perfil o la desactivación. 2.~El sistema aplica el cambio si la cuenta no se modificó desde que la consultó, invalida sus sesiones y registra el evento. 3.~Expedientes, asignaciones y autoría histórica se conservan.}
+\CUbFila{Flujos alternos}{El correo ya tiene cuenta, activa o inactiva: se rechaza. El enlace venció: el Owner lo reenvía y el anterior deja de valer. Se pierde una respuesta: el invitado repite la preparación o consulta su recibo, sin duplicar la cuenta. El cambio dejaría al despacho sin Owner activo: se rechaza. Alta directa: el Owner crea la cuenta y recibe una sola vez el material del segundo factor.}
+\CUbFila{Postcondición}{La cuenta nueva se activa solo al confirmar el segundo factor. Un cambio o baja rige desde la siguiente solicitud; reactivar exige iniciar sesión de nuevo. Todo queda en la bitácora.}
+\CUbFila[b]{Trazabilidad}{HU-03, HU-04, HU-11; RF-03; RNF-01, RNF-02.}
+\CUbFin
+
+El token de sesión es un valor aleatorio sin datos de la cuenta: en cada solicitud la API vuelve a leer en PostgreSQL perfil, estado y asignaciones (\cref{fig:cu-seq-sesion}). El Owner ve todos los expedientes; Litigante y Paralegal, solo los asignados, y el Cliente conserva solo una proyección básica (\cref{sec:autenticacion}).
+
+\CUbFicha{CU-03: Inicio de sesión y gestión de sesiones.}\label{tab:cu-03}\nopagebreak[4]
+\CUbFila[t]{Actores}{Cualquier usuario: Owner, Litigante, Paralegal o Cliente.}
+\CUbFila{Precondición}{El usuario tiene una cuenta activa con segundo factor configurado.}
+\CUbFila{Flujo principal}{1.~El usuario ingresa correo y contraseña. 2.~El sistema emite un desafío de segundo factor válido cinco minutos. 3.~El usuario ingresa su código TOTP o un código de recuperación. 4.~El sistema consume el desafío, valida el código y comprueba que la cuenta siga activa. 5.~Crea la sesión, la registra en la bitácora y presenta el módulo del perfil.}
+\CUbFila{Flujos alternos}{Credenciales incorrectas: el mensaje no revela qué dato falló ni si la cuenta existe; cinco fallos bloquean ese correo 15 minutos. Código inválido: el usuario vuelve a empezar. Owner con certificado: si la instancia lo habilita, firma una declaración nueva con su certificado vinculado en vez de usar la contraseña, y sigue con el mismo segundo factor. Contraseña olvidada: si la recuperación por correo está habilitada, recibe un enlace temporal, define otra contraseña y sus sesiones previas dejan de valer. Vencimiento: la sesión dura como máximo 24 horas, o menos si se configura un límite de inactividad; Qadra conserva en memoria los borradores abiertos para recuperarlos al reingresar.}
+\CUbFila{Postcondición}{Sesión activa; el sistema no guarda el token en claro y puede revocarlo. La bitácora registra método y dirección IP. Cerrar sesión revoca el token de inmediato.}
+\CUbFila[b]{Trazabilidad}{HU-05 a HU-09; RF-01, RF-02; RNF-02, RNF-05.}
+\CUbFin
+
+\begin{figure}[!t]
+  \centering
+  \input{figures/fig-03b-seq-sesion}
+  \caption{Inicio de sesión con contraseña y segundo factor (CU-03) y control de acceso en cada solicitud (CU-04). Redis guarda desafíos y sesiones temporales; PostgreSQL conserva el estado de la cuenta, su perfil y sus asignaciones, con los que la API decide qué puede hacer.}
+  \label{fig:cu-seq-sesion}
+\end{figure}
+
+\CUbFicha{CU-04: Control de acceso por perfil.}\label{tab:cu-04}\nopagebreak[4]
+\CUbFila[t]{Actores}{Cualquier usuario autenticado.}
+\CUbFila{Precondición}{El usuario tiene sesión activa.}
+\CUbFila{Flujo principal}{1.~El usuario solicita un módulo o recurso. 2.~El sistema comprueba la sesión y lee el perfil, el estado y las asignaciones vigentes. 3.~Concede el acceso si el perfil y la asignación lo permiten. 4.~Registra el resultado en la bitácora de accesos.}
+\CUbFila{Flujos alternos}{El perfil no tiene permiso: se deniega con un mensaje y se registra el intento. El recurso es de un expediente no asignado, por ejemplo al alterar su identificador: se responde como si no existiera.}
+\CUbFila{Postcondición}{Acceso concedido o denegado; todo intento queda en la bitácora.}
+\CUbFila[b]{Trazabilidad}{HU-10; RF-02; RNF-01, RNF-05.}
+\CUbFin
+
+\subsection{Gestión procesal penal}\label{sec:cu-gestion-procesal}
+
+Este grupo sigue el ciclo de vida del expediente penal: su registro con los identificadores oficiales, el directorio de personas e instituciones que intervienen y el avance entre las etapas de Investigación, Intermedia y Juicio oral. Owner y Litigante asignado gestionan; Paralegal asignado consulta y Cliente no accede a estas funciones. Cada cambio se guarda como una revisión nueva, sin borrar la anterior, y se confirma junto con su evento de bitácora. Si dos personas editan a la vez, la segunda recibe un conflicto y conserva su borrador para revisarlo. La \cref{fig:cu-seq-expediente} resume los tres flujos.
+
+\CUbFicha{CU-05: Registro y administración de expediente penal.}\label{tab:cu-05}\nopagebreak[4]
+\CUbFila[t]{Actores}{Litigante, o bien Owner; Paralegal asignado consulta.}
+\CUbFila{Precondición}{El usuario tiene sesión activa con perfil Owner o Litigante.}
+\CUbFila{Flujo principal}{1.~El Litigante captura título, referencia interna, Número Único de Caso (NUC) y carpeta judicial con sus autoridades, delitos e información general. 2.~El sistema valida los obligatorios y que NUC y carpeta no pertenezcan a otro expediente. 3.~Registra el expediente, lo asigna a su creador y crea la primera revisión con la etapa Investigación, en una transacción con su evento de bitácora.}
+\CUbFila{Flujos alternos}{Falta un dato obligatorio: se rechaza e indica cuál. NUC o carpeta repetidos: se informa la duplicidad sin revelar el otro expediente. Alta básica: el perfil penal queda pendiente, sin etapa inicial; la etapa se adopta después (CU-07). Cierre administrativo: bloquea cambios, conserva la consulta y no concluye el proceso judicial.}
+\CUbFila{Postcondición}{Expediente en etapa Investigación, visible para el Owner y los asignados. NUC y carpeta son únicos en la instancia, pero se capturan a mano y no implican verificación institucional.}
+\CUbFila[b]{Trazabilidad}{HU-12, HU-17, HU-18; RF-04; RNF-04, RNF-10.}
+\CUbFin
+
+\CUbFicha{CU-06: Gestión del directorio de participantes.}\label{tab:cu-06}\nopagebreak[4]
+\CUbFila[t]{Actores}{Litigante asignado, o bien Owner; Paralegal asignado consulta.}
+\CUbFila{Precondición}{Existe un expediente activo al cual vincular participantes.}
+\CUbFila{Flujo principal}{1.~El Litigante elige uno de los once tipos de participante, como imputado, víctima, defensor, Ministerio Público o juez de control. 2.~Registra la persona física u órgano con su soporte documental y los datos del tipo (CURP, cédula profesional u órgano jurisdiccional). 3.~El sistema muestra coincidencias con identidades registradas. 4.~El Litigante reutiliza una o declara que es distinta, con motivo y soporte. 5.~El sistema valida y registra la ficha en el expediente.}
+\CUbFila{Flujos alternos}{Falta un dato del tipo, como el órgano jurisdiccional del juez: se rechaza e indica cuál. Defensor y juez de control requieren además que el titular firme una declaración con un certificado de la CA interna; sin firma válida, o con certificado revocado o vencido, se rechaza. La identidad ya tiene una ficha de ese rol: se informa la duplicidad.}
+\CUbFila{Postcondición}{Participante vinculado con su rol procesal, sin acceso al sistema; una persona puede tener roles distintos en expedientes diferentes. Que no aparezcan coincidencias no descarta duplicados reales. La firma interna no equivale a FIREL ni acredita identidad civil o nombramiento; el criterio FIREL del RF-06 (\cref{tab:rf-06}) sigue pendiente.}
+\CUbFila[b]{Trazabilidad}{HU-13; RF-06; RNF-10.}
+\CUbFin
+
+\begin{figure}[!t]
+  \centering
+  \input{figures/fig-03b-seq-expediente}
+  \caption{Registro del expediente (CU-05), alta de un participante (CU-06) y transición de etapa (CU-07). Los recuadros guinda muestran los rechazos principales.}
+  \label{fig:cu-seq-expediente}
+\end{figure}
+
+\CUbFicha{CU-07: Transición de etapa procesal.}\label{tab:cu-07}\nopagebreak[4]
+\CUbFila[t]{Actores}{Litigante asignado, o bien Owner; Paralegal asignado consulta el historial.}
+\CUbFila{Precondición}{El expediente tiene perfil penal completo y está activo, y su etapa registrada admite el avance ordinario (Investigación o Intermedia).}
+\CUbFila{Flujo principal}{1.~El Litigante solicita el avance. 2.~El sistema pide el soporte: escrito de acusación (Investigación a Intermedia) o auto de apertura a juicio oral con su emisión, recepción y tribunal receptor (Intermedia a Juicio). 3.~El Litigante elige una versión ya cargada o sube una nueva, que se guarda cifrada como cualquier documento antes de continuar. 4.~El sistema descifra la versión, comprueba que su huella SHA-256 coincida con la elegida y admite solo PDF o DOCX. 5.~Registra la transición con fecha declarada, autor, instante y la versión y huella exactas del soporte.}
+\CUbFila{Flujos alternos}{Sin soporte: se rechaza e indica el documento requerido. Formato no admitido: se rechaza la transición y la carga ya confirmada se conserva. Otro usuario cambió antes la etapa: conflicto, sin reenvío automático. Expediente sin etapa: adopta su etapa conocida con motivo, fecha y soporte.}
+\CUbFila{Postcondición}{Nueva etapa y soporte exacto en un historial que no se reescribe ni se revierte. La fecha declarada no certifica la fecha jurídica del acto.}
+\CUbFila[b]{Trazabilidad}{HU-14, HU-15, HU-16; RF-05; RNF-04, RNF-10.}
+\CUbFin

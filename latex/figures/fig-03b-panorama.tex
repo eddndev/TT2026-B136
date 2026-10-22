@@ -1,0 +1,56 @@
+\begin{tikzpicture}[
+  grupo/.style={caja, text width=4.15cm, minimum height=2.0cm, align=left,
+    anchor=center, font=\diag},
+  humano/.style={cajaOsc, text width=2.3cm, minimum height=0.8cm},
+  externo/.style={cajaGris, text width=2.0cm, minimum height=1.0cm, font=\diag}]
+
+  % ==== Actores humanos ====
+  \foreach \n/\x/\t/\d in {own/3.95/Owner/administra el despacho,
+                          lit/6.62/Litigante/gestiona sus asuntos,
+                          par/9.32/Paralegal/apoya y consulta,
+                          cli/12.0/Cliente/consulta lo autorizado} {
+    \node[humano] (\n) at (\x,0) {\textbf{\t}\\[-1pt]{\diag \d}};
+    \draw[flecha] (\n.south) -- (\x,-1.25);
+  }
+
+  % ==== Zona del sistema ====
+  \draw[zona] (2.75,-1.25) rectangle (13.25,-8.55);
+  \node[zonaLabel] at (2.75,-1.25) {SISTEMA DEL DESPACHO: QADRA Y API};
+
+  \node[grupo] (ident) at (5.225,-2.75) {{\scriptsize\bfseries Identidad y acceso}\\[1pt]
+    CU-01 Alta del Owner fundador\\ CU-02 Miembros del equipo\\
+    CU-03 Inicio de sesión\\ CU-04 Acceso por perfil\\[1pt]
+    \textcolor{ESCOMGris}{Owner; todos los perfiles}};
+  \node[grupo] (gest) at (10.775,-2.75) {{\scriptsize\bfseries Gestión procesal}\\[1pt]
+    CU-05 Registro del expediente\\ CU-06 Directorio de participantes\\
+    CU-07 Transición de etapa\\[1pt]
+    \textcolor{ESCOMGris}{Owner y Litigante; Paralegal consulta}};
+  \node[grupo] (cal) at (5.225,-5.0) {{\scriptsize\bfseries Calendario, plazos y alertas}\\[1pt]
+    CU-08 Audiencias y plazos\\ CU-09 Calendario judicial\\
+    CU-10 Monitoreo y alertas\\[1pt]
+    \textcolor{ESCOMGris}{Owner y Litigante; proceso automático}};
+  \node[grupo] (docs) at (10.775,-5.0) {{\scriptsize\bfseries Documentos y custodia}\\[1pt]
+    CU-11 Carga y clasificación\\ CU-12 Consulta con verificación\\[1pt]
+    \textcolor{ESCOMGris}{Owner, Litigante y Paralegal asignado}};
+  \node[grupo] (firma) at (5.225,-7.25) {{\scriptsize\bfseries Firma}\\[1pt]
+    CU-13 Firma con sello de tiempo\\ CU-14 Verificación de firma\\[1pt]
+    \textcolor{ESCOMGris}{Litigante firma; usuario con acceso verifica}};
+  \node[grupo] (oper) at (10.775,-7.25) {{\scriptsize\bfseries Operación y monitoreo}\\[1pt]
+    CU-15 Tablero de control\\ CU-16 Informes\\ CU-17 Bitácora de actividad\\[1pt]
+    \textcolor{ESCOMGris}{Owner; Litigante en tablero e informes propios}};
+
+  % ==== Actores externos ====
+  % El sistema envía los correos: la flecha sale de la zona.
+  \node[externo] (mail) at (1.2,-3.875) {\textbf{Servicio de correo}\\ invitaciones, recuperación, alertas y aviso de informe};
+  \draw[flecha] (2.75,-3.875) -- (mail.east);
+
+  \node[externo] (tsa) at (1.2,-7.25) {\textbf{TSA local}\\ sello de tiempo RFC~3161};
+  \draw[flecha] (tsa.east) -- (firma.west);
+
+  % La CA llega por el pasillo central; cada ramal sale a una altura distinta.
+  \node[externo, text width=3.6cm] (ca) at (8.0,-9.45) {\textbf{Operador de la CA interna}\\ emite certificados X.509 y CRL};
+  \draw[flechaSuave] (ca.north) -- (8.0,-2.25) -- ([yshift=0.5cm]gest.west);
+  \draw[flechaSuave] (8.0,-3.25) -- ([yshift=-0.5cm]ident.east);
+  \draw[flechaSuave] (ca.west) -| (firma.south);
+  \node[etq, rotate=90] at (8.0,-5.0) {certificados};
+\end{tikzpicture}

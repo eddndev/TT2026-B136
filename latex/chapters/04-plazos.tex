@@ -4,12 +4,12 @@
 
 \section{Cómputo temporal y plazos procesales}\label{sec:impl-plazos}
 
-El cálculo de plazos se construye en capas: fuentes temporales exactas con su aritmética, perfiles reproducibles con su evaluador y un registro persistente que conserva la evaluación, la atención humana y la reevaluación durable ante cambios de sus dependencias. Esta sección recorre esas capas, el registro conjunto de un resultado de audiencia con su plazo derivado y la agenda combinada que reúne las actividades fechadas del despacho. Los calendarios jurisdiccionales forman un catálogo global versionado, administrado por el Owner, que clasifica fechas civiles dentro de un ámbito declarado; el cómputo consume revisiones exactas de ese catálogo, cuyo contrato y decisión se conservan en \rutarepo{docs/judicial-calendars-api.md} y \rutarepo{docs/adr/0030-versioned-jurisdictional-calendars.md}. Las vistas de Qadra aplican los mecanismos comunes de sesión, borradores y conciliación (\cref{sec:impl-http-interfaz}), y cada subsección precisa sólo lo propio de su dominio. La creación de un plazo desde las actividades de un recurso se presenta con los recursos procesales (\cref{sec:impl-plazo-contextual}). La \cref{fig:impl-capas-plazos} resume estas capas y separa las operaciones humanas sobre el plazo de la reevaluación técnica que registra el consumidor durable.
+Esta sección implementa el cómputo y el seguimiento de plazos de CU-08 y CU-09 (\cref{tab:cu-08,tab:cu-09}) y de RF-08 y RF-10 (\cref{tab:rf-calendario}); los avisos de CU-10 están en la \cref{sec:implementacion-alertas}, y la \cref{fig:impl-capas-plazos} sirve de mapa. En las lecturas de expedientes y en la agenda, el Owner consulta todo el despacho, Litigante y Paralegal solo sus expedientes asignados y el Cliente queda denegado; los catálogos globales de calendarios y perfiles los consultan los tres primeros sin asignación. La creación de un plazo desde un recurso se trata en la \cref{sec:impl-plazo-contextual}, y las vistas de Qadra usan la sesión, los borradores y la conciliación comunes (\cref{sec:impl-http-interfaz}).
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
   \centering
-  \input{figures/capas-plazos}
-  \caption{Capas del cómputo y seguimiento de plazos: dependencias exactas, evaluación, registro persistente con operaciones humanas y reevaluación técnica, y sus consumidores, la agenda combinada y las alertas personales.}
+  \input{figures/fig-04h-capas}
+  \caption{Capas del cálculo de plazos. Las dependencias entran por revisión exacta, las operaciones humanas se separan de la reevaluación técnica y solo los vencimientos vigentes del plazo llegan a la agenda y a las alertas.}
   \label{fig:impl-capas-plazos}
 \end{figure}
 
@@ -23,8 +23,17 @@ El cálculo de plazos se construye en capas: fuentes temporales exactas con su a
 
 \subsection{Agenda combinada y vigencia de sus actividades}\label{sec:implementacion-agenda-combinada}
 
-La ruta \rutarepo{/api/v1/agenda} reúne audiencias y los vencimientos operativos definidos en la \cref{sec:implementacion-plazos-persistentes} bajo una lectura PostgreSQL autorizada y auditada. Owner consulta el despacho; Litigante y Paralegal sólo los expedientes asignados; Cliente queda denegado. La autorización precede al límite de candidatos. Un plazo sólo se incluye si conserva seguimiento V2 aceptado, estado activo, instante calculado y dependencias vigentes comprobadas en esa transacción. La fecha histórica no basta para su inclusión y no se recalcula. Atención declarada y cierre administrativo no eliminan por sí solos una fecha vigente autorizada. Un fallo de evidencia o auditoría rechaza la respuesta completa.
+La agenda reúne en una lectura PostgreSQL autorizada y auditada las audiencias y los vencimientos operativos (RF-10, \cref{fig:impl-agenda-pagina}). La fecha histórica de un plazo no basta y no se recalcula; la atención declarada y el cierre administrativo no retiran por sí solos una fecha vigente autorizada. Comprende cuatro familias: audiencias ordinarias, plazos, audiencias de recurso (\cref{sec:impl-audiencias-recursos}) y convocatorias cautelares (\cref{sec:impl-cautelares}), sin una fila por medida; a igual instante prevalece ese orden.
 
-La consulta admite un intervalo UTC positivo de hasta 366 días, con extremo final exclusivo, y examina como máximo 100 candidatos por llamada. Ordena por segundo, nanosegundo, familia e identificador, con el orden audiencias ordinarias, plazos, audiencias de recursos y convocatorias cautelares en un empate. Las audiencias de recursos (\cref{sec:impl-audiencias-recursos}) y las convocatorias cautelares forman familias propias que conservan su identidad y captura; la \cref{sec:impl-cautelares} describe la selecci\'on exacta de la convocatoria cautelar, sin filas por medida. El cursor exclusivo avanza hasta el último candidato examinado y queda ligado al intervalo y los filtros. Por ello una página vacía puede conservar continuación; no demuestra agotamiento ni promete otra actividad elegible. Cada página observa el estado actual sin reservar una instantánea entre peticiones. Los instantes de los plazos comparten la observación temporal de su página.
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-04h-agenda}
+  \caption{Una página de la agenda combinada: la autorización precede al límite de candidatos.}
+  \label{fig:impl-agenda-pagina}
+\end{figure}
 
-Qadra presenta listas diarias y calendarios semanales o mensuales, además del rango personalizado. Usa un desfase explícito, acumula páginas y conserva la revisión mayor recibida por familia e identificador. Cambiar filtros invalida respuestas anteriores y actualizar reinicia la consulta. Abrir una actividad revalida el expediente y recupera la revisión exacta seleccionada. Esta presentación no activa términos, califica supuestos jurídicos ni entrega alertas. El contrato está en \rutarepo{docs/agenda-api.md} y la decisión en \rutarepo{docs/adr/0038-authorized-combined-agenda.md}.
+Una página vacía no demuestra agotamiento ni promete otra actividad elegible. No se reserva una instantánea entre peticiones: cada página observa el estado actual, con una observación temporal común para sus plazos. Qadra ofrece listas diarias, calendarios semanales o mensuales y un rango personalizado, siempre con desfase explícito; acumula páginas con la revisión mayor por familia e identificador, descarta las anteriores al cambiar filtros y reinicia al actualizar; abrir una actividad revalida el expediente y recupera su revisión exacta.
+
+\paragraph{Límites.} La agenda no activa términos, no califica supuestos jurídicos ni entrega alertas.
+
+\Fuentes{\rutarepo{docs/agenda-api.md} y \rutarepo{docs/adr/0038-authorized-combined-agenda.md}.}

@@ -1,62 +1,18 @@
 \subsection{Admisión general de nuevas cargas documentales}\label{sec:impl-admision-documental}
 
-La carga binaria (\cref{tab:impl-http-rutas}), la carga con clasificación
-inicial (\cref{sec:impl-http-clasificacion}) y el anexado de versiones
-(\cref{sec:impl-http-versiones}) comparten una política obligatoria de admisión
-antes del hash, cifrado y registro. El límite es de 16~MiB por archivo. Se admiten ocho familias: PDF, DOCX,
-TXT, JPEG, PNG, MP3, WAV y MP4. El nombre, la extensión, el MIME declarado y los
-metadatos no seleccionan el formato ni permiten omitir su validación. El
-contenido admitido conserva exactamente sus bytes originales; la inspección no
-lo transforma en otra versión ni modifica documentos, firmas o sellos históricos.
+Toda carga o versión nueva pasa, antes de la huella, el cifrado y el registro, por una política obligatoria (\cref{fig:impl-doc-admision}) que admite ocho familias hasta 16~MiB y reconoce el formato por el contenido: nombre, extensión, MIME declarado y metadatos no lo eligen ni permiten omitir la validación. Lo admitido conserva sus bytes exactos, y la inspección no modifica documentos, firmas o sellos históricos.
 
-PDF y DOCX reutilizan los analizadores de la política de soportes procesales
-(\cref{sec:impl-formatos}). TXT exige UTF-8 válido y
-admite BOM inicial, tabulación y saltos de línea, pero rechaza otros controles.
-JPEG y PNG deben ser imágenes estáticas completas. MP3 requiere Layer~III; WAV
-admite PCM de 8, 16, 24 o 32 bits, hasta ocho canales y 192~kHz. MP4 admite
-contenedores regulares con H.264 o AAC, hasta ocho pistas, sin fragmentación,
-cifrado ni referencias externas de datos. Cada cuadro de imagen o video queda
-limitado a 16\,777\,216 píxeles. Para multimedia se comprueban la estructura, el
-inventario permitido y la decodificación completa de todas las pistas a salida
-nula; reconocer una cabecera o leer una muestra no basta para aceptar el archivo.
+\begin{figure}[t]
+  \centering
+  \input{figures/fig-04f-admision}
+  \caption{Admisión general: tres procesos aislados leen el mismo memfd sellado.}
+  \label{fig:impl-doc-admision}
+\end{figure}
 
-La aplicación comprueba identidad y acceso antes de inspeccionar. La inspección
-no mantiene abierta una transacción de persistencia. Antes de confirmar se
-reautentica al principal completo; la transacción documental conserva la
-comprobación de pertenencia, cierre administrativo, versión esperada y auditoría.
-Un rechazo no cifra ni persiste una nueva versión. Qadra distingue formato no
-admitido, formato inválido, límite de validación e indisponibilidad del validador,
-y conserva archivo y nombre junto con la clasificación de la carga o la versión
-esperada del anexado hasta una acción explícita, sin reenvío automático
-(\cref{sec:impl-qadra-conciliacion}). Cliente mantiene denegado el acceso
-documental (\cref{sec:impl-http-documentos}).
+PDF y DOCX reutilizan los analizadores de \texttt{pdf\_docx\_v1} (\cref{sec:impl-formatos}). TXT exige UTF-8 válido y solo admite como controles el BOM inicial, la tabulación y los saltos de línea. JPEG y PNG deben ser imágenes estáticas completas; MP3 se limita a Layer~III, WAV a PCM y MP4 a H.264 o AAC, sin fragmentación, cifrado ni referencias externas; canales, pistas, frecuencia y píxeles por cuadro tienen topes detallados en la fuente citada abajo. Reconocer una cabecera o leer una muestra no basta.
 
-La entrada acotada se copia a un descriptor \texttt{memfd} sellado contra
-escritura, crecimiento y reducción. Los procesos secuenciales reciben ese
-mismo contenido mediante descriptor. La inspección dispone de cinco segundos
-de CPU, 256~MiB de espacio de direcciones y diez segundos transcurridos. La
-sonda y la decodificación disponen de dos y ocho segundos de CPU, respectivamente,
-y 512~MiB de espacio de direcciones cada una. Las cuotas suman quince segundos
-de CPU y comparten un vencimiento monótono de veinte segundos transcurridos;
-no se reinician por pista ni se transfieren entre procesos. Se acota también la
-salida del protocolo y se fijan en cero las cotas de escritura de archivos y
-volcados de memoria.
+Las cuotas no se reinician por pista ni se transfieren, la salida del protocolo está acotada y las cotas de escritura de archivos y de volcados son cero. El proceso privado instala los límites y cierra los descriptores heredados ajenos antes de ejecutar el decodificador; el supervisor conserva la identidad del líder hasta terminar su grupo y recoger al hijo directo. El servidor comprueba qpdf y FFmpeg con las ocho familias antes de aceptar peticiones (\cref{tab:impl-cli-catalogo}); ambos van fijados en el paquete (\cref{sec:impl-despliegue}), y Qadra conserva el borrador rechazado sin reenviarlo (\cref{sec:impl-qadra-conciliacion}).
 
-El proceso privado instala los límites y cierra descriptores heredados ajenos
-antes de ejecutar el decodificador. El supervisor conserva la identidad del
-líder hasta terminar su grupo y recolectar el hijo directo. La implementación
-nativa usa FFmpeg~9.0.2 con componentes restringidos y red deshabilitada en su
-compilación; verifica las ocho familias al arrancar. Desconectar el cliente
-HTTP no cancela inmediatamente una validación ya iniciada: ésta conserva el
-supervisor y su presupuesto. Estas medidas no constituyen un aislamiento
-completo del sistema operativo ni un antivirus, y las páginas del descriptor
-pueden llegar a swap. Un archivo válido que exceda recursos se rechaza por
-límite, sin presentarlo como corrupción.
+\paragraph{Límites.} Desconectar el cliente HTTP no cancela al instante una validación, que conserva supervisor y presupuesto. Las medidas no son un aislamiento completo del sistema operativo ni un antivirus, y las páginas del memfd pueden llegar a swap. Un archivo válido que excede los recursos se rechaza por límite, no como corrupción. Admitir audio, video o imágenes no los habilita como soporte de un acto (\cref{sec:impl-formatos}), no acredita autenticidad jurídica ni amplía permisos (pruebas en la \cref{sec:pruebas-admision-documental}).
 
-Esta admisión general es independiente de la política de soportes procesales
-PDF/DOCX de la \cref{sec:impl-formatos}: admitir audio, video o imágenes como
-documentos no los habilita donde un acto exige uno de esos soportes. Tampoco
-acredita autenticidad jurídica ni amplía permisos. El contrato preciso reside en
-\rutarepo{docs/document-upload-admission-api.md} y su justificación en
-\rutarepo{docs/adr/0058-bounded-general-document-admission.md}. Su verificación
-y aceptación se presentan en la \cref{sec:pruebas-admision-documental}.
+\Fuentes{\rutarepo{docs/document-upload-admission-api.md} y ADR~0058 en \rutarepo{docs/adr/}.}

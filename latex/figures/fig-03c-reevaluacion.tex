@@ -1,0 +1,21 @@
+\begin{tikzpicture}[
+  b/.style={caja, text width=2.55cm, minimum height=1.05cm},
+  r/.style={caja, text width=3.2cm, minimum height=0.8cm, anchor=west}]
+  \node[cajaOsc, text width=2.3cm, minimum height=1.05cm] (own) at (1.35,0)
+    {Owner publica una revisión del calendario};
+  \node[b] (evt) at (4.55,0) {El cambio queda registrado con la revisión};
+  \node[b] (dsp) at (7.75,0) {Se programa un recálculo por cada plazo que la usa};
+  \node[b] (wrk) at (10.95,0) {Proceso\\ de recálculo};
+  \draw[flecha] (own) -- (evt);
+  \draw[flecha] (evt) -- (dsp);
+  \draw[flecha] (dsp) -- (wrk);
+  \node[cajaClara, r] (seg) at (12.35,1.45) {Calendario seguido: recalcula y guarda una revisión automática};
+  \node[r] (fij) at (12.35,0) {Revisión fija elegida: conserva el cálculo};
+  \node[cajaError, r] (rev) at (12.35,-1.5) {Retiro o cambio que exige revisión: conserva el cálculo y pide revisión humana};
+  \draw[flecha] (wrk.north) |- (seg.west);
+  \draw[flecha] (wrk.east) -- (fij.west);
+  \draw[flecha] (wrk.south) |- (rev.west);
+  \node[caja, text width=6.4cm, anchor=north west] (av) at (0.2,-1.2)
+    {Revisión de avisos: fecha próxima o revisión humana};
+  \draw[flechaSuave] ($(wrk.south west)+(0.25,0)$) |- node[etq, pos=0.25, left]{los avisos leen el nuevo estado} (av.east);
+\end{tikzpicture}

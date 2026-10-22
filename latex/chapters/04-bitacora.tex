@@ -1,125 +1,51 @@
 \subsection{Consulta autorizada y contexto de actividad}\label{sec:impl-bitacora}
-La consulta de actividad permite al Owner vigente seleccionar por intervalo,
-actor, acción y recurso los eventos ya registrados en la cadena de auditoría
-(\cref{sec:impl-s9-auditoria}), en páginas acotadas con continuación opaca, según
-el contrato \rutarepo{docs/audit-events-api.md}. La aplicación define selección
-y autorización en \rutarepo{crates/application/src/audit_query/}. El adaptador PostgreSQL reside
-en \rutarepo{crates/infrastructure/src/audit_query_postgres/}.
-El servicio comprueba
-Owner antes de consultar y vuelve a autenticar el principal completo antes de
-entregar la página. Rechaza respuestas del puerto que contradigan filtros,
-orden, límite, instantánea o continuación; la autorización no se deduce del cursor.
 
-La migración \rutarepo{migrations/0027_audit_query_projection.sql} conserva las
-seis columnas originales y añade dos claves generadas: segundos y nanosegundos de la marca temporal canónica. Su cálculo emplea fecha y aritmética entera, sin
-convertir el texto a una precisión menor ni reescribirlo. Un índice ordena ambas
-claves y la secuencia. La consulta pública admite años de 1 a 9999; la migración
-preserva también el año cero representable en eventos históricos canónicos.
+Solo el Owner vigente consulta la cadena de auditoría
+(\cref{sec:impl-s9-auditoria}) por intervalo, actor, acción y recurso, en páginas
+con continuación opaca. Cada petición admitida a una ruta de producto deja
+además su resultado de acceso y su contexto (\cref{fig:impl-bitacora-contexto}),
+cuya forma pública y conservación siguen las
+\cref{sec:diseno-bitacora,sec:pruebas-bitacora-contexto}.
 
-La migración \rutarepo{migrations/0048_audit_event_context.sql} incorpora
-\texttt{context\_json}, una columna de texto anulable limitada a 1024 bytes.
-Las filas anteriores conservan \texttt{NULL}, sin reconstruir cuentas ni
-direcciones IP y sin modificar sus bytes canónicos o hashes. La representación
-pública devuelve \texttt{context: null} para esas filas; los eventos con contexto
-exponen un objeto de cuatro campos: UUID de cuenta, dirección IPv4 o IPv6, origen
-HTTP, CLI o interno, e identificador de petición. Los campos no observados
-permanecen ausentes en el valor tipado y nulos en JSON. Sólo un contexto presente
-añade la extensión canónica versionada \texttt{AUDCTX01}
-(\cref{sec:impl-s9-auditoria}), cubierta por el hash de la
-cadena. Lectura, exportación, importación y restauración conservan ambas
-representaciones; el adaptador de archivos mantiene la omisión del campo en las
-entradas históricas.
+\paragraph{Consulta paginada.} Cada página tiene un tope de 256 KiB para el
+texto de las filas devueltas; si se excede, se rechaza completa en vez de
+truncarse. El filtro por actor compara exactamente el texto registrado o el UUID
+del contexto, sin consultar quién es hoy titular de un correo; acción y recurso
+también usan igualdad exacta. Un historial vacío se distingue de un primer
+evento con secuencia cero. La consulta admite los años 1 a 9999, y los eventos
+históricos del año cero se conservan (\cref{sec:pruebas-bitacora}).
 
-El ámbito de una petición propaga el contexto desde la ejecución asíncrona
-hasta el trabajo síncrono de aplicación. La autenticación y la revalidación de
-la cuenta vinculan el UUID observado sólo tras admitir una sesión vigente, sin
-sustituir los controles vigentes de sesión, rol o recurso. Un correo o UUID
-recibido durante un flujo público no acredita por sí mismo una identidad
-autenticada, y el texto histórico del actor no se convierte en una identidad
-comprobada. Los procesos CLI e internos registran su origen sin fabricar IP,
-petición HTTP o usuario. La dirección procede por omisión del par de conexión;
-sólo la configuración explícita \texttt{TT\_AUDIT\_TRUST\_LOOPBACK\_PROXY=true}
-acepta, desde un par loopback, un único encabezado \texttt{X-Forwarded-For} con
-una IP válida, que el Nginx del despliegue sobrescribe. Los valores ausentes,
-duplicados o inválidos conservan la IP del par. El filtro \texttt{actor} compara
-exactamente el texto capturado o el UUID de cuenta registrado en
-\texttt{context.user\_id}, sin añadir parámetros; no consulta la titularidad
-actual de un correo ni añade identidad a la historia. Los filtros de acción y recurso conservan su igualdad
-exacta.
+\begin{figure}[!b]
+  \centering
+  \input{figures/fig-04k-contexto}
+  \caption{Contexto observado y fila persistida. El evento de acceso se anexa
+  tras el de negocio y antes de liberar la respuesta.}
+  \label{fig:impl-bitacora-contexto}
+\end{figure}
 
-El adaptador adquiere el bloqueo auditado y recarga la cuenta activa antes de
-seleccionar. Captura el máximo de secuencia antes de anexar su propio evento de
-lectura. Los filtros y la posición de continuación se aplican antes del límite;
-una fila adicional determina si existe otra página. Un historial inicialmente
-vacío se distingue de un historial cuyo primer evento tiene secuencia cero.
+\paragraph{Contexto y resultado de acceso.} El Nginx del despliegue sobrescribe el encabezado reenviado, y un valor ausente,
+duplicado o inválido conserva la IP del par. El recurso auditado contiene
+método, patrón de ruta y referencias restringidas, sin cuerpos, consultas,
+credenciales ni mensajes de error; el UUID de petición lo genera el servidor y
+los diagnósticos de MFA no se vuelven eventos durables. Quedan fuera el rechazo 503
+previo a la admisión, las comprobaciones de salud, los archivos estáticos y las
+rutas no reconocidas.
 
-Una primera consulta sólo recupera claves y longitudes. La suma de actor,
-operación, recurso y JSON del contexto de las filas devueltas no puede superar
-262144 bytes UTF-8; el contexto nulo aporta cero bytes y la fila adicional no
-consume ese presupuesto. El cálculo incluye las claves y demás elementos de la
-serialización JSON, además de sus valores. Sólo después se recuperan los textos
-seleccionados, se validan los tipos del contexto y se contrasta la longitud
-almacenada con su serialización compacta. Se comprueban las claves originales y
-se confirma el evento \texttt{audit.events\_read} en la misma transacción.
-El exceso de capacidad
-rechaza la página completa: no trunca campos históricos ni devuelve resultados
-parciales. Una selección fallida o un fallo al registrar la lectura revierte
-la transacción.
+\paragraph{Privilegios y vista Auditoría.} El rol operativo solo consulta e
+inserta en la historia (\cref{sec:pruebas-bitacora}). La vista Auditoría de
+Qadra, solo para Owner, muestra una página a la vez (la siguiente reemplaza a la
+anterior; actualizar inicia otra consulta) con cuenta, IP y origen; deriva de
+las cuatro acciones las etiquetas Concedido, Denegado, Rechazado y Fallo, sin
+campo adicional ni analíticas, y muestra lo ausente como no disponible.
 
-La frontera HTTP añade un evento de acceso a la cadena después de obtener el
-resultado del manejador y antes de liberar su respuesta. Las respuestas 2xx
-producen \texttt{access.granted}; 401 y 403, \texttt{access.denied}; las respuestas
-5xx, \texttt{access.failed}; las restantes, \texttt{access.rejected}. Un 404
-conserva la ambigüedad entre recurso inexistente y recurso oculto, y un 409 o 422
-no establece por sí mismo una denegación de permisos. Una respuesta pública
-exitosa tampoco acredita la existencia de una cuenta, un MFA completo ni la
-entrega de un correo, y los eventos históricos sin contexto y las demás acciones
-no reciben una clasificación retroactiva de acceso. El recurso auditado
-contiene el método, el patrón de ruta reconocido y referencias interpretadas
-de forma restringida; omite cuerpos, consultas, credenciales y mensajes de error
-de los adaptadores. El UUID de petición procede del servidor y permite
-correlación sin convertir los diagnósticos operativos de MFA en eventos durables.
-
-Los eventos de negocio mantienen su confirmación atómica con la mutación
-correspondiente; el resultado de acceso constituye una inserción posterior
-separada. Si esta inserción falla, se suprime la respuesta del manejador y se
-devuelve un error genérico 500. Ese error no demuestra la reversión de una
-mutación ya confirmada ni justifica repetirla automáticamente: la recuperación
-continúa mediante los recibos y la conciliación propios de cada operación.
-El permiso de admisión permanece retenido hasta terminar el manejador y el
-registro de acceso, incluso si el cliente desconecta. El cierre ordenado espera
-a que esas tareas admitidas finalicen antes de liberar los adaptadores; esta
-espera no acredita supervivencia ante una terminación abrupta del proceso.
-El rechazo por capacidad anterior a la admisión (\texttt{503},
-\cref{sec:impl-http-limites}), las comprobaciones de salud,
-los archivos estáticos y las rutas arbitrarias no reconocidas quedan fuera de
-esta población de resultados durables.
-
-El rol operativo conserva permisos de consulta e inserción en la historia;
-no obtiene modificación, borrado, DDL ni delegación de esos privilegios. La
-apertura valida columnas, expresiones generadas, índice, función, inventario y
-permisos mediante \rutarepo{crates/infrastructure/src/audit_query_schema/}.
-La construcción compuesta reutiliza la capacidad sellada de arranque; una
-apertura independiente mantiene la validación completa. Estos controles no
-convierten a un administrador de PostgreSQL en un adversario excluido de la
-base de confianza.
-
-{\emergencystretch=3em La vista Auditoría de Qadra, reservada al Owner
-(\rutarepo{web/apps/qadra/src/components/AuditEvents.svelte}), mantiene una sola
-página: cargar la siguiente reemplaza la anterior y actualizar inicia otra
-consulta que incorpora los eventos registrados después. Presenta la identidad
-de cuenta, la IP y el origen del contexto, y obtiene de las cuatro acciones de
-acceso las etiquetas Concedido, Denegado, Rechazado y Fallo, sin un campo
-adicional en el contrato ni analíticas propias; los valores ausentes, incluida
-la historia sin contexto, figuran como no disponibles. La verificación
-criptográfica completa de la cadena continúa siendo una operación separada de
-la consulta filtrada, con su propia acción \emph{Verificar cadena}.\par}
-
-La decisión \rutarepo{docs/adr/0007-audit-chain-anchoring.md} mantiene pendiente
-el anclaje externo de la cabeza. La procedencia capturada no constituye una
-acreditación externa de la persona situada tras una cuenta o dirección IP.
-La decisión \rutarepo{docs/adr/0077-durable-access-audit-context.md} conserva
-esta distinción: define el comportamiento, mientras su aceptación
-(\cref{sec:pruebas-bitacora-contexto}), su integración y su despliegue conservan
-evidencia y estado propios, y no acredita una política de proxy desplegada ni la
+\paragraph{Límites.} Un 404 conserva la ambigüedad entre inexistente y oculto;
+un 409 o 422 no es denegación de permisos; una respuesta pública exitosa no
+acredita cuenta, MFA ni entrega de correo, y los eventos históricos no se
+reclasifican. Un administrador de PostgreSQL sigue dentro de la base de
+confianza. La procedencia de los eventos y su anclaje externo, aún pendiente, se
+discuten en la \cref{sec:diseno-bitacora}. La aceptación del contexto
+(\cref{sec:pruebas-bitacora-contexto}) no acredita un proxy desplegado ni la
 latencia en producción.
+
+\Fuentes{\rutarepo{docs/audit-events-api.md} y las ADR 0007 y 0077
+(\rutarepo{docs/adr/}).}

@@ -1,0 +1,58 @@
+\begin{tikzpicture}[
+  b/.style={caja, text width=3.95cm, minimum height=0.8cm},
+  r/.style={caja, text width=3.6cm, minimum height=0.72cm},
+  l/.style={caja, text width=3.85cm, minimum height=0.8cm}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (4.75,-2.85);
+  \draw[zona] (0,-3.3) rectangle (4.75,-7.55);
+  \draw[zona] (5.25,0) rectangle (10.55,-7.55);
+  \draw[zona] (11.05,0) rectangle (16,-7.55);
+  \node[zonaLabel] at (0,0) {OPERACIÓN HUMANA};
+  \node[zonaLabel] at (0,-3.3) {REEVALUACIÓN TÉCNICA};
+  \node[zonaLabel] at (5.25,0) {POSTGRESQL · REGISTRO DEL PLAZO};
+  \node[zonaLabel] at (11.05,0) {LECTURAS};
+
+  % Operación humana
+  \node[b] (qad) at (2.375,-0.95) {Qadra: vista de plazos del expediente};
+  \node[b, cajaClara] (svc) at (2.375,-2.2) {Servicio humano: alta, corrección, atención y retiro};
+  \draw[flecha] (qad) -- node[etq, right=2pt]{preparar y confirmar} (svc);
+
+  % Reevaluación técnica
+  \node[b] (fue) at (2.375,-4.3) {Nueva revisión de resolución, notificación, resultado, calendario o perfil};
+  \node[b] (dsp) at (2.375,-5.5) {Despachador: evento a trabajos};
+  \node[b, cajaClara] (con) at (2.375,-6.62) {Consumidor: revisión técnica o sin cambios};
+  \draw[flecha] (fue) -- (dsp);
+  \draw[flecha] (dsp) -- (con);
+
+  % Registro
+  \node[cajaOsc, text width=4.5cm, minimum height=0.8cm] (raiz) at (7.9,-0.95)
+    {\textbf{Raíz del plazo}\\ identidad y expediente inmutables};
+  \node[r] (r1) at (7.9,-2.2) {Rev. 1 · alta (humana)};
+  \node[r] (r2) at (7.9,-3.3) {Rev. 2 · corrección (humana)};
+  \node[r] (r3) at (7.9,-4.4) {Rev. 3 · reevaluación (técnica)};
+  \node[r, line width=1.1pt] (r4) at (7.9,-5.5) {Rev. $n$ · cabeza vigente};
+  \draw[flecha] (raiz) -- (r1);
+  \draw[flecha] (r1) -- (r2);
+  \draw[flecha] (r2) -- (r3);
+  \draw[flecha] (r3) -- (r4);
+  \node[font=\diag, text=ESCOMTinta, align=center] at (7.9,-6.5)
+    {cada revisión se confirma con su recibo\\ y su evento de auditoría};
+
+  % Escrituras hacia el registro
+  \draw[flecha] (svc.east) -- (r1.west);
+  \draw[flecha] (svc.east) -- (5.75,-2.2) |- (r2.west);
+  \draw[flecha] (con.east) -- (5.75,-6.62) |- (r3.west);
+
+  % Lecturas
+  \node[l] (det) at (13.4,-1.4) {Detalle y listado comparan con las cabezas actuales: al corriente, con cambios o sin comprobar; estar al corriente no es aceptación};
+  \node[l, cajaClara] (ven) at (13.4,-3.2) {Vencimiento operativo solo si el plazo está activo y aceptado, tiene instante final y sus dependencias siguen vigentes};
+  \node[l, cajaOsc] (age) at (13.4,-4.63) {Agenda combinada};
+  \node[l] (alt) at (13.4,-5.72) {Alertas y tablero: también revisión requerida o plazo sin fecha comprobada};
+  \node[l] (his) at (13.4,-6.93) {Historia y revisión exacta: evidencia histórica, sin recalcular; sin fecha operativa};
+  \draw[flecha, rounded corners=3pt] (r4.east) -- node[etq, above=1pt]{cabeza} (10.8,-5.5) |- (det.west);
+  \draw[flecha] (det) -- (ven);
+  \draw[flecha] (ven) -- (age);
+  \draw[flecha] (det.east) -- (15.75,-1.4) |- (alt.east);
+  \draw[flecha] (10.55,-6.93) -- node[etq, above=1pt]{todas} (his.west);
+\end{tikzpicture}

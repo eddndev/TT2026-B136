@@ -1,0 +1,102 @@
+% =============================================================================
+%  diagramas.tex : estilos TikZ compartidos por los diagramas de bloques,
+%  secuencia y estructura del reporte. Paleta ESCOM con acento guinda IPN.
+% =============================================================================
+
+\usetikzlibrary{shapes,fit,calc,backgrounds}
+\usepackage{needspace}
+
+% --- Paleta ------------------------------------------------------------------
+\definecolor{ESCOMAzul}{HTML}{006699}
+\definecolor{ESCOMAzulOscuro}{HTML}{003B5C}
+\definecolor{ESCOMAzulMedio}{HTML}{2C8BB3}
+\definecolor{ESCOMAzulClaro}{HTML}{DDEFF6}
+\definecolor{ESCOMHielo}{HTML}{F2F8FB}
+\definecolor{ESCOMTinta}{HTML}{18313D}
+\definecolor{ESCOMGris}{HTML}{607580}
+\definecolor{IPNGuinda}{HTML}{762042}
+
+% --- Tipografía de diagramas -------------------------------------------------
+% El cuerpo usa Times; los diagramas usan una sans para distinguir etiquetas.
+\newfontfamily\diagsans{TeX Gyre Heros}[Scale=0.92]
+\newfontfamily\diagmono{DejaVu Sans Mono}[Scale=0.78]
+% Letra de etiquetas en diagramas densos.
+\newcommand{\diag}{\fontsize{6.6}{7.8}\selectfont\diagsans}
+% Desactiva los atajos de babel dentro de los diagramas y usa la mono pequeña.
+\newcommand{\DiagSetup}{\shorthandoff{<>"}\renewcommand{\texttt}[1]{{\diagmono##1}}}
+
+\tikzset{
+  every picture/.append style={execute at begin picture=\DiagSetup},
+  >={Stealth[length=2.2mm]},
+  every node/.style={font=\footnotesize\diagsans},
+  % Zonas de confianza o de agrupación
+  zona/.style={draw=ESCOMAzulMedio, dashed, line width=0.6pt, fill=ESCOMHielo,
+    rounded corners=2pt, inner sep=7pt},
+  zonaLabel/.style={font=\scriptsize\diagsans\bfseries, text=ESCOMAzulOscuro,
+    anchor=north west, inner sep=2pt},
+  % Cajas
+  caja/.style={draw=ESCOMAzul, fill=white, line width=0.6pt, align=center,
+    rounded corners=1.5pt, inner sep=3pt, font=\scriptsize\diagsans,
+    execute at begin node={\hyphenpenalty=10000}},
+  cajaOsc/.style={caja, fill=ESCOMAzulOscuro, draw=ESCOMAzulOscuro, text=white},
+  cajaClara/.style={caja, fill=ESCOMAzulClaro},
+  cajaError/.style={caja, draw=IPNGuinda, fill=white, text=IPNGuinda},
+  cajaGris/.style={caja, draw=ESCOMGris, text=ESCOMGris},
+  % Flechas
+  flecha/.style={->, draw=ESCOMAzulOscuro, line width=0.6pt},
+  flechaD/.style={<->, draw=ESCOMAzulOscuro, line width=0.6pt},
+  flechaSuave/.style={->, draw=ESCOMAzulMedio, dashed, line width=0.5pt},
+  flechaError/.style={->, draw=IPNGuinda, line width=0.6pt},
+  etq/.style={font=\diag, text=ESCOMTinta, fill=white, inner sep=1pt},
+  % Diagramas de secuencia
+  actor/.style={cajaOsc, minimum width=2.6cm, minimum height=0.75cm,
+    text width=2.4cm, font=\scriptsize\diagsans\bfseries},
+  vida/.style={draw=ESCOMAzulMedio, dashed, line width=0.5pt},
+  msg/.style={->, draw=ESCOMAzulOscuro, line width=0.55pt},
+  msgR/.style={->, draw=ESCOMAzul, dashed, line width=0.55pt},
+  msgE/.style={->, draw=IPNGuinda, line width=0.55pt},
+  msgL/.style={font=\diag, text=ESCOMTinta, above, inner sep=1.5pt, align=center, fill=white},
+  paso/.style={draw=ESCOMAzulMedio, fill=ESCOMAzulClaro, align=left,
+    font=\diag, inner sep=2.5pt, rounded corners=1pt,
+    execute at begin node={\hyphenpenalty=10000}},
+  pasoOsc/.style={paso, fill=ESCOMAzulOscuro, draw=ESCOMAzulOscuro, text=white},
+  pasoError/.style={paso, fill=white, draw=IPNGuinda, text=IPNGuinda},
+  numero/.style={circle, fill=ESCOMAzul, text=white, font=\tiny\diagsans\bfseries,
+    inner sep=0.8pt, minimum size=3.4mm},
+  % Distribución de campos (estructuras de datos y paquetes)
+  campo/.style={draw=ESCOMAzulOscuro, fill=white, line width=0.5pt,
+    minimum height=0.85cm, inner sep=1pt, align=center,
+    font=\fontsize{6.2}{7.2}\selectfont\diagsans,
+    execute at begin node={\hyphenpenalty=10000}},
+  campoRel/.style={campo, fill=ESCOMAzulClaro},
+  campoFirma/.style={campo, fill=ESCOMAzulOscuro, text=white},
+  offset/.style={font=\tiny\ttfamily, text=ESCOMGris, anchor=south west, inner sep=0.5pt},
+  tam/.style={font=\tiny\diagsans, text=ESCOMAzul, anchor=north, inner sep=1pt},
+}
+
+% \Tira{x0}{y0}{ancho/estilo/etiqueta/arriba/abajo, ...}
+% Dibuja una fila de campos de izquierda a derecha. El ancho no es
+% proporcional al tamaño; sólo busca legibilidad.
+\newcommand{\Tira}[3]{%
+  \foreach \w/\st/\t/\o/\s [evaluate=\w as \xf using \xi+\w,
+      evaluate=\w as \tw using \w*28.4528-3,
+      remember=\xf as \xi (initially #1)] in {#3} {%
+    \node[\st, minimum width=\w cm, text width=\tw pt, anchor=south west]
+      at (\xi,#2) {\t};
+    \node[offset] at (\xi,#2+0.85) {\o};
+    \node[tam] at ({\xi+\w/2},#2) {\s};
+  }%
+}
+
+% --- Diagramas de secuencia ---------------------------------------------------
+% \Actores{nombre/x/etiqueta, ...}{y final de las líneas de vida}
+\newcommand{\Actores}[2]{%
+  \foreach \n/\x/\t in {#1} {%
+    \draw[vida] (\x,-0.4) -- (\x,#2);
+    \node[actor] (\n) at (\x,0) {\t};
+  }%
+}
+% \Msg[estilo]{x origen}{x destino}{y}{etiqueta}
+\newcommand{\Msg}[5][msg]{\draw[#1] (#2,#4) -- node[msgL]{#5} (#3,#4);}
+% \Paso[estilo]{x}{y superior}{ancho en cm}{texto}
+\newcommand{\Paso}[5][paso]{\node[#1, text width=#4cm, anchor=north] at (#2,#3) {#5};}

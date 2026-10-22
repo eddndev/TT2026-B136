@@ -1,0 +1,29 @@
+\begin{tikzpicture}[
+  e/.style={caja, text width=2.75cm, minimum height=1.3cm, anchor=north, font=\diag}]
+
+  % Transacción auditada
+  \draw[zona] (3.15,0.5) rectangle (16.25,-3.65);
+  \node[zonaLabel] at (3.15,0.5) {UNA TRANSACCIÓN POSTGRESQL AUDITADA};
+
+  \node[e, cajaOsc] (req) at (1.45,0) {\textbf{Petición}\\ intervalo UTC positivo de hasta 366 días, con fin exclusivo; filtros y cursor};
+  \node[e] (aut) at (4.85,0) {\textbf{Autorización}\\ por rol y asignación, antes del límite};
+  \node[e] (can) at (11.35,0) {\textbf{Candidatos}\\ los primeros 100 en orden por llamada, ya autorizados};
+  \node[e] (ord) at (8.1,0) {\textbf{Orden}\\ segundo, nanosegundo, familia e identificador};
+  \node[e, cajaOsc] (pag) at (14.6,0) {\textbf{Página y cursor}\\ cursor exclusivo hasta el último candidato examinado};
+  \draw[flecha] (req) -- (aut);
+  \draw[flecha] (aut) -- (ord);
+  \draw[flecha] (ord) -- (can);
+  \draw[flecha] (can) -- (pag);
+
+  % Familias
+  \node[cajaClara, text width=6.1cm, anchor=north, align=left, font=\diag] (fam) at (9.725,-1.65)
+    {\textbf{Familias}, en su orden ante un mismo instante:\\
+     \textbf{1} audiencias ordinarias\\
+     \textbf{2} plazos con seguimiento aceptado, activos, con instante calculado y dependencias vigentes\\
+     \textbf{3} audiencias de recursos\\
+     \textbf{4} convocatorias cautelares};
+  \draw[flechaSuave] (fam.north -| can.south) -- (can.south);
+  \draw[flechaSuave] (fam.north -| ord.south) -- (ord.south);
+  \node[cajaError, text width=2.75cm, anchor=north, font=\diag] at (4.85,-1.65) {Fallo de evidencia o de auditoría: rechaza la página entera};
+  \node[caja, draw=ESCOMGris, text width=2.75cm, anchor=north, font=\diag] at (14.6,-1.65) {Ligado a intervalo y filtros; una página vacía puede conservar continuación};
+\end{tikzpicture}

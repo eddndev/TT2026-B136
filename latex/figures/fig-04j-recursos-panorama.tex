@@ -1,0 +1,35 @@
+\begin{tikzpicture}[
+  fuente/.style={caja, text width=3.35cm, minimum height=0.9cm},
+  act/.style={caja, text width=3.75cm, minimum height=0.95cm}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (4.05,-4.45);
+  \draw[zona] (11.45,0) rectangle (16,-4.45);
+  \node[zonaLabel] at (0,0) {FUENTES HISTÓRICAS};
+  \node[zonaLabel] at (11.45,0) {ACTIVIDADES DEL EXPEDIENTE};
+
+  % Fuentes
+  \node[fuente] (res) at (2.025,-1.0) {\textbf{Resolución impugnada}\\ revisión exacta};
+  \node[fuente] (rec) at (2.025,-2.25) {\textbf{Recurrentes}\\ hasta 32, ficha opcional};
+  \node[fuente] (sop) at (2.025,-3.5) {\textbf{Soportes documentales}\\ versión y huella exactas};
+
+  % Recurso y actos
+  \node[cajaOsc, text width=4.4cm, minimum height=1.25cm] (rcs) at (7.75,-1.2)
+    {\textbf{Recurso declarado}\\ revocación o apelación\\ raíz y revisiones inmutables};
+  \node[cajaClara, text width=4.4cm, minimum height=1.15cm] (actos) at (7.75,-3.5)
+    {\textbf{Actos declarados}: interposición, admisión, inadmisibilidad, desistimiento y resolución};
+  \draw[flecha] (actos) -- node[etq, right=2pt, align=left]{cada acto añade\\ una revisión} (rcs);
+  \draw[flecha] (res.east) -- (res.east -| rcs.west);
+  \draw[flecha] (rec.east) -- (4.35,-2.25) |- (rcs.west |- 0,-1.4);
+  \draw[flecha] (sop.east) -- (actos.west);
+  \draw[flecha] (sop.east) -- (4.8,-3.5) |- (rcs.west |- 0,-1.7);
+
+  % Actividades
+  \node[act] (exi) at (13.725,-0.85) {\textbf{Audiencia ordinaria o plazo} que ya existen};
+  \node[act] (aud) at (13.725,-2.2) {\textbf{Audiencia propia}: programación con su asociación inicial};
+  \node[act] (pla) at (13.725,-3.55) {\textbf{Plazo} creado con su asociación en una confirmación};
+  \draw[flecha] (rcs.east |- 0,-0.66) -- node[etq, above]{asociación} (exi.west |- 0,-0.66);
+  \draw[flechaSuave] (exi.west |- 0,-1.08) -- node[etq, below, align=center]{consulta\\ inversa} (rcs.east |- 0,-1.08);
+  \draw[flecha] (rcs.east |- 0,-1.72) -- (10.85,-1.72) |- (aud.west);
+  \draw[flecha] (10.85,-2.2) |- (pla.west);
+\end{tikzpicture}

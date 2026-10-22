@@ -1,0 +1,26 @@
+% Árbol de comandos de despacho-cli agrupado por propósito.
+% Fuente: crates/bin/src/cli.rs (enum Command y sus acciones).
+\begin{tikzpicture}[
+  grp/.style={cajaOsc, text width=3.0cm, minimum height=0.7cm},
+  cmd/.style={caja, text width=10.6cm, minimum height=0.7cm, align=left}]
+
+  \node[cajaOsc, text width=3.6cm, minimum height=0.6cm, anchor=west] (root) at (0,0.1)
+    {\textbf{\texttt{despacho-cli}} \texttt{[-{}-json]}};
+  \node[anchor=west, align=left, font=\scriptsize\diagsans, text=ESCOMTinta] at (4.0,0.1)
+    {\texttt{-{}-json}: JSON en stdout; diagnósticos en stderr};
+
+  \foreach \i/\g/\c in {
+    1/{Servidor}/{\texttt{serve} {\diag (API por expediente)}},
+    2/{Esquema y base restaurada}/{\texttt{database migrate} $\cdot$ \texttt{import} $\cdot$ \texttt{check}\\ \texttt{database invalidate-restored-password-resets} $\cdot$ \texttt{invalidate-restored-invitations}},
+    3/{Autoridad interna}/{\texttt{pki init-ca} $\cdot$ \texttt{issue} $\cdot$ \texttt{issue-request} $\cdot$ \texttt{revoke} $\cdot$ \texttt{gen-crl} $\cdot$ \texttt{show}\\ \texttt{credential-trust publish}},
+    4/{Evidencia de un documento}/{\texttt{crypto hash} $\cdot$ \texttt{vault encrypt} $\cdot$ \texttt{decrypt} $\cdot$ \texttt{rotate-kek}\\ \texttt{sign} $\cdot$ \texttt{timestamp} $\cdot$ \texttt{verify} $\cdot$ \texttt{package export}},
+    5/{Credenciales}/{\texttt{auth calibrate} $\cdot$ \texttt{hash-password} $\cdot$ \texttt{verify-password}\\ \texttt{auth totp enroll} $\cdot$ \texttt{totp verify}},
+    6/{Bitácora sin conexión}/{\texttt{audit append} $\cdot$ \texttt{verify-chain} $\cdot$ \texttt{show}}} {
+    \pgfmathsetmacro{\y}{-0.85-(\i-1)*0.9}
+    \node[grp] (g\i) at (2.2,\y) {\g};
+    \node[cmd] (c\i) at (10.0,\y) {\c};
+    \draw[flecha] (g\i) -- (c\i);
+    \draw[ESCOMAzulOscuro, line width=0.6pt] (0.3,\y) -- (g\i.west);
+  }
+  \draw[ESCOMAzulOscuro, line width=0.6pt] (0.3,-0.2) -- (0.3,-5.35);
+\end{tikzpicture}

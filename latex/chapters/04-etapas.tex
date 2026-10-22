@@ -1,37 +1,44 @@
 \subsection{Adopción y transiciones de etapa}\label{sec:impl-http-etapas}
 
-{\raggedright El dominio \rutarepo{crates/domain/src/case_stages/} representa Investigación, Intermedia y Juicio, sus valores declarados y las referencias documentales exactas. El servicio de aplicación separa consulta, historia, adopción y transición. La decisión se documenta en \rutarepo{docs/adr/0023-audited-case-stage-transitions.md}; el contrato está en \rutarepo{docs/case-stages-api.md}. La etapa tiene revisión propia, independiente de las revisiones administrativas y documentales.\par}
+La etapa procesal toma uno de tres valores (Investigación, Intermedia y Juicio) y tiene revisión propia, independiente de las revisiones administrativas y documentales. Cada cambio exige un acto declarado con soporte exacto (\cref{fig:impl-etapas-estados}); el recorrido del usuario se mostró en la \cref{fig:cu-seq-expediente}.
 
-El expediente sin registro admite adoptar una de las tres etapas mediante motivo, fecha conocida y soporte. La adopción crea la primera revisión, con etapa anterior ausente; no reconstruye actos ni etapas anteriores. El alta penal conserva su registro inicial original de Investigación (\cref{sec:impl-http-administracion}) como alternativa excluyente a la adopción. Los avances ordinarios implementados son Investigación a Intermedia, con acusación y fecha declarada, e Intermedia a Juicio, con auto de apertura, emisión, recepción y tribunal receptor. Referencia y constancia de recepción son opcionales. No hay reversión ni transición deducida de un nombre, una carga o un sello.
-
-La fecha del acto distingue día e instante. El día conserva fecha local y desfase conocido; el instante conserva hora, hasta nueve dígitos de fracción y desfase. Los desfases tienen precisión de minuto y rango de $-14$ a $+14$ horas; \texttt{-00:00} se rechaza porque no expresa un desfase conocido. El rango local y UTC permanece entre los años 1 y 9999. El servidor no añade una hora ficticia a una fecha que carece de ella.
-
-Para comprobar límites, el día se interpreta como un intervalo de posibilidades en su desfase. Se rechaza una declaración enteramente posterior al instante de captura. Emisión y recepción se rechazan por orden cuando el intervalo completo de emisión es posterior al de recepción; si se solapan, no se inventa un orden interno. El instante de captura procede del reloj del servidor después de preparar los soportes. Esta comprobación expresa coherencia de las declaraciones, sin certificar la fecha jurídica del acto.
-
-Cada papel documental fija UUID, versión positiva y digest SHA-256 esperado. El servicio selecciona esos registros dentro del expediente, verifica el contexto del cifrado, descifra, comprueba el digest y valida la evidencia capturada cuando existe. Después admite el contenido como PDF o DOCX bajo la política \texttt{pdf\_docx\_v1} de la \cref{sec:impl-formatos}, y la historia conserva formato y política de cada soporte. Una misma referencia puede servir como auto y constancia si se declara con idéntico digest. Los valores conservan ambos papeles; el trabajo criptográfico y de formato se realiza una sola vez por referencia.
-
-El canon propio \texttt{CSTG1} (\cref{tab:anexo-canones}) distingue adopción y los dos avances. Codifica precisión temporal, fecha o segundos y nanosegundos, desfase, textos y referencias con longitudes y etiquetas explícitas; admite hasta 5759 bytes. La huella cubre esos valores, mientras claves, revisión, autor y recurso auditado vinculan el registro al expediente. No sustituye una firma personal ni modifica el AAD o la evidencia documental. El origen inicial conserva su digest \texttt{CADM1}; no se transforma retrospectivamente en \texttt{CSTG1}.
-
-{\raggedright La persistencia usa \rutarepo{case_stage_revisions} y conserva la tabla de registros iniciales. Bajo la frontera auditada de PostgreSQL, la confirmación revisa cuenta activa, rol, pertenencia, perfil penal completo, estado administrativo activo, cabeza procesal y registros documentales completos. Captura la revisión administrativa vigente y su digest, UUID y correo del actor, instante y soportes admitidos. Etapa y evento confirman juntos. Una revisión obsoleta produce conflicto; si el soporte se sella entre preparación y confirmación, se exige una validación nueva. El sellado posterior a la transición y las versiones futuras conservan la historia registrada.\par}
-
-\begin{table}[H]
+\begin{figure}[t]
   \centering
-  \caption{Operaciones de etapa bajo \texttt{/api/v1/cases/<id>}.}
+  \input{figures/fig-04g-etapas}
+  \caption{Ciclo de vida de la etapa. Registro inicial y adopción se excluyen; el registro inicial conserva su huella administrativa y no se convierte en una revisión de etapa. No hay reversión ni avance deducido de un nombre, una carga o un sello.}
+  \label{fig:impl-etapas-estados}
+\end{figure}
+
+El avance a Juicio admite referencia y constancia de recepción opcionales; una misma versión sirve como auto y constancia si se declara con idéntica huella. Cada fecha es un día (fecha local y desfase) o un instante (hora con hasta nueve decimales y desfase); el servidor no añade una hora ficticia a un día. El desfase tiene precisión de minuto entre $-14$ y $+14$ horas; \texttt{-00:00} se rechaza por no expresar un desfase conocido, y fecha local y UTC quedan entre los años 1 y 9999. La validación y la confirmación siguen la \cref{fig:impl-etapas-confirmacion}.
+
+\begin{figure}[t]
+  \centering
+  \input{figures/fig-04g-etapa-confirmacion}
+  \caption{Validación y confirmación de una adopción o un avance. Un día es un intervalo en su desfase: solo se rechaza lo incoherente en todo el intervalo. Admisión documental según la \cref{sec:impl-formatos}.}
+  \label{fig:impl-etapas-confirmacion}
+\end{figure}
+
+La historia conserva formato y política de cada soporte, y ni un sellado posterior ni una versión futura la alteran. El canon \texttt{CSTG1} (\cref{tab:anexo-canones}) distingue adopción y avances, codifica precisión temporal, fecha o segundos y nanosegundos, desfase, textos y referencias, y ocupa hasta 5759 bytes. Su huella cubre solo los valores; claves, revisión, autor y recurso auditado vinculan el registro al expediente. No es una firma personal ni modifica el AAD o la evidencia documental. Migraciones: \cref{tab:anexo-migraciones}.
+
+\begin{table}[t]
+  \centering
+  \caption{Operaciones de etapa. Comandos JSON de hasta 32~KiB, sin campos desconocidos.}
   \label{tab:impl-http-etapas}
-  \begin{tabularx}{\linewidth}{@{}L{5.2cm} X@{}}
+  \small
+  \begin{tabularx}{\linewidth}{@{}L{2.4cm} X l@{}}
     \toprule
-    \textbf{Método y ruta} & \textbf{Resultado} \\
+    \textbf{Operación} & \textbf{Resultado} & \textbf{Código} \\
     \midrule
-    \texttt{GET /stage} & Etapa registrada o ausencia explícita, con \texttt{200}. \\
-    \texttt{GET /stage/history} & Historia descendente que incluye el origen inicial, con \texttt{200}. \\
-    \texttt{POST /stage/adoption} & Primera revisión adoptada desde ausencia, con \texttt{201}. \\
-    \texttt{POST /stage/transitions} & Sucesor ordinario con soportes exactos, con \texttt{201}. \\
+    Consulta & Etapa registrada o ausencia explícita. & \texttt{200} \\
+    Historia & Con origen inicial; descendente por revisión, no por fecha del acto; 1 a 100 entradas (20 por defecto), cursor positivo exclusivo. & \texttt{200} \\
+    Adopción & Primera revisión desde la ausencia. & \texttt{201} \\
+    Transición & Sucesor ordinario con soportes exactos. & \texttt{201} \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
-Owner consulta y gestiona cualquier expediente; Litigante necesita asignación vigente; Paralegal asignado consulta. Cliente no accede a estas rutas de personal. Las consultas e historias se auditan antes de devolver datos. La historia ordena por revisión, con límite de 1 a 100, 20 por defecto y cursor positivo exclusivo; no ordena los registros por la fecha declarada del acto. Los comandos JSON admiten 32~KiB y rechazan campos desconocidos. Las respuestas distinguen entradas iniciales y cambios, sin exigir una consulta posterior al commit.
+En las operaciones de la \cref{tab:impl-http-etapas}, consultas e historias se auditan antes de devolver datos y distinguen entradas iniciales y cambios sin otra consulta tras confirmar. Qadra muestra etapa e historia aparte del registro original; su selector consulta documentos, versiones y detalle exacto sin inferir el estado de una versión desde la cabeza ni exigir sellado. Carga y registro son transacciones distintas: rechazar la transición no elimina la carga, y un conflicto conserva el borrador. Sin identificador de operación, ante una respuesta incierta Qadra consulta etapa e historia antes de reenviar: valores coincidentes no prueban que aquel envío confirmó.
 
-Qadra presenta la etapa actual y la historia por separado del registro original en el resumen. El selector consulta documentos, versiones y detalle exacto, sin inferir el estado de una versión a partir de la cabeza o exigir sellado previo. La carga y el registro procesal son transacciones distintas: rechazar la segunda no elimina una carga confirmada. Los conflictos conservan el borrador conforme a la \cref{sec:impl-qadra-conciliacion}. Como el comando de etapa no lleva identificador de operación, ante una respuesta incierta se consultan etapa e historia antes de habilitar otro envío; la coincidencia de valores no demuestra por sí sola que aquel envío haya confirmado.
+\paragraph{Límites.} Adopción y avances no completan el objetivo de gestión procesal: registrar una etapa no programa audiencias ni activa términos, que tienen registros propios (\cref{sec:impl-audiencias,sec:impl-plazos,sec:impl-recursos,sec:implementacion-alertas}), y el cálculo de plazos se limita a los ocho supuestos de la \cref{sec:pruebas-corpus-juridico}. Valores y soportes no acreditan competencia, procedencia jurídica, identidad institucional ni cumplimiento de un plazo. Pruebas y trazabilidad: \cref{sec:pruebas-etapas,sec:matriz-etapas}.
 
-La adopción y estas dos transiciones no completan por sí solas el objetivo de gestión procesal. Audiencias, plazos, recursos y alertas tienen registros, contratos y requisitos propios (\cref{sec:impl-audiencias,sec:impl-plazos,sec:impl-recursos,sec:implementacion-alertas}). Registrar una etapa no programa audiencias ni activa términos, y la cobertura jurídica aceptada del cálculo de plazos se limita al corpus finito de ocho supuestos de la \cref{sec:pruebas-corpus-juridico}. Los valores y soportes no acreditan competencia, procedencia jurídica, identidad institucional ni cumplimiento de un plazo.
+\Fuentes{\rutarepo{crates/domain/src/case_stages/}, \rutarepo{docs/case-stages-api.md} y \rutarepo{docs/adr/0023-audited-case-stage-transitions.md} (\cref{tab:impl-adrs}).}

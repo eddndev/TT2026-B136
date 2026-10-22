@@ -1,203 +1,72 @@
 \section{Despliegue privado identificado por versión}\label{sec:impl-despliegue}
 
-El despliegue separa las versiones de la aplicación del estado persistente. Esta sección describe la publicación por etiquetas, la activación con retroceso, los respaldos y su restauración, el mantenimiento de la lista de revocación y los controladores que detienen, publican, aprueban y reabren los servicios de la instalación; su verificación se presenta en la \cref{sec:pruebas-despliegue}.
+La \cref{fig:impl-despliegue-topologia} concreta la vista de la \cref{sec:despliegue}. Cada versión es un paquete identificado por etiqueta y commit; datos, KEK y material de firma y sellado quedan fuera de las versiones (ADR 0048 de despliegue privado versionado, \rutarepo{docs/adr/0048-private-versioned-deployment.md}). La preparación del host no crea automáticamente la cuenta Owner, cuya alta (CU-01, \cref{tab:cu-01}) es explícita mediante \texttt{POST auth/bootstrap}, ni publica la aplicación; el origen HTTPS \texttt{qadra.com.mx} y el de la CA son configuraciones del host separadas (\cref{sec:impl-portal-ca}). La verificación está en la \cref{sec:pruebas-despliegue}.
 
-El proceso de entrega utiliza etiquetas de tres componentes numéricos con el
-prefijo \texttt{v}. La automatización valida su formato y resuelve la etiqueta
-al commit de origen antes de reutilizar las comprobaciones de Rust y de la
-interfaz. Solamente después de su aprobación compila y empaqueta el ejecutable,
-los archivos estáticos, la biblioteca qpdf y los ejecutables FFmpeg/ffprobe
-fijados. La compilación nativa se realiza en el runner de VPS3, compatible con
-la ABI de su Ubuntu 22.04; los otros jobs conservan runners propios. Un
-manifiesto conserva versión, commit, huellas de archivos y huella de las
-migraciones (\cref{tab:anexo-migraciones}); no contiene
-credenciales ni material criptográfico privado.
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-04m-topologia}
+  \caption{Topología instalada en VPS3. Los servicios escuchan solo en retorno local; versiones y estado persistente ocupan directorios distintos. El portal de la CA tiene su propio origen (\cref{sec:impl-portal-ca}).}
+  \label{fig:impl-despliegue-topologia}
+\end{figure}
 
-La transferencia usa una identidad Ed25519 y una llave de servidor verificada
-previamente. PostgreSQL, Redis, Rust y nginx se ejecutan como servicios del
-usuario de despliegue \texttt{qadra} en VPS3, bajo
-\texttt{/home/qadra/qadra}, con puertos limitados a la interfaz de retorno local.
-El acceso administrativo usa SSH en el puerto 22022, y la guía de despliegue
-documenta un túnel hacia el frontend local. La identidad Ed25519 de
-despliegue pertenece a esa cuenta; no se entrega la clave administrativa al
-workflow. CI y la aplicación comparten el servidor con servicios separados.
-Los datos, la clave de protección y el material de firma y sellado permanecen fuera de los directorios de versiones.
-La preparación del host no crea automáticamente una cuenta Owner ni publica
-la aplicación en Internet. El origen público HTTPS del despacho,
-\texttt{qadra.com.mx}, es una configuración del host separada de esa
-preparación, y el portal de la CA dispone de su propio origen
-(\cref{sec:impl-portal-ca}). Ese origen no satisface por sí mismo las
-condiciones que \rutarepo{docs/product-completion.md} fija para un despliegue
-público ---límites operativos como TLS interno y pooling, revisión del modelo de
-amenaza de la firma HTTP y delimitación de la ausencia de anclaje externo de
-auditoría---, que permanecen pendientes (\cref{sec:impl-divergencias}).
+\subsection{Publicación y activación de una versión}
 
-La activación verifica el paquete, detiene la entrada y la API, respalda el
-estado y cambia un enlace a la versión candidata. Después comprueba las
-dependencias, la API, el proxy, el HTML y la identidad servida. Si falla,
-restablece la versión anterior y conserva las escrituras de la base actual.
-Una diferencia entre huellas de migraciones impide el cambio automático:
-retroceder el ejecutable no implica que una base migrada sea compatible.
-\rutarepo{docs/deployment.md} documenta mantenimiento, consulta de registros y
-recuperación; \rutarepo{docs/adr/0048-private-versioned-deployment.md} fundamenta
-esta separación entre versiones de aplicación y estado persistente. La
-activación real de versiones sucesivas, su rollback y el retorno sin alterar
-datos SQL ni claves cuentan con la aceptación operativa fechada de la
-\cref{sec:pruebas-despliegue}.
+La \cref{fig:impl-despliegue-pipeline} sigue una etiqueta desde su validación hasta la versión activa. El paquete reúne el ejecutable, los estáticos, qpdf y los ejecutables FFmpeg y ffprobe fijados. Su manifiesto guarda versión, commit, huellas de archivos y de las migraciones (\cref{tab:anexo-migraciones}), sin credenciales ni material privado. La huella de migraciones existe porque retroceder el ejecutable no vuelve compatible una base ya migrada.
 
-El respaldo reúne PostgreSQL, una instantánea Redis validada y el material
-privado disponible, con la API y la entrada detenidas. La comprobación del
-proceso y directorio Redis evita capturar otra instancia; permisos restringidos
-y sincronización preceden a la publicación del marcador de finalización.
-La restauración exige invalidar sesiones y desafíos, conservar los controles
-vigentes y verificar la persistencia AOF antes de reabrir el ingreso.
-Una copia histórica no recupera cambios posteriores ni demuestra por sí sola
-una recuperación integral; \rutarepo{docs/deployment-backups.md} delimita el
-procedimiento y sus condiciones de aceptación. La restauración real de una
-captura de la instalación se presenta con su alcance en la
-\cref{sec:pruebas-despliegue}.
+\begin{figure}[!tb]
+  \centering
+  \input{figures/fig-04m-pipeline}
+  \caption{Publicación e instalación de una versión. Arriba se produce y transfiere el paquete, sin entregar la clave administrativa; abajo se activa bajo un bloqueo exclusivo. En guinda, las salidas por fallo.}
+  \label{fig:impl-despliegue-pipeline}
+\end{figure}
 
+\subsection{Respaldo y restauración}
 
-El mantenimiento de la lista de revocación coordina tres estados distintos:
-los archivos de la CA, la revisión de confianza publicada en PostgreSQL y el
-material cargado por la API. Un controlador manual prepara una candidata con
-la clave existente, conserva los números de serie revocados y exige una
-revisión esperada. Bajo el mismo bloqueo del despliegue, detiene el ingreso y
-comprueba que la identidad, revisión SQL, CA, CRL y contador originales coincidan.
-Respalda ese estado y registra huellas de sus cuatro archivos antes de instalar
-el marcador de mantenimiento: así, restaurar la configuración no deja una
-referencia a un registro externo al respaldo. La detención y la concordancia
-se comprueban otra vez antes de avanzar el contador e instalar la candidata.
-Un marcador durable impide arrancar API,
-proxy o cambiar de versión mientras la concordancia permanezca sin confirmar.
+Con la API y la entrada detenidas, el respaldo reúne el volcado PostgreSQL, una instantánea Redis validada tras comprobar su proceso y directorio, y el estado privado. Un manifiesto guarda identidad de aplicación y controlador, tamaños y SHA-256 de esos tres archivos de datos; permisos restringidos y sincronización preceden al marcador final \texttt{COMPLETE}. Sus huellas solo valen frente a un recibo externo (\cref{sec:anexo-despliegue}).
 
-La publicación usa el caso de uso administrativo existente y conserva su
-transacción de auditoría. Una respuesta perdida se resuelve consultando la
-sucesora exacta en SQL; no se publica otra revisión si ya fue confirmada.
-La reanudación comprueba también los archivos registrados y el respaldo antes
-de reiniciar la misma versión. Un fallo de salud mantiene cerrado el ingreso,
-sin retroceder la confianza ni el contador. Este protocolo no es una transacción
-distribuida ni programa renovaciones automáticas; sus condiciones operativas
-se detallan en \rutarepo{docs/deployment-crl.md} y
-\rutarepo{docs/adr/0063-recoverable-crl-maintenance.md}. Su aceptación operativa
-sobre la instalación privada se presenta en la \cref{sec:pruebas-despliegue}.
+Para restaurar, una captura con escritores detenidos registra hechos de PostgreSQL y Redis, herramientas y cabeza de auditoría, y los compara antes y después sin sustituir recibos. La restauración invalida en Redis solo sesiones y desafíos del destino, conserva cuotas, protección TOTP y vencimientos y verifica AOF antes de reabrir; las recuperaciones de contraseña y las invitaciones pendientes de la base restaurada se anulan aparte con \texttt{database invalidate-restored-*} (\cref{tab:impl-cli-catalogo}); la auditoría conserva sus fechas RFC~3339 exactas, verificables con la CLI. Una copia histórica no recupera cambios posteriores ni prueba una recuperación integral.
 
+\subsection{Mantenimiento de la lista de revocación}
 
-Cada respaldo nuevo incorpora un manifiesto privado de captura con
-identidad declarada de aplicación y controlador, tamaños y huellas SHA-256 de
-los tres archivos de datos. Se publica y sincroniza antes del marcador final.
-El recibo CRL incluye ese quinto archivo cuando existe y rechaza su aparición,
-retirada o cambio respecto del inventario aceptado. Una captura creada sin
-manifiesto no se convierte silenciosamente a ese formato. Estas huellas detectan cambios
-respecto de un recibo conservado por una vía confiable; no autentican por sí
-solas datos y manifiesto que el mismo operador pueda sustituir.
+\begin{figure}[!tb]
+  \centering
+  \input{figures/fig-04m-crl}
+  \caption{Renovación recuperable de la CRL, iniciada a mano, con la revisión SQL esperada, o por el timer, con la observada; siempre bajo el bloqueo del despliegue.}
+  \label{fig:impl-crl-mantenimiento}
+\end{figure}
 
-La primitiva de admisión para restauración mantiene un registro durable fuera
-de la configuración respaldada. Comparte el bloqueo administrativo con CRL,
-conserva un identificador explícito al reintentar y rechaza cualquier presencia
-inválida sin borrar el registro. Su consulta precede a los arranques normales,
-las operaciones de release y el mantenimiento CRL; las unidades generadas de
-PostgreSQL y Redis también la consultan. Esta pieza no detiene escritores ya
-admitidos ni copia bases: aún requiere una composición operacional durable
-antes de autorizar la reapertura. Véanse
-\rutarepo{docs/backup-capture-manifest.md} y
-\rutarepo{docs/deployment-restore-fence.md}.
+La renovación coordina tres estados: archivos de la CA, revisión de confianza en PostgreSQL y material cargado por la API; publica con el caso de uso administrativo y su transacción de auditoría (\cref{fig:impl-crl-mantenimiento}). El recibo guarda las huellas de los cuatro archivos del respaldo (los tres de datos y \texttt{COMPLETE}), más el manifiesto si existe, y rechaza que el manifiesto aparezca, desaparezca o cambie después; una captura antigua sin manifiesto no se actualiza al formato nuevo.
 
+\subsection{Controladores de mantenimiento y reapertura}
 
-La captura privada registra hechos observados de PostgreSQL y Redis, herramientas
-exactas y cabeza original de auditoría. Requiere escritores detenidos, compara
-hechos antes y después y publica un descriptor nuevo sin sustituir recibos.
-La auditoría conserva sus fechas RFC~3339 exactas y se verifica con la CLI,
-sin redondear nanosegundos. La invalidación Redis retira únicamente sesiones y
-desafíos del destino explícito; conserva cuotas, protección TOTP y vencimientos.
-El ensayo poblado y desechable compone esas primitivas con restauración SQL,
-archivos privados, reinicio AOF y nueva autenticación. No equivale a un
-controlador de reapertura ni fija una política para controles perdidos después
-del punto de respaldo; véase \rutarepo{docs/deployment-restore-capture.md}.
+Cada pieza de la \cref{tab:impl-controladores} reintenta con su identificador, observa el estado real aunque exista recibo y, si falla, mantiene la barrera: así se cierra, publica y reabre sin perder evidencia. El procedimiento operativo está en la \cref{sec:anexo-despliegue}; la parada y la aprobación, en \rutarepo{docs/deployment-restore-quiesce.md} y \rutarepo{docs/deployment-controller-approval.md}.
 
-El controlador interno de parada retiene el bloqueo administrativo, valida una
-identidad fijada de instalación y publica la barrera y su diario antes de
-actuar. Una conexión persistente al gestor conserva las cuatro unidades mediante
-\texttt{RefUnit}; evita que la recolección de unidades inactivas descarte su
-evidencia de salida. Detiene primero web y API y comprueba sus procesos y puertos
-antes de las bases. Exige PID e inicio coincidentes, código de terminación normal
-igual a uno y estado de salida cero, obtenidos con tipos D-Bus exactos. Guarda
-esas observaciones y sincroniza el diario antes de liberar las referencias.
-La dependencia \texttt{libsystemd.so.0} se resuelve en ubicaciones controladas por
-root y se valida antes de cargarla mediante descriptor; no depende del hash ni
-del nombre de una versión particular de la biblioteca.
+\begingroup
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\setlength{\LTpre}{6pt}\setlength{\LTpost}{0pt}
+\begin{longtable}{@{}L{2.05cm}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-2.05cm-4\tabcolsep)*70/100\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-2.05cm-4\tabcolsep)*30/100\relax}@{}}
+  \caption{Piezas de mantenimiento: qué garantiza cada una y qué deja fuera.}
+  \label{tab:impl-controladores} \\
+  \toprule
+  \textbf{Pieza} & \textbf{Garantiza} & \textbf{No hace} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Pieza} & \textbf{Garantiza} & \textbf{No hace} \\
+  \midrule
+  \endhead
+    Coordinador & Generación privada y un solo bloqueo: valida la intención, para, enmascara, publica lo aprobado y termina cerrado; reabrir bases, API y web, en orden y en plazo, exige otra autorización que fija ese recibo. & Sin retroceso ciego; guarda originales, candidatos y recibos. \\
+    Parada & Valida la identidad fijada y publica barrera y diario; detiene web y API y comprueba sus procesos y puertos antes de detener las bases; guarda la evidencia de salida de cada servicio y vuelve a detener lo que rearranque. & No restaura, promueve ni reabre; un código 0 del gestor no reemplaza la evidencia guardada. \\
+    Cierre de entradas & Máscaras persistentes en las cuatro unidades, con fragmentos originales conservados, recarga y observación efectiva. & No prueba que los trabajadores terminaran; no bloquea SSH. \\
+    Lanzador y publicación & Intercambia directorios completos, retiene la generación anterior y ejecuta el inventario aprobado por descriptor, con intérprete aislado; la entrada SSH y la CRL exigen su huella antes de preparar credenciales. & No elige la generación ni modifica unidades; no deduce la huella de las fuentes. \\
+    Aprobación & Registro inmutable por operación, ligado a hashes externos y a su predecesor; la selección vigente cambia de forma atómica y una reentrada no reescribe el registro; prepara unidades candidatas con el lanzador y la huella aprobada. & No adopta huellas discrepantes ni instala unidades. \\
+    Disponibilidad & Un plazo común para todas las sondas: cada una recibe el menor entre su límite y el tiempo restante, y una respuesta tardía no acredita. Sin plazo: 10~s por comando, 5~s por apertura HTTP. & No interrumpe del todo la lectura de encabezados HTTP ni una lectura de disco bloqueada. \\
+    Admisión de restauración & Registro durable fuera del respaldo; comparte el bloqueo con la CRL; rechaza presencias inválidas sin borrarlo; lo consultan arranques, versiones, CRL y bases. & No detiene escritores ni copia bases; aún no compone la reapertura. \\
+    \bottomrule
+\end{longtable}
+\endgroup
 
-Reentrar con el mismo identificador vuelve a observar incluso si existe recibo
-previo. Si el gestor ya eliminó sus metadatos, sólo la salida exacta previamente
-guardada y una nueva comprobación de ausencia permiten continuar. Un código cero
-del gestor no sustituye esa evidencia; un fallo conserva la barrera. La unidad
-que volvió a arrancar requiere capturar y detener su nuevo proceso. Esta pieza
-no restaura, promueve ni reabre datos y no establece la política de recuperación.
-El coordinador de instalación compone esta frontera con publicación y aprobación; véase
-\rutarepo{docs/deployment-restore-quiesce.md}.
+\paragraph{Límites.} La CRL no usa una transacción distribuida (ADR 0063) y su renovación programada (ADR 0080) aún no tiene ejecución real acreditada. Durante la transición del coordinador, incluso si se interrumpe, las entradas SSH externas deben seguir suspendidas, porque las máscaras no bloquean lectores SSH; instalar el lanzador y su huella en esa entrada requiere aceptación operativa propia. El origen \texttt{qadra.com.mx} aún no satisface \rutarepo{docs/product-completion.md} para un despliegue público (\cref{sec:impl-divergencias}).
 
-
-La publicación de controladores intercambia directorios completos y conserva
-la generación anterior. Un lanzador separado fija un descriptor de directorio,
-comprueba el inventario completo contra una huella aprobada y ejecuta desde ese
-descriptor. Las importaciones tardías conservan así las mismas fuentes aunque
-cambie la ruta nominal. El intérprete aislado inhibe bytecode, conserva argumentos
-y señales y cierra los descriptores al terminar o reemplazar el proceso. Esta
-primitiva no selecciona por sí sola una generación confiable ni modifica unidades;
-la instalación operativa y su transición desde lectores anteriores permanecen
-separadas. Véase \rutarepo{docs/deployment-controller-launcher.md}.
-
-La aprobación de una generación publicada conserva un registro privado e
-inmutable por operación y una selección actual separada. Exige hashes externos
-exactos y predecesor explícito bajo el bloqueo administrativo; no adopta como
-aprobada una huella encontrada después de una discrepancia. Publica el registro
-con rename exclusivo y sincroniza archivo y directorio; la selección usa
-reemplazo atómico con comparación fresca. La reentrada concilia una respuesta
-perdida sin sustituir el inode original. Los candidatos de cuatro unidades
-incorporan el lanzador aislado y la huella literal aprobada, preservando los demás
-bytes. Esto no instala unidades ni reabre servicios; véase
-\rutarepo{docs/deployment-controller-approval.md}.
-
-
-El cierre de entradas de controladores agrega máscaras persistentes para las
-cuatro unidades atestadas bajo el mismo bloqueo de despliegue. Conserva cada
-fragmento original por identidad y bytes, publica intención antes del intercambio
-y exige recarga confirmada y observación efectiva de las cuatro máscaras.
-Cada reentrada vuelve a observar el gestor, incluso con un diario que diga
-completado. Impide entradas posteriores sin afirmar que los trabajadores
-existentes hayan terminado. No instala fuentes, promueve una generación ni
-reabre servicios; esas operaciones conservan fronteras independientes. Véase
-\rutarepo{docs/deployment-controller-entry-gate.md}.
-
-La verificación de disponibilidad admite un plazo monotónico compartido entre
-las sondas de bases, API, identidad de versión, HTML y proxy. Cada operación
-recibe el menor valor entre su límite previo y el remanente; una respuesta válida
-posterior al plazo no acredita disponibilidad. Las lecturas parciales limitan
-los cuerpos y actualizan el timeout del socket. Los encabezados y delimitadores
-internos de HTTP y una lectura bloqueada del filesystem no tienen interrupción
-total garantizada; el controlador rechaza el resultado al recuperar el control.
-La llamada sin plazo explícito conserva sus límites por operación: diez segundos
-por comando de dependencia y cinco por apertura HTTP. Véase
-\rutarepo{docs/deployment-readiness-deadline.md}.
-
-La entrada administrativa por SSH exige la huella aprobada externamente del
-inventario de controladores y ejecuta el lanzador estable con intérprete aislado.
-El mismo contrato guía la renovación manual de CRL. Una huella ausente o inválida
-bloquea antes de preparar credenciales; no se deduce aprobación de las fuentes
-presentes ni se recurre a su invocación directa. La instalación del lanzador y la
-configuración de esa huella conservan aceptación operativa independiente.
-
-
-El coordinador de instalación ejecuta desde una generación privada independiente,
-bajo una sola adquisición del bloqueo. Valida la intención externa antes de
-parar servicios, conserva salida normal tipada y máscaras efectivas, retiene la
-caché exacta y publica la generación aprobada. El resultado inicial mantiene los
-servicios cerrados. La reapertura exige otra autorización que fija el recibo
-cerrado; arranca bases, API y web en ese orden y exige disponibilidad dentro del
-presupuesto compartido. Conserva originales, candidatos y recibos para reentrada
-sin rollback ciego. Las entradas administrativas externas deben permanecer
-suspendidas durante la transición, incluso ante interrupción: las máscaras no
-bloquean lectores SSH. La aceptación operativa del producto se distingue de los
-ensayos aislados del coordinador. Véanse
-\rutarepo{docs/deployment-controller-installation.md} y
-\rutarepo{docs/deployment-controller-bootstrap.md}.
+\Fuentes{documentos de despliegue en \rutarepo{docs/}: \texttt{deployment.md} y sus anexos de respaldos, CRL, disponibilidad, restauración y controladores, y \texttt{backup-capture-manifest.md}.}

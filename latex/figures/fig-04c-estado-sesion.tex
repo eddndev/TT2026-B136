@@ -1,0 +1,40 @@
+\begin{tikzpicture}[
+  dato/.style={caja, text width=4.3cm, minimum height=0.95cm},
+  centro/.style={caja, text width=3.5cm, minimum height=1.2cm}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (5.1,-6.1);
+  \draw[zona] (10.9,0) rectangle (16,-6.1);
+  \node[zonaLabel] at (0,0) {REDIS · EFÍMERO};
+  \node[zonaLabel] at (10.9,0) {POSTGRESQL · DECIDE};
+
+  % Redis
+  \node[dato] (r1) at (2.55,-1.0) {\textbf{Rechazos de contraseña}: 5 bloquean el correo 15 min; contador atómico};
+  \node[dato] (r2) at (2.55,-2.25) {\textbf{Desafío MFA} (5 min): usuario y generación; un intento, aun si el código falla};
+  \node[dato] (r3) at (2.55,-3.45) {\textbf{Reclamo TOTP}: un código aceptado no vuelve a aceptarse};
+  \node[dato] (r4) at (2.55,-4.8) {\textbf{Sesión}: clave = SHA-256 del token; hash versionado con identidad, generación, política, creación, última actividad y plazos};
+
+  % PostgreSQL
+  \node[dato] (g1) at (13.45,-1.0) {\textbf{Cuenta}: UUID, correo único, rol, activa y revisión};
+  \node[dato] (g2) at (13.45,-2.25) {\textbf{MFA}: secreto TOTP con AES-GCM bajo la KEK, ligado al UUID; hashes de 8 códigos};
+  \node[dato] (g3) at (13.45,-3.45) {\textbf{Bitácora}: alta, desafíos, sesiones, códigos consumidos y cierres};
+  \node[cajaOsc, text width=4.3cm, minimum height=0.85cm] (g4) at (13.45,-4.8)
+    {\textbf{Generación de autenticación}: avanza con cada cambio de acceso};
+
+  % API
+  \node[centro] (ini) at (8,-1.75) {\textbf{Inicio de sesión}\\ contraseña, desafío y segundo factor; revalida cuenta, principal y generación antes de emitir};
+  \node[cajaOsc, text width=3.8cm, minimum height=1.0cm, align=left] (pet) at (8,-4.35)
+    {\textbf{Cada petición protegida}\\ \textbf{1} lee la sesión\\ \textbf{2} compara con PostgreSQL\\ \textbf{3} reconfirma la sesión};
+  \node[paso, text width=3.6cm, anchor=north] (act) at (8,-5.2)
+    {\textbf{4} solo en la ruta de actividad: comparación atómica y nuevo plazo de inactividad};
+  \draw[flecha] (ini) -- node[etq, right]{token de 256 bits} (pet);
+
+  \foreach \r in {r1,r2,r3} \draw[flecha] (ini.west) -- (\r.east);
+  \foreach \g in {g1,g2,g3} \draw[flecha] (ini.east) -- (\g.west);
+  \draw[flechaD] (pet.west |- r4.east) -- node[etq, above, align=center]{1, 3\\ (y 4 en\\ actividad)} (r4.east);
+  \draw[flechaD] (pet.east |- g4.west) -- node[etq, above]{2} (g4.west);
+
+  % Revocación
+  \node[paso, text width=15.6cm, anchor=north] at (8,-6.35)
+    {\textbf{Revocación.} Avanzar la generación (rol, actividad o contraseña) invalida desafíos y sesiones aunque sus claves Redis sigan vigentes. Una clave con otro tipo, versión o campos, sin expiración o con otra política exige autenticar de nuevo: no se repara con tiempo adicional.};
+\end{tikzpicture}

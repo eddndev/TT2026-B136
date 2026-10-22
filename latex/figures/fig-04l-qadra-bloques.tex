@@ -1,0 +1,47 @@
+% Bloques de la aplicación Qadra y su camino hacia la API.
+% Fuente: web/apps/qadra (index.astro, App.svelte, lib/api.mjs,
+% lib/session-lifecycle.mjs, astro.config.mjs) y web/packages/ui.
+\begin{tikzpicture}[
+  b/.style={caja, text width=2.9cm, minimum height=1.05cm},
+  s/.style={caja, text width=3.3cm, minimum height=1.05cm}]
+
+  % Zonas
+  \begin{scope}[on background layer]
+    \node[zona, fit={(0.05,0.55) (10.95,-5.45)}] (nav) {};
+    \node[zona, fit={(11.85,0.55) (15.95,-5.45)}] (srv) {};
+  \end{scope}
+  \node[zonaLabel] at (nav.north west) {NAVEGADOR (QADRA)};
+  \node[zonaLabel] at (srv.north west) {SERVIDOR};
+
+  % Fila 1: montaje de la interfaz
+  \node[b, cajaOsc] (astro) at (1.8,-0.55) {\textbf{Página Astro única}\\ monta la aplicación en el cliente};
+  \node[b] (app) at (5.5,-0.55) {\textbf{Componente raíz Svelte}\\ autenticación y navegación};
+  \node[b, text width=3.1cm] (vis) at (9.2,-0.55) {\textbf{Vistas del expediente}\\ Resumen, Documentos, Participantes, Etapas y procesales};
+  \draw[flecha] (astro) -- (app);
+  \draw[flecha] (app) -- (vis);
+
+  % Fila 2: sistema de diseño y clientes por dominio
+  \node[b, cajaClara] (ui) at (1.8,-2.75) {\textbf{Sistema de diseño compartido}\\ \texttt{web/packages/ui}\\ componentes, estilo base y marca original};
+  \draw[flechaSuave] (ui.east) -| node[etq, pos=0.9, left=1pt] {reutilizan la aplicación y sus vistas} ([xshift=-8mm]app.south);
+  \node[s, text width=3.1cm] (dom) at (9.2,-2.75)
+    {\textbf{Clientes por dominio}\\ expedientes y documentos, versiones, clasificación, participantes, administración penal};
+  \draw[flecha] (vis) -- node[etq, left] {consultas y comandos} (dom);
+
+  % Fila 3: coordinador y cliente base
+  \node[caja, text width=5.0cm, minimum height=1.15cm, align=left] (coord) at (4.0,-4.65)
+    {\textbf{Coordinador de sesión} (fuera del árbol autenticado)\\
+     monitor de sesión y registro de borradores\\
+     guarda de admisión: sin sesión activa rechaza lo protegido};
+  \draw[flecha] ([xshift=4mm]app.south) -- node[etq, right] {crea} ([xshift=4mm]app.south |- coord.north);
+  \node[s, cajaOsc, text width=3.1cm] (base) at (9.2,-4.65) {\textbf{Cliente HTTP base}\\ rutas del mismo origen \texttt{/api/v1}};
+  \draw[flecha] (dom) -- (base);
+  \draw[flecha] (coord.east) -- node[etq, above] {guarda} (base.west);
+
+  % Servidor
+  \node[s] (proxy) at (13.9,-4.65) {\textbf{Proxy de desarrollo}\\ destino en \texttt{API\_PROXY\_TARGET}};
+  \node[s, cajaOsc] (api) at (13.9,-2.75) {\textbf{API HTTP de Rust}\\ adaptador de entrada};
+  \node[s, cajaClara] (ports) at (13.9,-0.55) {\textbf{Puertos de aplicación}\\ autorización, persistencia y criptografía};
+  \draw[flecha] (base) -- (proxy);
+  \draw[flecha] (proxy) -- (api);
+  \draw[flecha] (api) -- (ports);
+\end{tikzpicture}

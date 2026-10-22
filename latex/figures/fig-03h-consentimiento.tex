@@ -1,0 +1,49 @@
+\begin{tikzpicture}[
+  dato/.style={caja, text width=2.7cm, minimum height=0.85cm},
+  firma/.style={cajaOsc, text width=2.7cm, minimum height=0.85cm},
+  oper/.style={cajaClara, text width=3.0cm, minimum height=0.85cm},
+  campo/.append style={font=\diag}]
+
+  % Consentimiento: contexto común con el vínculo
+  \node[anchor=south west, font=\diag\bfseries, text=ESCOMAzulOscuro, inner sep=1pt]
+    at (0,0.95) {Consentimiento (258 B). Parte 1: cuenta y confianza, con la misma estructura que la declaración de vínculo (142 B)};
+  \Tira{0}{0}{2.3/campo/{encabezado: versión y propósito}//,
+              1.7/campo/{despliegue}//,
+              1.9/campoRel/{huella de la raíz}//,
+              1.9/campoRel/{revisión de confianza}//,
+              1.4/campoRel/{cuenta}//,
+              2.4/campo/{revisión de cuenta y generación de acceso}//,
+              1.5/campoRel/{vínculo}//,
+              2.6/campoRel/{huella del certificado}//}
+
+  % Consentimiento: datos de la operación
+  \node[anchor=south west, font=\diag\bfseries, text=ESCOMAzulOscuro, inner sep=1pt]
+    at (0,-0.75) {Parte 2: operación documental (116 B)};
+  \Tira{0}{-1.65}{2.2/campoRel/{operación}//,
+              2.2/campoRel/{expediente}//,
+              2.2/campoRel/{documento}//,
+              1.6/campoRel/{versión}//,
+              3.6/campoFirma/{digest SHA-256 del PDF}//,
+              3.9/campoFirma/{digest SHA-256 de la firma del PDF}//}
+
+  % Flujo de firmas en el equipo del titular
+  \node[dato] (pdf) at (9.75,-3.75) {PDF de la versión exacta};
+  \node[firma, text width=3.1cm] (fpdf) at (13.95,-3.75) {Firma 1: firma separada del PDF (384 B)};
+  \draw[flecha] (pdf) -- node[etq, above]{firma 1} (fpdf);
+  \draw[flecha] (9.2,-3.325) -- node[etq, left]{SHA-256} (9.2,-1.65);
+  \draw[flecha] (13.1,-3.325) -- node[etq, left]{SHA-256} (13.1,-1.65);
+
+  \node[oper, text width=3.4cm] (f2) at (2.2,-3.75) {El titular firma los 258~B (partes 1 y 2) con la misma clave};
+  \node[firma] (fcon) at (6.2,-3.75) {Firma 2: firma del consentimiento (384 B)};
+  % Llave que abarca las dos partes
+  \draw[ESCOMAzulOscuro, line width=0.6pt] (-0.05,-1.65) -- (-0.3,-1.65);
+  \draw[flecha] (-0.05,0.85) -- (-0.3,0.85) |- (f2.west);
+  \draw[flecha] (f2) -- (fcon);
+
+  % Sello de tiempo
+  \node[caja, text width=5.4cm, minimum height=0.85cm] (tsa) at (9.75,-5.35)
+    {TSA local: token RFC 3161 sobre el digest del PDF; no cubre el consentimiento};
+  \draw[flecha] (pdf.south) -- node[etq, right]{solo el digest} (tsa.north);
+  \node[cajaGris, text width=6.3cm, minimum height=0.85cm, align=left] at (3.5,-5.35)
+    {El servidor recibe el consentimiento y las dos firmas, nunca la clave. Reconstruye el contexto vigente y exige igualdad exacta.};
+\end{tikzpicture}

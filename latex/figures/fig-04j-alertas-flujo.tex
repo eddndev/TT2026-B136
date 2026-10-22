@@ -1,0 +1,45 @@
+\begin{tikzpicture}[
+  et/.style={caja, text width=2.3cm, minimum width=2.45cm, minimum height=1.25cm},
+  sal/.style={caja, text width=2.3cm, minimum width=2.45cm, minimum height=1.0cm}]
+
+  % Zonas
+  \draw[zona] (3.05,1.3) rectangle (16,-3.15);
+  \node[zonaLabel] at (3.05,1.3) {SERVICIO DE ALERTAS EN SERVE, SOBRE POSTGRESQL};
+  \draw[zona, fill=white] (5.55,-3.75) rectangle (16,-5.65);
+  \node[zonaLabel] at (5.55,-3.75) {FUERA DE LA TRANSACCIÓN};
+
+  % Línea principal
+  \node[cajaClara, text width=2.3cm, minimum width=2.6cm, minimum height=1.25cm] (w) at (1.4,0)
+    {\textbf{Escritores} de audiencias y plazos};
+  \node[et] (est) at (4.6,0) {\textbf{Estado} por actividad, invalidado por el escritor};
+  \node[et] (esc) at (7.65,0) {\textbf{Escáner}\\ cursor durable y lotes acotados};
+  \node[et, text width=2.95cm, minimum width=3.1cm] (pl) at (10.95,0) {\textbf{Planes}: verifica origen y preferencias; una ocurrencia por destinatario y anticipación};
+  \node[cajaOsc, text width=2.3cm, minimum width=2.45cm, minimum height=1.25cm] (ac) at (14.3,0)
+    {\textbf{Activación} al cruzar el umbral};
+  \draw[flecha] (w) -- (est);
+  \draw[flecha] (est) -- (esc);
+  \draw[flecha] (esc) -- (pl);
+  \draw[flecha] (pl) -- (ac);
+
+  % Resultado de la activación
+  \draw[draw=ESCOMAzulOscuro, dashed, line width=0.5pt, rounded corners=2pt] (9.3,-1.45) rectangle (15.85,-3);
+  \node[font=\diag, text=ESCOMAzulOscuro, align=center, inner sep=1pt] at (12.42,-2.35) {una\\ transacción\\ con su\\ auditoría};
+  \node[sal] (av) at (10.5,-2.35) {\textbf{Aviso interno}\\ en la bandeja};
+  \node[sal] (en) at (14.3,-2.35) {\textbf{Entrega pendiente}\\ si el canal de correo aplica};
+  \draw[flecha] (ac.south) -- (en.north);
+  \draw[flecha] (ac.south) ++(-0.6,0) |- ++(0,-0.45) -| (av.north);
+
+  % Qadra
+  \node[cajaClara, text width=2.3cm, minimum width=2.6cm, minimum height=1.0cm] (qa) at (1.4,-2.35)
+    {\textbf{Qadra}: preferencias, bandeja y lectura};
+  \draw[flechaD] (qa) -- node[etq, above, pos=0.55]{consulta: revalida acceso} node[etq, below, pos=0.55]{lectura explícita: recibo de lectura} (av);
+
+  % Correo
+  \node[cajaOsc, text width=3.4cm, minimum height=1.0cm] (co) at (14.3,-4.6)
+    {\textbf{Consumidor de correo}\\ arrendamiento por intento};
+  \node[caja, text width=3.4cm, minimum height=1.0cm] (rs) at (7.65,-4.6)
+    {\textbf{Resend}: aviso genérico con enlace fijo};
+  \draw[flecha] (en) -- node[etq, right=2pt]{reclamo} (co);
+  \draw[flecha] ([yshift=1.5mm]co.west) -- node[etq, above]{misma clave y mensaje} ([yshift=1.5mm]rs.east);
+  \draw[flecha] ([yshift=-1.5mm]rs.east) -- node[etq, below]{aceptado, fallo o incierto} ([yshift=-1.5mm]co.west);
+\end{tikzpicture}

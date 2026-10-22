@@ -4,7 +4,16 @@
 
 \section{Etapas procesales y audiencias}\label{sec:impl-actuaciones}
 
-Sobre el perfil penal del expediente se registran los actos que hacen avanzar el proceso. Esta sección describe la adopción y las transiciones de etapa con soportes documentales exactos, la programación, reprogramación y cancelación de audiencias ordinarias y las convocatorias y medidas cautelares declaradas, junto con su interacción en Qadra. Las vistas de Qadra aplican los mecanismos comunes de sesión, borradores y conciliación (\cref{sec:impl-http-interfaz}), y cada subsección precisa sólo lo propio de su dominio. El registro conjunto de un resultado de audiencia con su plazo derivado se presenta con el cómputo de plazos (\cref{sec:impl-resultado-plazo-derivado}), y las audiencias propias de un recurso, con los recursos procesales (\cref{sec:impl-audiencias-recursos}).
+Esta sección implementa la etapa procesal con soporte documental exacto, las audiencias ordinarias y las convocatorias y medidas cautelares (\cref{fig:impl-actuaciones-panorama}), así como las sesiones, resoluciones y notificaciones declaradas que otras secciones usan como fuente (\cref{sec:impl-resoluciones}). Realiza la transición de etapa del CU-07 y la programación del CU-08 (\cref{tab:cu-07,tab:cu-08}) y aporta a RF-05 y RF-07 (\cref{tab:rf-procesal,tab:rf-calendario}). El resultado de audiencia con plazo derivado se presenta en la \cref{sec:impl-resultado-plazo-derivado}, y las audiencias de recurso, en la \cref{sec:impl-audiencias-recursos}. Las vistas de Qadra aplican los mecanismos comunes de sesión, borradores y conciliación (\cref{sec:impl-http-interfaz}).
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-04g-panorama}
+  \caption{Dominios de esta sección. Cada columna es una familia con historia propia; la flecha entre etapa y audiencias es la etapa que exige cada tipo, y las cajas grises discontinuas se describen en otras secciones.}
+  \label{fig:impl-actuaciones-panorama}
+\end{figure}
+
+Los tres dominios comparten el acceso: Owner consulta y gestiona cualquier expediente, el Litigante con asignación vigente consulta y gestiona, el Paralegal asignado solo consulta y el Cliente no accede. Un expediente cerrado rechaza mutaciones, pero conserva consultas e historia; en materia cautelar conserva además la conciliación del recibo original.
 
 \input{chapters/04-etapas}
 

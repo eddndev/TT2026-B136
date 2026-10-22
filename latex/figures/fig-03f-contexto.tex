@@ -1,0 +1,45 @@
+\begin{tikzpicture}[
+  persona/.style={cajaOsc, text width=2.25cm, minimum height=1.2cm},
+  sis/.style={caja, minimum height=0.85cm},
+  ext/.style={cajaGris, text width=3.3cm, minimum height=0.95cm}]
+
+  % Actores humanos
+  \node[persona] (owner) at (1.3,0) {\textbf{Owner}\\ administra el despacho};
+  \node[persona] (lit)   at (3.95,0) {\textbf{Litigante}\\ lleva expedientes y firma};
+  \node[persona] (para)  at (6.6,0) {\textbf{Paralegal}\\ apoya en expedientes};
+  \node[persona] (cli)   at (9.25,0) {\textbf{Cliente}\\ consulta básica};
+  \node[persona] (oper)  at (14.05,0) {\textbf{Operador de la CA}\\ emite y revoca};
+
+  % Sistema del despacho
+  \draw[zona] (0,-1.15) rectangle (10.75,-4.75);
+  \node[zonaLabel, anchor=west] at (0.05,-2.75) {SISTEMA QADRA DEL DESPACHO};
+  \node[sis, text width=10.0cm] (qadra) at (5.5,-2.0)
+    {\textbf{Qadra}: interfaz web en el navegador};
+  \node[sis, text width=10.0cm] (api) at (5.5,-3.5)
+    {\textbf{API del despacho} (Rust): casos de uso, PostgreSQL y Redis};
+  \draw[flecha] (qadra) -- node[etq, right]{HTTPS} (api);
+
+  % Autoridad certificadora
+  \draw[zona] (12.1,-1.15) rectangle (16.0,-4.75);
+  \node[zonaLabel, anchor=south] at (14.05,-4.75) {CA INTERNA (SEPARADA)};
+  \node[sis, text width=3.5cm] (portal) at (14.05,-2.0) {\textbf{Portal de la CA}};
+  \node[sis, text width=3.5cm] (caproc) at (14.05,-3.5) {\textbf{Proceso de la CA}\\ certificados y CRL};
+  \draw[flecha] (portal) -- (caproc);
+
+  % Flechas de actores
+  \foreach \a in {owner,lit,para,cli}
+    \draw[flecha] (\a.south) -- node[etq, pos=0.4]{HTTPS} (\a.south |- qadra.north);
+  \draw[flecha] (oper.south) -- node[etq, pos=0.4]{HTTPS} (oper.south |- portal.north);
+  \draw[flechaSuave] (caproc.west) -- node[etq, above, align=center]{CRL y\\ confianza} (api.east);
+
+  % Sistemas externos
+  \node[caja, text width=3.3cm, minimum height=0.95cm] (tsa) at (2.0,-6.0)
+    {\textbf{TSA local}\\ sellos de tiempo\\ {\diag (demostración)}};
+  \node[ext, dashed] (psc) at (6.2,-6.0)
+    {\textbf{PSC externo}\\ adaptador opcional};
+  \node[ext, dashed] (resend) at (10.4,-6.0)
+    {\textbf{Resend}\\ entrega de correo};
+  \draw[flecha] (2.0,-3.93) -- node[etq, right, pos=0.72]{RFC 3161} (tsa.north);
+  \draw[flechaSuave] (6.2,-3.93) -- node[etq, right, pos=0.72]{RFC 3161 sobre HTTPS} (psc.north);
+  \draw[flechaSuave] (10.4,-3.93) -- node[etq, right, pos=0.72]{HTTPS} (resend.north);
+\end{tikzpicture}

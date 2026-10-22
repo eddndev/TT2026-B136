@@ -1,0 +1,44 @@
+\begin{tikzpicture}[
+  fam/.style={cajaClara, text width=2.9cm, minimum width=3.1cm, minimum height=0.78cm, align=left},
+  rev/.style={caja, text width=1.95cm, minimum width=2.1cm, minimum height=0.78cm},
+  cab/.style={rev, line width=1.1pt},
+  sig/.style={flecha, shorten >=1pt, shorten <=1pt},
+  enc/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, anchor=south}]
+
+  % Raíz del expediente y bitácora
+  \node[cajaOsc, text width=1.55cm, minimum width=1.7cm, minimum height=8.0cm,
+    anchor=north west] (exp) at (0,-0.1)
+    {\textbf{Expediente}\\[2pt] raíz estable: identidad y hechos de creación};
+  \node[cajaOsc, text width=1.9cm, minimum width=2.05cm, minimum height=8.0cm,
+    anchor=north west] (bit) at (13.5,-0.1)
+    {\textbf{Bitácora encadenada}\\[2pt] el cambio y su evento se confirman juntos};
+
+  % Encabezados de columna
+  \node[enc] at (3.9,0) {raíz de cada familia};
+  \node[enc] at (9.35,0) {revisiones inmutables, de la primera a la vigente};
+  \node[enc] at (bit.north |- 0,0) {evento auditado};
+
+  % Filas: y / nombre / descripción / rev1 / rev2 / revn
+  \foreach \y/\n/\d/\a/\b/\c [count=\i] in {
+      -0.55/Administración/{título, estado, perfil penal}/{rev. 1\\ alta}/{rev. 2\\ edición}/{rev. $n$\\ nuevo estado},
+      -1.5/Etapas/{soporte documental exacto}/{Investigación\\ registro inicial}/{Intermedia\\ avance}/{Juicio\\ avance},
+      -2.45/Documento/{raíz por documento}/{versión 1\\ cifrada y sellada}/{versión 2\\ anexada}/{versión $n$\\ vigente},
+      -3.4/Clasificación/{de cada documento}/{rev. 1\\ tipo y etiquetas}/{rev. 2\\ reemplazo}/{rev. $n$\\ vigente},
+      -4.35/Identidad/{persona u órgano}/{rev. 1\\ alta}/{rev. 2\\ corrección}/{rev. $n$\\ vigente},
+      -5.65/Ficha por rol/{manual o tipificada}/{rev. 1\\ manual}/{rev. 2\\ tipificada}/{rev. $n$\\ archivada},
+      -6.6/Audiencia/{tipo inmutable}/{rev. 1\\ programación}/{rev. 2\\ reprogramación}/{rev. $n$\\ cancelación},
+      -7.55/Plazo/{regla e historia propias}/{rev. 1\\ alta}/{rev. 2\\ corrección}/{rev. $n$\\ reevaluación}} {
+    \node[fam] (f\i) at (3.9,\y) {\textbf{\n}\\ {\fontsize{7.3}{8.4}\selectfont\diagsans \d}};
+    \node[rev] (a\i) at (6.85,\y) {\a};
+    \node[rev] (b\i) at (9.35,\y) {\b};
+    \node[cab] (c\i) at (11.85,\y) {\c};
+    \draw[sig] (f\i) -- (a\i);
+    \draw[sig] (a\i) -- (b\i);
+    \draw[sig] (b\i) -- (c\i);
+    \draw[flechaSuave] (c\i.east) -- (bit.west |- 0,\y);
+    \draw[flecha] (exp.east |- 0,\y) -- (f\i.west);
+  }
+
+  % La ficha refiere la revisión exacta de la identidad
+  \draw[flecha] (b6.north) -- node[etq, right=1pt]{refiere la revisión exacta} (b5.south);
+\end{tikzpicture}

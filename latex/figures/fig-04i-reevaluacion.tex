@@ -1,0 +1,53 @@
+\begin{tikzpicture}[
+  b/.style={caja, text width=2.95cm, minimum height=0.85cm},
+  tx/.style={font=\diag, text=ESCOMTinta, align=left, text width=3.1cm, anchor=north west}]
+
+  % Zonas: una transacción por zona
+  \draw[zona] (0,0) rectangle (3.6,-5.35);
+  \draw[zona] (4.13,0) rectangle (7.73,-5.35);
+  \draw[zona] (8.26,0) rectangle (11.86,-5.35);
+  \draw[zona, fill=white, draw=IPNGuinda] (12.4,0) rectangle (16,-5.35);
+  \node[zonaLabel] at (0,0) {T1 · FUENTE};
+  \node[zonaLabel] at (4.13,0) {T2 · DESPACHO};
+  \node[zonaLabel] at (8.26,0) {T3 · CONSUMO};
+  \node[zonaLabel, text=IPNGuinda] at (12.4,0) {T4 · INTENTO FALLIDO};
+
+  % T1
+  \node[b] (src) at (1.8,-0.95) {Nueva revisión de una fuente o perfil};
+  \node[b, cajaClara] (evt) at (1.8,-2.3) {Evento durable: familia, identidad, revisión y operación};
+  \draw[flecha] (src) -- (evt);
+  \node[tx] at (0.1,-3.05) {Secuencia tomada tras el bloqueo común; puede tener huecos, nunca eventos tardíos detrás del cursor.};
+
+  % T2
+  \node[b] (dsp) at (5.93,-0.95) {Despachador: una página de plazos candidatos};
+  \node[b, cajaClara, text width=3.1cm] (job) at (5.93,-2.5) {Trabajos únicos (evento y plazo, o plazo y política), operación reservada, cursor y auditoría};
+  \draw[flecha] (dsp) -- (job);
+  \node[tx, text width=2.85cm] at (4.23,-3.3) {Toma el bloqueo común y verifica las capturas candidatas. Un fallo de auditoría revierte la página; una respuesta perdida continúa desde el cursor.};
+
+  % T3
+  \begin{scope}[b/.append style={text width=2.6cm}]
+  \node[b] (con) at (10.0,-0.9) {Consumidor: autentica el trabajo y carga la cabeza verificada};
+  \node[b, cajaOsc] (rev) at (10.0,-2.25) {Revisión técnica y resultado juntos, con auditoría};
+  \node[b, cajaClara] (sin) at (10.0,-3.5) {o resultado sin cambios, con su motivo, y auditoría};
+  \node[b, cajaError] (rb) at (10.0,-4.75) {Fallo: T3 se revierte completa};
+  \end{scope}
+  \draw[flecha] (con) -- (rev);
+  \draw[flecha] (con.east) -- (11.62,-0.9) |- (sin.east);
+  \draw[flechaError] ([yshift=-3mm]con.west) -- (8.45,-1.25) |- (rb.west);
+
+  % T4
+  \node[tx, text width=3.2cm] at (12.5,-0.6) {Se confirma con su auditoría en otra transacción.};
+  \node[caja, cajaError, text width=3.3cm, align=left, anchor=north] (esp) at (14.2,-1.4) {Espera antes de reintentar la misma base:\\ transitorio 1, 2, 4\dots{} s,\\ máx. 300 s;\\ inconsistencia 3600 s;\\ cabeza posterior: la anula};
+  \node[b, cajaError, text width=3.0cm] (int) at (14.2,-4.75) {Intento: número, categoría, código y reintento};
+  \draw[flechaError] (rb.east) -- node[etq, above=1pt]{registra} (int.west);
+  \draw[flechaError] (int) -- (esp);
+
+  % Entre transacciones
+  \draw[flecha] (evt.east) -- ++(0.3,0) |- (dsp.west);
+  \draw[flecha] (job.east) -- ++(0.3,0) |- (con.west);
+
+  % Recorrido de conciliación
+  \node[caja, cajaGris, text width=7.4cm, anchor=north west, align=left] (leg) at (0,-5.7)
+    {\textbf{Recorrido de conciliación}: busca plazos V1 o con política sin declarar y reinicia cada pasada para hallar UUID menores añadidos después. Alterna con los eventos, aunque uno no produzca trabajo.};
+  \draw[flechaSuave] (7.35,-5.7) -- (7.35,-5.7 |- job.south);
+\end{tikzpicture}

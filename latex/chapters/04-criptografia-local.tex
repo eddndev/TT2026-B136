@@ -1,92 +1,77 @@
-\subsection{Generaci\'on y firma local en el navegador}
+\subsection{Generación y firma local en el navegador}
 \label{sec:impl-criptografia-local}
 
-La aplicaci\'on Qadra (\cref{sec:impl-http-interfaz}) incorpora un ayudante
-criptogr\'afico local, implementado en el crate
-\texttt{browser-crypto} de Rust y compilado a WebAssembly. Se ejecuta en un
-\emph{worker} dedicado por operaci\'on, sin dependencia de los crates del
-servidor. \texttt{ring} realiza las firmas privadas RSA con SHA-256 y
-PKCS\#1 v1.5, incluida la solicitud de certificado; \texttt{rsa} se utiliza
-para generar, representar y analizar claves, sin invocar su API de firma
-privada. Esta separaci\'on no extiende al navegador la aceptaci\'on del riesgo
-de temporizaci\'on documentada para la CLI (\cref{sec:impl-workspace}) ni
-modifica el firmante del backend. La decisi\'on queda en
-\rutarepo{docs/adr/0079-browser-local-cryptography.md}.
+Qadra incorpora un ayudante que genera la clave del titular, prepara su CSR y
+firma bytes ya preparados sin que la clave ni su contraseña salgan del equipo
+(\cref{fig:impl-nav-worker}; custodia en \cref{sec:cripto-fronteras}). Se
+ofrece en \emph{Mi certificado} (Owner,
+\cref{sec:impl-vinculo-certificado}) y \emph{Mi firma documental} (Litigante,
+\cref{sec:impl-firma-individual}). Es el crate \texttt{browser-crypto},
+compilado a WebAssembly, sin dependencia de los crates del servidor.
+La biblioteca \texttt{ring} realiza todas las firmas privadas RSA SHA-256 PKCS\#1 v1.5,
+incluida la del CSR; \texttt{rsa} solo genera, representa y analiza claves, sin
+su API de firma privada, para no extender al navegador la aceptación del
+riesgo de temporización RUSTSEC-2023-0071 \cite{rustsec2023_0071} del
+firmante del servidor (\cref{sec:impl-workspace}).
 
-\subsubsection{Clave cifrada y solicitud p\'ublica}
+\begin{figure}[!tb]
+  \centering
+  \input{figures/fig-04d-nav-worker}
+  \caption{Ayudante local: generación (arriba) y firma de bytes preparados
+    (abajo). Solo el CSR, que revisa la CA (\cref{sec:impl-portal-ca}), y la
+    firma cruzan la línea guinda.}
+  \label{fig:impl-nav-worker}
+\end{figure}
 
-Las vistas autenticadas \emph{Mi certificado} y \emph{Mi firma documental}
-ofrecen generaci\'on para Owner y Litigante, respectivamente, como parte del
-v\'inculo de certificado del Owner (\cref{sec:impl-vinculo-certificado}) y de la firma
-individual (\cref{sec:impl-firma-individual}). El titular
-declara nombre com\'un, organizaci\'on y pa\'is, y confirma una contrase\~na
-de al menos doce caracteres y hasta 1024 bytes UTF-8, sin recortar espacios
-ni normalizarla. Estos datos no acreditan identidad civil ni sustituyen la
-revisi\'on del responsable de la CA.
+\begin{table}[!b]
+  \centering
+  \caption{Formatos y límites del ayudante local.}
+  \label{tab:impl-nav-formatos}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}L{2.6cm} X@{}}
+    \toprule
+    \textbf{Material} & \textbf{Formato y límite} \\
+    \midrule
+    Contraseña nueva & De 12 caracteres a 1024 bytes UTF-8, sin recortar espacios ni normalizar \\
+    Clave generada & RSA-3072, $e=65537$, en PEM PKCS\#8 \texttt{ENCRYPTED PRIVATE KEY}: PBES2, PBKDF2-HMAC-SHA256 de 600\,000 iteraciones, AES-256-CBC, sal e IV aleatorios independientes de 16 bytes \\
+    Clave importada & Mismo perfil con 1 a 2\,000\,000 iteraciones (claves OpenSSL existentes); PEM cifrado hasta 64~KiB \\
+    Certificado y CSR & Certificado PEM o DER y CSR PKCS\#10 PEM, hasta 16~KiB cada uno \\
+    Firma separada & 384 bytes sobre: vínculo Owner (150 bytes), desafío de acceso Owner (182, seguido de MFA), \texttt{DOCBIND1} (142), PDF revisado y \texttt{DOCSIGN1} (258) \\
+    Rechazados & Claves sin cifrar, PKCS\#12/PFX y algoritmos no admitidos \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
-La generaci\'on obtiene entrop\'ia de la fuente criptogr\'afica del navegador
-y falla si esta no est\'a disponible. Produce RSA-3072 con exponente 65537
-y exporta la clave como PEM PKCS\#8 \texttt{ENCRYPTED PRIVATE KEY}. El perfil
-usa PBES2, PBKDF2-HMAC-SHA256 con 600\,000 iteraciones y AES-256-CBC,
-con sal e IV aleatorios independientes de 16 bytes. El formato prioriza
-interoperabilidad con las herramientas existentes; no constituye cifrado
-autenticado ni custodia mediante hardware.
+\paragraph{Generación.} El titular declara nombre común, organización y país,
+que no acreditan identidad civil ni sustituyen la revisión del responsable de
+la CA. La generación usa la fuente criptográfica del navegador y falla si no
+está disponible. El formato cifrado (\cref{tab:impl-nav-formatos}) prioriza la
+interoperabilidad: no es cifrado autenticado ni custodia mediante hardware.
+Pulsar una descarga no basta: el CSR se habilita solo tras volver a elegir el
+archivo guardado con su contraseña y comprobar la copia. El titular conserva archivo y contraseña por
+separado; Qadra no puede recuperarlos.
 
-El formulario exige descargar la clave cifrada y volver a seleccionar el
-archivo guardado con su contrase\~na. El worker debe abrirlo y contrastar
-su clave p\'ublica con la solicitud antes de habilitar la descarga del CSR
-PKCS\#10. As\'i, pulsar una descarga no basta para declarar una copia
-utilizable. El titular conserva por separado archivo y contrase\~na; Qadra
-no puede recuperarlos. Solamente el CSR p\'ublico se entrega a la CA
-(\cref{sec:impl-portal-ca}), que mantiene sus perfiles, pol\'itica de sujeto y confirmaci\'on de emisi\'on.
-El certificado emitido requiere despu\'es su v\'inculo expl\'icito con la cuenta.
+\paragraph{Firma y vida de los secretos.} \emph{Firmar en este dispositivo}
+no envía ni confirma la operación: se conservan las
+acciones explícitas y los contratos HTTP, y sigue disponible firmar con OpenSSL
+e importar la firma. Una firma local correcta no es autoridad de emisión ni
+identidad acreditada. Cada worker termina al completar, fallar o
+cancelar, y un cambio de cuenta, autorización, preparación, certificado o
+versión invalida resultados tardíos (\cref{sec:impl-qadra-conciliacion}). Clave
+y contraseña no entran en peticiones a la API, registros, almacenamiento
+persistente ni borradores recuperables; la carga del programa usa la red, pero
+la operación no envía el secreto al despacho ni a la CA.
 
-\subsubsection{Operaciones sobre bytes preparados}
+\paragraph{Límites.} Terminar el worker y vaciar campos no garantiza borrar
+copias en memoria, intercambio o volcados. La página conserva autoridad sobre
+el material durante su uso: código sustituido, XSS, extensiones o un
+dispositivo comprometido pueden observarlo, y WebAssembly no aísla frente a
+ella. La integridad del programa entregado, HTTPS y el equipo del titular
+forman parte de la base de confianza; la verificación del backend y la
+custodia del archivo cifrado conservan responsabilidades separadas. No hay
+firma arbitraria de archivos ni ayuda local para declaraciones de
+participantes. Las aceptaciones de vínculo, acceso y firma usaron firmas
+OpenSSL externas; la ejecución del ayudante en el navegador es otra frontera de
+prueba (\cref{sec:pruebas-firma-individual,sec:pruebas-vinculo-certificado}).
 
-El bloque \emph{Firmar en este dispositivo} recibe una clave cifrada y su
-contrase\~na, comprueba su correspondencia con el certificado y la huella
-esperados y devuelve una firma separada de 384 bytes. Su alcance comprende
-cuatro recorridos ya definidos por el servidor:
-
-\begin{itemize}
-  \item V\'inculo Owner: declaraci\'on preparada de 150 bytes.
-  \item Acceso Owner: desaf\'io nuevo de 182 bytes, seguido de MFA obligatoria.
-  \item V\'inculo documental: declaraci\'on \texttt{DOCBIND1} de 142 bytes.
-  \item Firma documental: PDF de la versi\'on revisada y, por separado,
-    consentimiento \texttt{DOCSIGN1} de 258 bytes para esa operaci\'on.
-\end{itemize}
-
-La firma local no env\'ia ni confirma la operaci\'on. Se conservan las acciones
-expl\'icitas y contratos HTTP existentes, cuyos servicios verifican permisos,
-prop\'osito, bytes, vigencia, confianza y revocaci\'on. La alternativa de
-descargar los bytes, firmar con OpenSSL e importar la firma permanece
-disponible. No se incorpora firma arbitraria de archivos ni ayuda para
-declaraciones de participantes.
-
-La importaci\'on admite el mismo perfil PBES2/PBKDF2-HMAC-SHA256/AES-256-CBC,
-con una a 2\,000\,000 iteraciones, para conservar claves OpenSSL existentes;
-la generaci\'on nueva siempre utiliza 600\,000. El PEM cifrado se limita a
-64~KiB, y el certificado p\'ublico PEM o DER y el CSR PEM a 16~KiB cada uno.
-Se rechazan claves sin cifrar, PKCS12/PFX y algoritmos no admitidos. La
-apertura valida contenedor, clave y correspondencia p\'ublica, sin interpretar
-una firma local correcta como autoridad de emisi\'on o identidad acreditada.
-
-\subsubsection{Vida de los secretos y frontera de confianza}
-
-Cada worker termina al completar, fallar o cancelar su operaci\'on. El cambio
-de cuenta, autorizaci\'on, preparaci\'on, certificado o versi\'on invalida
-resultados tard\'ios, como los dem\'as cambios de contexto de Qadra
-(\cref{sec:impl-qadra-conciliacion}). Los campos se vac\'ian y las referencias se liberan;
-clave y contrase\~na no forman parte de peticiones API, registros de la
-aplicaci\'on, almacenamiento persistente del navegador ni borradores
-recuperables (\cref{sec:impl-qadra-borradores}). La carga del programa puede utilizar la red, pero la operaci\'on
-local no env\'ia ese material secreto al despacho ni a la CA.
-
-Terminar el worker y vaciar campos no garantiza borrar todas las copias de
-memoria, intercambio o volcados del navegador. La p\'agina sigue teniendo
-autoridad sobre el material durante su uso: c\'odigo sustituido, XSS,
-extensiones o un dispositivo comprometido pueden observarlo. WebAssembly
-no crea aislamiento frente a esa autoridad. La integridad del programa
-entregado, HTTPS y el equipo del titular forman parte de la confianza;
-la verificaci\'on del backend y la custodia del archivo cifrado conservan
-sus responsabilidades separadas.
+\Fuentes{ADR 0079 y \rutarepo{docs/browser-local-cryptography.md}.}

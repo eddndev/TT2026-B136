@@ -1,0 +1,46 @@
+\begin{tikzpicture}[
+  rev/.style={caja, text width=2.6cm, minimum height=0.95cm},
+  cab/.style={rev, line width=1.2pt},
+  nota/.style={font=\diag, text=ESCOMTinta, align=left,
+    execute at begin node={\hyphenpenalty=10000}}]
+
+  % Alta penal: una sola transacción
+  \draw[zona] (0,0.95) rectangle (7.1,-2.3);
+  \node[zonaLabel] at (0,0.95) {ALTA PENAL: UNA TRANSACCIÓN, CUATRO EVENTOS};
+
+  \node[cajaOsc, text width=2.75cm, minimum height=0.95cm] (raiz) at (1.7,-0.3)
+    {Raíz: UUID, creador, fecha y metadatos originales};
+  \node[rev] (r1) at (5.2,-0.3) {\textbf{R1} activa\\ perfil completo};
+  \node[rev] (r2) at (8.7,-0.3) {\textbf{R2} edición\\ esperada: R1};
+  \node[cab] (rn) at (12.2,-0.3) {\textbf{R$n$} cabeza\\ valores vigentes};
+  \draw[flecha] (raiz) -- (r1);
+  \draw[flecha] (r1) -- (r2);
+  \draw[flecha] (r2) -- node[etq, above=1pt]{\dots} (rn);
+  \node[nota, text width=2.15cm, anchor=west] at (13.65,-0.3)
+    {título, referencia, estado y perfil actuales};
+
+  \node[caja, text width=2.75cm, minimum height=0.75cm] (asig) at (1.7,-1.6) {Asignación del creador};
+  \node[cajaClara, text width=2.6cm, minimum height=0.75cm] (eta) at (5.2,-1.6) {Registro inicial: Investigación, etapa 1};
+  \draw[flecha] (raiz) -- (asig);
+  \draw[flecha] (eta) -- node[etq, right=1pt]{R1 exacta} (r1);
+
+  \node[cajaGris, dashed, text width=6.3cm, minimum height=0.75cm] at (10.45,-1.6)
+    {Raíz legada sin revisiones: se presenta como R0 activa, con perfil y procedencia ausentes; no existe una fila cero};
+
+  % Estados que cambian por revisión
+  \node[font=\diag\bfseries, text=ESCOMAzulOscuro, anchor=west] at (0,-3.2) {estado:};
+  \node[caja, text width=1.5cm] (act) at (2.15,-3.2) {Activo};
+  \node[cajaOsc, text width=1.5cm] (cer) at (5.2,-3.2) {Cerrado};
+  \draw[flecha] ([yshift=1.5mm]act.east) -- node[etq, above=1pt]{cerrar} ([yshift=1.5mm]cer.west);
+  \draw[flecha] ([yshift=-1.5mm]cer.west) -- node[etq, below=1pt]{reactivar} ([yshift=-1.5mm]act.east);
+  \node[font=\diag\bfseries, text=ESCOMAzulOscuro, anchor=west] at (7.1,-3.2) {perfil:};
+  \node[caja, text width=1.6cm] (pen) at (9.15,-3.2) {Pendiente};
+  \node[cajaClara, text width=1.6cm] (com) at (12.2,-3.2) {Completo};
+  \draw[flecha] (pen) -- node[etq, above=1pt]{completar} (com);
+  \draw[flechaError] (com.east) -- node[etq, above=1pt, text=IPNGuinda]{retirar} ++(1.0,0)
+    node[right=1pt, font=\diag, text=IPNGuinda]{409};
+
+  % Contenido de cada revisión
+  \node[nota, text width=15.6cm, anchor=north west] at (0,-3.75)
+    {Cada cambio (editar, cerrar, reactivar o completar el perfil) agrega una revisión con su huella, instante y autor, aunque repita valores; ninguna se reescribe.};
+\end{tikzpicture}

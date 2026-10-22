@@ -1,5 +1,81 @@
 # Verificación de la actualización académica
 
+## Rediseño del capítulo de implementación: 22 de octubre de 2026
+
+El capítulo 4 se reescribió para que los diagramas sustituyan a la prosa
+técnica. Sus 37 archivos conservan nombres e inclusiones; la prosa pasó de unas
+53 000 a unas 25 000 palabras y las seis figuras anteriores se sustituyeron por
+cincuenta y cinco figuras TikZ de bloques, secuencia, estados y estructura
+(`latex/figures/fig-04[a-m]-*.tex`), con los estilos de
+`latex/config/diagramas.tex`. La apertura reemplaza el inventario de funciones
+por un mapa del capítulo con la sección, los casos de uso y la figura guía de
+cada dominio. Cada sección cierra con sus límites y una línea de fuentes
+uniforme (`\Fuentes`, definida en `latex/config/preamble.tex`).
+
+Antes de condensar cada sección se extrajo de su versión anterior una lista de
+cifras, fechas, versiones, límites, limitaciones y pendientes. Cada elemento
+quedó una vez en el capítulo o se remite al lugar donde ya estaba: el diseño
+del capítulo 3, las pruebas del capítulo 5, los anexos A a E o la documentación
+de `docs/`. Una revisión independiente comprobó que cada remisión contiene lo
+que la frase promete; las que no lo hacían se corrigieron en origen. Se
+conservaron todas las etiquetas citadas desde otros capítulos.
+
+Fuera del capítulo 4, las referencias a secciones de anexo se imprimen ahora
+como «sección» y no como «apéndice», con los artículos ajustados en los
+capítulos 5 y anexo E. El anexo E cuenta diez jobs en
+`.github/workflows/ci.yml` y su tabla incluye `reuse` (ADR 0082), que omite
+`test` y `coverage` en un push a `main` cuando ya aprobó una solicitud de
+integración con el mismo árbol.
+
+Se compiló con LuaHBTeX 1.17.0, biber 2.22 y latexmk 4.88 con el nombre de
+trabajo `main-rework`: **372 páginas**, 2038620 bytes, SHA-256
+`f40be99ece13c40abac3e49aad0bd7ba489eb2238c97effebb54004ab128ac10`, sin
+referencias ni citas sin resolver, etiquetas duplicadas, glifos ausentes ni
+guiones largos visibles en el capítulo 4. El capítulo ocupa las páginas lógicas
+82 a 151, frente a 82 a 188 de la revisión anterior. Persisten los dos avisos
+`Overfull hbox` menores fuera de los capítulos 3 y 4. Se inspeccionaron las
+páginas físicas 101 a 170 y se corrigieron solapes, huecos y referencias
+imprecisas. Las figuras anteriores del capítulo (`dominios-implementacion`,
+`trust-boundaries-current`, `ports-adapters-current`, `operacion-auditada`,
+`capas-plazos` y `qadra-sesion`) ya no se incluyen. El PDF generado no se
+añadió a Git.
+
+## Rediseño del capítulo de análisis y diseño: 22 de octubre de 2026
+
+El capítulo 3 se dividió en ocho archivos de sección y se reescribió para
+reducir densidad y tecnicismos. Las historias de usuario pasaron a una tabla
+con su caso de uso; los casos de uso, a fichas compactas con trazabilidad; los
+requerimientos y los riesgos, a tablas por categoría. Las diecisiete figuras de
+casos de uso y las imágenes raster `image24.png`, `image25.png` y `image27.png`
+se sustituyeron por treinta figuras TikZ de bloques, secuencia y estructura,
+con los estilos compartidos de `latex/config/diagramas.tex`. Esos estilos usan
+TeX Gyre Heros, incluida en TeX Live. Los subarchivos de informes, bitácora,
+participantes y audiencias se integraron en las nuevas secciones.
+
+Cada sección se contrastó contra su texto anterior y la documentación de
+`docs/` para no añadir afirmaciones ni perder limitaciones de alcance. Se
+revisaron después el capítulo integrado página por página y su coherencia entre
+secciones. En el análisis de riesgos, los VME de RTC-05 y RLC-04 se recalcularon
+con la fórmula declarada (probabilidad, horas, desarrolladores y tarifa) y el
+impacto de RTC-04 se expresó en horas coherentes con su VME; la reserva pasó a
+\$43,703.13 y el presupuesto conocido a \$81,203.13.
+
+Fuera del capítulo 3 se sustituyeron por comas, paréntesis o dos puntos los
+guiones largos visibles de veinte archivos, y el glosario dejó de formar
+guiones largos en el encabezado PEM. Quedan cinco en títulos oficiales de
+normas ISO de la bibliografía.
+
+Se compiló con LuaHBTeX 1.17.0 (TeX Live 2023), biber 2.22 y latexmk 4.88 en
+la copia de trabajo, con el nombre de trabajo `main-rework`. Produjo
+**406 páginas**, 1992913 bytes, SHA-256
+`16f9e62ee0081cab87c7535711a4c9abd3e1e09db2750332587974f1e1b6a9ea`, sin
+referencias ni citas sin resolver, etiquetas duplicadas ni glifos ausentes. El
+capítulo 3 ocupa las páginas lógicas 30 a 81, frente a 30 a 135 de la revisión
+anterior. Persisten dos avisos `Overfull hbox` menores, ninguno en el capítulo 3.
+Se inspeccionaron todas las páginas físicas 47 a 100 y se corrigieron
+solapes, huecos de maquetación y referencias imprecisas. El PDF generado no se
+añadió a Git.
+
 ## Catálogo de identidad de una sola instancia: 21 de octubre de 2026
 
 Por indicación del autor se retiró del manuscrito el registro comercial de

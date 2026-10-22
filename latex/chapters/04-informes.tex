@@ -1,199 +1,102 @@
 \subsection{Informes durables de expedientes}\label{sec:impl-informes}
 
-Las dos modalidades de informe, estado de expedientes y actividad atribuida,
-comparten la solicitud autenticada, la persistencia
-transaccional, el cifrado de capturas y artefactos, el renderizado acotado y la
-consulta desde Qadra. \texttt{CaseReportWorkflow} delimita el puerto de aplicación;
-HTTP expone solicitud, listado propio, detalle, selector de litigantes, acuse y
-descarga bajo \texttt{/api/v1/case-reports}. El adaptador PostgreSQL comprueba la
-identidad completa, la generación de autorización y las pertenencias dentro de
-la transacción auditada. Los cambios posteriores de permisos no quedan
-neutralizados por conservar una sesión o por devolver a la cuenta su rol
-anterior. El consumo de recuperación que sólo incrementa la revisión de cuenta
-no invalida por sí mismo el informe.
+Dos modalidades, estado de expedientes y actividad atribuida, comparten
+solicitud autenticada, persistencia transaccional, cifrado de capturas y
+artefactos, renderizado acotado y consulta en Qadra; su secuencia es la de la
+\cref{fig:cu-16}.
 
-En la modalidad de estado, el intervalo filtra la creación original y el estado
-se observa al capturar, según la \cref{sec:diseno-informes}. El filtro opcional por litigante limita los
-expedientes; no elimina del resumen a otros litigantes asignados a esos mismos
-casos. La captura conserva filtros, instante de observación, identificadores,
-revisiones administrativas, asignaciones y carga derivada. Repetir una operación
-con sus mismos filtros devuelve el trabajo original; cambiar los filtros con
-el mismo identificador produce conflicto. Ante una respuesta incierta, Qadra
-conserva esa identidad con los filtros exactos; un informe listado no confirma
-la solicitud, y sólo repetir explícitamente el mismo comando, sin consulta previa
-del listado, obtiene del servidor el trabajo original como resultado durable
-(fila Informes de la \cref{tab:impl-qadra-vistas}).
+\paragraph{Solicitud y autorización.} El adaptador comprueba la identidad
+completa, la generación de autorización y las pertenencias dentro de la
+transacción auditada: conservar la sesión o devolver a la cuenta su rol anterior
+no neutraliza un cambio de permisos, y entrar con un código de recuperación
+MFA no invalida por sí solo un informe ya solicitado. Repetir la operación
+con los mismos filtros devuelve el trabajo original y cambiar tipo o filtros
+bajo el mismo identificador produce conflicto (respuesta incierta: \cref{tab:impl-qadra-vistas}). En la modalidad de estado
+(\cref{sec:diseno-informes}), el filtro por litigante limita los expedientes sin
+quitar del resumen a otros litigantes asignados, y la captura conserva filtros,
+instante de observación, identificadores, revisiones administrativas,
+asignaciones y carga derivada.
 
-\paragraph{Atribución de actividad.}
-La modalidad de actividad reutiliza las rutas, permisos, cola, captura cifrada,
-renderizado y avisos del informe de estado. La solicitud distingue el tipo
-\texttt{litigator\_activity} y un intervalo del instante de operación, independiente
-del intervalo de creación de expedientes. Cambiar de tipo o filtros bajo una
-identidad de operación existente produce conflicto. Los informes de estado
-omiten ese tipo en HTTP y conservan sus filtros de creación y de litigante
-asignado, su almacenamiento y sus bytes canónicos; la actividad utiliza una
-captura de versión dos y dominios canónicos separados para la solicitud y el
-resultado (\cref{tab:anexo-canones}).
+\paragraph{Cola y generación.} Un consumidor serial supervisado dentro de
+\texttt{serve}, con parada coordinada, toma los trabajos
+(\cref{fig:impl-informe-estados}). Cada trabajo tomado lleva una marca de
+intento que toda escritura comprueba, de modo que un proceso anterior no puede
+publicar sobre uno posterior.
 
-{\emergencystretch=3em La atribución de las cargas documentales se apoya en la migración
-\rutarepo{migrations/0043_document_upload_origins.sql} (\cref{tab:anexo-migraciones}),
-que conserva el origen de cada carga documental nueva en la misma transacción
-que el documento y su auditoría. Registra documento, expediente, UUID y correo
-capturado del autor, instante de registro y secuencia del evento de carga. Las
-versiones de contenido y las clasificaciones posteriores no crean otro origen.
-Los registros antiguos sin ese origen permanecen identificados como cobertura
-documental incompleta del informe; no se les atribuye retrospectivamente una
-cuenta por coincidencia de correo.\par}
+\begin{figure}[t]
+  \centering
+  \input{figures/fig-04k-informe-estados}
+  \caption{Estados de un trabajo de informe. Solo los errores transitorios esperan reintento.}
+  \label{fig:impl-informe-estados}
+\end{figure}
 
-La agregación se delimita a tres cantidades por expediente y autor: documentos
-originales cargados, actuaciones originales registradas y plazos atendidos.
-Las actuaciones comprenden resoluciones/notificaciones, los cinco tipos de actos
-de recursos, sesiones/resultados de audiencias y decisiones judiciales cautelares.
-Se utiliza la identidad del registro original, su cuenta autora y su instante
-de confirmación; una corrección, un reintento exacto o una medida contenida en
-una decisión no produce otra actuación. Los acuerdos de una sesión o resultado
-tampoco se cuentan por separado. La atención aporta una cantidad por plazo y
-autor dentro del periodo cuando cambia de pendiente a registrada, sin sumar
-las ediciones posteriores de su texto. Las pruebas de la
-\cref{sec:pruebas-informes} contrastan estas cantidades con los registros
-originales y los reintentos recuperados por revisión exacta.
+Cada formato se genera en un proceso hijo
+(\cref{tab:impl-informes-presupuestos}) cuyos controles limitan recursos y
+separan la ejecución, pero no aíslan permisos, archivos ni red. Los presupuestos
+se aplican juntos: un exceso falla sin omitir datos, y no se rebajan para
+aceptarlo. El renderizado ocurre fuera de la transacción de auditoría y revalida
+el acceso a toda la captura antes de publicar. Capturas y artefactos
+(\cref{tab:anexo-migraciones}) son inmutables y se cifran con envoltura de
+claves ligada a informe, tipo y digest (\cref{tab:anexo-canones}). La descarga
+y el acuse de recibo (que no equivale a consultar ni a descargar) siguen el
+contrato de \rutarepo{docs/case-reports-api.md}.
 
-El selector de actividad incluye autores de fuentes capturables en expedientes
-accesibles aunque ya no estén asignados a ellos, conservando la elegibilidad
-actual de cuenta activa y rol Litigante. El acceso del solicitante a todos los
-expedientes se comprueba de nuevo al consultar o descargar. La captura conserva
-las filas por expediente y autor; PDF y CSV derivan de ellas los mismos totales
-y el mismo digest. El CSV incorpora la marca \texttt{documents\_complete} y el
-PDF presenta el aviso de cobertura cuando faltan orígenes documentales. Así,
-una reasignación posterior no modifica la autoría ni los archivos ya generados.
+\paragraph{Atribución de actividad.} La modalidad de actividad atribuida
+filtra por el instante de operación, no por la creación del expediente, y
+reutiliza el resto del flujo con una captura de versión dos y dominios
+canónicos propios (\cref{tab:anexo-canones}). Cuenta por expediente y autor documentos originales,
+actuaciones originales y plazos atendidos (al pasar de pendiente a registrado),
+sin puntuar éxito jurídico; las reglas de conteo se detallan en la
+\cref{anexo:informes}. El selector admite
+autores ya no asignados, con cuenta activa y rol Litigante; reasignar no cambia
+la autoría ni los archivos generados. Cada carga nueva registra su origen con
+el documento y su auditoría; versiones y clasificaciones
+posteriores no crean otro, y las cargas antiguas sin origen quedan como
+cobertura incompleta, sin atribuirlas por coincidencia de correo.
 
-\paragraph{Persistencia y recuperación.}
-La migración \rutarepo{migrations/0026_case_reports.sql} añade solicitudes,
-capturas, artefactos y avisos. Las solicitudes mantienen la identidad original
-junto con el estado de ejecución. Capturas y artefactos son inmutables: se
-protegen mediante los puertos de cifrado autenticado y envoltura de claves,
-ligando identificador de informe, tipo de contenido y digest. Los dos formatos
-proceden de los mismos bytes canónicos, incluso después de reintentar un
-renderizado. No se crea una identidad documental ni un sello jurídico para la
-exportación. La KEK y la copia consistente de PostgreSQL son necesarias para
-restaurar solicitudes, autorizaciones y resultados.
+\begin{table}[t]
+  \centering
+  \small
+  \caption{Presupuestos y parámetros de los informes.}
+  \label{tab:impl-informes-presupuestos}
+  \begin{tabularx}{\linewidth}{@{}L{0.17\linewidth}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Proceso hijo & Uno por formato, con entorno vacío y la captura sellada en memoria. CPU 15 s, memoria virtual 512 MiB, tiempo real 20 s y salida de 16 MiB; no escribe archivos ni volcados. \\
+    Capturas & Estado: 1000 expedientes, 10\,000 asignaciones, 1000 litigantes, 8 MiB canónicos. Actividad: 1000 autores, 10\,000 pares expediente y autor. \\
+    PDF y CSV & PDF de hasta 512 páginas y un millón de glifos, con fuentes incorporadas. CSV estándar con textos protegidos frente a fórmulas. Mismas filas, totales y digest en ambos; el CSV indica en una columna si la cobertura documental es completa y el PDF avisa cuando no lo es. \\
+    Estimación & Mediana de los 64 trabajos previos comparables (mismo tipo y alcance), escalada por volumen; exige al menos 3 de volumen similar y en cola suma lo que espera delante. Es nula sin historial comparable, con costo previo desconocido o con más de 100 trabajos delante. \\
+    Correo & Cada intento dura 30 s como máximo (2 s para conectar, 5 s por llamada); un resultado incierto se reintenta tras 60 s dentro de una ventana de 24 h. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
-\texttt{serve} incorpora un consumidor serial supervisado con parada coordinada.
-La cola persistente concede cada trabajo por dos minutos mediante identificador,
-intento, token y generación; las renovaciones amplían la concesión en dos
-minutos. Cada escritura comprueba la concesión completa y su vigencia. Un
-proceso anterior no puede publicar sobre un intento posterior. Los errores
-transitorios elegibles admiten hasta cinco intentos, con una espera de treinta
-segundos multiplicada por el número de intento. El procesamiento puede recuperar
-un trabajo interrumpido sin recapturar un resultado ya persistido.
+{\emergencystretch=3em\paragraph{Estimación y aviso por correo.} La solicitud guarda la predicción
+opcional del tiempo total, que repetir no reemplaza; solo un valor
+estrictamente mayor de 2000 ms crea la intención de correo al publicar, y no hay
+correo retrospectivo para informes sin predicción. El canal está deshabilitado
+por omisión y se activa al configurar remitente, URL pública HTTPS y credencial
+del proveedor. Sin consumidor, la intención queda pendiente. El primer
+reclamo fija destinatario, mensaje genérico y UUID de entrega, que los
+reintentos conservan aunque cambie la configuración; agotar la ventana deja un
+resultado incierto terminal. Un fallo del canal no retira los artefactos.\par}
 
-El renderizado se ejecuta fuera de la transacción de auditoría. Antes de publicar
-se revalida el acceso a toda la captura y una sola confirmación guarda ambos
-artefactos, el estado disponible, el aviso y, cuando corresponde, la intenci\'on
-de correo descrita a continuaci\'on. Tambi\'en la descarga comprueba el
-conjunto completo. Perder una pertenencia impide obtener el archivo, sin
-recortarlo ni fabricar una nueva captura. El acuse registra únicamente la
-primera lectura del aviso; consultar el detalle o descargar no lo sustituye.
+\paragraph{Vista en Qadra.} Permite filtrar, solicitar, actualizar, consultar
+trabajos, acusar avisos y descargar; distingue espera, captura, renderizado,
+reintento, disponibilidad y fallo, sin porcentajes ni fechas garantizadas.
+Muestra por separado la estimación (milisegundos positivos o nulo) y el estado
+del correo (\cref{sec:pruebas-informes}); para un trabajo terminado, la
+duración observada hasta el aviso, con cola y reintentos, que el acuse no
+amplía. Antes de ofrecer una descarga contrasta identificador, captura, tamaño
+y digest con el detalle autorizado.
 
-\paragraph{Estimaci\'on inicial y aviso por correo.}
-La solicitud conserva una predicci\'on opcional del tiempo total hasta disponer
-de ambos formatos; repetir la operaci\'on no la reemplaza. El estimador utiliza
-los \'ultimos 64 informes completados en un solo intento del mismo tipo y
-alcance de autorizaci\'on.
-Exige al menos tres observaciones con servicio positivo y volumen de expedientes
-dentro del 25\% del solicitado. Escala cada duraci\'on por la raz\'on entre el
-volumen solicitado m\'as uno y el volumen observado m\'as uno, y toma la mediana.
-La previsi\'on de espera considera el orden UUID del consumidor serial, trabajo
-activo, elegibilidad de reintentos y pausas de un segundo. M\'as de cien
-predecesores o un costo anterior desconocido dejan el total sin estimaci\'on;
-tampoco se extrapola cuando falta historial comparable.
+{\sloppy\paragraph{Límites.} La exportación no crea identidad documental ni
+sello jurídico, y que el servidor la componga no acredita despliegue, una
+campaña global de pruebas aprobada, efectividad jurídica, firma personal ni
+constancia de un PSC. Restaurar requiere la clave maestra de cifrado (KEK) y una
+copia consistente de PostgreSQL; el aviso por correo conserva destinatario,
+identificador y ventana, sin reiniciarla ni garantizar entrega única. El aviso de un informe concreto no se ha ejercitado en producción ni hay
+evaluación con personas.\par}
 
-Una predicci\'on inicial estrictamente mayor de 2000 milisegundos incorpora una
-intenci\'on de correo a la misma transacci\'on que publica PDF, CSV, disponibilidad,
-aviso interno y auditor\'ia. Exactamente 2000 milisegundos, un valor ausente y
-un resultado fallido no crean esa intenci\'on. La migraci\'on
-\rutarepo{migrations/0047_case_report_readiness.sql} conserva estimaciones y
-entregas; los informes registrados sin predicci\'on no generan correo
-retrospectivo, y un fallo del canal no retira los artefactos disponibles.
-
-Un consumidor opcional comparte el almac\'en de informes y la parada supervisada.
-Su primer reclamo fija destinatario, mensaje gen\'erico y UUID de entrega; los
-reintentos mantienen ese sobre aunque cambie la configuraci\'on. Antes de llamar
-al proveedor se comprueban la identidad original, la generaci\'on de autenticaci\'on
-y el acceso al conjunto capturado. La concesi\'on dura como m\'aximo treinta
-segundos y la composici\'on limita la conexi\'on a dos segundos y la llamada a
-cinco. Una respuesta incierta admite otro intento despu\'es de sesenta segundos,
-s\'olo dentro de la ventana original de idempotencia de veinticuatro horas;
-agotarla deja un resultado incierto terminal. Las escrituras comprueban entrega,
-concesi\'on, generaci\'on e instante para rechazar resultados atrasados.
-
-El mensaje no contiene datos del expediente, adjuntos, credenciales ni enlaces
-p\'ublicos de descarga: abre la entrada de informes con autenticaci\'on obligatoria.
-El canal permanece deshabilitado por defecto. Su activaci\'on exige
-\texttt{TT\_REPORT\_EMAIL\_ENABLED=true}, remitente en
-\texttt{REPORT\_EMAIL\_FROM}, origen HTTPS en \texttt{REPORT\_PUBLIC\_URL} y
-credencial \texttt{RESEND\_API\_KEY}. La intenci\'on puede permanecer pendiente
-mientras el consumidor est\'a deshabilitado. Restaurar conserva el sobre, UUID y
-ventana existentes; no reinicia esa ventana ni promete entrega exactamente una
-vez. Estas decisiones se delimitan en
-\rutarepo{docs/adr/0076-report-estimates-and-ready-email.md}.
-
-\paragraph{Presupuestos del renderizador.}
-Para generar el PDF y el CSV de cada informe, el adaptador Linux invoca, por
-cada formato, una entrada privada del mismo ejecutable confiable. Recibe la
-captura en memoria sellada, con entorno vacío, sin los descriptores heredados de los servicios y con un protocolo de salida ligado al
-informe y al digest. El proceso padre controla el grupo hijo y su terminación.
-Los límites por formato son quince segundos de CPU, 512 MiB de espacio virtual
-y veinte segundos de tiempo de pared. El crecimiento de archivos regulares y
-los volcados de memoria tienen límite cero; la salida se acota al artefacto de
-16 MiB y su cabecera. Estos controles limitan recursos y separan la ejecución,
-pero no crean un aislamiento adicional de permisos, archivos o red.
-
-La captura de estado admite hasta mil expedientes, diez mil pares de asignación
-y mil litigantes en el resumen, con un máximo canónico de 8 MiB. La actividad
-conserva los presupuestos comunes y admite hasta mil autores y diez mil pares
-de expediente y autor. El PDF limita además la composición a 512 páginas y un
-millón de glifos, con fuentes incorporadas y
-rechazo explícito de caracteres no soportados. El CSV utiliza registros RFC
-4180 y protege textos no confiables frente a fórmulas de hoja de cálculo. Los
-presupuestos se aplican conjuntamente: el máximo de filas no garantiza que
-el resultado quepa en los límites de páginas, memoria y tiempo, incluso con
-campos cortos. Un exceso falla sin omitir datos para aparentar un informe completo.
-Cada instancia de fuente reutiliza su plan tipográfico para medir y dibujar
-texto latino de izquierda a derecha con las mismas opciones. Las líneas se
-componen por separado para respetar sus extremos y sus ligaduras;
-no se rebajan los presupuestos para aceptar un artefacto.
-
-\paragraph{Presentación en Qadra y alcance.}
-Qadra permite filtrar, solicitar, actualizar el estado, consultar trabajos,
-acusar avisos y descargar un formato. Distingue espera, captura, renderizado,
-reintento, disponibilidad y fallo; no estima porcentajes ni garantiza fechas de
-finalizaci\'on. Presenta por separado la estimaci\'on inicial incluida la espera,
-o su ausencia cuando no existe una predicci\'on disponible. HTTP transmite
-\texttt{estimated\_total\_ms} como milisegundos positivos o nulo, y
-\texttt{ready\_email} como nulo sin intenci\'on o como \texttt{pending},
-\texttt{accepted}, \texttt{rejected}, \texttt{uncertain} o
-\texttt{access\_revoked}. La aceptaci\'on del proveedor no acredita recepci\'on
-en la bandeja; tampoco el estado pendiente promete un env\'io ya realizado.
-Para un resultado disponible o fallido presenta la duraci\'on observada entre la
-solicitud y su aviso terminal, incluida la espera en cola y los reintentos.
-El acuse posterior del aviso no amplía ese intervalo. Esta medición de un trabajo
-terminado no constituye una predicción para solicitudes pendientes.
-El selector paginado de estado conserva también los colegas compartidos sólo
-en expedientes cerrados. La actividad conserva el selector de autores descrito
-anteriormente. Antes de ofrecer una descarga, el cliente contrasta identificador,
-captura, tamaño y digest con el detalle autorizado.
-
-El contrato \rutarepo{docs/case-reports-api.md} y la operación de respaldo en
-\rutarepo{docs/database-operations.md} describen estas fronteras. La decisión
-\rutarepo{docs/adr/0060-durable-authorized-case-reports.md} documenta las decisiones de autorización,
-persistencia y publicación conjunta, cuya aceptación integrada se presenta en la
-\cref{sec:pruebas-informes}. La composición del servidor no acredita por sí sola
-un despliegue, una campaña global aprobada, efectividad jurídica, firma personal
-o constancia emitida por un PSC. La atribución y el catálogo finito de actividad
-se delimitan en \rutarepo{docs/adr/0073-author-attributed-activity-reports.md}.
-La estimaci\'on y el correo implementan el flujo alterno de la \cref{tab:cu-16};
-la instalaci\'on productiva habilita ese canal mediante Resend. La validaci\'on de la precisi\'on, las pruebas de esos mecanismos y la aceptaci\'on
-reproducida de las tres cantidades de actividad se presentan en la
-\cref{sec:pruebas-informes} y se distinguen de una evaluaci\'on de \'exito
-jur\'idico o de usabilidad con personas.
+\Fuentes{\rutarepo{docs/case-reports-api.md},
+\rutarepo{docs/database-operations.md} y las ADR 0060, 0073 y 0076
+(\rutarepo{docs/adr/}).}

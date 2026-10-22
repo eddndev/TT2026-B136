@@ -1,0 +1,37 @@
+\begin{tikzpicture}[
+  tramo/.style={draw=ESCOMGris, dotted, line width=0.5pt},
+  tramoL/.style={font=\diag\bfseries, text=ESCOMAzulOscuro, fill=white,
+    anchor=west, inner sep=1.5pt}]
+  \Actores{lit/1.8/{Litigante\\ (Qadra)},api/7.6/{API del despacho},pg/13.6/{PostgreSQL}}{-13.9}
+
+  % ==== CU-05 ====
+  \draw[tramo] (0,-0.9) -- (16,-0.9);
+  \node[tramoL] at (3.25,-0.9) {CU-05: registro del expediente};
+  \Msg{1.8}{7.6}{-1.45}{\textbf{1} título, referencia, NUC, carpeta y delitos}
+  \Paso{7.6}{-1.6}{4.0}{Valida los datos obligatorios}
+  \Msg{7.6}{13.6}{-2.45}{expediente con perfil penal}
+  \Paso{13.6}{-2.6}{4.0}{Una transacción: expediente, asignación del creador, primera revisión y etapa Investigación. NUC y carpeta deben ser únicos}
+  \Msg[msgR]{7.6}{1.8}{-2.95}{expediente registrado}
+  \Paso[pasoError]{7.6}{-3.1}{4.0}{Dato faltante o identificador repetido: rechazo, sin revelar el otro expediente}
+
+  % ==== CU-06 ====
+  \draw[tramo] (0,-4.25) -- (16,-4.25);
+  \node[tramoL] at (3.25,-4.25) {CU-06: participante del expediente};
+  \Msg{1.8}{7.6}{-4.8}{\textbf{2} identidad, rol y soportes}
+  \Msg{7.6}{13.6}{-5.3}{busca coincidencias}
+  \Msg[msgR]{7.6}{1.8}{-5.8}{candidatos por nombre, identificador o certificado}
+  \Paso{1.8}{-5.95}{3.2}{Reutiliza una identidad o declara que es distinta, con motivo y soporte}
+  \Msg{1.8}{7.6}{-7.4}{\textbf{3} confirmación (y firma, si se exige)}
+  \Paso{7.6}{-7.55}{4.0}{Valida los campos de su tipo. Defensor y juez de control: firma con certificado de la CA interna. Rechaza un rol repetido para la misma identidad}
+  \Msg{7.6}{13.6}{-9.35}{ficha y evento}
+
+  % ==== CU-07 ====
+  \draw[tramo] (0,-9.8) -- (16,-9.8);
+  \node[tramoL] at (3.25,-9.8) {CU-07: transición de etapa};
+  \Msg{1.8}{7.6}{-10.35}{\textbf{4} etapa destino, fecha declarada y soporte}
+  \Paso{7.6}{-10.5}{4.0}{Descifra la versión elegida, compara su huella SHA-256 y admite solo PDF o DOCX}
+  \Msg{7.6}{13.6}{-11.95}{transición y evento}
+  \Paso{13.6}{-12.1}{4.0}{Revalida perfil completo, expediente activo y revisión de etapa; el registro no se revierte}
+  \Msg[msgR]{7.6}{1.8}{-12.45}{nueva etapa registrada}
+  \Paso[pasoError]{7.6}{-12.6}{4.0}{Sin soporte o formato no admitido: rechazo; la carga ya confirmada se conserva}
+\end{tikzpicture}

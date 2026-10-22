@@ -1,0 +1,32 @@
+\begin{tikzpicture}[
+  ctx/.style={caja, text width=4.4cm, minimum height=1.15cm},
+  cu/.style={font=\diag, text=ESCOMAzul}]
+
+  % Contextos funcionales
+  \node[ctx] (cal) at (2.3,0)
+    {\textbf{Calendario, plazos y alertas}\\ {\diag CU-08 a CU-10}\\ audiencias y calendario judicial};
+  \node[ctx] (cas) at (8.0,0)
+    {\textbf{Gestión procesal}\\ {\diag CU-05 a CU-07}\\ expedientes, participantes, etapas};
+  \node[ctx] (ida) at (13.7,0)
+    {\textbf{Identidad y acceso}\\ {\diag CU-01 a CU-04}\\ cuentas, sesiones, MFA, roles};
+  \node[ctx] (ops) at (2.3,-2.3)
+    {\textbf{Operación y monitoreo}\\ {\diag CU-15 a CU-17}\\ tablero, informes, bitácora};
+  \node[ctx] (doc) at (8.0,-2.3)
+    {\textbf{Documentos y custodia}\\ {\diag CU-11 y CU-12}\\ carga, versiones, clasificación};
+  \node[ctx] (fir) at (13.7,-2.3)
+    {\textbf{Firma}\\ {\diag CU-13 y CU-14}\\ firma individual y verificación};
+
+  % Servicio compartido
+  \node[cajaOsc, text width=5.6cm, minimum height=1.0cm] (cry) at (10.8,-4.55)
+    {\textbf{Servicios criptográficos} (compartido)\\ {\diag hash, cifrado, firma, sellado y verificación}};
+
+  % Dependencias
+  \draw[flecha] (cas) -- (ida);
+  \draw[flecha] (cal) -- (cas);
+  \draw[flecha] (doc) -- (cas);
+  \draw[flecha] (fir) -- (doc);
+  \draw[flecha] (ops) -- node[etq, right]{plazos} (cal);
+  \draw[flecha] (ops) -- (doc);
+  \draw[flecha] (doc.south -| 8.6,0) -- (8.6,-4.05);
+  \draw[flecha] (fir.south -| 13.0,0) -- (13.0,-4.05);
+\end{tikzpicture}

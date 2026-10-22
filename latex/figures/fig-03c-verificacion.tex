@@ -1,0 +1,26 @@
+\begin{tikzpicture}[
+  k/.style={caja, text width=6.3cm, minimum height=0.62cm}]
+  \node[cajaOsc, text width=9cm, minimum height=0.7cm] (sel) at (8,0)
+    {Usuario autorizado elige la versión exacta; se carga su contenido cifrado y la evidencia capturada};
+  % Zonas
+  \draw[zona] (0.1,-1.0) rectangle (7.85,-6.0);
+  \draw[zona] (8.15,-1.0) rectangle (15.9,-6.0);
+  \node[zonaLabel] at (0.1,-1.0) {RESULTADO HISTÓRICO};
+  \node[zonaLabel] at (8.15,-1.0) {ESTADO ACTUAL};
+  \node[k] (h1) at (3.975,-1.75) {Contenido: descifra y recalcula la huella};
+  \node[k] (h2) at (3.975,-2.7) {Firmas del PDF, del vínculo y del consentimiento};
+  \node[k] (h3) at (3.975,-3.65) {Certificado y lista de revocación vigentes al firmar};
+  \node[k] (h4) at (3.975,-4.6) {Sello de tiempo comprobado contra la huella del PDF};
+  \node[cajaError, text width=6.3cm] (h5) at (3.975,-5.5) {Alteración o sello inválido: no se acepta la verificación};
+  \node[k] (c1) at (12.025,-1.75) {Certificado evaluado con la confianza actual};
+  \node[k] (c2) at (12.025,-2.7) {Retiro posterior del vínculo};
+  \node[cajaGris, text width=6.3cm, minimum height=0.62cm] (c3) at (12.025,-3.65) {Sin confianza vigente: estado actual no disponible};
+  \node[cajaClara, text width=6.3cm] (c4) at (12.025,-4.85) {Revocación, expiración o retiro posteriores se informan, sin reescribir el resultado histórico};
+  \draw[flecha] (3.975,-0.35) -- (3.975,-1.0);
+  \draw[flecha] (12.025,-0.35) -- (12.025,-1.0);
+  \foreach \a/\b in {h1/h2,h2/h3,h3/h4,c1/c2,c2/c3} \draw[flecha] (\a) -- (\b);
+  \node[cajaOsc, text width=12cm, minimum height=0.7cm] (inf) at (8,-6.8)
+    {Informe con ambos resultados por separado. Los contratos sellados antes de que existiera la firma individual no se atribuyen a ninguna persona};
+  \draw[flecha] (3.975,-6.0) -- (3.975,-6.4);
+  \draw[flecha] (12.025,-6.0) -- (12.025,-6.4);
+\end{tikzpicture}

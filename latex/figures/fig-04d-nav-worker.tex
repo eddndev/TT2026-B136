@@ -1,0 +1,50 @@
+\begin{tikzpicture}[
+  ent/.style={caja, text width=2.9cm, minimum height=1.0cm},
+  op/.style={caja, text width=2.75cm, minimum height=1.0cm},
+  srv/.style={caja, text width=3.6cm, minimum height=1.0cm},
+  ev/.style={etq, align=center}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (10.7,-5.75);
+  \draw[zona, fill=white] (3.95,-0.55) rectangle (10.45,-5.5);
+  \draw[zona] (11.5,0) rectangle (16,-5.75);
+  \node[zonaLabel] at (0,0) {EQUIPO DEL TITULAR · PÁGINA DE QADRA};
+  \node[zonaLabel] at (3.95,-0.55) {WORKER RUST/WASM · UNO POR OPERACIÓN};
+  \node[zonaLabel] at (11.5,0) {SERVIDORES};
+
+  % Entradas y custodia del titular
+  \node[ent] (in1) at (1.9,-1.45) {Nombre, organización, país y contraseña nueva};
+  \node[cajaClara, text width=2.9cm, minimum height=1.0cm] (disco) at (1.9,-2.95)
+    {\textbf{Disco del titular}: PEM cifrado; contraseña aparte};
+  \node[ent] (in3) at (1.9,-4.45) {Contraseña, bytes preparados, certificado y huella};
+
+  % Generación
+  \node[op] (gen) at (5.6,-1.45) {\textbf{Genera} RSA-3072 y el CSR PKCS\#10};
+  \node[op] (cif) at (8.8,-1.45) {\textbf{Cifra} la clave en PKCS\#8 con PBES2};
+  \node[op] (cmp) at (5.6,-2.95) {\textbf{Comprueba} la copia elegida de nuevo: abre y coincide con el CSR};
+  % Firma
+  \node[op] (abr) at (5.6,-4.45) {\textbf{Abre} la clave; la compara con certificado y huella};
+  \node[cajaOsc, text width=2.75cm, minimum height=1.0cm] (fir) at (8.8,-4.45)
+    {\textbf{Firma} los bytes: 384~B};
+
+  % Servidores
+  \node[srv] (ca) at (13.75,-2.95) {\textbf{CA}: recibe solo el CSR público y decide la emisión};
+  \node[srv] (api) at (13.75,-4.45) {\textbf{API Qadra}: recibe la firma; verifica permisos, propósito, bytes, vigencia, confianza y revocación};
+
+  % Flujo de generación
+  \draw[flecha] (in1) -- (gen);
+  \draw[flecha] (gen) -- (cif);
+  \draw[flecha] (cif.south) -- (8.8,-2.2) -- node[ev, fill=white, inner sep=1pt, pos=0.5]{descarga} (1.9,-2.2) -- (disco.north);
+  \draw[flecha] (disco) -- (cmp);
+  \draw[flecha] (cmp) -- node[ev, above, pos=0.33]{libera el CSR} (ca);
+  % Flujo de firma
+  \draw[flecha] (disco) -- node[ev, right]{clave} (in3);
+  \draw[flecha] (in3) -- (abr);
+  \draw[flecha] (abr) -- (fir);
+  \draw[flecha] (fir) -- (api);
+
+  % Frontera
+  \draw[IPNGuinda, dashed, line width=0.9pt] (11.1,0.15) -- (11.1,-5.9);
+  \node[font=\diag\bfseries, text=IPNGuinda, rotate=90, fill=white, inner sep=1.5pt, align=center]
+    at (11.1,-1.35) {no cruzan:\\ clave ni contraseña};
+\end{tikzpicture}
