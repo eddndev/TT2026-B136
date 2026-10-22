@@ -5,8 +5,12 @@ use application::ApplicationError;
 use postgres::{Client, NoTls};
 
 mod catalog_client;
+#[cfg(test)]
+mod equivalence_tests;
 mod migration_lock;
 mod migrations;
+#[cfg(test)]
+mod mutation_corpus;
 mod runtime_role;
 #[cfg(test)]
 mod test_fixture;
