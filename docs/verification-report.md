@@ -1,5 +1,29 @@
 # Informe de verificación local
 
+## Equivalencia de PreparedCatalog sobre catalogos alterados: 22 de octubre de 2026
+
+Se agregaron tres comprobaciones a la ADR 0083. Las funciones reales de
+catalogo y rol de `validate_runtime`, extraidas sin cambios a
+`validate_catalog`, dan el mismo veredicto (`Debug` identico) con el cliente
+directo y con `PreparedCatalog` sobre un fixture alterado. Un corpus de
+mutaciones por familia (tablas, columnas, restricciones, indices, funciones,
+triggers y privilegios, incluidos PUBLIC, WITH GRANT OPTION, NOINHERIT y roles
+alcanzables solo con SET ROLE) aplica cada caso en una transaccion revertida
+sobre el modulo alert: ambos clientes coinciden y el validador rechaza todas las
+mutaciones. Tras un `validate_runtime` real no queda ninguna sentencia en
+`pg_prepared_statements`. Aprobaron fmt, clippy `-D warnings`, las 40 pruebas
+`postgres::` de la biblioteca, `postgres_startup` (10) y
+`postgres_runtime_permissions` (7) contra PostgreSQL desechable.
+
+Tambien se midio un piloto que leia el catalogo de alert por conjuntos (8
+consultas en lugar de 148, con el validador anterior como respaldo del error).
+Con un modo sombra sin divergencias y 154 mutaciones equivalentes, el tiempo de
+pared local solo bajo del 0 al 2 %: tras la ADR 0083 los 140 viajes evitados
+por apertura cuestan poco sobre un socket local, y el tiempo de servidor de
+esas consultas no cambio de forma consistente. No se adopto; antes de otra
+optimizacion de la validacion se perfilara en que se va hoy el tiempo de cada
+apertura.
+
 ## Sentencias preparadas por llamada en la validacion runtime: 22 de octubre de 2026
 
 `validate_runtime` repite casi todas sus consultas de catalogo con el mismo
