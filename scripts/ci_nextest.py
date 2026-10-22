@@ -24,6 +24,7 @@ def main():
     target = Path(os.environ["CARGO_TARGET_DIR"]).resolve()
     directory = target.parent / "coverage" / helpers.cache_key(root, os.environ, toolchain)
     directory.mkdir(parents=True, exist_ok=True)
+    helpers.prune_caches(directory)
     report = root / "coverage-shard-1.info"
     helpers.clear_measurements(directory, report)
     junit = root / "output" / "nextest" / "ci" / "junit.xml"
