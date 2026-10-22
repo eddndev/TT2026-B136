@@ -370,7 +370,9 @@ jobs:
   coverage:
     name: Coverage
     needs: [test, deployment-backup]
-    if: ${{ !inputs.dispatch_measurement }}
+    # test depends on reuse, which is skipped outside main pushes; without a
+    # status check here GitHub would skip this gate on every pull request.
+    if: ${{ !cancelled() && !inputs.dispatch_measurement && needs.test.result == 'success' && needs.deployment-backup.result == 'success' }}
     runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
