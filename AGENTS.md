@@ -577,7 +577,7 @@ workflow, while the complete case-management web product was still unfinished.
 
 As of 2026-10-17, `docs/technical-closure.md`, `docs/product-completion.md` and
 `docs/four-front-closure.md` delimit the accepted scope. The last accepted
-installation is Qadra v0.1.12 and CA v0.1.11. `docs/browser-local-cryptography.md`
+installation is v0.1.13 for both Qadra and the CA, with scheduled CRL renewal. `docs/browser-local-cryptography.md`
 records local key/CSR generation and signing with the external path retained.
 Do not reopen the historical map above as new implementation work.
 
