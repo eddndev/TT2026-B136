@@ -346,6 +346,8 @@ class CrlAlertTests(CrlFixture):
         self.assertEqual(request.full_url, "https://api.resend.com/emails")
         self.assertEqual(request.get_header("Authorization"), "Bearer re_secret_value")
         self.assertEqual(request.get_header("Idempotency-key"), "qadra-crl-abc123")
+        # The provider's edge rejects the default urllib client signature.
+        self.assertEqual(request.get_header("User-agent"), "qadra-crl-alert/1")
         self.assertLessEqual(timeout, 15)
         body = json.loads(request.data)
         self.assertEqual(body["to"], ["operator@example.com"])
