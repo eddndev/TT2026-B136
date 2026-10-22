@@ -612,7 +612,7 @@ La batería también fija el orden entre revocación y commit, rollback de docum
 
 \subsection{Re-ejecución continua}\label{sec:matriz-ci}
 
-El flujo versionado \rutarepo{.github/workflows/ci.yml} define nueve jobs. Se ejecuta en cada solicitud de integración, en cada push a \texttt{main} y cuando el flujo de despliegue lo reutiliza; una ejecución manual puede limitarse a la medición extendida del despachador, que omite los demás jobs. El job de pruebas crea PostgreSQL y Redis reales, configura las bases aisladas de identidad, expedientes y documentos, la conexión administrativa de operaciones de la CA y Redis, y publica la cobertura de su propia ejecución; el job de cobertura combina esas mediciones y aplica el umbral. La versión mínima soportada, Rust 1.88, es una comprobación obligatoria. La \cref{tab:matriz-ci} resume las comprobaciones de ese flujo. Las demostraciones se ejecutan mediante los guiones de la \cref{sec:matriz-demo}. La corrida del 12 de septiembre aprobó 519 pruebas y mantuvo una ignorada.
+El flujo versionado \rutarepo{.github/workflows/ci.yml} define diez jobs. Se ejecuta en cada solicitud de integración, en cada push a \texttt{main} y cuando el flujo de despliegue lo reutiliza; una ejecución manual puede limitarse a la medición extendida del despachador, que omite los demás jobs. El job de pruebas crea PostgreSQL y Redis reales, configura las bases aisladas de identidad, expedientes y documentos, la conexión administrativa de operaciones de la CA y Redis, y publica la cobertura de su propia ejecución; el job de cobertura combina esas mediciones y aplica el umbral. La versión mínima soportada, Rust 1.88, es una comprobación obligatoria. La \cref{tab:matriz-ci} resume las comprobaciones de ese flujo. Las demostraciones se ejecutan mediante los guiones de la \cref{sec:matriz-demo}. La corrida del 12 de septiembre aprobó 519 pruebas y mantuvo una ignorada.
 
 \begin{table}[H]
   \centering
@@ -625,6 +625,7 @@ El flujo versionado \rutarepo{.github/workflows/ci.yml} define nueve jobs. Se ej
     \texttt{format} & Formato canónico del código con \texttt{rustfmt}, pruebas Python de los auxiliares de despliegue y de la CA, y alcance de la cancelación de campañas fallidas. \\
     \texttt{deployment-backup} & Instantáneas Redis nativas de los respaldos de despliegue, su invalidación selectiva y reinicio. \\
     \texttt{lint} & \texttt{clippy} con advertencias promovidas a error (\texttt{-D warnings}). \\
+    \texttt{reuse} & Sólo en push a \texttt{main}: busca una ejecución aprobada de la solicitud de integración con el mismo árbol y, si existe, omite repetir \texttt{test} y \texttt{coverage} (ADR 0082). \\
     \texttt{test} & Pruebas del workspace instrumentadas con \texttt{cargo-llvm-cov}, repartidas en fragmentos, con PostgreSQL, Redis y bases aisladas; incluye ejemplos de documentación y comprobaciones Python de calendarios, corpus jurídico y recorridos de API con restauración. \\
     \texttt{dispatch-measurement} & Medición extendida del despachador de plazos; sólo en ejecución manual con la entrada correspondiente. \\
     \texttt{msrv} & Comprobación del workspace con la versión mínima soportada del compilador (Rust 1.88); obligatoria. \\
