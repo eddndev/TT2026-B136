@@ -1,5 +1,33 @@
 # Informe de verificación local
 
+## Sentencias preparadas por llamada en la validacion runtime: 22 de octubre de 2026
+
+`validate_runtime` repite casi todas sus consultas de catalogo con el mismo
+texto y cada una se preparaba de nuevo. La ADR 0083 envuelve la conexion en un
+`PreparedCatalog` durante las comprobaciones de catalogo y rol; el inventario
+sigue con el cliente directo y no cambia ningun texto SQL, parametro, orden ni
+mensaje. A/B local con PostgreSQL desechable y binarios de `main` (23542483) y
+de la rama compilados en el mismo target, tres rondas alternadas, mediana de
+pared:
+
+| Prueba | `main` | Rama | Cambio |
+| --- | --- | --- | --- |
+| `deadline_tracking_functions::runtime_checks_every_new_parser_body_and_execution_metadata` | 87.3 s | 73.8 s | -15 % |
+| `hearing_revalidation::membership_role_and_active_identity_are_rechecked_after_preparation` | 16.2 s | 10.5 s | -35 % |
+| `runtime_cannot_modify_history_and_startup_rejects_a_removed_payload_guard` | 4.5 s | 3.4 s | -24 % |
+| `corruption::missing_or_altered_administrative_payload_owner_and_original_audit_fail_closed` | 76.1 s | 59.7 s | -22 % |
+
+El host local tenia carga ajena y una ronda de `main` llego a 138.9 s, por eso
+se usa la mediana. Con log de sentencias, la tercera prueba ejecuto las mismas
+3,222 sentencias en el mismo orden en ambas versiones; solo difieren tres
+inserciones de datos del fixture con valores aleatorios. Los Parse bajaron de
+3,222 a 901 y el tiempo de servidor de Parse de 342 a 103 ms y de Bind de 891 a
+546 ms. Aprobaron `cargo fmt`, `cargo clippy -p infrastructure --all-targets
+-- -D warnings`, la compilacion de pruebas del workspace, las 4 pruebas nuevas de
+`postgres::catalog_client` y las suites `postgres_runtime_permissions`,
+`deadline_schema`, `hearing_result_catalog`, `alert_catalog` y
+`postgres_startup`. La suite completa corre en la campana de la PR.
+
 ## Despliegue de v0.1.13 y renovación programada instalada: 21 y 22 de octubre de 2026
 
 `v0.1.13` (`54b9a015`) se preparó con `prepare_version` (run 39687625173) y se

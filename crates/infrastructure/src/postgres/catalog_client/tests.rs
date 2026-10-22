@@ -19,7 +19,7 @@ fn texts(rows: &[Row]) -> Vec<Vec<Option<String>>> {
         .collect()
 }
 
-/// Runs every query shape the catalog validation uses through any client.
+/// Runs representative query, query_one and query_opt calls through any client.
 fn sample<C: CatalogClient>(client: &mut C) -> Vec<Vec<Vec<Option<String>>>> {
     let mut results = Vec::new();
     for pattern in ["pg_class%", "pg_attr%", "pg_class%"] {
