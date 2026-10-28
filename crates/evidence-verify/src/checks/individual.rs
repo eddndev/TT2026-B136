@@ -78,7 +78,7 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
             at: accepted,
         },
     ];
-    let certificates = trust::check_chain(
+    let mut certificates = trust::check_chain(
         &Chain {
             entry: "certificado.pem",
             signer: &holder,
@@ -88,6 +88,7 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
         },
         policy,
     );
+    certificates.extend(token.chain);
 
     let binding_crl = super::der_crl("binding-crl.der", evidence.entry("binding-crl.der"));
     let crl = super::pem_crl("crl.pem", evidence.entry("crl.pem"));

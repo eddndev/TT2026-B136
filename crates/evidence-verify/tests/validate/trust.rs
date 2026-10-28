@@ -159,16 +159,11 @@ fn a_time_stamping_root_served_by_the_route_but_not_pinned_is_indeterminate_trus
     assert_eq!(report.overall, Outcome::Indeterminate, "{report:#?}");
     assert_component(
         &report,
-        DocumentToken,
+        Certificates,
         Outcome::Indeterminate,
         "trust.root_served_not_pinned",
     );
-    assert_component(
-        &report,
-        DocumentToken,
-        Outcome::Indeterminate,
-        "token.verified",
-    );
+    assert_component(&report, DocumentToken, Outcome::Checked, "token.verified");
     assert_component(&report, Revocation, Outcome::Checked, "crl.not_revoked");
 }
 

@@ -47,7 +47,7 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
         instant: "document token genTime",
         at,
     }];
-    let certificates = trust::check_chain(
+    let mut certificates = trust::check_chain(
         &Chain {
             entry: "certificado.pem",
             signer: &signer,
@@ -57,6 +57,7 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
         },
         policy,
     );
+    certificates.extend(token.chain);
 
     let crl = super::pem_crl("crl.pem", evidence.entry("crl.pem"));
     let mut revocation_findings: Vec<Finding> = crl.as_ref().err().cloned().into_iter().collect();

@@ -11,7 +11,11 @@
 //! indeterminate trust, as for every other purpose, and the token is still
 //! checked against it. A token without either anchor, or whose policy is
 //! not admitted, is not supported; a token that has one but fails a CMS,
-//! ESS, imprint, profile or validity check is failed. Rationale: the
+//! ESS, imprint, profile or validity check is failed. The token's own
+//! checks (CMS, ESS, imprint, policy) form the document token component;
+//! the anchor, profile, issuer link and validity of the time-stamping chain
+//! belong with certificates and trust, so a chain that misses the strict
+//! profile never reads as an altered document. Rationale: the
 //! sections "Time-stamp tokens" and "Trust anchors" of
 //! `docs/adr/0085-in-browser-evidence-validation.md`.
 
@@ -34,7 +38,11 @@ pub(super) struct TsaChain {
 
 /// The result of the document token check.
 pub(super) struct TokenCheck {
+    /// Findings about the token itself, for the document token component.
     pub findings: Vec<Finding>,
+    /// Findings about the time-stamping chain, for the certificates and
+    /// trust component.
+    pub chain: Vec<Finding>,
     /// The verified facts, when the token passed every check that yields
     /// them.
     pub facts: Option<TokenFacts>,
@@ -63,13 +71,14 @@ pub(super) fn check(
 ) -> TokenCheck {
     let mut result = TokenCheck {
         findings: Vec::new(),
+        chain: Vec::new(),
         facts: None,
         tsa: None,
         notes: Vec::new(),
     };
     let pool: Vec<Certificate> = match candidates.chain_pem {
         Some(chain) => decode_chain(chain).unwrap_or_else(|finding| {
-            result.findings.push(finding);
+            result.chain.push(finding);
             Vec::new()
         }),
         None => candidates.issuer.into_iter().cloned().collect(),
@@ -90,12 +99,12 @@ pub(super) fn check(
         (signer, Role::TimeStamping, "time-stamping certificate"),
     ] {
         if let Err(finding) = certificate::check_profile(certificate, role) {
-            result.findings.push(super::in_entry(what, finding));
+            result.chain.push(super::in_entry(what, finding));
         }
     }
     if let Err(finding) = certificate::check_issued_by(signer, &root) {
         result
-            .findings
+            .chain
             .push(super::in_entry("time-stamping certificate", finding));
     }
     let admitted: Vec<&str> = policy
@@ -117,7 +126,7 @@ pub(super) fn check(
                     facts.ess_v2
                 ),
             ));
-            result.findings.push(validity(signer, &root, &facts));
+            result.chain.push(validity(signer, &root, &facts));
             result.facts = Some(facts);
         }
         Err(finding) => result.findings.push(finding),
@@ -173,7 +182,7 @@ fn anchor(
             .map(|pin| (*candidate, pin.label.clone()))
     });
     if let Some((root, label)) = pinned {
-        result.findings.push(Finding::new(
+        result.chain.push(Finding::new(
             Outcome::Checked,
             "token.anchor_pinned",
             format!("{label} for time-stamping"),
@@ -204,7 +213,7 @@ fn anchor(
         )
     });
     if let Some(root) = served {
-        result.findings.push(trust::admit_root(
+        result.chain.push(trust::admit_root(
             root,
             Purpose::TimeStamping,
             policy,

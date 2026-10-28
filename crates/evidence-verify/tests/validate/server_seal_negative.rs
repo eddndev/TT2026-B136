@@ -205,7 +205,7 @@ fn a_tsa_chain_beyond_the_certificate_limit_is_not_supported() {
     assert_eq!(report.overall, Outcome::NotSupported, "{report:#?}");
     assert_component(
         &report,
-        DocumentToken,
+        Certificates,
         Outcome::NotSupported,
         "pem.too_many_blocks",
     );
@@ -216,4 +216,23 @@ fn a_tsa_chain_repeating_the_pinned_root_up_to_the_limit_is_admitted() {
     let mut package = seal();
     package.set("tsa-chain.pem", &fixture!("root.pem").repeat(8));
     crate::support::assert_complete(&validate(&package.zip(), &policy()));
+}
+
+#[test]
+fn an_unreadable_tsa_chain_fails_certificates_and_not_the_token() {
+    let mut package = seal();
+    package.set("tsa-chain.pem", b"no certificate here\n");
+    let report = validate(&package.zip(), &policy());
+    assert_eq!(report.overall, Outcome::Failed, "{report:#?}");
+    assert_component(
+        &report,
+        Certificates,
+        Outcome::Failed,
+        "pem.text_outside_block",
+    );
+    assert_ne!(
+        component(&report, DocumentToken).outcome,
+        Outcome::Failed,
+        "{report:#?}"
+    );
 }
