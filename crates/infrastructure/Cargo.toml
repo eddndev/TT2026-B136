@@ -63,6 +63,10 @@ harfrust = "=0.13.3"
 skrifa = { version = "=0.46.2", default-features = false, features = ["std"] }
 [dev-dependencies]
 proptest.workspace = true
+# Parity tests compare the pure evidence verifier with the server's domain
+# codec, certificate profiles and package writer; the verifier never depends
+# on server crates. Rationale: docs/adr/0085-in-browser-evidence-validation.md.
+evidence-verify = { path = "../evidence-verify" }
 [[test]]
 name = "aead_properties"
 path = "tests/aead_properties.rs"
@@ -426,3 +430,11 @@ path = "tests/invitation_limiter.rs"
 [[test]]
 name = "member_invitation_restore"
 path = "tests/member_invitation_restore.rs"
+
+[[test]]
+name = "evidence_statement_parity"
+path = "tests/evidence_statement_parity.rs"
+
+[[test]]
+name = "evidence_package_parity"
+path = "tests/evidence_package_parity.rs"

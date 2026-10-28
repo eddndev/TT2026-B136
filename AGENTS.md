@@ -15,10 +15,22 @@ one repository:
   change is yours.
 - The Rust workspace + web frontend : the software prototype.
 
-The server uses five Rust crates arranged as a hexagonal architecture. A sixth
-crate, `crates/browser-crypto`, builds the isolated local browser module as WASM
-and has no dependency on the server crates. The server dependency direction is
-enforced by the crate graph:
+The server uses five Rust crates arranged as a hexagonal architecture. Two
+independent crates sit outside that graph:
+
+- `crates/browser-crypto` builds the isolated local browser module as WASM and
+  has no dependency on the server crates. See
+  `docs/adr/0079-browser-local-cryptography.md`.
+- `crates/evidence-verify` verifies exported evidence packages (archive
+  admission, package profile, signatures, certificates, CRLs, time-stamp
+  tokens and canonical statements) with no I/O, clock or random source. It
+  depends on no other workspace crate; server crates may depend on it, and it
+  stays buildable for `wasm32-unknown-unknown` so that a separate wrapper can
+  expose the same code to the browser validator. It is kept apart from
+  `browser-crypto`, which opens private keys. See
+  `docs/adr/0085-in-browser-evidence-validation.md`.
+
+The server dependency direction is enforced by the crate graph:
 
     domain          <- no dependency on any other workspace crate
     application     -> domain

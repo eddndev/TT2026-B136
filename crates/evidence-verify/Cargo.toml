@@ -1,0 +1,26 @@
+[package]
+name = "evidence-verify"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# Pure verification of exported evidence packages. It has no dependency on
+# any other workspace crate and no I/O, clock or random source, so the same
+# code runs natively and as WebAssembly. Rationale:
+# docs/adr/0085-in-browser-evidence-validation.md.
+[dependencies]
+der = { workspace = true, features = ["alloc", "derive", "oid", "pem"] }
+x509-cert = { workspace = true, features = ["pem"] }
+cms.workspace = true
+x509-tsp.workspace = true
+const-oid = { version = "0.9", features = ["db"] }
+spki = "0.7"
+# rsa and sha2 name their versions here instead of inheriting the workspace
+# entries, because an inherited entry keeps the default features: the std
+# feature of rsa needs an operating system random source that the
+# wasm32-unknown-unknown target lacks, and verification needs no randomness.
+rsa = { version = "0.9", default-features = false, features = ["sha2"] }
+sha1 = { version = "0.10", default-features = false, features = ["oid"] }
+sha2 = { version = "0.10", default-features = false, features = ["oid"] }

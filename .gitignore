@@ -20,6 +20,10 @@ runtime-data/
 *.tsr
 *.enc
 *.sig
+# Public test fixtures generated from an ephemeral PKI by
+# scripts/evidence-verify-fixtures.sh; they hold no private material.
+!crates/evidence-verify/tests/fixtures/*.tsr
+!crates/evidence-verify/tests/fixtures/*.sig
 
 # Node / frontend
 node_modules

@@ -2,6 +2,8 @@
 
 pub(super) mod ca_inspection;
 pub(super) mod ca_inventory;
+#[cfg(test)]
+mod evidence_parity;
 mod material;
 mod profile;
 mod revocation;
