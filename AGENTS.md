@@ -15,7 +15,7 @@ one repository:
   change is yours.
 - The Rust workspace + web frontend : the software prototype.
 
-The server uses five Rust crates arranged as a hexagonal architecture. Two
+The server uses five Rust crates arranged as a hexagonal architecture. Three
 independent crates sit outside that graph:
 
 - `crates/browser-crypto` builds the isolated local browser module as WASM and
@@ -29,6 +29,15 @@ independent crates sit outside that graph:
   expose the same code to the browser validator. It is kept apart from
   `browser-crypto`, which opens private keys. See
   `docs/adr/0085-in-browser-evidence-validation.md`.
+- `crates/evidence-verify-wasm` is that wrapper: it depends only on
+  `evidence-verify`, exchanges the policy and the report as JSON, and is built
+  by `scripts/build-evidence-verify.sh` into the module of the evidence
+  validation Web Worker. Its generated files are checked by
+  `scripts/evidence-verify-artifact.mjs`, which also covers the
+  `evidence-verify` sources.
+  Every finding code of `evidence-verify` needs a plain Spanish message in
+  `web/apps/qadra/src/lib/evidence/messages*.mjs`; a new code without one
+  fails `web/apps/qadra/tests/evidence-messages.test.mjs`.
 
 The server dependency direction is enforced by the crate graph:
 

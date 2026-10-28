@@ -70,7 +70,8 @@ el [corpus finito](docs/four-front-closure.md) acepta ocho supuestos expresos.
 Fuera de esas condiciones se bloquea el cálculo, sin prometer cobertura universal.
 
 El workspace de Cargo contiene cinco crates del servidor con arquitectura
-hexagonal y un sexto módulo independiente para el navegador, bajo [`crates/`](crates/):
+hexagonal y tres crates independientes para el navegador y la verificación de
+evidencia, bajo [`crates/`](crates/):
 
 - [`crates/domain`](crates/domain/) - entidades y reglas de negocio; no
   depende de ningún otro crate del workspace.
@@ -85,6 +86,12 @@ hexagonal y un sexto módulo independiente para el navegador, bajo [`crates/`](c
   que componen las capas anteriores; depende de todas.
 - [`crates/browser-crypto`](crates/browser-crypto/) - módulo Rust/WASM de
   generación de claves, CSR y firma local; no depende de los crates del servidor.
+- [`crates/evidence-verify`](crates/evidence-verify/) - verificación pura de los
+  paquetes de evidencia exportados, sin E/S, reloj ni azar; no depende de
+  ningún otro crate del workspace.
+- [`crates/evidence-verify-wasm`](crates/evidence-verify-wasm/) - envoltura
+  Rust/WASM de `evidence-verify` para el validador de evidencia del navegador;
+  se construye con `bash scripts/build-evidence-verify.sh`.
 
 En el servidor la dirección de dependencias apunta hacia el dominio: las capas
 externas conocen a las internas, nunca al revés.
