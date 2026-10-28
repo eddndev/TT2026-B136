@@ -7,6 +7,7 @@ members = [
     "crates/web",
     "crates/bin",
     "crates/browser-crypto",
+    "crates/evidence-verify",
 ]
 
 [workspace.package]
