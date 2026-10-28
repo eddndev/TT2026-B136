@@ -9,13 +9,19 @@
 
 pub mod archive;
 pub mod certificate;
+mod checks;
 pub mod crl;
 pub mod der_walk;
 pub mod individual_json;
 pub mod json;
 pub mod pem;
+pub mod policy;
+pub mod profile;
 pub mod report;
 pub mod statements;
 pub mod timestamp;
+mod validate;
 
-pub use report::{Finding, Outcome};
+pub use policy::Policy;
+pub use report::{Finding, Outcome, Report};
+pub use validate::validate;

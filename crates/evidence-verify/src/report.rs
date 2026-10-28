@@ -1,4 +1,11 @@
-//! Result vocabulary shared by every check.
+//! Result vocabulary shared by every check, and the report of one
+//! validation.
+
+mod summary;
+
+pub use summary::{
+    hex, Component, ComponentKind, Instant, InstantSource, Profile, Report, TrustNote,
+};
 
 /// The result of one check or component.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
