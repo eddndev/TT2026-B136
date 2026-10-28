@@ -6,6 +6,7 @@
   import DocumentContentAction from './DocumentContentAction.svelte';
   import DocumentSigningActions from './DocumentSigningActions.svelte';
   import DocumentSealAction from './DocumentSealAction.svelte';
+  import EvidenceValidation from './EvidenceValidation.svelte';
   import { can, download } from '../lib/documents.mjs';
   export let api;
   export let user;
@@ -376,6 +377,7 @@
           ? 'La descarga estar\u00e1 disponible despu\u00e9s de sellar el documento.'
           : 'Usa Descargar evidencia en las acciones de esta ficha. Conserva el ZIP completo para su verificaci\u00f3n.'}
       </p>
+      <EvidenceValidation {api} {document} />
     {/if}
   </div>
   <p class="hint local-tsa">

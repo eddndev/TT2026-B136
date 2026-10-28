@@ -1,6 +1,7 @@
 import { administration, overview, otherAdministration } from './case-administration-helpers.mjs';
 import { expect } from '@playwright/test';
 import { absoluteSession } from '../fixtures/session.mjs';
+import { evidenceTrust } from './evidence-trust-fixture.mjs';
 
 export const caseId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 export const otherCaseId = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
@@ -135,6 +136,8 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
           recovery_codes: ['recovery-one', 'recovery-two'],
         },
       });
+    if (path === '/api/v1/evidence/trust')
+      return route.fulfill({ json: evidenceTrust, headers: { 'Cache-Control': 'no-store' } });
     if (!path.startsWith(`/api/v1/cases/${caseId}/documents`))
       return route.fulfill({ status: 404 });
     if (path.endsWith('/metadata'))
