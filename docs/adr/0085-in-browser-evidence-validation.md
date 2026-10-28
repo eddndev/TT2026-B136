@@ -200,7 +200,11 @@ critical extension; its imprint must be SHA-256 of the covered object;
 A token whose policy is outside the admitted list, initially
 `1.3.6.1.4.1.13762.3`, or whose certificate does not chain to a root pinned
 for time-stamping, is not supported. A token that does chain but fails a CMS,
-ESS, imprint or profile check is failed.
+ESS, imprint or profile check is failed. The document token component holds
+the token's own checks (CMS, ESS, imprint, policy); the anchor, profile,
+issuer link and validity of the time-stamping chain belong to the
+certificates and trust component, so a chain that misses the strict profile
+never reads as an altered document.
 
 ### Revocation outcomes
 
