@@ -34,6 +34,8 @@ mod document_content;
 mod document_integrity;
 mod dto;
 mod error;
+mod evidence_trust;
+mod evidence_trust_router;
 mod hearing_derived_deadlines;
 mod hearing_results;
 mod hearings;
@@ -58,6 +60,7 @@ pub use precautionary::{
 mod routes;
 mod runtime;
 mod typed_participants;
+mod workflows;
 pub use api::{
     api_router, api_router_with_authentication_budget, api_router_with_individual_signing_budget,
     api_router_with_invitations_budget, api_router_with_password_reset,
@@ -65,10 +68,12 @@ pub use api::{
 };
 pub use ca_access::ca_access_router;
 pub use case_reports::case_reports_router;
+pub use evidence_trust_router::evidence_trust_router;
 pub use individual_signing::IndividualSigningHttp;
 pub use member_invitations::{member_invitation_router, InvitationHttp};
 use runtime::{protect, HttpRuntime};
 pub use runtime::{HttpLimits, HttpWorkBudget, HttpWorkPermit};
+pub use workflows::CaseWorkflows;
 
 /// Builds public individual signing routes with bounded blocking work.
 pub fn individual_signing_router(
@@ -320,37 +325,6 @@ pub fn hearing_derived_deadline_router(
         hearing_derived_deadlines::router(workflow, runtime.clone()),
         runtime,
     )
-}
-
-/// Identity evidence and case workflows injected into the shared HTTP runtime.
-pub struct CaseWorkflows {
-    pub precautionary: PrecautionaryWorkflows,
-    pub owner_certificates: Arc<application::identity::owner_certificates::OwnerCertificateService>,
-    pub members: Arc<dyn application::members::MemberWorkflow>,
-    pub cases: Arc<dyn CaseWorkflow>,
-    pub participants: Arc<dyn ParticipantWorkflow>,
-    pub stages: Arc<dyn CaseStageWorkflow>,
-    pub typed: Arc<dyn application::typed_participants::TypedParticipantWorkflow>,
-    pub hearings: Arc<dyn application::hearings::HearingWorkflow>,
-    pub hearing_results: Arc<dyn application::hearing_results::HearingResultWorkflow>,
-    pub hearing_derived_deadlines:
-        Arc<dyn application::hearing_derived_deadlines::HearingDerivedDeadlineWorkflow>,
-    pub procedural_facts: Arc<dyn application::procedural_facts::ProceduralFactWorkflow>,
-    pub procedural_resources:
-        Arc<dyn application::procedural_resources::ProceduralResourceWorkflow>,
-    pub resource_activities: Arc<dyn application::resource_activities::ResourceActivityWorkflow>,
-    pub resource_deadlines: Arc<dyn application::resource_deadlines::ResourceDeadlineWorkflow>,
-    pub resource_hearings: Arc<dyn application::resource_hearings::ResourceHearingWorkflow>,
-    pub resource_hearing_reads:
-        Arc<dyn application::resource_hearings::ResourceHearingReadWorkflow>,
-    pub deadlines: Arc<dyn application::deadlines::DeadlineWorkflow>,
-    pub agenda: Arc<dyn application::agenda::AgendaWorkflow>,
-    pub dashboard: Arc<dyn application::dashboard::DashboardWorkflow>,
-    pub audit_events: Arc<dyn application::audit_query::AuditEventWorkflow>,
-    pub case_reports: Arc<dyn application::case_reports::CaseReportWorkflow>,
-    pub alerts: Arc<dyn application::alerts::AlertWorkflow>,
-    pub document_content: Arc<dyn application::document_content::DocumentContentWorkflow>,
-    pub document_integrity: Arc<dyn application::document_integrity::DocumentIntegrityWorkflow>,
 }
 
 /// Builds the explicit global and case profile collections over an authorized workflow.

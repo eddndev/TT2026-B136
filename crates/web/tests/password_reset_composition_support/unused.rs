@@ -1,6 +1,6 @@
 use application::{
-    agenda::*, audit_query::*, document_content::*, document_integrity::*, hearings::*,
-    resource_activities::ResourceId, resource_deadlines::*, ApplicationError,
+    agenda::*, audit_query::*, document_content::*, document_integrity::*, evidence_trust::*,
+    hearings::*, resource_activities::ResourceId, resource_deadlines::*, ApplicationError,
 };
 use domain::{
     cases::CaseId,
@@ -43,6 +43,11 @@ impl DocumentIntegrityWorkflow for Unused {
         _: DocumentIntegrityIncidentId,
     ) -> Result<DocumentIntegrityIncident, ApplicationError> {
         unreachable!("composition test does not read integrity incidents")
+    }
+}
+impl EvidenceTrustWorkflow for Unused {
+    fn current(&self, _: &str) -> Result<EvidenceTrust, ApplicationError> {
+        unreachable!("composition test does not read evidence trust")
     }
 }
 impl ResourceDeadlineWorkflow for Unused {

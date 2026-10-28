@@ -105,7 +105,7 @@ def read_catalog(path):
         require(len(columns) == 4 and columns[0] in {"GET", "POST", "PUT", "DELETE"},
                 "invalid functional route catalog row")
         pairs.append(columns[0] + " " + columns[1])
-    require(len(pairs) == 222 and len(set(pairs)) == 222, "functional catalog changed")
+    require(len(pairs) == 223 and len(set(pairs)) == 223, "functional catalog changed")
     return set(pairs)
 
 

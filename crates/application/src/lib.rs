@@ -26,6 +26,7 @@ pub mod document_signing;
 pub mod documents;
 pub mod error;
 pub mod evidence;
+pub mod evidence_trust;
 pub mod hashing;
 pub mod hearing_derived_deadlines;
 pub mod hearing_results;

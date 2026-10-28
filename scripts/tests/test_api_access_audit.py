@@ -138,9 +138,9 @@ class AccessAuditReceipt(unittest.TestCase):
             with self.subTest(operation=operation), self.assertRaises(ValueError):
                 self.receipt(logs=self.helper.parse_log(log_line(operation=operation)))
 
-    def test_source_catalog_has_222_unique_functional_pairs(self):
+    def test_source_catalog_has_223_unique_functional_pairs(self):
         catalog = self.helper.read_catalog(SCRIPTS.parent / "docs/access-audit-matrix.md")
-        self.assertEqual(len(catalog), 222)
+        self.assertEqual(len(catalog), 223)
         self.assertIn(OPERATION, catalog)
         self.assertTrue(all(not pair.startswith("HEAD ") for pair in catalog))
 

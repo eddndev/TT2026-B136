@@ -1,11 +1,17 @@
 //! Assemble the existing document cryptography and its local evidence material.
 
 use super::inputs::read;
+use std::sync::Arc;
+
 use anyhow::Context;
+use application::document_content::{DocumentContentService, DocumentContentWorkflow};
+use application::document_integrity::{DocumentIntegrityService, DocumentIntegrityWorkflow};
 use application::documents::{DocumentProcessor, DocumentProcessorPorts, EvidenceMaterial};
+use application::identity::IdentityWorkflow;
 use infrastructure::{
-    openssl_version, EnvelopeKeyManager, LocalOpensslTsa, Rfc3161Verifier, RingAesGcmCipher,
-    RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier, StoredZipWriter, X509ChainValidator,
+    openssl_version, EnvelopeKeyManager, LocalOpensslTsa, PostgresCaseDocumentStore,
+    Rfc3161Verifier, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Signer, RsaPkcs1Verifier,
+    StoredZipWriter, SystemClock, X509ChainValidator,
 };
 use zeroize::Zeroizing;
 
@@ -47,4 +53,28 @@ pub(super) fn open(
             ))
         })
         .context("cannot initialize document cryptography")
+}
+
+/// Exact content release and the Owner integrity inbox over the shared document store.
+pub(super) fn access(
+    repository: &Arc<PostgresCaseDocumentStore>,
+    identity: &Arc<dyn IdentityWorkflow>,
+    processor: &Arc<DocumentProcessor>,
+) -> (
+    Arc<dyn DocumentContentWorkflow>,
+    Arc<dyn DocumentIntegrityWorkflow>,
+) {
+    let content = DocumentContentService::new(
+        repository.clone(),
+        identity.clone(),
+        processor.clone(),
+        Arc::new(SystemClock::new()),
+        repository.clone(),
+    );
+    let integrity = DocumentIntegrityService::new(
+        repository.clone(),
+        identity.clone(),
+        Arc::new(SystemClock::new()),
+    );
+    (Arc::new(content), Arc::new(integrity))
 }

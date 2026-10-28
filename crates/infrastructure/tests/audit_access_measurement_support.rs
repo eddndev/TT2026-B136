@@ -48,14 +48,14 @@ pub fn catalog() -> Vec<Route> {
             }
         })
         .collect();
-    assert_eq!(routes.len(), 222, "access measurement catalog changed");
+    assert_eq!(routes.len(), 223, "access measurement catalog changed");
     assert_eq!(
         routes
             .iter()
             .map(|r| (r.method, r.path))
             .collect::<BTreeSet<_>>()
             .len(),
-        222
+        223
     );
     routes
 }

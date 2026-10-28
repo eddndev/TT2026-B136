@@ -133,6 +133,10 @@ name = "evidence_package"
 path = "tests/evidence_package.rs"
 
 [[test]]
+name = "evidence_trust"
+path = "tests/evidence_trust.rs"
+
+[[test]]
 name = "hearing_boundaries"
 path = "tests/hearing_boundaries.rs"
 

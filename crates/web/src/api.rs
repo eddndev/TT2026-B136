@@ -257,6 +257,10 @@ pub fn api_router_with_invitations_budget(
             workflows.document_integrity,
             runtime.clone(),
         ))
+        .merge(crate::evidence_trust::router(
+            workflows.evidence_trust,
+            runtime.clone(),
+        ))
         .merge(judicial_calendars::router(calendars, runtime.clone()))
         .merge(deadline_profiles::router(profiles, runtime.clone()))
         .merge(password_reset::router(password_reset, runtime.clone()))

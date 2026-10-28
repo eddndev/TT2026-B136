@@ -1,5 +1,6 @@
 //! Administrative publication of immutable internal credential trust snapshots.
 
+mod reader;
 pub(crate) mod schema;
 mod storage;
 
@@ -14,6 +15,7 @@ use domain::crypto::{CredentialFailure, CredentialTrustInspection};
 use postgres::{Client, NoTls};
 use uuid::Uuid;
 
+pub use reader::PostgresCredentialTrustReader;
 pub(crate) use storage::{current, exact};
 
 /// Uses explicitly privileged database credentials; runtime roles only read trust.

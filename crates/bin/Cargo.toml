@@ -19,6 +19,9 @@ domain = { path = "../domain" }
 application = { path = "../application" }
 infrastructure = { path = "../infrastructure" }
 web = { path = "../web" }
+# Strict PEM decoding and SHA-256 of the evidence material served to the
+# in-browser validator. See docs/adr/0085-in-browser-evidence-validation.md.
+evidence-verify = { path = "../evidence-verify" }
 axum.workspace = true
 clap = { workspace = true, features = ["env"] }
 serde_json.workspace = true

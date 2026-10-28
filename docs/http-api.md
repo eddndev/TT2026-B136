@@ -978,6 +978,57 @@ opcionales están vacíos. La carga binaria anterior mantiene revisión de
 clasificación cero. Qadra usa una sola carga multipart y conserva el formulario
 ante fallos; una respuesta incierta no dispara reintentos automáticos.
 
+## Raíces de confianza de la evidencia
+
+`GET /api/v1/evidence/trust` devuelve, sólo para lectura, las raíces y listas
+de revocación que el servidor admite en este momento para la evidencia
+exportada. Lo usa el validador local de Qadra, que procesa el ZIP en el
+navegador y contrasta esta respuesta con las raíces fijas de la versión
+publicada; la respuesta no vuelve confiable ninguna raíz por sí sola. La
+decisión y sus límites constan en
+[ADR 0085](adr/0085-in-browser-evidence-validation.md).
+
+| Aspecto | Contrato |
+| --- | --- |
+| Autenticación | Bearer de cualquier rol aceptado por la sesión actual; no depende de un expediente porque un archivo local no tiene uno. |
+| Entrada | Sin cadena de consulta ni cuerpo. Cualquiera de los dos responde `400 evidence_trust_invalid_input` antes de leer la confianza. |
+| Sin sesión | Bearer ausente, revocado o vencido: `401 invalid_session`, sin lectura. |
+| Respuesta | `200` con `Cache-Control: no-store`. |
+
+```json
+{
+  "server-seal": {
+    "root_der_base64": "...",
+    "root_fingerprint": "<64 hexadecimales en minúscula>",
+    "crl_der_base64": "...",
+    "crl_digest": "<64 hexadecimales en minúscula>"
+  },
+  "time-stamping": {
+    "roots": [{"root_der_base64": "...", "root_fingerprint": "..."}]
+  },
+  "individual-signing": null
+}
+```
+
+- `server-seal` contiene el certificado emisor y la CRL configurados para el
+  sello del servidor, decodificados una vez al arrancar. Huella y digest son
+  SHA-256 de los bytes DER.
+- `time-stamping.roots` lista, en el orden del archivo, cada certificado de
+  `tsa-chain.pem` de la TSA configurada.
+- `individual-signing` es la instantánea vigente de confianza de credenciales,
+  con los nombres de campo de `trust` en los recibos de
+  [vínculos del Owner](http-owner-certificates.md): `deployment_id`,
+  `revision`, raíz, CRL, número y vigencias de la CRL y `published_at`. No
+  incluye `published_by`, el rol de base de datos que la publicó, porque no es
+  material de confianza y esta ruta la lee cualquier rol. Es `null` cuando
+  todavía no se ha publicado ninguna; esa ausencia no es un error.
+
+Un emisor, una CRL o una cadena de TSA que no sean PEM estricto, o una cadena
+ausente, impiden arrancar `serve`; el servidor nunca publica material que no
+pudo decodificar. Un fallo al leer la instantánea responde como los demás
+errores de persistencia. La ruta pertenece a la política `session` del
+[catálogo de acceso](access-audit-matrix.md).
+
 ## Persistencia y límites
 
 Los usuarios viven en PostgreSQL con correo normalizado, hash PHC Argon2id,

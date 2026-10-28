@@ -580,6 +580,7 @@ dependencies = [
  "clap",
  "domain",
  "dotenvy",
+ "evidence-verify",
  "infrastructure",
  "mockall",
  "postgres",
@@ -697,6 +698,16 @@ dependencies = [
  "spki",
  "x509-cert",
  "x509-tsp",
+]
+
+[[package]]
+name = "evidence-verify-wasm"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "evidence-verify",
+ "serde_json",
+ "wasm-bindgen",
 ]
 
 [[package]]
