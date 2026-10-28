@@ -17,6 +17,10 @@ cms.workspace = true
 x509-tsp.workspace = true
 const-oid = { version = "0.9", features = ["db"] }
 spki = "0.7"
-rsa = { workspace = true, default-features = false, features = ["sha2"] }
+# rsa and sha2 name their versions here instead of inheriting the workspace
+# entries, because an inherited entry keeps the default features: the std
+# feature of rsa needs an operating system random source that the
+# wasm32-unknown-unknown target lacks, and verification needs no randomness.
+rsa = { version = "0.9", default-features = false, features = ["sha2"] }
 sha1 = { version = "0.10", default-features = false, features = ["oid"] }
-sha2 = { workspace = true, default-features = false, features = ["oid"] }
+sha2 = { version = "0.10", default-features = false, features = ["oid"] }
