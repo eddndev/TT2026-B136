@@ -11,6 +11,7 @@ on:
       - 'pki/**'
       - 'scripts/web-demo.sh'
       - 'scripts/*browser-crypto*'
+      - 'scripts/*evidence-verify*'
       - 'scripts/web-alert-fixtures.mjs'
       - 'scripts/web-participant-fixtures.mjs'
       - 'scripts/web-typed-participant-fixtures.mjs'
@@ -59,6 +60,7 @@ on:
       - 'pki/**'
       - 'scripts/web-demo.sh'
       - 'scripts/*browser-crypto*'
+      - 'scripts/*evidence-verify*'
       - 'scripts/web-alert-fixtures.mjs'
       - 'scripts/web-participant-fixtures.mjs'
       - 'scripts/web-typed-participant-fixtures.mjs'
@@ -132,6 +134,14 @@ jobs:
           path: web/apps/qadra/src/generated/browser-crypto/
           if-no-files-found: error
           retention-days: 7
+      - name: Build the pinned evidence validation module
+        run: bash scripts/build-evidence-verify.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evidence-verify-module
+          path: web/apps/qadra/src/generated/evidence-verify/
+          if-no-files-found: error
+          retention-days: 7
       - name: Cancel the failed campaign
         if: ${{ failure() && !cancelled() }}
         uses: ./.github/actions/cancel-ci-campaign
@@ -163,6 +173,10 @@ jobs:
         with:
           name: browser-crypto-module
           path: web/apps/qadra/src/generated/browser-crypto/
+      - uses: actions/download-artifact@v4
+        with:
+          name: evidence-verify-module
+          path: web/apps/qadra/src/generated/evidence-verify/
       - run: npm ci
       - run: npm run format:check
       - run: npm test
@@ -257,6 +271,10 @@ jobs:
         with:
           name: browser-crypto-module
           path: web/apps/qadra/src/generated/browser-crypto/
+      - uses: actions/download-artifact@v4
+        with:
+          name: evidence-verify-module
+          path: web/apps/qadra/src/generated/evidence-verify/
       - run: npm ci
         working-directory: web
       - run: npx playwright install chromium

@@ -19,6 +19,10 @@ if [ ! -f web/apps/qadra/src/generated/browser-crypto/manifest.json ]; then
   bash scripts/build-browser-crypto.sh
 fi
 node scripts/browser-crypto-artifact.mjs
+if [ ! -f web/apps/qadra/src/generated/evidence-verify/manifest.json ]; then
+  bash scripts/build-evidence-verify.sh
+fi
+node scripts/evidence-verify-artifact.mjs
 npm --prefix web run build
 npm --prefix web run build:ca
 python3 -B ops/deploy/bundle.py "$version" "$commit" "$library"

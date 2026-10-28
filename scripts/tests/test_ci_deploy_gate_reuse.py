@@ -10,6 +10,7 @@ import deploy_gate_reuse as reuse
 ROOT = Path(__file__).resolve().parents[2]
 COMMIT = "a" * 40
 EARLIER = "b" * 40
+MODULES = ("browser-crypto-module", "evidence-verify-module")
 
 
 def run(identifier, sha, *, event="push", branch="main", conclusion="success", path=None):
@@ -79,7 +80,7 @@ class WebReuseTests(unittest.TestCase):
 
     def choose(self, runs, git, artifacts=None):
         artifacts = artifacts if artifacts is not None else {
-            run_["id"]: [{"name": "browser-crypto-module", "expired": False}] for run_ in runs}
+            run_["id"]: [{"name": name, "expired": False} for name in MODULES] for run_ in runs}
         return reuse.equivalent_run(runs, COMMIT, self.patterns, git, lambda i: artifacts.get(i, []))
 
     def test_earlier_run_is_reused_when_no_gated_path_changed(self):
@@ -99,6 +100,15 @@ class WebReuseTests(unittest.TestCase):
         for artifacts in ({7: [{"name": "browser-crypto-module", "expired": True}]}, {7: []}):
             with self.subTest(artifacts=artifacts):
                 self.assertIsNone(self.choose([run(7, EARLIER)], FakeGit(), artifacts))
+
+    def test_a_run_missing_either_browser_module_is_not_equivalent(self):
+        for kept in MODULES:
+            with self.subTest(kept=kept):
+                artifacts = {7: [{"name": kept, "expired": False}]}
+                self.assertIsNone(self.choose([run(7, EARLIER)], FakeGit(), artifacts))
+        expired = {7: [{"name": "browser-crypto-module", "expired": False},
+                       {"name": "evidence-verify-module", "expired": True}]}
+        self.assertIsNone(self.choose([run(7, EARLIER)], FakeGit(), expired))
 
     def test_unsuccessful_or_non_main_runs_are_not_evidence(self):
         runs = [run(7, EARLIER, conclusion="failure"), run(8, EARLIER, event="pull_request")]

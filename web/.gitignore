@@ -6,3 +6,4 @@ test-results-live/
 playwright-report/
 test-results-session/
 /apps/qadra/src/generated/browser-crypto/
+/apps/qadra/src/generated/evidence-verify/

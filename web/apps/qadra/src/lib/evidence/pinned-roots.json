@@ -1,0 +1,7 @@
+[
+  {
+    "fingerprint": "98f934f7152cd0b12ef1bf9b424a62d425a02496b531e218d2cde45a4130a4b6",
+    "purposes": ["server-seal", "individual-signing", "time-stamping"],
+    "label": "Qadra qadra.com.mx"
+  }
+]

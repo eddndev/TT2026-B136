@@ -190,6 +190,13 @@ if [ "${TT_WEB_SESSION_ACCEPTANCE:-0}" = 0 ]; then
   provision_fixture caseStages web-case-stage-fixtures.mjs
   node "$REPO_ROOT/scripts/web-hearing-fixtures.mjs"
 fi
+# The evidence validator of this build pins the disposable CA instead of the
+# release roots; see docs/adr/0085-in-browser-evidence-validation.md.
+PINNED_ROOT_FINGERPRINT="$(openssl x509 -in "$PKI_CA_DIR/ca.crt.pem" -outform DER | sha256sum | cut -d ' ' -f 1)"
+jq -n --arg fingerprint "$PINNED_ROOT_FINGERPRINT" \
+  '[{fingerprint: $fingerprint, purposes: ["server-seal", "individual-signing", "time-stamping"], label: "CI"}]' \
+  >"$WORK_DIR/pinned-roots.json"
+export QADRA_PINNED_ROOTS="$WORK_DIR/pinned-roots.json"
 export TT_WEB_PORT
 TT_WEB_PORT="$(python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1]);s.close()')"
 cd "$REPO_ROOT/web/apps/qadra"

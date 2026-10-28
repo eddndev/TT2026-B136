@@ -114,10 +114,22 @@ jobs:
           name: browser-crypto-module
           path: web/apps/qadra/src/generated/browser-crypto/
       - uses: actions/download-artifact@v4
+        if: ${{ needs.gates.outputs.reuse_web != 'true' }}
+        with:
+          name: evidence-verify-module
+          path: web/apps/qadra/src/generated/evidence-verify/
+      - uses: actions/download-artifact@v4
         if: ${{ needs.gates.outputs.reuse_web == 'true' }}
         with:
           name: browser-crypto-module
           path: web/apps/qadra/src/generated/browser-crypto/
+          run-id: ${{ needs.gates.outputs.web_run_id }}
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        if: ${{ needs.gates.outputs.reuse_web == 'true' }}
+        with:
+          name: evidence-verify-module
+          path: web/apps/qadra/src/generated/evidence-verify/
           run-id: ${{ needs.gates.outputs.web_run_id }}
           github-token: ${{ github.token }}
       - name: Build the verified version and package native dependencies

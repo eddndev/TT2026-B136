@@ -1,0 +1,22 @@
+[package]
+name = "evidence-verify-wasm"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The browser entry point of the evidence validator: it parses the policy the
+# Web Worker sends as JSON, runs `evidence-verify` and encodes the report as
+# JSON. It is separate from `browser-crypto`, which opens private keys.
+# Rationale: docs/adr/0085-in-browser-evidence-validation.md.
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+evidence-verify = { path = "../evidence-verify" }
+serde_json.workspace = true
+base64.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "=0.2.127"
