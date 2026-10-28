@@ -12,7 +12,7 @@ pub(super) fn decode(text: &[u8]) -> Option<Vec<u8>> {
     }
     let mut out = Vec::with_capacity(text.len() / 4 * 3);
     let groups = text.len() / 4;
-    for (index, group) in text.chunks_exact(4).enumerate() {
+    for (index, group) in text.as_chunks::<4>().0.iter().enumerate() {
         let padding = group
             .iter()
             .rev()

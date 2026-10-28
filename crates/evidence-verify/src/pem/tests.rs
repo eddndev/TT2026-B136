@@ -227,7 +227,7 @@ fn rejects_invalid_base64() {
         pem.replacen(&body[..4], "Zm9-", 1),
         pem.replacen(&body[..4], "Zm9_", 1),
         pem.replace(&body, &body[..body.len() - 1]),
-        pem.replace(&body, &format!("{}\nZm9v", &body)),
+        pem.replace(&body, &format!("{body}\nZm9v")),
         "-----BEGIN CERTIFICATE-----\nZh==\n-----END CERTIFICATE-----\n".to_string(),
     ];
     for case in cases {
