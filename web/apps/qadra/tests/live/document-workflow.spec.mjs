@@ -9,6 +9,9 @@ import { validateEvidence } from './evidence-validation-helpers.mjs';
 test('persisted cases and document evidence work through the real services', async ({
   page,
 }, testInfo) => {
+  // The flow ends by validating the downloaded evidence with the real
+  // WebAssembly engine, which needs time on a shared runner.
+  test.setTimeout(120000);
   const errors = [];
   const paths = [];
   page.on('pageerror', (error) => errors.push(error.message));
