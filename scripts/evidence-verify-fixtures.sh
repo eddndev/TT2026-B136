@@ -12,11 +12,12 @@
 #
 # Certificates are valid from 2026-01-01T00:00:00Z to
 # 2036-01-01T00:00:00Z. Time-stamp tokens carry the generation time as
-# genTime, so every CRL window is placed around it: thisUpdate is the
+# genTime, so the CRL windows are placed around it: thisUpdate is the
 # start of the generation hour minus one hour, nextUpdate is seven days
-# later as gen-crl.sh does, and the listed revocation is one day before
-# thisUpdate. Keys and signatures are random, so every run produces new
-# bytes; tests read the facts from fixtures.json.
+# later as gen-crl.sh does, and listed revocations are one day before
+# thisUpdate. root-stale.crl instead ends at that thisUpdate, before every
+# genTime. Keys and signatures are random, so every run produces new bytes;
+# tests read the facts from fixtures.json.
 #
 # Usage: scripts/evidence-verify-fixtures.sh
 # Requires bash, GNU date, OpenSSL 3.4 or later and python3.
@@ -50,9 +51,9 @@ die() {
 for tool in openssl python3 date awk sed sha256sum; do
     command -v "$tool" >/dev/null 2>&1 || die "$tool not found in PATH"
 done
-[ -f "$OPENSSL_CNF" ] || die "configuration file not found: $OPENSSL_CNF"
-[ -f "$TSA_CNF" ] || die "configuration file not found: $TSA_CNF"
-[ -f "$HELPER" ] || die "helper not found: $HELPER"
+for file in "$OPENSSL_CNF" "$TSA_CNF" "$HELPER"; do
+    [ -f "$file" ] || die "file not found: $file"
+done
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -74,9 +75,7 @@ quiet() {
 
 # Run a command that must fail; used for negative sanity checks.
 must_fail() {
-    if "$@" >"$LOG" 2>&1; then
-        die "command unexpectedly succeeded: $*"
-    fi
+    ! "$@" >"$LOG" 2>&1 || die "command unexpectedly succeeded: $*"
 }
 
 fact() {
@@ -140,12 +139,13 @@ issue() {
         -out "$STAGE/$name.der"
 }
 
-# gen_crl CA_DIR NAME: sign a CRL over the CA database with the fixed
-# window, using crl_ext and the crlnumber file as gen-crl.sh does.
+# gen_crl CA_DIR NAME [FROM UNTIL]: sign a CRL over the CA database with
+# the fixed window or the given one, using crl_ext and the crlnumber file
+# as gen-crl.sh does.
 gen_crl() {
-    local ca="$1" name="$2"
+    local ca="$1" name="$2" from="${3:-$THIS_UPDATE_TEXT}" until="${4:-$NEXT_UPDATE_TEXT}"
     PKI_CA_DIR="$ca" quiet openssl ca -config "$OPENSSL_CNF" -gencrl \
-        -crl_lastupdate "$THIS_UPDATE_TEXT" -crl_nextupdate "$NEXT_UPDATE_TEXT" \
+        -crl_lastupdate "$from" -crl_nextupdate "$until" \
         -out "$ca/crl/$name.pem"
     quiet openssl crl -in "$ca/crl/$name.pem" -outform DER -out "$STAGE/$name.der"
 }
@@ -259,25 +259,34 @@ for name in server-signer holder; do
         -out "$WORK/$name.pub.pem"
 done
 
-# CRLs: the empty one first (CRL number 1000 hex), then revoke the
-# revoked holder with a fixed date and no reason (CRL number 1001 hex).
+# revoke NAME: revoke a root-issued certificate; every revocation is dated.
+revoke() {
+    PKI_CA_DIR="$ROOT_CA" quiet openssl ca -config "$OPENSSL_CNF" \
+        -revoke "$ROOT_CA/certs/$1.crt.pem"
+    awk -F '\t' -v OFS='\t' -v at="$REVOKED_AT_TEXT" '$1 == "R" { $3 = at } { print }' \
+        "$ROOT_CA/index.txt" > "$WORK/index.txt"
+    mv "$WORK/index.txt" "$ROOT_CA/index.txt"
+}
+
+# CRLs from number 1000 hex: empty, revoking the revoked holder, the same
+# list ending before every genTime, and also revoking the time-stamping one.
 gen_crl "$ROOT_CA" root-empty.crl
-PKI_CA_DIR="$ROOT_CA" quiet openssl ca -config "$OPENSSL_CNF" \
-    -revoke "$ROOT_CA/certs/revoked-holder.crt.pem"
-awk -F '\t' -v OFS='\t' -v at="$REVOKED_AT_TEXT" '$1 == "R" { $3 = at } { print }' \
-    "$ROOT_CA/index.txt" > "$WORK/index.txt"
-mv "$WORK/index.txt" "$ROOT_CA/index.txt"
+revoke revoked-holder
 gen_crl "$ROOT_CA" root.crl
+gen_crl "$ROOT_CA" root-stale.crl "${REVOKED_AT_TEXT/#/20}" "$THIS_UPDATE_TEXT"
+revoke tsa
+gen_crl "$ROOT_CA" root-tsa-revoked.crl
 gen_crl "$FOREIGN_CA" foreign.crl
-fact crl root-empty.crl.der root.der
-fact crl root.crl.der root.der
+for name in root-empty root root-stale root-tsa-revoked; do
+    fact crl "$name.crl.der" root.der
+done
 fact crl foreign.crl.der foreign-root.der
 
 # PEM copies of the material packages carry as PEM entries.
 for name in root foreign-root server-signer holder revoked-holder tsa foreign-tsa; do
     quiet openssl x509 -inform DER -in "$STAGE/$name.der" -out "$STAGE/$name.pem"
 done
-for name in root.crl root-empty.crl foreign.crl; do
+for name in root.crl root-empty.crl root-stale.crl root-tsa-revoked.crl foreign.crl; do
     quiet openssl crl -inform DER -in "$STAGE/$name.der" -out "$STAGE/$name.pem"
 done
 
@@ -367,7 +376,9 @@ quiet openssl verify -x509_strict -CAfile "$FOREIGN_PEM" "$STAGE/foreign-tsa.pem
 quiet openssl verify -x509_strict -CAfile "$ROOT_PEM" "$STAGE/revoked-holder.pem"
 must_fail openssl verify -x509_strict -crl_check -CAfile "$ROOT_PEM" \
     -CRLfile "$STAGE/root.crl.pem" "$STAGE/revoked-holder.pem"
-for name in root.crl root-empty.crl; do
+must_fail openssl verify -x509_strict -crl_check -CAfile "$ROOT_PEM" \
+    -CRLfile "$STAGE/root-tsa-revoked.crl.pem" "$STAGE/tsa.pem"
+for name in root.crl root-empty.crl root-stale.crl root-tsa-revoked.crl; do
     quiet openssl crl -in "$STAGE/$name.pem" -CAfile "$ROOT_PEM" -noout
 done
 quiet openssl crl -in "$STAGE/foreign.crl.pem" -CAfile "$FOREIGN_PEM" -noout

@@ -52,6 +52,8 @@ All certificates are RSA-3072 with exponent 65537 (except
 | `holder-with-eku.der` | `Declaration` shape plus an e-mail protection EKU |
 | `root.crl.der`, `.pem` | Root CRL revoking `revoked-holder.der` |
 | `root-empty.crl.der`, `.pem` | Earlier root CRL (lower CRL number), no entries |
+| `root-stale.crl.der`, `.pem` | Root CRL revoking `revoked-holder.der` whose window ends before every token `genTime` |
+| `root-tsa-revoked.crl.der`, `.pem` | Latest root CRL revoking `revoked-holder.der` and `tsa.der` |
 | `foreign.crl.der`, `.pem` | Foreign root CRL, no entries |
 | `document.bin` | Fixed document bytes |
 | `server-signer.sig`, `holder.sig` | RSA PKCS#1 v1.5 SHA-256 signatures of `document.bin` |
@@ -65,9 +67,11 @@ All certificates are RSA-3072 with exponent 65537 (except
 | `token-other-digest.tsr` | Response over a digest that is not `document.bin`'s |
 | `fixtures.json` | SHA-256 and size of every other file, and the facts below |
 
-Every CRL has the same window: `thisUpdate` is the start of the generation
-hour minus one hour and `nextUpdate` seven days later, as `pki/gen-crl.sh`
-does; the revocation in `root.crl.der` is one day before `thisUpdate`. Tokens
+Every CRL except `root-stale.crl.der` has the same window: `thisUpdate` is
+the start of the generation hour minus one hour and `nextUpdate` seven days
+later, as `pki/gen-crl.sh` does; every listed revocation is one day before
+`thisUpdate`. `root-stale.crl.der` runs from that revocation date to that
+`thisUpdate`, so it never covers a token `genTime`. Tokens
 use policy `1.3.6.1.4.1.13762.3` (except the other-policy one), accuracy one
 second, no ordering, a nonce, and carry the signer certificate and its root.
 Their `genTime` is the generation time, inside every CRL window.
