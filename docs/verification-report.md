@@ -1,5 +1,61 @@
 # Informe de verificación local
 
+## Verificador puro de paquetes de evidencia: 28 de octubre de 2026 UTC
+
+Ejecucion local nueva, entre las 07:22 y las 07:30 UTC, sobre el crate
+`crates/evidence-verify` descrito en la
+[ADR 0085](adr/0085-in-browser-evidence-validation.md). La revision fue la rama
+`feat/evidence-verify-core` en `5f4df65a` con cambios aun sin confirmar en el
+arbol de trabajo: validacion de paquetes, perfiles, politica de anclas,
+informe y pruebas de paridad en `infrastructure`. No es evidencia de CI ni de
+una revision publicada.
+
+Entorno: Fedora 43 x86_64 (kernel 7.2.11), `rustc 1.94.0 (4a4ef493e
+2026-03-02)` con LLVM 21.1.8, `cargo 1.94.0`, target `wasm32-unknown-unknown`
+instalado y OpenSSL 3.5.9 (29 Sep 2026) en el sistema. Un solo proceso Cargo a
+la vez, `CARGO_BUILD_JOBS=1`, `RUST_TEST_THREADS=1` y `TMPDIR=output/tmp` sobre
+btrfs; `/tmp` es tmpfs y no se uso para la compilacion.
+
+| Comando | Resultado |
+| --- | --- |
+| `cargo test --locked -p evidence-verify` | 282 pruebas unitarias de la biblioteca, 64 de `tests/validate` y 0 doctests; todas aprobadas |
+| `cargo test --locked -p infrastructure --test evidence_statement_parity --test evidence_package_parity` | 6 y 4 pruebas aprobadas |
+| `cargo test --locked -p infrastructure --lib certificates::internal_profile::evidence_parity` | 6 aprobadas, 257 filtradas |
+| `cargo clippy --locked -p evidence-verify --all-targets -- -D warnings` | sin advertencias |
+| `cargo fmt --all -- --check` | sin diferencias |
+| `cargo build --locked --release -p evidence-verify --target wasm32-unknown-unknown` | compilacion terminada en 5.97 s |
+
+Las pruebas de paridad comparan el decodificador de declaraciones con el codec
+de `crates/domain/src/document_signing.rs`, los perfiles estrictos de
+certificados y CRL con `internal_profile` (incluidos cambios de un solo bit en
+certificados y CRL) y validan paquetes escritos por la ruta de exportacion del
+servidor: sello de servidor con y sin `tsa-chain.pem`, sello bajo una raiz no
+fijada, que no resulta completo, y firma individual v1.
+
+Los fixtures son artefactos publicos de una PKI desechable generados por
+`scripts/evidence-verify-fixtures.sh` (confirmados en `8503f96a`;
+`generated_at` de `fixtures.json`: 2026-10-28 05:31:48 UTC). `fixtures.json`
+no registra la version de OpenSSL; la instalada en el host es 3.5.9 y el
+script exige 3.4 o posterior. La paridad con `openssl ts -verify` la comprobo
+el generador al crear los fixtures; las pruebas Rust no invocan OpenSSL y en
+esta ejecucion no se regeneraron los fixtures.
+
+Limites:
+
+- El perfil de firma individual v2 se reconoce por inventario, pero el
+  manifiesto no esta implementado: cada componente obligatorio queda como no
+  soportado con `profile.manifest_not_available`. El servidor tampoco genera
+  todavia `manifiesto.json`.
+- No hay integracion con el navegador: no existen el envoltorio `cdylib`, el
+  Web Worker, la interfaz, el conjunto de raices fijadas de Qadra ni la ruta
+  `GET /api/v1/evidence/trust`. La compilacion wasm32 produjo solo
+  `libevidence_verify.rlib`; muestra que el crate y sus dependencias compilan
+  para ese target, no que exista un modulo `.wasm`.
+- `infrastructure` depende del crate solo como dependencia de desarrollo para
+  las pruebas de paridad.
+- No se ejecuto la regresion completa del workspace ni pruebas con PostgreSQL,
+  Redis, TSA real o navegador; quedan para el cierre de la entrega.
+
 ## Equivalencia de PreparedCatalog sobre catalogos alterados: 22 de octubre de 2026
 
 Se agregaron tres comprobaciones a la ADR 0083. Las funciones reales de

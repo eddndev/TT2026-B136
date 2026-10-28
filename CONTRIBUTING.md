@@ -73,6 +73,15 @@ dependency direction. Do not add a workspace dependency that violates it:
 The independent `browser-crypto` crate builds the local WASM module and must
 not depend on any server crate. See `docs/adr/0079-browser-local-cryptography.md`.
 
+The independent `evidence-verify` crate verifies exported evidence packages
+(archive admission, package profile, signatures, certificates, CRLs,
+time-stamp tokens and canonical statements) with no I/O, clock or random
+source. It must not depend on any other workspace crate; server crates may
+depend on it, and it must stay buildable for `wasm32-unknown-unknown` so that
+a separate wrapper can expose the same code to the browser validator. It is
+kept apart from `browser-crypto`, which opens private keys. See
+`docs/adr/0085-in-browser-evidence-validation.md`.
+
 The frontend npm workspace is rooted at `web/`, with one lockfile and forwarding
 scripts. Qadra lives in `web/apps/qadra/`, the CA portal in `web/apps/ca/`, and
 shared presentation elements in `web/packages/ui/`. The earlier frontend
