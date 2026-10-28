@@ -236,3 +236,40 @@ fn an_unreadable_tsa_chain_fails_certificates_and_not_the_token() {
         "{report:#?}"
     );
 }
+
+#[test]
+fn a_historical_crl_that_ends_before_the_token_leaves_the_result_partial() {
+    let mut package = seal();
+    package.set("crl.pem", fixture!("root-stale.crl.pem"));
+    let report = validate(&package.zip(), &policy());
+    assert_eq!(report.overall, Outcome::Indeterminate, "{report:#?}");
+    assert_component(
+        &report,
+        Revocation,
+        Outcome::Indeterminate,
+        "crl.not_covering",
+    );
+    for kind in [DocumentToken, DocumentSignature, Certificates] {
+        assert_eq!(
+            component(&report, kind).outcome,
+            Outcome::Checked,
+            "{kind:?}"
+        );
+    }
+}
+
+#[test]
+fn a_crl_revoking_the_time_stamping_certificate_before_the_token_fails_revocation() {
+    let mut package = seal();
+    package.set("crl.pem", fixture!("root-tsa-revoked.crl.pem"));
+    let report = validate(&package.zip(), &policy());
+    assert_eq!(report.overall, Outcome::Failed, "{report:#?}");
+    assert_component(&report, Revocation, Outcome::Failed, "crl.revoked");
+    for kind in [DocumentToken, DocumentSignature, Certificates] {
+        assert_eq!(
+            component(&report, kind).outcome,
+            Outcome::Checked,
+            "{kind:?}"
+        );
+    }
+}
