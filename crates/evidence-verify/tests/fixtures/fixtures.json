@@ -1,0 +1,494 @@
+{
+  "certificates": {
+    "foreign-root.der": {
+      "defect": null,
+      "issuer": "CN=CA Raiz Ajena de Prueba,OU=Autoridad Certificadora Ajena,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": null,
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "root",
+      "serial_hex": "560F8742F0512B121BA76B87C409A2E9EACB90BC",
+      "sha256": "30e7c896b50cb6720c1c01753b8e8855fdb73754b1dcb4cac4118444a933fc42",
+      "subject": "CN=CA Raiz Ajena de Prueba,OU=Autoridad Certificadora Ajena,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "88f18428558032587299479b87c40871b7e5123d"
+    },
+    "foreign-tsa.der": {
+      "authority_key_id": "88f18428558032587299479b87c40871b7e5123d",
+      "defect": null,
+      "issuer": "CN=CA Raiz Ajena de Prueba,OU=Autoridad Certificadora Ajena,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": "foreign-root.der",
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "time-stamping",
+      "serial_hex": "2000",
+      "sha256": "4f84bc33cb7a11b37ef7710c2d05e14dfee47e7104593b99280169501f6015a7",
+      "subject": "CN=TSA Ajena de Prueba,OU=Autoridad de Sellado de Tiempo,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "41664a0cf73397cb2ae861bb278ef7c9d6e0c440"
+    },
+    "holder-with-eku.der": {
+      "authority_key_id": "a66316f0bf56ad22e43cb17f0342503667f4d261",
+      "defect": "eku-email-protection-present",
+      "issuer": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": "root.der",
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "declaration",
+      "serial_hex": "1007",
+      "sha256": "8ba504e0d194ef32274b9557f0fa455bc8edf8da776612795e43e5b087f0706b",
+      "subject": "CN=Holder With EKU,OU=Personal del Despacho,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "be13161f11e4c2eb303e89eb94d86ecbe0b252f6"
+    },
+    "holder.der": {
+      "authority_key_id": "a66316f0bf56ad22e43cb17f0342503667f4d261",
+      "defect": null,
+      "issuer": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": "root.der",
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "declaration",
+      "serial_hex": "1001",
+      "sha256": "fb25c74d9736188832aafedf49141b17afffdabfad212936d671cf70b4aed1fe",
+      "subject": "CN=Holder Declaration,OU=Personal del Despacho,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "13f55d3a6f95b09098dc195a0016b60155f570ed"
+    },
+    "revoked-holder.der": {
+      "authority_key_id": "a66316f0bf56ad22e43cb17f0342503667f4d261",
+      "defect": null,
+      "issuer": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": "root.der",
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "declaration",
+      "serial_hex": "1002",
+      "sha256": "7cef05fecdcf412fb53877276519cfeb9b081678a2e601dc1e26d54291e14000",
+      "subject": "CN=Revoked Holder Declaration,OU=Personal del Despacho,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "3fa3a39be2499bbe87a5f1517d174df69ea20e1d"
+    },
+    "root.der": {
+      "defect": null,
+      "issuer": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": null,
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "root",
+      "serial_hex": "506EFFE2F34863A91B92B603BC8F7368A561AD30",
+      "sha256": "e4f412a5ab61a9622d13e4827a4dc85ac7151682e3d825d8976be196a9b30f3a",
+      "subject": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "a66316f0bf56ad22e43cb17f0342503667f4d261"
+    },
+    "server-signer.der": {
+      "authority_key_id": "a66316f0bf56ad22e43cb17f0342503667f4d261",
+      "defect": null,
+      "issuer": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": "root.der",
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "partner",
+      "serial_hex": "1000",
+      "sha256": "1a4a9a33425f49cd323f067e4e886586ed8d0bf249e6063b7baaef4f6ac89d92",
+      "subject": "CN=Server Seal Signer,OU=Personal del Despacho,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "b6100373ce41560dce749cdd111c25cbcddefc9a"
+    },
+    "signer-ca-true.der": {
+      "authority_key_id": "a66316f0bf56ad22e43cb17f0342503667f4d261",
+      "defect": "basic-constraints-ca-true",
+      "issuer": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": "root.der",
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "partner",
+      "serial_hex": "1005",
+      "sha256": "2713a43dfbd342e16f43c0737e4c1186023bba0e6da1ad85232ad1586790a3cc",
+      "subject": "CN=Signer CA True,OU=Personal del Despacho,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "dca08882f4d475e7a574c61f997201b925f65f67"
+    },
+    "signer-rsa2048.der": {
+      "authority_key_id": "a66316f0bf56ad22e43cb17f0342503667f4d261",
+      "defect": "rsa-2048-key",
+      "issuer": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": "root.der",
+      "key_bits": 2048,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "partner",
+      "serial_hex": "1006",
+      "sha256": "0184fe1a89305bcc0443082a9f69d11186e9e7ee093dc72040fd5e3c0146bf8c",
+      "subject": "CN=Signer RSA 2048,OU=Personal del Despacho,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "7d15a610d8f0aaf616b71e71880b45d38f03c4c0"
+    },
+    "tsa-noncritical-eku.der": {
+      "authority_key_id": "a66316f0bf56ad22e43cb17f0342503667f4d261",
+      "defect": "eku-not-critical",
+      "issuer": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": "root.der",
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "time-stamping",
+      "serial_hex": "1004",
+      "sha256": "3342cf3e283c012d06a130c8ac13d97fa3a5f2f9c70c64dea9a75e770e4d66f9",
+      "subject": "CN=TSA Non Critical EKU,OU=Autoridad de Sellado de Tiempo,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "1eb9bc539d7b8aa459782dd05b4f757227c28918"
+    },
+    "tsa.der": {
+      "authority_key_id": "a66316f0bf56ad22e43cb17f0342503667f4d261",
+      "defect": null,
+      "issuer": "CN=CA Raiz Interna Despacho Juridico Demo,OU=Autoridad Certificadora Interna,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "issuer_file": "root.der",
+      "key_bits": 3072,
+      "not_after": 2082758400,
+      "not_before": 1767225600,
+      "profile": "time-stamping",
+      "serial_hex": "1003",
+      "sha256": "5198475b2379c48cbe1aec90e437a41e16fccd627f8888ac4d2e21beb9ad1abb",
+      "subject": "CN=TSA Interna Despacho Juridico Demo,OU=Autoridad de Sellado de Tiempo,O=Despacho Juridico Demo,L=Ciudad de Mexico,ST=Ciudad de Mexico,C=MX",
+      "subject_key_id": "734bf5eff7f8f5058bb70e6615090f17b005d41e"
+    }
+  },
+  "crls": {
+    "foreign.crl.der": {
+      "crl_number": 4096,
+      "issuer_file": "foreign-root.der",
+      "next_update": 1793764800,
+      "revoked": [],
+      "this_update": 1793160000
+    },
+    "root-empty.crl.der": {
+      "crl_number": 4096,
+      "issuer_file": "root.der",
+      "next_update": 1793764800,
+      "revoked": [],
+      "this_update": 1793160000
+    },
+    "root.crl.der": {
+      "crl_number": 4097,
+      "issuer_file": "root.der",
+      "next_update": 1793764800,
+      "revoked": [
+        {
+          "revocation": 1793073600,
+          "serial_hex": "1002"
+        }
+      ],
+      "this_update": 1793160000
+    }
+  },
+  "document": {
+    "file": "document.bin",
+    "sha256": "34af34f802a3527303bce135e934b877ea430931b6966a989607ad7b29f59dde"
+  },
+  "files": {
+    "certificate-binding.bin": {
+      "sha256": "2f04d14d476c0cea39355f4c49f8bde36c57a8a7799cad3553ca7d52bfa87325",
+      "size": 142
+    },
+    "certificate-binding.sig": {
+      "sha256": "41310c65530dd2668a7fa657a5c9cd69c52d40bf5a827efa38cb7c92b0cc4283",
+      "size": 384
+    },
+    "document-consent.bin": {
+      "sha256": "b6d739c37a4427d73e18314eeea7a580e39e83bf3de9fb339bcc455b6b20c2de",
+      "size": 258
+    },
+    "document-consent.sig": {
+      "sha256": "ecf6f40867a4ccdcb801e18f8c4e8424be73d831b28c87df54891f4080f23e93",
+      "size": 384
+    },
+    "document.bin": {
+      "sha256": "34af34f802a3527303bce135e934b877ea430931b6966a989607ad7b29f59dde",
+      "size": 69
+    },
+    "foreign-root.der": {
+      "sha256": "30e7c896b50cb6720c1c01753b8e8855fdb73754b1dcb4cac4118444a933fc42",
+      "size": 1330
+    },
+    "foreign-root.pem": {
+      "sha256": "aa9dff3ba4f30813db8b605d4d000cb3529103a20813761a144ef138c41936e2",
+      "size": 1858
+    },
+    "foreign-tsa.der": {
+      "sha256": "4f84bc33cb7a11b37ef7710c2d05e14dfee47e7104593b99280169501f6015a7",
+      "size": 1363
+    },
+    "foreign-tsa.pem": {
+      "sha256": "b35e391e9edcdd25f9cdbfaf1a1dcbeb9d7efed5e7d2cc88c672562f859c6b53",
+      "size": 1903
+    },
+    "foreign.crl.der": {
+      "sha256": "467eb1bc80001b42c18113f2477050221c99dc5bb121251014ab68bd0a2e8714",
+      "size": 687
+    },
+    "foreign.crl.pem": {
+      "sha256": "6f800b835cb429a8ce60a1d681970d4bb74b0ee1699ebe7f5ac33b339e7c6b5c",
+      "size": 979
+    },
+    "holder-with-eku.der": {
+      "sha256": "8ba504e0d194ef32274b9557f0fa455bc8edf8da776612795e43e5b087f0706b",
+      "size": 1364
+    },
+    "holder.der": {
+      "sha256": "fb25c74d9736188832aafedf49141b17afffdabfad212936d671cf70b4aed1fe",
+      "size": 1346
+    },
+    "holder.pem": {
+      "sha256": "57a568b337b301d3b96ada817de7c595cbbf19d79a69e4d5b03129b7c3b3610e",
+      "size": 1879
+    },
+    "holder.sig": {
+      "sha256": "ea17d92e2e6b66f870e7b3b30f8dbaf3e29f636c36eef582ecbba9be5b047652",
+      "size": 384
+    },
+    "revoked-holder.der": {
+      "sha256": "7cef05fecdcf412fb53877276519cfeb9b081678a2e601dc1e26d54291e14000",
+      "size": 1354
+    },
+    "revoked-holder.pem": {
+      "sha256": "0e7b76dda886468e5e4c2513a7c2aad57d0d5563019bacc4a953514866091759",
+      "size": 1891
+    },
+    "root-empty.crl.der": {
+      "sha256": "0e1bde367a6eb0b91c1bfed35a291c9c1b417ab67aeb3ce1c83f657aa2007bf0",
+      "size": 704
+    },
+    "root-empty.crl.pem": {
+      "sha256": "30910340c197ed9180e3e5b25960698dae2ae53dc9db853941504565e0d7130c",
+      "size": 1003
+    },
+    "root.crl.der": {
+      "sha256": "9a50e4b9b0885081214079be639914853c794279452505f06732e37074e2fdd8",
+      "size": 727
+    },
+    "root.crl.pem": {
+      "sha256": "27ea191d9e4b39c4a6a0ae6fe667b4d5e673b1d3b07a7e609c2dc151d1491ce9",
+      "size": 1036
+    },
+    "root.der": {
+      "sha256": "e4f412a5ab61a9622d13e4827a4dc85ac7151682e3d825d8976be196a9b30f3a",
+      "size": 1364
+    },
+    "root.pem": {
+      "sha256": "e65073bf3c7ed9b78438a1b7cc7a626da5bc6ca515f3f0d2663d83a0650115c8",
+      "size": 1903
+    },
+    "server-signer.der": {
+      "sha256": "1a4a9a33425f49cd323f067e4e886586ed8d0bf249e6063b7baaef4f6ac89d92",
+      "size": 1377
+    },
+    "server-signer.pem": {
+      "sha256": "5bd24cb99bac9462c66b037374cc85d3d0a1c1e47d42fc79490e6dde25cff656",
+      "size": 1919
+    },
+    "server-signer.sig": {
+      "sha256": "467357022c66d2c940ee5e4a89f9168671c560636afead8d7f100333bcfba684",
+      "size": 384
+    },
+    "signer-ca-true.der": {
+      "sha256": "2713a43dfbd342e16f43c0737e4c1186023bba0e6da1ad85232ad1586790a3cc",
+      "size": 1378
+    },
+    "signer-rsa2048.der": {
+      "sha256": "0184fe1a89305bcc0443082a9f69d11186e9e7ee093dc72040fd5e3c0146bf8c",
+      "size": 1246
+    },
+    "token-bare-v2.der": {
+      "sha256": "fd3d8bd885eb736bb6776c597fc146f900716a51c8eaee3e7abdd79ee9f4825e",
+      "size": 3724
+    },
+    "token-ess-v1.tsr": {
+      "sha256": "7cd2ca4c548c80cb4a2d33fa46bc564113de0f6920cf3cc7c7ce36ac318e720b",
+      "size": 3721
+    },
+    "token-ess-v2.tsr": {
+      "sha256": "1525c743dc02d0282810ca24013eaa70104f2f7779619f4b8c4495f3a8527aef",
+      "size": 3733
+    },
+    "token-foreign.tsr": {
+      "sha256": "abb2d5cf01e1f9d481b7c9588e44fbdae7f7f24b14d24bc661ecef8bee7c8134",
+      "size": 3650
+    },
+    "token-other-digest.tsr": {
+      "sha256": "c34c04df41c236c5a80158c17b0c643b37bfbc2d7a5562ce1085a65528786ca6",
+      "size": 3734
+    },
+    "token-other-policy.tsr": {
+      "sha256": "aef9ff3ee11b2ee5a20a74a170022a37b39403b353316fe92145f1353a03cc30",
+      "size": 3733
+    },
+    "tsa-noncritical-eku.der": {
+      "sha256": "3342cf3e283c012d06a130c8ac13d97fa3a5f2f9c70c64dea9a75e770e4d66f9",
+      "size": 1378
+    },
+    "tsa.der": {
+      "sha256": "5198475b2379c48cbe1aec90e437a41e16fccd627f8888ac4d2e21beb9ad1abb",
+      "size": 1395
+    },
+    "tsa.pem": {
+      "sha256": "6edad76d7497a9a853534d46da463e0f71adc3e62cdaba0e5eb145026523e71b",
+      "size": 1944
+    }
+  },
+  "generated_at": 1793165508,
+  "generator": "scripts/evidence-verify-fixtures.sh",
+  "signatures": {
+    "certificate-binding.sig": {
+      "algorithm": "rsa-pkcs1v15-sha256",
+      "over": "certificate-binding.bin",
+      "signer": "holder.der"
+    },
+    "document-consent.sig": {
+      "algorithm": "rsa-pkcs1v15-sha256",
+      "over": "document-consent.bin",
+      "signer": "holder.der"
+    },
+    "holder.sig": {
+      "algorithm": "rsa-pkcs1v15-sha256",
+      "over": "document.bin",
+      "signer": "holder.der"
+    },
+    "server-signer.sig": {
+      "algorithm": "rsa-pkcs1v15-sha256",
+      "over": "document.bin",
+      "signer": "server-signer.der"
+    }
+  },
+  "statements": {
+    "certificate-binding.bin": {
+      "account_generation": 2,
+      "account_id": "6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f602",
+      "account_revision": 7,
+      "binding_id": "6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f603",
+      "deployment_id": "6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f601",
+      "format_version": 1,
+      "leaf_sha256": "fb25c74d9736188832aafedf49141b17afffdabfad212936d671cf70b4aed1fe",
+      "length": 142,
+      "purpose": "DOCBIND1",
+      "purpose_version": 1,
+      "root_sha256": "e4f412a5ab61a9622d13e4827a4dc85ac7151682e3d825d8976be196a9b30f3a",
+      "signature": "certificate-binding.sig",
+      "signer": "holder.der",
+      "trust_revision": 3
+    },
+    "document-consent.bin": {
+      "account_generation": 2,
+      "account_id": "6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f602",
+      "account_revision": 7,
+      "binding_id": "6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f603",
+      "case_id": "6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f605",
+      "deployment_id": "6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f601",
+      "document_id": "6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f606",
+      "document_sha256": "34af34f802a3527303bce135e934b877ea430931b6966a989607ad7b29f59dde",
+      "document_signature_sha256": "ea17d92e2e6b66f870e7b3b30f8dbaf3e29f636c36eef582ecbba9be5b047652",
+      "document_version": 1,
+      "format_version": 1,
+      "leaf_sha256": "fb25c74d9736188832aafedf49141b17afffdabfad212936d671cf70b4aed1fe",
+      "length": 258,
+      "operation_id": "6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f604",
+      "purpose": "DOCSIGN1",
+      "purpose_version": 1,
+      "root_sha256": "e4f412a5ab61a9622d13e4827a4dc85ac7151682e3d825d8976be196a9b30f3a",
+      "signature": "document-consent.sig",
+      "signer": "holder.der",
+      "trust_revision": 3
+    }
+  },
+  "tokens": {
+    "token-bare-v2.der": {
+      "accuracy_seconds": 1,
+      "anchor": "root.der",
+      "covered_sha256": "34af34f802a3527303bce135e934b877ea430931b6966a989607ad7b29f59dde",
+      "covers": "document.bin",
+      "ess": "signing-certificate-v2",
+      "form": "token",
+      "gen_time": 1793165512,
+      "nonce_present": true,
+      "ordering": false,
+      "policy": "1.3.6.1.4.1.13762.3",
+      "serial_hex": "1003",
+      "signer": "tsa.der",
+      "status": null
+    },
+    "token-ess-v1.tsr": {
+      "accuracy_seconds": 1,
+      "anchor": "root.der",
+      "covered_sha256": "34af34f802a3527303bce135e934b877ea430931b6966a989607ad7b29f59dde",
+      "covers": "document.bin",
+      "ess": "signing-certificate",
+      "form": "response",
+      "gen_time": 1793165512,
+      "nonce_present": true,
+      "ordering": false,
+      "policy": "1.3.6.1.4.1.13762.3",
+      "serial_hex": "1001",
+      "signer": "tsa.der",
+      "status": "granted"
+    },
+    "token-ess-v2.tsr": {
+      "accuracy_seconds": 1,
+      "anchor": "root.der",
+      "covered_sha256": "34af34f802a3527303bce135e934b877ea430931b6966a989607ad7b29f59dde",
+      "covers": "document.bin",
+      "ess": "signing-certificate-v2",
+      "form": "response",
+      "gen_time": 1793165512,
+      "nonce_present": true,
+      "ordering": false,
+      "policy": "1.3.6.1.4.1.13762.3",
+      "serial_hex": "1002",
+      "signer": "tsa.der",
+      "status": "granted"
+    },
+    "token-foreign.tsr": {
+      "accuracy_seconds": 1,
+      "anchor": "foreign-root.der",
+      "covered_sha256": "34af34f802a3527303bce135e934b877ea430931b6966a989607ad7b29f59dde",
+      "covers": "document.bin",
+      "ess": "signing-certificate-v2",
+      "form": "response",
+      "gen_time": 1793165512,
+      "nonce_present": true,
+      "ordering": false,
+      "policy": "1.3.6.1.4.1.13762.3",
+      "serial_hex": "1001",
+      "signer": "foreign-tsa.der",
+      "status": "granted"
+    },
+    "token-other-digest.tsr": {
+      "accuracy_seconds": 1,
+      "anchor": "root.der",
+      "covered_sha256": "72194a92fd4078dc0d10b58f9200e06a8bdf60b46f5063ab9c99cb7b7fa413c7",
+      "covers": null,
+      "ess": "signing-certificate-v2",
+      "form": "response",
+      "gen_time": 1793165512,
+      "nonce_present": true,
+      "ordering": false,
+      "policy": "1.3.6.1.4.1.13762.3",
+      "serial_hex": "1005",
+      "signer": "tsa.der",
+      "status": "granted"
+    },
+    "token-other-policy.tsr": {
+      "accuracy_seconds": 1,
+      "anchor": "root.der",
+      "covered_sha256": "34af34f802a3527303bce135e934b877ea430931b6966a989607ad7b29f59dde",
+      "covers": "document.bin",
+      "ess": "signing-certificate-v2",
+      "form": "response",
+      "gen_time": 1793165512,
+      "nonce_present": true,
+      "ordering": false,
+      "policy": "1.3.6.1.4.1.13762.4",
+      "serial_hex": "1004",
+      "signer": "tsa.der",
+      "status": "granted"
+    }
+  }
+}
