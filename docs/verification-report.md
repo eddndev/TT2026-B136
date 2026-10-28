@@ -2,13 +2,12 @@
 
 ## Verificador puro de paquetes de evidencia: 28 de octubre de 2026 UTC
 
-Ejecucion local nueva, entre las 07:22 y las 07:30 UTC, sobre el crate
+Ejecucion local nueva, entre las 07:38 y las 07:40 UTC, sobre el crate
 `crates/evidence-verify` descrito en la
 [ADR 0085](adr/0085-in-browser-evidence-validation.md). La revision fue la rama
-`feat/evidence-verify-core` en `5f4df65a` con cambios aun sin confirmar en el
-arbol de trabajo: validacion de paquetes, perfiles, politica de anclas,
-informe y pruebas de paridad en `infrastructure`. No es evidencia de CI ni de
-una revision publicada.
+`feat/evidence-verify-core` en `a0fc5ab7`, con el arbol de trabajo limpio:
+validacion de paquetes, perfiles, politica de anclas, informe y pruebas de
+paridad en `infrastructure`. No es evidencia de CI.
 
 Entorno: Fedora 43 x86_64 (kernel 7.2.11), `rustc 1.94.0 (4a4ef493e
 2026-03-02)` con LLVM 21.1.8, `cargo 1.94.0`, target `wasm32-unknown-unknown`
@@ -18,12 +17,12 @@ btrfs; `/tmp` es tmpfs y no se uso para la compilacion.
 
 | Comando | Resultado |
 | --- | --- |
-| `cargo test --locked -p evidence-verify` | 282 pruebas unitarias de la biblioteca, 64 de `tests/validate` y 0 doctests; todas aprobadas |
+| `cargo test --locked -p evidence-verify` | 282 pruebas unitarias de la biblioteca, 67 de `tests/validate` y 0 doctests; todas aprobadas |
 | `cargo test --locked -p infrastructure --test evidence_statement_parity --test evidence_package_parity` | 6 y 4 pruebas aprobadas |
 | `cargo test --locked -p infrastructure --lib certificates::internal_profile::evidence_parity` | 6 aprobadas, 257 filtradas |
 | `cargo clippy --locked -p evidence-verify --all-targets -- -D warnings` | sin advertencias |
 | `cargo fmt --all -- --check` | sin diferencias |
-| `cargo build --locked --release -p evidence-verify --target wasm32-unknown-unknown` | compilacion terminada en 5.97 s |
+| `cargo build --locked --release -p evidence-verify --target wasm32-unknown-unknown` | compilacion terminada en 6.09 s |
 
 Las pruebas de paridad comparan el decodificador de declaraciones con el codec
 de `crates/domain/src/document_signing.rs`, los perfiles estrictos de
@@ -33,12 +32,11 @@ servidor: sello de servidor con y sin `tsa-chain.pem`, sello bajo una raiz no
 fijada, que no resulta completo, y firma individual v1.
 
 Los fixtures son artefactos publicos de una PKI desechable generados por
-`scripts/evidence-verify-fixtures.sh` (confirmados en `8503f96a`;
-`generated_at` de `fixtures.json`: 2026-10-28 05:31:48 UTC). `fixtures.json`
+`scripts/evidence-verify-fixtures.sh` (`generated_at` de `fixtures.json`:
+2026-10-28 07:35:42 UTC). Incluyen una CRL cuya ventana termina antes de todo `genTime` y otra que revoca el certificado de sellado; con ellas se comprueba el sello historico parcial y la TSA revocada. `fixtures.json`
 no registra la version de OpenSSL; la instalada en el host es 3.5.9 y el
 script exige 3.4 o posterior. La paridad con `openssl ts -verify` la comprobo
-el generador al crear los fixtures; las pruebas Rust no invocan OpenSSL y en
-esta ejecucion no se regeneraron los fixtures.
+el generador al crear los fixtures; las pruebas Rust no invocan OpenSSL.
 
 Limites:
 
