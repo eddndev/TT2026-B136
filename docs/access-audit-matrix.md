@@ -10,6 +10,10 @@ criteria 1-7 below are accepted locally from the combined focused, native,
 composed API/restore and real Qadra evidence. The reconciled HTTP measurement
 contains 2347 durable records across 207 of the 222 functional pairs; the exact
 15 unobserved pairs and their existing fixture mappings are retained below.
+On 2026-10-28 the catalog grew to 223 pairs with
+`GET /api/v1/evidence/trust`; the 207/222 HTTP measurement and the 222 native
+route payloads below remain historical figures over the earlier catalog, and
+the new pair has no durable-latency sample of its own.
 This does not establish HTTP timing for every row, an exhaustive per-role
 campaign, integration or deployment. Contracts and the 414-page manuscript are reconciled and locally inspected;
 exact-revision CI/integration gates are tracked separately in criterion 8. Existing workflow
@@ -17,9 +21,9 @@ acceptance remains separate in [verification-report.md](verification-report.md).
 The parent scope is [technical-closure.md](technical-closure.md): RF-02, CU-04,
 CU-17 and RF-20 in [analysis and design](../latex/chapters/03-analisis-diseno.tex).
 
-The maximum configured product surface contains **222 functional method/path
-pairs on 190 distinct normalized route patterns**: 114 GET, 88 POST, 19 PUT and
-one DELETE. Two additional explicit HEAD handlers reject with 405. The 191
+The maximum configured product surface contains **223 functional method/path
+pairs on 191 distinct normalized route patterns**: 115 GET, 88 POST, 19 PUT and
+one DELETE. Two additional explicit HEAD handlers reject with 405. The 192
 route declarations include separate GET and POST declarations for `/api/v1/users`.
 The appendix expands the two procedural-fact families and both deadline-profile
 collections. Path parameters retain the names used by each source router.
@@ -48,7 +52,7 @@ revalidation; no token, password, MFA code or private capability is recorded.
 | bootstrap | No users exist; create first Owner using existing enrollment. | A later bootstrap is closed; a claimed UUID is not an authenticated principal. | [HTTP](http-api.md) |
 | password-login | Correct credentials create the existing MFA challenge. | Invalid credentials, inactive account and lock limits retain generic public results; no session is inferred from first-factor success. | [HTTP](http-api.md) |
 | mfa | Valid server challenge and TOTP/recovery produce the existing session. | Invalid/expired/consumed challenge, invalid/replayed TOTP, consumed recovery and operational failure stay distinct where already known. | [MFA](mfa-access-logs.md) |
-| session | Current bearer for any of the four roles reads identity/session, records activity or logs out. | Missing, revoked or expired session; record activity cannot revive it. | [HTTP](http-api.md) |
+| session | Current bearer for any of the four roles reads identity/session, records activity, logs out or reads the current evidence trust anchors. | Missing, revoked or expired session; record activity cannot revive it. | [HTTP](http-api.md) |
 | owner-members | Active Owner lists, creates, reads and changes accounts/assignments. | Litigator, Paralegal and Client rejected; last active Owner and revision guards remain. | [Members](members-api.md), [HTTP](http-api.md) |
 | basic-cases | Owner sees all; assigned Litigator, Paralegal and Client read basic metadata. Owner/Litigator create; only Owner assigns/removes members. | Unassigned account cannot learn an exact case; Paralegal/Client cannot create; Litigator cannot manage members. | [HTTP](http-api.md) |
 | case-administration | Owner and Litigator create penal cases; Owner manages all, assigned Litigator manages, assigned Paralegal reads. | Client denied even if assigned; unassigned staff denied/hidden under current contract. | [Administration](case-administration-api.md) |
@@ -186,7 +190,7 @@ identify which enabled operations actually ran through HTTP and what they took.
 Every functional appendix row resolves to three separate checks: its exact
 method/path in **B**, its `policy` in the table below, and its source-family
 fixture where a policy spans multiple routers. The 24 policy counts sum to
-222. The 112 `staff-case` rows are expanded by exact source below; no appendix
+223. The 112 `staff-case` rows are expanded by exact source below; no appendix
 row is added or removed by this mapping. The two HEAD rows resolve separately.
 
 **B - common access boundary:**
@@ -208,7 +212,7 @@ scenario table above remains the expected policy. Every row also inherits B.
 | bootstrap (1) | [Auth transport](../crates/web/tests/auth_api.rs), [identity workflow](../crates/application/tests/identity_workflow.rs), [API bootstrap](../scripts/api-demo.sh). |
 | password-login (1) | [Auth transport](../crates/web/tests/auth_api.rs), [identity workflow](../crates/application/tests/identity_workflow.rs), [API login](../scripts/api-demo.sh). |
 | mfa (2) | [MFA/session cases](../crates/web/tests/auth_support/session_cases.rs), [operational correlation](../crates/web/tests/auth_support/access_log_cases.rs), [API TOTP/recovery/replay](../scripts/api-demo.sh). |
-| session (4) | [All-role session cases](../crates/web/tests/auth_support/session_cases.rs), [session policies](../crates/application/tests/identity_support/session_policy_cases.rs), [logout/revoked bearer](../scripts/api-demo.sh). |
+| session (5) | [All-role session cases](../crates/web/tests/auth_support/session_cases.rs), [session policies](../crates/application/tests/identity_support/session_policy_cases.rs), [logout/revoked bearer](../scripts/api-demo.sh), [evidence trust transport](../crates/web/tests/evidence_trust_http.rs), [evidence trust authentication](../crates/application/tests/evidence_trust.rs). |
 | owner-members (5) | [Member transport](../crates/web/tests/member_http.rs), [user creation](../crates/web/tests/auth_api.rs), [four-role account/assignment fixture](../scripts/api-members-demo.py). |
 | basic-cases (5) | [Case transport](../crates/web/tests/case_api.rs), [four roles, assignment removal and hidden resources](../scripts/api-case-demo.sh). |
 | case-administration (6) | [Administration transport](../crates/web/tests/case_administration_api.rs), [penal case and closure fixture](../scripts/api-case-administration-demo.sh). |
@@ -260,7 +264,7 @@ Report download HEAD remains an explicit handler in
 no direct assertion of that handler's 405 was identified in the mapped report
 tests. B alone does not close that transport assertion. The mapped report
 fixture is not evidence of a positive HEAD business operation.
-Neither HEAD row is included in the 222 functional operations or their latency
+Neither HEAD row is included in the 223 functional operations or their latency
 population.
 
 ### Accepted focused and composed evidence
@@ -292,7 +296,7 @@ Their later receipts are listed explicitly instead of treating the earlier
 No unimplemented mandatory functional pair was identified in the source/fixture
 mapping. This finding does not mean that every positive/negative role scenario
 has run: B uses synthetic status responses, and existing native fixtures are
-family coverage rather than a 222-row per-role acceptance ledger. In particular,
+family coverage rather than a 223-row per-role acceptance ledger. In particular,
 assignment loss already has concrete fixtures: [case/documents](../scripts/api-case-demo.sh)
 remove Paralegal and Litigator without replacing their bearer, require hidden
 404s afterward, and retain assigned Client basic metadata with document denial.
@@ -385,7 +389,7 @@ sequential commands; no new runner or feature is required by this map.
 ## Acceptance ledger
 
 - [x] Map every catalog row to its current composition, policy and reproducible
-      positive/negative fixtures. B covers all 222 pairs plus the two explicit
+      positive/negative fixtures. B covers all 223 pairs plus the two explicit
       HEAD patterns; composed API and native fixtures supply the existing
       workflow acceptance. The 15 unobserved HTTP pairs are enumerated above.
 - [x] Verify existing role, membership, revocation, closure, wrong-resource and
@@ -625,6 +629,7 @@ GET	/api/v1/deadline-profiles/:id/revisions/:revision	deadline-profiles	crates/w
 POST	/api/v1/deadline-profiles/prepare	deadline-profiles	crates/web/src/deadline_profiles/mod.rs
 GET	/api/v1/document-integrity-incidents	owner-integrity	crates/web/src/document_integrity.rs
 GET	/api/v1/document-integrity-incidents/:id	owner-integrity	crates/web/src/document_integrity.rs
+GET	/api/v1/evidence/trust	session	crates/web/src/evidence_trust/mod.rs
 GET	/api/v1/hearings	staff-agenda	crates/web/src/hearings/mod.rs
 GET	/api/v1/identity/signing-certificates/:binding	litigator-binding	crates/web/src/individual_signing.rs
 POST	/api/v1/identity/signing-certificates/:binding/prepare	litigator-binding	crates/web/src/individual_signing.rs
@@ -651,7 +656,7 @@ GET	/api/v1/users/:id	owner-members	crates/web/src/members/mod.rs
 PUT	/api/v1/users/:id/access	owner-members	crates/web/src/members/mod.rs
 ```
 
-Explicit transport rejections, excluded from the 222 functional pairs:
+Explicit transport rejections, excluded from the 223 functional pairs:
 
 ```tsv
 method	path	policy	source

@@ -157,6 +157,7 @@ fn workflows(dashboard: Arc<Dashboard>) -> CaseWorkflows {
             denied: true,
         }),
         document_content: unused.clone(),
-        document_integrity: unused,
+        document_integrity: unused.clone(),
+        evidence_trust: unused,
     }
 }

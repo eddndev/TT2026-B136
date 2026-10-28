@@ -107,7 +107,7 @@ pub use case_stages::PostgresCaseStageStore;
 pub use cases::PostgresCaseRepository;
 pub use certificates::{OpensslCaAdapter, X509ChainValidator};
 pub use clock::SystemClock;
-pub use credential_trust_postgres::PostgresCredentialTrustStore;
+pub use credential_trust_postgres::{PostgresCredentialTrustReader, PostgresCredentialTrustStore};
 pub use documents::FileDocumentRepository;
 pub use encryption::RingAesGcmCipher;
 pub use envelope::EnvelopeKeyManager;

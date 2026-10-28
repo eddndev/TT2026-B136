@@ -75,6 +75,11 @@ impl DocumentProcessor {
         })
     }
 
+    /// Public evidence material captured at sealing time, as configured at startup.
+    pub fn evidence_material(&self) -> &EvidenceMaterial {
+        &self.material
+    }
+
     /// Enables strict historical verification of captured personal signatures.
     pub fn with_individual_verifier(
         mut self,

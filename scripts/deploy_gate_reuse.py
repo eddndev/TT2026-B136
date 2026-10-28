@@ -15,7 +15,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB_WORKFLOW = ".github/workflows/web.yml"
-MODULE_ARTIFACT = "browser-crypto-module"
+MODULE_ARTIFACTS = ("browser-crypto-module", "evidence-verify-module")
 SHA = re.compile(r"[0-9a-f]{40}")
 UNSUPPORTED = re.compile(r"[?\[\]{}!]")
 
@@ -84,8 +84,8 @@ def equivalent_run(runs, commit, patterns, git, artifacts):
             continue
         if any(matches(path, patterns) for path in git.changed_paths(earlier, commit)):
             continue
-        if any(item.get("name") == MODULE_ARTIFACT and not item.get("expired")
-               for item in artifacts(run_["id"])):
+        held = {item.get("name") for item in artifacts(run_["id"]) if not item.get("expired")}
+        if held.issuperset(MODULE_ARTIFACTS):
             return run_["id"]
     return None
 

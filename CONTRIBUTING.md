@@ -82,6 +82,18 @@ a separate wrapper can expose the same code to the browser validator. It is
 kept apart from `browser-crypto`, which opens private keys. See
 `docs/adr/0085-in-browser-evidence-validation.md`.
 
+The independent `evidence-verify-wasm` crate is that wrapper. It must depend
+only on `evidence-verify`; it exchanges the policy and the report as JSON and
+is built by `scripts/build-evidence-verify.sh` into the module of the evidence
+validation Web Worker. `scripts/evidence-verify-artifact.mjs` rejects a
+missing or stale module, including after changes to the `evidence-verify`
+sources.
+
+Each finding code of `evidence-verify` must have a plain Spanish message in
+`web/apps/qadra/src/lib/evidence/messages*.mjs`. Adding or renaming a code
+without its message fails `web/apps/qadra/tests/evidence-messages.test.mjs`,
+which reads the codes from the engine sources.
+
 The frontend npm workspace is rooted at `web/`, with one lockfile and forwarding
 scripts. Qadra lives in `web/apps/qadra/`, the CA portal in `web/apps/ca/`, and
 shared presentation elements in `web/packages/ui/`. The earlier frontend

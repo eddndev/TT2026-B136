@@ -256,3 +256,11 @@ async fn compound_hearing_routes_share_protected_api_composition() {
     assert_eq!(fixture.dashboard.calls(), 0);
     assert!(fixture.ports.calls().is_empty());
 }
+
+#[tokio::test]
+async fn the_composed_api_serves_the_evidence_trust_route() {
+    let fixture = Harness::new(1, false);
+    get(&fixture.router, "/api/v1/evidence/trust?refresh=1")
+        .await
+        .error(StatusCode::BAD_REQUEST, "evidence_trust_invalid_input");
+}

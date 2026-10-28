@@ -25,6 +25,7 @@ use crate::cli::ServeArgs;
 
 mod derived_deadlines;
 mod documents;
+mod evidence_trust;
 mod hearings;
 mod individual_signing;
 mod inputs;
@@ -266,18 +267,9 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 deadline_hasher,
                 deadline_clock,
             );
-            let document_content = application::document_content::DocumentContentService::new(
-                repository.clone(),
-                identity.clone(),
-                processor.clone(),
-                Arc::new(SystemClock::new()),
-                repository.clone(),
-            );
-            let document_integrity = application::document_integrity::DocumentIntegrityService::new(
-                repository.clone(),
-                identity.clone(),
-                Arc::new(SystemClock::new()),
-            );
+            let (document_content, document_integrity) =
+                documents::access(&repository, &identity, &processor);
+            let evidence_trust = evidence_trust::open(database, identity.clone(), &processor)?;
             let individual_signing = individual_signing::open(
                 database,
                 identity.clone(),
@@ -361,8 +353,9 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                     audit_events,
                     case_reports: reports.workflow,
                     alerts: alerts.workflow,
-                    document_content: Arc::new(document_content),
-                    document_integrity: Arc::new(document_integrity),
+                    document_content,
+                    document_integrity,
+                    evidence_trust,
                 },
                 Arc::new(calendars),
                 Arc::new(profiles),

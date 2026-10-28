@@ -10,8 +10,8 @@
     "test:e2e": "playwright test",
     "format": "prettier --write src tests *.mjs svelte.config.js",
     "format:check": "prettier --check src tests *.mjs svelte.config.js",
-    "predev": "node ../../../scripts/browser-crypto-artifact.mjs",
-    "prebuild": "node ../../../scripts/browser-crypto-artifact.mjs"
+    "predev": "node ../../../scripts/browser-crypto-artifact.mjs && node ../../../scripts/evidence-verify-artifact.mjs",
+    "prebuild": "node ../../../scripts/browser-crypto-artifact.mjs && node ../../../scripts/evidence-verify-artifact.mjs"
   },
   "dependencies": {
     "@astrojs/svelte": "^9.0.1",

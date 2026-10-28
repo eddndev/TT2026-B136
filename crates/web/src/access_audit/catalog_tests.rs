@@ -87,5 +87,5 @@ async fn finite_route_catalog_preserves_recognized_operation_and_valid_resource_
         }
         count += 1;
     }
-    assert_eq!(count, 224);
+    assert_eq!(count, 225);
 }

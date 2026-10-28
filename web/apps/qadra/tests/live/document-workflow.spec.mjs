@@ -4,10 +4,14 @@ import { execFileSync } from 'node:child_process';
 import { test, expect } from '@playwright/test';
 
 import { fixture, login, capture } from './helpers.mjs';
+import { validateEvidence } from './evidence-validation-helpers.mjs';
 
 test('persisted cases and document evidence work through the real services', async ({
   page,
 }, testInfo) => {
+  // The flow ends by validating the downloaded evidence with the real
+  // WebAssembly engine, which needs time on a shared runner.
+  test.setTimeout(120000);
   const errors = [];
   const paths = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -84,6 +88,7 @@ test('persisted cases and document evidence work through the real services', asy
   await (await historicDownload).saveAs(historicalArchive);
   expect(readFileSync(historicalArchive)).toEqual(originalArchive);
   await capture(page, testInfo, 'historical-desktop');
+  await validateEvidence(page, historicalArchive);
   await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible();
   await page.reload();

@@ -1,4 +1,6 @@
 // Shared fixtures for related integration tests. See docs/adr/0046-cached-ci-test-suites.md.
+#[path = "../case_administration_support/mod.rs"]
+mod case_administration_support;
 #[path = "../credential_trust_backend.rs"]
 mod credential_trust_backend;
 #[path = "../credential_trust_concurrency.rs"]
@@ -8,6 +10,8 @@ mod credential_trust_concurrency;
 mod credential_trust_database_support;
 #[path = "../credential_trust_permissions.rs"]
 mod credential_trust_permissions;
+#[path = "../credential_trust_reader.rs"]
+mod credential_trust_reader;
 #[path = "../credential_trust_restore.rs"]
 mod credential_trust_restore;
 #[path = "../credential_trust_schema.rs"]

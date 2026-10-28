@@ -1,5 +1,106 @@
 # Informe de verificación local
 
+## Validacion de evidencia en el navegador: 28 de octubre de 2026 UTC
+
+Ejecucion local sobre la rama `feat/evidence-validation-panel` (base
+`dd3ce8fb`) con los cambios sin confirmar de la entrega descrita en la
+[ADR 0085](adr/0085-in-browser-evidence-validation.md): la ruta
+`GET /api/v1/evidence/trust`, el envoltorio `crates/evidence-verify-wasm` con
+su Web Worker y raices fijadas, y el panel de validacion de Qadra. No es
+evidencia de CI. Las tres partes se verificaron por separado el mismo dia; las
+dos primeras se registran tal como se ejecutaron y no se repitieron al cerrar
+el panel, que no modifica codigo Rust.
+
+Entorno: Fedora 43 x86_64 (kernel 7.2.11), Node 22.22.2, npm 10.9.7,
+Playwright 1.63.0 con Chromium, Astro 7.3.2 y Svelte 5.57.0. Cargo se ejecuto
+de forma serializada con `CARGO_BUILD_JOBS=1`, `RUST_TEST_THREADS=1` y
+`TMPDIR=output/tmp` sobre btrfs; los navegadores usaron un solo worker.
+
+Ruta de confianza del servidor:
+
+| Comando | Resultado |
+| --- | --- |
+| `cargo test --locked -p application --test evidence_trust` | 5 aprobadas |
+| `cargo test --locked -p web --lib --test evidence_trust_http --test password_reset_composition --test owner_login_http --test owner_certificate_http --test owner_certificate_composition` | 163, 6, 3, 15, 22 y 11 aprobadas |
+| `cargo test --locked -p web --lib access_audit::` | 12 aprobadas, con el catalogo en 225 rutas |
+| `cargo test --locked -p despacho-cli --bin despacho-cli serve_cmd::` | 3 aprobadas; fallo `owner_login_acceptance`, que exige las URL de sus servicios desechables y no se configuraron |
+| `CASE_TEST_DATABASE_URL=... cargo test --locked -p infrastructure --test credential_suite_1` | 21 aprobadas contra un PostgreSQL 18.6 desechable, ya eliminado |
+| `python3 -I scripts/check-test-layout.py` | 354 ejecutables de integracion registrados una vez |
+| `python3 -m unittest scripts/tests/test_api_access_audit.py` | 16 pruebas aprobadas |
+| `cargo +1.99 fmt --all -- --check` | sin diferencias |
+| `cargo +1.99 clippy --locked --workspace --all-targets -- -D warnings` | sin advertencias, con el envoltorio ya en el workspace |
+| `cargo +1.88 check --locked --workspace` | terminado sin errores |
+
+Modulo, Worker y raices fijadas:
+
+| Comando | Resultado |
+| --- | --- |
+| `cargo check --locked -p evidence-verify --target wasm32-unknown-unknown` | correcto |
+| `cargo test --locked -p evidence-verify-wasm` | 11 aprobadas |
+| `bash scripts/build-evidence-verify.sh` | `evidence_verify_wasm_bg.wasm` de 711116 bytes (210691 con `gzip -9`) y `evidence_verify_wasm.js` de 8506 bytes |
+| `node scripts/evidence-verify-artifact.mjs` | modulo vigente |
+| `cargo +1.99 clippy --locked -p evidence-verify-wasm --all-targets -- -D warnings` | sin advertencias |
+| `cargo +1.88 check --locked -p evidence-verify-wasm --all-targets` | correcto |
+| `python3 -m unittest` de `scripts/tests/test_ci_*` y `test_deploy_*` | 74 y 273 aprobadas |
+
+En esa parte tambien se cargo el modulo en Chromium con `astro dev` y
+`astro preview`: un archivo que no es ZIP produjo `zip.end_record` y no
+compatible, sin peticiones distintas de GET y con el `ArrayBuffer` transferido.
+
+Panel, mensajes y pruebas de navegador, ejecutados al final:
+
+| Comando | Resultado |
+| --- | --- |
+| `node --test` de `tests/evidence-messages`, `evidence-presentation`, `evidence-report-export` y `evidence-trust-api` antes de los modulos | 4 archivos fallaron con `ERR_MODULE_NOT_FOUND` |
+| los mismos tras los modulos y antes de los componentes | 20 de 21 aprobadas; fallo la revision ASCII al no existir `EvidenceValidation.svelte` |
+| `npx playwright test tests/browser/evidence-validation.spec.mjs` antes del panel | fallo al no encontrar el encabezado del panel |
+| `npm run format:check` (en `web/`) | todos los archivos con formato Prettier |
+| `npm test` (en `web/`) | 966 pruebas aprobadas tras las revisiones de seguridad y de contrato |
+| `npm run build` (en `web/`) | compilacion completa; el Worker y el `.wasm` quedan como recursos propios; Vite avisa de fragmentos mayores de 500 kB |
+| `npx playwright test tests/browser/evidence-validation.spec.mjs tests/browser/evidence-validation-wasm.spec.mjs tests/browser/versions.spec.mjs tests/browser/document-operation.spec.mjs --workers=1` | 19 aprobadas |
+
+Al cerrar se repitieron en el arbol final `cargo +1.99 fmt --all -- --check`,
+`cargo +1.99 clippy --locked --workspace --all-targets -- -D warnings`,
+`cargo +1.88 check --locked --workspace`, las pruebas de la ruta y del
+envoltorio, la construccion de ambos modulos, `npm test` (966 aprobadas),
+`npm run format:check`, `npm run build` y las dos pruebas de navegador del
+panel; todo aprobo. Con una prueba temporal no confirmada se cargaron en el
+panel, con el modulo real y la raiz fija de produccion, dos paquetes reales
+exportados por qadra.com.mx (un sello del servidor y una firma individual v1):
+ambos resultaron completos. El mismo sello con un byte invertido dentro del
+ZIP resulto fallido y una copia recomprimida con otra herramienta, no
+compatible con el aviso de que no es el paquete que exporto Qadra. Los
+paquetes reales no se agregaron al repositorio.
+
+`tests/evidence-messages.test.mjs` extrae de `crates/evidence-verify/src`, sin
+las pruebas, cada codigo literal que no es un nombre de archivo y exige un
+mensaje propio para cada uno. Tambien exige que la tabla no tenga codigos que el
+motor no emite y que los textos del panel sean ASCII y sin rayas largas. La
+prueba de navegador simulada sustituye el Worker por
+`tests/browser/evidence-worker-stub.js`. Cubre los cuatro resultados globales,
+las etapas y la cancelacion, un fallo del motor, el limite de 26 MiB, el
+descarte del resultado al cambiar de version, la descarga del informe JSON y
+una ruta de confianza no disponible; ninguna peticion lleva los bytes del
+archivo. La prueba con el modulo real valida
+`tests/fixtures/evidence/repacked.zip`, recomprimido con deflate, y muestra el
+mensaje de paquete que no exporto Qadra (`zip.version` en el motor).
+`browser-crypto` se reconstruyo antes de las pruebas de navegador, porque el
+cambio de `Cargo.lock` lo dejo desactualizado.
+
+Limites:
+
+- No se ejecuto la campana con servicios reales de `scripts/web-demo.sh`, que
+  ahora valida en `tests/live/document-workflow.spec.mjs` la evidencia de la
+  version 1 recien sellada mediante `tests/live/evidence-validation-helpers.mjs`;
+  el resultado completo con la raiz "CI" no esta comprobado localmente. El paso
+  va dentro de esa prueba porque los ocho codigos de recuperacion de la cuenta
+  principal ya los consumen otras pruebas y la preparacion de datos. El arranque nativo de `serve` con la ruta de
+  confianza tampoco se ejecuto de extremo a extremo.
+- No se ejecuto la suite completa de navegador simulada ni
+  `cargo test --workspace`; quedan para CI.
+- El aviso de fragmentos grandes de Vite no se comparo con una compilacion sin
+  el panel.
+
 ## Verificador puro de paquetes de evidencia: 28 de octubre de 2026 UTC
 
 Ejecucion local nueva, entre las 07:38 y las 07:40 UTC, sobre el crate
