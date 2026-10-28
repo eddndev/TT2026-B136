@@ -208,8 +208,9 @@ For every certificate role the same rules apply at that role's instant: a CRL
 of the right issuer that does not cover the instant is indeterminate; a CRL of
 another issuer, with an invalid signature, malformed, or failing the CRL
 profile is failed; a listed serial revoked at or before the instant is
-failed; a later revocation leaves the historical result checked and is shown
-in the current status. The time-stamping certificate's revocation needs a CRL
+failed, even when that CRL does not cover the instant, because the profile
+admits no certificate hold; a later revocation leaves the historical result
+checked and is shown in the current status. The time-stamping certificate's revocation needs a CRL
 from its issuer: `crl.pem` when the issuers match, and in v2 `tsa-crl.pem`,
 which decides for the manifest token. When both apply, a revocation in either
 fails the check. Byte-identical CRL entries are both kept and both covered.
