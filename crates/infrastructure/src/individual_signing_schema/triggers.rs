@@ -32,9 +32,12 @@ pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), Applicati
         "individual_signature_document_pair",
         21,
     )?;
+    // The receipt table also holds the manifest foreign key's two parent
+    // triggers and `individual_signature_manifest_pair`, which
+    // `crate::individual_signing_manifest_schema` checks.
     let invalid: bool = client
         .query_one(
-            "SELECT (SELECT count(*) FROM pg_trigger WHERE tgrelid=$1::text::regclass)<>14
+            "SELECT (SELECT count(*) FROM pg_trigger WHERE tgrelid=$1::text::regclass)<>17
             OR EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid=$1::text::regclass
                 AND tgenabled NOT IN ('O','A'))",
             &[&TABLES[0]],

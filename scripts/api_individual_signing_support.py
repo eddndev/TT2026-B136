@@ -133,11 +133,13 @@ def durable(saved):
     signer = str(UUID(saved["account"]["id"]))
     query = f"""WITH bindings AS (SELECT * FROM document_signing_bindings WHERE signer_id='{signer}'),
       withdrawals AS (SELECT * FROM document_signing_withdrawals WHERE binding_id IN (SELECT binding_id FROM bindings)),
-      receipts AS (SELECT * FROM individual_document_signatures WHERE signer_id='{signer}')
+      receipts AS (SELECT * FROM individual_document_signatures WHERE signer_id='{signer}'),
+      manifests AS (SELECT * FROM individual_document_manifests WHERE operation_id IN (SELECT operation_id FROM receipts))
       SELECT jsonb_build_object(
         'bindings',COALESCE((SELECT jsonb_agg(to_jsonb(b) ORDER BY binding_id) FROM bindings b),'[]'),
         'withdrawals',COALESCE((SELECT jsonb_agg(to_jsonb(w) ORDER BY binding_id) FROM withdrawals w),'[]'),
         'receipts',COALESCE((SELECT jsonb_agg(to_jsonb(r) ORDER BY operation_id) FROM receipts r),'[]'),
+        'manifests',COALESCE((SELECT jsonb_agg(to_jsonb(m) ORDER BY operation_id) FROM manifests m),'[]'),
         'events',COALESCE((SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM audit_events a WHERE sequence IN
           (SELECT audit_sequence FROM bindings UNION SELECT audit_sequence FROM withdrawals UNION SELECT audit_sequence FROM receipts)),'[]'))"""
     return json.loads(command(["psql", os.environ["TT_INDIVIDUAL_DATABASE"], "-X", "-qAt", "-v", "ON_ERROR_STOP=1", "-c", query]))

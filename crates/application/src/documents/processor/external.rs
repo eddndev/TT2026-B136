@@ -15,6 +15,14 @@ pub struct ExternalSignerMaterial {
     pub crl_pem: Vec<u8>,
 }
 
+/// A record sealed with an external signature and the length of its
+/// plaintext, which the evidence manifest records for the document entry.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SealedExternal {
+    pub record: DocumentRecord,
+    pub size: u64,
+}
+
 impl DocumentProcessor {
     /// Verifies an externally produced content signature before requesting a timestamp.
     /// The caller must attach and atomically commit its individual consent evidence.
@@ -23,7 +31,7 @@ impl DocumentProcessor {
         input: &DocumentRecord,
         signature: &Signature,
         signer: &ExternalSignerMaterial,
-    ) -> Result<DocumentRecord, ApplicationError> {
+    ) -> Result<SealedExternal, ApplicationError> {
         if input.is_sealed() {
             return Err(ApplicationError::DocumentAlreadySealed(
                 input.id.to_string(),
@@ -37,7 +45,10 @@ impl DocumentProcessor {
                 "external signer material is incomplete".into(),
             ));
         }
-        let _plaintext = self.plaintext(input)?;
+        let plaintext = self.plaintext(input)?;
+        let size = u64::try_from(plaintext.len()).map_err(|_| {
+            ApplicationError::InvalidInput("document plaintext is too large".into())
+        })?;
         ensure_signature_matches(
             self.ports.signature_verifier.as_ref(),
             &input.digest,
@@ -68,6 +79,6 @@ impl DocumentProcessor {
             openssl_version: self.material.openssl_version.clone(),
             individual: None,
         })?;
-        Ok(record)
+        Ok(SealedExternal { record, size })
     }
 }

@@ -4,6 +4,7 @@ mod authorization;
 mod content;
 mod integrity;
 mod integrity_codec;
+mod manifest;
 pub(crate) use integrity::validate_inventory as validate_integrity_inventory;
 mod metadata;
 mod metadata_storage;
@@ -342,6 +343,13 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         at: OffsetDateTime,
     ) -> Result<(), ApplicationError> {
         content::record_access(self, actor, case, record, action, at)
+    }
+
+    fn signing_manifest(
+        &self,
+        record: &DocumentRecord,
+    ) -> Result<Option<application::documents::ManifestExport>, ApplicationError> {
+        manifest::signing_manifest(self, record)
     }
 
     fn audit_entries(&self, actor: UserId) -> Result<Vec<ChainedEvent>, ApplicationError> {

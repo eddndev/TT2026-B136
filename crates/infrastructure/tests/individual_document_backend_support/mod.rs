@@ -1,4 +1,4 @@
-mod processor;
+pub mod processor;
 use crate::signing_binding_support::{self as binding, Clock, Fixture, TOKEN};
 use application::{
     document_signing::*,
@@ -72,6 +72,7 @@ impl Harness {
             clock: self.clock.clone(),
             processor: Arc::new(processor::processor()),
             formats: Arc::new(processor::Pdf),
+            manifest_timestamps: Arc::new(processor::manifest_timestamps()),
         })
     }
     pub fn command(&self, operation: Uuid) -> VerifiedDocumentSigning {
@@ -92,6 +93,7 @@ impl Harness {
         self.db.admin.query_one("SELECT jsonb_build_object(
             'documents',(SELECT jsonb_agg(to_jsonb(d) ORDER BY id,version) FROM documents d),
             'receipts',(SELECT jsonb_agg(to_jsonb(r) ORDER BY operation_id) FROM individual_document_signatures r),
+            'manifests',(SELECT jsonb_agg(to_jsonb(m) ORDER BY operation_id) FROM individual_document_manifests m),
             'audit',(SELECT jsonb_agg(to_jsonb(a) ORDER BY sequence) FROM audit_events a))", &[]).unwrap().get(0)
     }
     pub fn mutation_counts(&mut self) -> (i64, i64) {

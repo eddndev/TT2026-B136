@@ -241,6 +241,7 @@ fn an_individual_signing_export_is_complete() {
         &StoredZipWriter::new(),
         &request,
         &individual,
+        None,
     )
     .expect("individual export")
     .archive;

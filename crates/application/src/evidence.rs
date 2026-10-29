@@ -15,6 +15,7 @@ use domain::crypto::DocumentHasher;
 use crate::error::ApplicationError;
 
 mod individual;
+mod individual_manifest;
 pub use individual::export_individual_with_ports;
 
 /// Verification instructions template. The Spanish prose lives in a

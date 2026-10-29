@@ -7,7 +7,7 @@ use domain::{
 use super::SigningBindingReceipt;
 use crate::{
     credential_trust::CredentialTrustSnapshot,
-    documents::{DocumentRecord, SealedEvidence},
+    documents::{DocumentRecord, SealedEvidence, SigningManifest},
     identity::Principal,
 };
 
@@ -17,6 +17,9 @@ pub struct SigningReceipt {
     pub consent: DocumentConsent,
     pub evidence: SealedEvidence,
     pub accepted_at: OffsetDateTime,
+    /// The sealed evidence manifest; `None` only for receipts accepted
+    /// before the manifest table existed.
+    pub manifest: Option<SigningManifest>,
 }
 
 /// Distinguishes a new atomic seal from recovery of a concurrently accepted seal.
@@ -78,6 +81,7 @@ pub struct VerifiedDocumentSigning {
     pub(super) check: CredentialCheck,
     pub(super) record: DocumentRecord,
     pub(super) not_before: OffsetDateTime,
+    pub(super) manifest: SigningManifest,
 }
 
 impl VerifiedDocumentSigning {
@@ -104,5 +108,8 @@ impl VerifiedDocumentSigning {
     }
     pub const fn not_before(&self) -> OffsetDateTime {
         self.not_before
+    }
+    pub const fn manifest(&self) -> &SigningManifest {
+        &self.manifest
     }
 }

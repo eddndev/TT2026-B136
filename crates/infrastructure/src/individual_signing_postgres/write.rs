@@ -19,6 +19,7 @@ pub(super) fn commit(
         consent,
         evidence: command.record().evidence.clone().ok_or_else(inconsistent)?,
         accepted_at: command.not_before(),
+        manifest: Some(command.manifest().clone()),
     };
     validate_signing_receipt(
         &crate::RingSha256Hasher,
@@ -140,6 +141,7 @@ pub(super) fn commit(
         at,
     )?;
     insert(&mut tx, &command, &candidate, event.event.sequence)?;
+    super::write_manifest::insert(&mut tx, &candidate)?;
     tx.commit().map_err(port)?;
     Ok(SigningCommit::Applied(candidate))
 }

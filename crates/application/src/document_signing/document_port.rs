@@ -8,8 +8,8 @@ use domain::{
 };
 
 use super::{
-    DocumentSigningVerifier, SigningBindingStore, SigningCommit, SigningReceipt,
-    SigningVerificationContext, VerifiedDocumentSigning,
+    DocumentSigningVerifier, ManifestTimestamping, SigningBindingStore, SigningCommit,
+    SigningReceipt, SigningVerificationContext, VerifiedDocumentSigning,
 };
 use crate::{
     documents::{CaseDocumentStore, DocumentFormatBatchValidator, DocumentProcessor},
@@ -56,4 +56,9 @@ pub struct DocumentSigningPorts {
     pub clock: Arc<dyn Clock + Send + Sync>,
     pub processor: Arc<DocumentProcessor>,
     pub formats: Arc<dyn DocumentFormatBatchValidator>,
+    /// Time-stamps the evidence manifest; the time-stamping CRL it checks is
+    /// the current credential trust snapshot's, so the anchor of
+    /// `processor` must be that trust root. Rationale:
+    /// `docs/adr/0085-in-browser-evidence-validation.md`.
+    pub manifest_timestamps: Arc<dyn ManifestTimestamping>,
 }

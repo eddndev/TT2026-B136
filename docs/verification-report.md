@@ -1,5 +1,37 @@
 # Informe de verificación local
 
+## Manifiesto sellado de firma individual: 28 de octubre de 2026 UTC
+
+Ejecucion local sobre la rama `feat/evidence-manifest` (base `d21ea6ca`) con
+los cambios sin confirmar del servidor descritos en la
+[ADR 0085](adr/0085-in-browser-evidence-validation.md): puerto de sellado del
+manifiesto, generacion dentro de la aceptacion, reserva de nombres, la
+[migracion 0049](../migrations/0049_individual_signing_manifests.sql) con su
+inventario y la exportacion v2. No es evidencia de CI. Cargo se ejecuto de forma
+serializada con `CARGO_BUILD_JOBS=1`, `RUST_TEST_THREADS=1` y
+`TMPDIR=output/tmp` sobre btrfs; OpenSSL 3.5.9. Las suites de base de datos
+usaron un PostgreSQL 18.6 desechable con `CASE_TEST_DATABASE_URL`, detenido y
+eliminado al terminar.
+
+| Comando | Resultado |
+| --- | --- |
+| `cargo test -p application` | 2427 aprobadas en 117 ejecutables |
+| `cargo test -p infrastructure --lib` | 261 aprobadas; 6 pruebas PDF fallan sin `TT_TEST_QPDF_LIBRARY`, que no se configuro |
+| `cargo test -p web` | 687 aprobadas en 75 ejecutables |
+| `cargo test -p infrastructure --test individual_document_backend --test individual_document_backend_invariants --test individual_document_backend_manifest --test individual_signing_manifest_end_to_end` | 5, 5, 5 y 1 aprobadas; el paquete exportado dos veces es identico y el validador puro lo declara completo como firma individual v2 |
+| `cargo test -p infrastructure --test signing_binding_backend --test postgres_startup --test postgres_runtime_permissions --test evidence_package_parity --test evidence_statement_parity --test local_tsa_rfc3161 --test individual_signing_crypto` | 7, 10, 7, 4, 6, 13 y 8 aprobadas |
+| `cargo test -p infrastructure --test document_suite_1 --test document_suite_2 --test audit_suite_1 --test credential_suite_1` | 32, 8, 36 (1 ignorada) y 21 aprobadas |
+| `cargo test -p infrastructure --test internal_declaration --test internal_owner_binding --test internal_owner_login --test owner_certificate_backend --test typed_suite_2` | 24, 32, 8, 20 y 10 aprobadas con la CA de prueba que ahora tambien emite el certificado de la TSA |
+| `cargo test -p infrastructure --test individual_document_backend_manifest_guards` | 6 aprobadas: una fila distinta de su recibo, un segundo manifiesto o uno tardio, un recibo que pierde su manifiesto en la lectura, la repeticion, la exportacion o el arranque, y el rol operativo que intenta desactivar las protecciones |
+| `cargo +1.99 clippy --locked --workspace --all-targets -- -D warnings` | sin avisos |
+| `cargo +1.99 fmt --all -- --check` | sin diferencias |
+| `cargo +1.88 check --locked --workspace` | correcto |
+| `python3 -I scripts/check-test-layout.py` | 357 ejecutables de integracion registrados una vez |
+| `python3 -m unittest scripts/tests/test_api_individual_signing.py` | 1 prueba aprobada |
+
+Los modulos WebAssembly no se reconstruyeron en esta parte; el cambio de
+`Cargo.lock` exige reconstruirlos antes de `node scripts/evidence-verify-artifact.mjs`.
+
 ## Validacion de evidencia en el navegador: 28 de octubre de 2026 UTC
 
 Ejecucion local sobre la rama `feat/evidence-validation-panel` (base
@@ -134,17 +166,13 @@ fijada, que no resulta completo, y firma individual v1.
 
 Los fixtures son artefactos publicos de una PKI desechable generados por
 `scripts/evidence-verify-fixtures.sh` (`generated_at` de `fixtures.json`:
-2026-10-28 07:35:42 UTC). Incluyen una CRL cuya ventana termina antes de todo `genTime` y otra que revoca el certificado de sellado; con ellas se comprueba el sello historico parcial y la TSA revocada. `fixtures.json`
+2026-10-28 17:26:46 UTC). Incluyen una CRL cuya ventana termina antes de todo `genTime` y otra que revoca el certificado de sellado; con ellas se comprueba el sello historico parcial y la TSA revocada. `fixtures.json`
 no registra la version de OpenSSL; la instalada en el host es 3.5.9 y el
 script exige 3.4 o posterior. La paridad con `openssl ts -verify` la comprobo
 el generador al crear los fixtures; las pruebas Rust no invocan OpenSSL.
 
 Limites:
 
-- El perfil de firma individual v2 se reconoce por inventario, pero el
-  manifiesto no esta implementado: cada componente obligatorio queda como no
-  soportado con `profile.manifest_not_available`. El servidor tampoco genera
-  todavia `manifiesto.json`.
 - No hay integracion con el navegador: no existen el envoltorio `cdylib`, el
   Web Worker, la interfaz, el conjunto de raices fijadas de Qadra ni la ruta
   `GET /api/v1/evidence/trust`. La compilacion wasm32 produjo solo

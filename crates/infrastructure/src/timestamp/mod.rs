@@ -9,10 +9,12 @@
 
 mod cincel;
 mod local;
+mod manifest;
 mod verify;
 
 pub use cincel::{CincelTsaAdapter, RetryPolicy};
 pub use local::LocalOpensslTsa;
+pub use manifest::ManifestTimestampAuthority;
 pub use verify::{token_info, Rfc3161Verifier, TimestampTokenInfo};
 
 /// Longest stderr fragment copied into an error message or a

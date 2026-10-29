@@ -64,8 +64,8 @@ The workspace is a hexagonal architecture and the crate graph enforces the
 dependency direction. Do not add a workspace dependency that violates it:
 
 - `domain` has no dependency on any other workspace crate.
-- `application` depends on `domain`.
-- `infrastructure` depends on `domain` and `application`.
+- `application` depends on `domain` and `evidence-verify`.
+- `infrastructure` depends on `domain`, `application` and `evidence-verify`.
 - `web` depends on `domain` and `application`.
 - the binary crate (`despacho-cli` and `qadra-ca`, in `crates/bin`) depends on all
   of them.
@@ -77,7 +77,9 @@ The independent `evidence-verify` crate verifies exported evidence packages
 (archive admission, package profile, signatures, certificates, CRLs,
 time-stamp tokens and canonical statements) with no I/O, clock or random
 source. It must not depend on any other workspace crate; server crates may
-depend on it, and it must stay buildable for `wasm32-unknown-unknown` so that
+depend on it (`application` uses its manifest and receipt codecs and reserved
+entry names, `infrastructure` its time-stamp and CRL checks), and it must
+stay buildable for `wasm32-unknown-unknown` so that
 a separate wrapper can expose the same code to the browser validator. It is
 kept apart from `browser-crypto`, which opens private keys. See
 `docs/adr/0085-in-browser-evidence-validation.md`.

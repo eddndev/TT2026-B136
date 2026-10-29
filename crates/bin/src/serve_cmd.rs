@@ -271,6 +271,7 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                 documents::access(&repository, &identity, &processor);
             let evidence_trust = evidence_trust::open(database, identity.clone(), &processor)?;
             let individual_signing = individual_signing::open(
+                args,
                 database,
                 identity.clone(),
                 repository.clone(),

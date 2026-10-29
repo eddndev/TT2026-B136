@@ -306,4 +306,13 @@ pub trait CaseDocumentStore: Send + Sync {
     ) -> Result<(), ApplicationError>;
     /// Requires an active owner and returns the complete ordered audit chain.
     fn audit_entries(&self, actor: UserId) -> Result<Vec<ChainedEvent>, ApplicationError>;
+    /// The stored manifest of the individual signature accepted for exactly
+    /// `record`, if its acceptance sealed one. Stores without individual
+    /// signatures keep the default.
+    fn signing_manifest(
+        &self,
+        _record: &DocumentRecord,
+    ) -> Result<Option<super::ManifestExport>, ApplicationError> {
+        Ok(None)
+    }
 }

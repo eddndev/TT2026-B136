@@ -68,15 +68,12 @@ impl DocumentFormatBatchValidator for Format {
         }])
     }
 }
-pub fn processor(state: Arc<Mutex<State>>) -> DocumentProcessor {
+pub fn processor(state: Arc<Mutex<State>>, anchor: &[u8]) -> DocumentProcessor {
     let mut ports = crate::crypto::processor_ports();
     ports.signer = Box::new(ForbiddenSigner);
     ports.signature_verifier = Box::new(PdfVerifier);
     ports.timestamp_service = Box::new(Timestamp(state));
-    DocumentProcessor::new(
-        ports,
-        crate::crypto::evidence_material(),
-        Zeroizing::new(vec![0x44; 32]),
-    )
-    .unwrap()
+    let mut material = crate::crypto::evidence_material();
+    material.tsa_chain_pem = Some(anchor.to_vec());
+    DocumentProcessor::new(ports, material, Zeroizing::new(vec![0x44; 32])).unwrap()
 }

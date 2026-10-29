@@ -8,6 +8,8 @@ mod crypto;
 #[allow(dead_code)]
 mod document_signing_support;
 mod individual_document_support;
+#[path = "individual_document_cases/manifest.rs"]
+mod manifest;
 #[allow(dead_code)]
 #[path = "support/individual_evidence.rs"]
 mod proofs;
@@ -71,8 +73,9 @@ fn external_document_and_consent_proofs_commit_exact_public_evidence_once() {
     assert_eq!(individual.consent_statement, consent().canonical_bytes());
     assert_eq!(individual.binding_registered_at, 1000);
     assert_eq!(individual.accepted_at, 1000);
+    assert!(result.manifest.is_some());
     let state = state.lock().unwrap();
-    assert_eq!((state.tsa_calls, state.commits), (1, 1));
+    assert_eq!((state.tsa_calls, state.commits), (2, 1));
     assert!(state.record.evidence.is_none());
 }
 
@@ -115,8 +118,9 @@ fn exact_replay_and_receipt_read_survive_retirement_and_expiry_without_new_crypt
             .unwrap(),
         original
     );
+    assert!(original.manifest.is_some());
     let state = state.lock().unwrap();
-    assert_eq!((state.tsa_calls, state.commits), (1, 1));
+    assert_eq!((state.tsa_calls, state.commits), (2, 1));
 }
 
 #[test]
@@ -177,5 +181,5 @@ fn concurrent_exact_commit_returns_first_evidence_despite_another_timestamp() {
             .unwrap(),
         original
     );
-    assert_eq!(state.lock().unwrap().tsa_calls, 1);
+    assert_eq!(state.lock().unwrap().tsa_calls, 2);
 }

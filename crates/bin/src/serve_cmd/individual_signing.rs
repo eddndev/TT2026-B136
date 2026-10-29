@@ -9,12 +9,14 @@ use application::{
     identity::IdentityWorkflow,
 };
 use infrastructure::{
-    certificates::InternalRsaDocumentSigningVerifier, PostgresConnectionSource,
-    PostgresIndividualSigningStore, PostgresSigningBindingStore, RingSha256Hasher, SystemClock,
+    certificates::InternalRsaDocumentSigningVerifier, LocalOpensslTsa, ManifestTimestampAuthority,
+    PostgresConnectionSource, PostgresIndividualSigningStore, PostgresSigningBindingStore,
+    Rfc3161Verifier, RingSha256Hasher, SystemClock,
 };
 use std::sync::Arc;
 
 pub(super) fn open(
+    args: &crate::serve_args::ServeArgs,
     database: &(impl PostgresConnectionSource + ?Sized),
     identity: Arc<dyn IdentityWorkflow>,
     documents: Arc<dyn CaseDocumentStore>,
@@ -50,6 +52,13 @@ pub(super) fn open(
             clock,
             processor,
             formats,
+            // The evidence manifest is time-stamped by the same authority and
+            // verified against the same anchor as the document token; see
+            // docs/adr/0085-in-browser-evidence-validation.md.
+            manifest_timestamps: Arc::new(ManifestTimestampAuthority::new(
+                Box::new(LocalOpensslTsa::new(&args.tsa_config, &args.tsa_dir)),
+                Box::new(Rfc3161Verifier::new()),
+            )),
         })),
     })
 }

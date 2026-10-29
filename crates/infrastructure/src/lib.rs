@@ -58,6 +58,7 @@ pub use owner_certificate_postgres::PostgresOwnerCertificateStore;
 pub(crate) mod signing_binding_postgres;
 mod signing_binding_schema;
 pub use signing_binding_postgres::PostgresSigningBindingStore;
+mod individual_signing_manifest_schema;
 mod individual_signing_postgres;
 mod individual_signing_schema;
 pub use individual_signing_postgres::PostgresIndividualSigningStore;
@@ -120,7 +121,9 @@ pub use participant_postgres::PostgresParticipantStore;
 pub use password::Argon2idHasher;
 pub use recovery::RandomRecoveryCodeGenerator;
 pub use signing::{certificate_subject, RsaPkcs1Signer, RsaPkcs1Verifier};
-pub use timestamp::{CincelTsaAdapter, LocalOpensslTsa, Rfc3161Verifier};
+pub use timestamp::{
+    CincelTsaAdapter, LocalOpensslTsa, ManifestTimestampAuthority, Rfc3161Verifier,
+};
 pub use tools::openssl_version;
 pub use totp::{decode_base32_secret, TotpRsProvider};
 

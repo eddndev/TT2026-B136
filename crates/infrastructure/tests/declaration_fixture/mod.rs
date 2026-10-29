@@ -12,6 +12,9 @@ use zeroize::Zeroizing;
 pub struct Fixture {
     pub _directory: tempfile::TempDir,
     pub ca: PathBuf,
+    /// Working directory of a time-stamping authority issued by the same root.
+    #[allow(dead_code)]
+    pub tsa: PathBuf,
     pub root: Vec<u8>,
     pub leaf: Vec<u8>,
     pub leaf_der: Vec<u8>,
@@ -57,6 +60,7 @@ pub fn fixture() -> &'static Fixture {
         script("init-ca.sh", &ca, &[]);
         script("issue-declaration-cert.sh", &ca, &["Synthetic Declarant"]);
         script("issue-declaration-cert.sh", &ca, &["Second Declarant"]);
+        script("issue-tsa-cert.sh", &ca, &[]);
         script("gen-crl.sh", &ca, &[]);
         let leaf_path = ca.join("certs/synthetic-declarant.crt.pem");
         let leaf = fs::read(&leaf_path).unwrap();
@@ -88,6 +92,7 @@ pub fn fixture() -> &'static Fixture {
         Fixture {
             root: fs::read(ca.join("ca.crt.pem")).unwrap(),
             crl: fs::read(ca.join("crl/crl.pem")).unwrap(),
+            tsa: directory.path().join("pki-tsa"),
             _directory: directory,
             ca,
             leaf,

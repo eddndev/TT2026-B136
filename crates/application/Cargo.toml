@@ -8,6 +8,10 @@ license.workspace = true
 repository.workspace = true
 [dependencies]
 domain = { path = "../domain" }
+# The pure evidence verifier supplies the manifest and receipt codecs and the
+# reserved entry names, so the server writes exactly what the validator reads.
+# Rationale: docs/adr/0085-in-browser-evidence-validation.md.
+evidence-verify = { path = "../evidence-verify" }
 base64.workspace = true
 thiserror.workspace = true
 zeroize.workspace = true
