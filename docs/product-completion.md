@@ -15,7 +15,7 @@ concilia en [cierre técnico](technical-closure.md).
 El [ayudante criptografico local](browser-local-cryptography.md) esta integrado
 por PR110; desde el 21 de octubre Qadra y la CA corren
 `v0.1.13/54b9a015257f01fbfa8be15ef3a1a891c3770147` con su configuracion y certificados;
-desde el 29 de octubre Qadra corre `v0.1.14/e6a5baf9` y la CA sigue en `v0.1.13`. El ayudante genera una clave
+desde el 29 de octubre Qadra corre `v0.1.15/be80b909` y la CA sigue en `v0.1.13`. El ayudante genera una clave
 cifrada y un CSR, exige comprobar la copia guardada y prepara firmas para
 vinculo Owner, acceso Owner, vinculo documental y PDF/consentimiento exactos.
 La clave y su contrasena se usan en el navegador sin enviarse al servidor;
