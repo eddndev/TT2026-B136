@@ -102,6 +102,36 @@ test('instants name their source and are written in UTC', () => {
   assert.equal(instantView({ label: 'other', unix: 1, source: 'x' }).label, 'Otra fecha');
 });
 
+test('the manifest token and the receipt have their own labels', () => {
+  const manifest = instantView({ label: 'manifest token genTime', unix: 1, source: 'token' });
+  assert.equal(manifest.label, 'Fecha del sello de tiempo del manifiesto');
+  assert.equal(manifest.source, 'Sello de tiempo verificado');
+  const receipt = instantView({
+    label: 'receipt accepted_at',
+    unix: 1793145600,
+    source: 'application-record',
+  });
+  assert.equal(receipt.label, 'Aceptaci\u00f3n de la firma, seg\u00fan el recibo');
+  assert.equal(receipt.when, '2026-10-28 00:00:00 UTC');
+  assert.equal(receipt.source, 'Registro de Qadra sin sello de tiempo');
+  const failed = componentView(
+    component('manifest', 'failed', [
+      finding('checked', 'token.verified'),
+      finding('failed', 'manifest.artifact_mismatch', 'acta.pdf differs'),
+      finding('failed', 'receipt.seconds_mismatch', 'the receipt states 1'),
+    ]),
+  );
+  assert.equal(failed.title, 'Manifiesto y su sello de tiempo');
+  assert.equal(failed.status, 'Fallido');
+  assert.equal(failed.messages.length, 2);
+  for (const text of failed.messages) assert.doesNotMatch(text, /no sabe describir/);
+  const checked = componentView(
+    component('manifest', 'checked', [finding('checked', 'token.verified')]),
+  );
+  assert.equal(checked.status, 'Correcto');
+  assert.deepEqual(checked.messages, []);
+});
+
 test('a ZIP that Qadra did not export is told apart from a damaged one', () => {
   const report = (findings) => ({
     overall: 'not-supported',

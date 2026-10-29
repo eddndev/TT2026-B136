@@ -18,6 +18,7 @@ import {
   statementMessages,
 } from './messages-signing.mjs';
 import { encodingMessages, tokenFallbacks, tokenMessages } from './messages-token.mjs';
+import { manifestFallbacks, manifestMessages, receiptMessages } from './messages-manifest.mjs';
 import {
   certificateFallbacks,
   certificateMessages,
@@ -46,6 +47,8 @@ export const findingMessages = Object.freeze({
   ...crlMessages,
   ...trustMessages,
   ...currentMessages,
+  ...manifestMessages,
+  ...receiptMessages,
 });
 
 export const FAMILY_FALLBACKS = Object.freeze({
@@ -53,6 +56,7 @@ export const FAMILY_FALLBACKS = Object.freeze({
   ...signingFallbacks,
   ...tokenFallbacks,
   ...certificateFallbacks,
+  ...manifestFallbacks,
 });
 
 const UNKNOWN =

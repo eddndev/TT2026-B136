@@ -51,8 +51,6 @@ export const profileMessages = {
   'profile.no_document': 'El paquete no incluye el documento.',
   'profile.missing_entry': EXTRA_OR_MISSING,
   'profile.unknown_entry': EXTRA_OR_MISSING,
-  'profile.manifest_not_available':
-    'Este tipo de paquete incluye un manifiesto que esta versi\u00f3n del validador todav\u00eda no revisa.',
 };
 
 export const individualJsonMessages = {
@@ -75,25 +73,29 @@ export const individualJsonMessages = {
 
 const JSON_UNREADABLE = 'Un archivo de datos del paquete no tiene el formato esperado.';
 
-export const jsonMessages = Object.fromEntries(
-  [
-    'json.control_character',
-    'json.duplicate_key',
-    'json.integer_out_of_range',
-    'json.invalid_escape',
-    'json.invalid_utf8',
-    'json.leading_zero',
-    'json.literal',
-    'json.negative_zero',
-    'json.not_integer',
-    'json.too_deep',
-    'json.too_many_values',
-    'json.trailing_data',
-    'json.unexpected_byte',
-    'json.unexpected_end',
-    'json.unpaired_surrogate',
-  ].map((code) => [code, JSON_UNREADABLE]),
-);
+export const jsonMessages = {
+  ...Object.fromEntries(
+    [
+      'json.control_character',
+      'json.duplicate_key',
+      'json.integer_out_of_range',
+      'json.invalid_escape',
+      'json.invalid_utf8',
+      'json.leading_zero',
+      'json.literal',
+      'json.negative_zero',
+      'json.not_integer',
+      'json.too_deep',
+      'json.too_many_values',
+      'json.trailing_data',
+      'json.unexpected_byte',
+      'json.unexpected_end',
+      'json.unpaired_surrogate',
+    ].map((code) => [code, JSON_UNREADABLE]),
+  ),
+  'json.not_canonical':
+    'Un archivo de datos del paquete no conserva la forma exacta en que Qadra lo escribi\u00f3.',
+};
 
 export const packageFallbacks = {
   zip: NOT_QADRA_EXPORT,
