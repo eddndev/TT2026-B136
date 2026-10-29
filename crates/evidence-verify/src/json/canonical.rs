@@ -6,7 +6,7 @@
 //! decimal. Only integers in `0..=MAX_CANONICAL_INTEGER` are admitted, the
 //! range the evidence manifest allows.
 
-use super::{ErrorKind, JsonError, Value, MAX_CANONICAL_INTEGER};
+use super::{parse, ErrorKind, JsonError, Limits, Value, MAX_CANONICAL_INTEGER};
 
 /// Serialize `value` in the canonical form of RFC 8785.
 ///
@@ -16,6 +16,28 @@ pub fn canonical(value: &Value) -> Result<Vec<u8>, JsonError> {
     let mut output = Vec::new();
     write_value(value, &mut output)?;
     Ok(output)
+}
+
+/// Parse `bytes` and admit them only when they are already the canonical
+/// serialization of the parsed value.
+///
+/// A byte order mark, whitespace, a trailing newline, reordered members or
+/// an escape that RFC 8785 does not write make the bytes differ from their
+/// canonical form and fail with [`ErrorKind::NotCanonical`] at the first
+/// differing offset; a rejection by [`parse`] or [`canonical`] keeps its
+/// own kind.
+pub fn parse_canonical(bytes: &[u8], limits: Limits) -> Result<Value, JsonError> {
+    let value = parse(bytes, limits)?;
+    let expected = canonical(&value)?;
+    if expected != bytes {
+        let offset = expected
+            .iter()
+            .zip(bytes)
+            .position(|(left, right)| left != right)
+            .unwrap_or_else(|| expected.len().min(bytes.len()));
+        return Err(JsonError::new(ErrorKind::NotCanonical, offset));
+    }
+    Ok(value)
 }
 
 fn write_value(value: &Value, output: &mut Vec<u8>) -> Result<(), JsonError> {

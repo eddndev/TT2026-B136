@@ -7,7 +7,8 @@
 //! the same CRL, otherwise an acceptance CRL with a larger number and a
 //! `thisUpdate` that does not decrease, as
 //! `crates/application/src/documents/individual_evidence.rs` requires. Both
-//! instants are application records; nothing covers them in this profile.
+//! instants are application records; in individual signing v1 nothing
+//! covers them, and in v2 the manifest token covers `binding_registered_at`.
 //! Rationale: the section "Instants and consistency" of
 //! `docs/adr/0085-in-browser-evidence-validation.md`.
 
@@ -30,6 +31,9 @@ pub(super) struct Input<'a> {
     pub crl: Option<&'a Crl>,
     pub binding_crl: Option<&'a Crl>,
     pub binding_crl_der: &'a [u8],
+    /// Whether the package has the evidence manifest, whose token covers
+    /// `binding_registered_at`.
+    pub manifest: bool,
 }
 
 pub(super) fn check(input: &Input<'_>) -> Vec<Finding> {
@@ -40,11 +44,17 @@ pub(super) fn check(input: &Input<'_>) -> Vec<Finding> {
             "binding_registered_at and accepted_at could not be read",
         )),
         Some(record) => {
+            let detail = if input.manifest {
+                "accepted_at is an application record that no time-stamp covers; the \
+                 manifest token covers binding_registered_at"
+            } else {
+                "binding_registered_at and accepted_at are application records that no \
+                 time-stamp covers"
+            };
             findings.push(Finding::new(
                 Outcome::Checked,
                 "context.records_not_time_stamped",
-                "binding_registered_at and accepted_at are application records that no \
-                 time-stamp covers",
+                detail,
             ));
             findings.push(order(record));
             findings.push(token_order(input.token, record));

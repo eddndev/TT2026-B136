@@ -9,6 +9,7 @@
 
 mod current;
 mod individual;
+mod manifest;
 mod revocation;
 mod server_seal;
 mod token;
@@ -83,33 +84,7 @@ pub(crate) fn run(evidence: &Evidence<'_>) -> Checked {
     match evidence.layout.profile {
         Profile::ServerSealV1 => server_seal::check(evidence),
         Profile::IndividualSigningV1 => individual::check(evidence),
-        Profile::IndividualSigningV2 => manifest_not_available(),
-    }
-}
-
-/// The manifest profile is recognized, but its checks are not available in
-/// this version: every mandatory component is not supported.
-fn manifest_not_available() -> Checked {
-    let reason = || {
-        vec![Finding::not_supported(
-            "profile.manifest_not_available",
-            "the evidence manifest profile is recognized but not verified by this version",
-        )]
-    };
-    let components = Components {
-        document_token: reason(),
-        document_signature: reason(),
-        binding_consent: Some(reason()),
-        certificates: reason(),
-        revocation: reason(),
-        manifest: Some(reason()),
-        context: reason(),
-    };
-    Checked {
-        components: components.into_vec(),
-        instants: Vec::new(),
-        trust: Vec::new(),
-        current: Vec::new(),
+        Profile::IndividualSigningV2 => manifest::check(evidence),
     }
 }
 

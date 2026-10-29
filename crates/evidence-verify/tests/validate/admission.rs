@@ -1,6 +1,6 @@
 //! Admission and profile recognition through the validation entry point.
 
-use evidence_verify::report::{ComponentKind, Profile};
+use evidence_verify::report::ComponentKind;
 use evidence_verify::{validate, Outcome};
 
 use crate::support::{assert_component, fixture, policy, zip, Package};
@@ -101,26 +101,6 @@ fn an_individual_package_requires_the_tsa_chain() {
     let mut package = crate::individual::complete();
     package.remove("tsa-chain.pem");
     refused(&package, Outcome::NotSupported, "profile.missing_entry");
-}
-
-#[test]
-fn a_manifest_package_is_recognized_and_not_supported_yet() {
-    let mut package = crate::individual::complete();
-    package
-        .set("manifiesto.json", b"{}")
-        .set("manifiesto.json.tsr", fixture!("token-ess-v1.tsr"))
-        .set("tsa-crl.pem", fixture!("root.crl.pem"))
-        .set("recibo-aceptacion.json", b"{}");
-    let report = validate(&package.zip(), &policy());
-    assert_eq!(report.profile, Some(Profile::IndividualSigningV2));
-    assert_eq!(report.overall, Outcome::NotSupported);
-    assert_component(
-        &report,
-        ComponentKind::Manifest,
-        Outcome::NotSupported,
-        "profile.manifest_not_available",
-    );
-    assert_eq!(report.components.len(), ComponentKind::ALL.len());
 }
 
 #[test]

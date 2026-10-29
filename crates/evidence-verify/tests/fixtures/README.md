@@ -14,8 +14,9 @@ bash scripts/evidence-verify-fixtures.sh
 ```
 
 It needs bash, GNU `date`, OpenSSL 3.4 or later (for `req -not_before`) and
-`python3` (standard library only; the helper is
-`scripts/evidence_verify_fixtures.py`). The script deletes every file in this
+`python3` (standard library only; the helpers are
+`scripts/evidence_verify_fixtures.py` and `scripts/evidence_verify_manifest.py`,
+and the shell functions live in `scripts/evidence-verify-fixtures-lib.sh`). The script deletes every file in this
 directory except this README and writes a new set. Keys, signatures and
 time-stamps are random or time dependent, so every run produces different
 bytes: tests must take digests, serials and instants from `fixtures.json`, not
@@ -65,6 +66,9 @@ All certificates are RSA-3072 with exponent 65537 (except
 | `token-other-policy.tsr` | Response with the non-admitted policy `1.3.6.1.4.1.13762.4` |
 | `token-foreign.tsr` | Response signed by `foreign-tsa.der` |
 | `token-other-digest.tsr` | Response over a digest that is not `document.bin`'s |
+| `token-after-manifest.tsr` | Response over `document.bin` issued after `manifiesto.json.tsr`, with a later `genTime` |
+| `manifiesto.json` | RFC 8785 evidence manifest of the individual signing v2 test package (see below) |
+| `manifiesto.json.tsr` | Response over the SHA-256 of `manifiesto.json`, ESS v2 |
 | `fixtures.json` | SHA-256 and size of every other file, and the facts below |
 
 Every CRL except `root-stale.crl.der` has the same window: `thisUpdate` is
@@ -75,6 +79,19 @@ later, as `pki/gen-crl.sh` does; every listed revocation is one day before
 use policy `1.3.6.1.4.1.13762.3` (except the other-policy one), accuracy one
 second, no ordering, a nonce, and carry the signer certificate and its root.
 Their `genTime` is the generation time, inside every CRL window.
+
+`manifiesto.json` describes the package the tests assemble with the document
+named `acta.pdf`: `document.bin` as `acta.pdf`, `holder.sig` as `acta.pdf.sig`,
+`token-ess-v1.tsr` as `acta.pdf.tsr`, `holder.pem` as `certificado.pem`,
+`root.pem` as `ca.pem` and `tsa-chain.pem`, `root.crl.pem` as `crl.pem` and
+`tsa-crl.pem`, `root.der` as `binding-root.der`, `root.crl.der` as
+`binding-crl.der`, and the four statement files under their own names. Its
+identifiers, document version and document digest come from
+`document-consent.bin`, and `binding_registered_at` is `thisUpdate` plus 60
+seconds. The generator stamps `manifiesto.json.tsr` after every other token
+except `token-after-manifest.tsr`, which it stamps one second later, so the
+`genTime` of the document token, the manifest token and the later token never
+decrease in that order.
 
 `fixtures.json` records, per certificate, the serial (uppercase hexadecimal
 without leading zeros), validity in Unix seconds, subject, issuer, key

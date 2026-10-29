@@ -6,22 +6,125 @@
 //! `binding-root.der` and `binding-crl.der`; the document signature and the
 //! consent at `accepted_at` with `ca.pem` and `crl.pem`. Both instants are
 //! application records that no time-stamp covers in this profile.
-//! Rationale: `docs/adr/0085-in-browser-evidence-validation.md`.
+//! [`assemble`] also yields the parts that individual signing v2 extends
+//! with its manifest. Rationale:
+//! `docs/adr/0085-in-browser-evidence-validation.md`.
 
 mod consistency;
+pub(super) mod manifest_context;
 mod statements;
 
 use super::current::{self, Subject};
-use super::revocation::{self, RoleRevocation};
-use super::token::{self, Candidates};
+use super::revocation::{self, RoleRevocation, TsaList};
+use super::token::{self, Candidates, TokenCheck};
 use super::trust::{self, Anchor, Chain};
 use super::{Checked, Components, Evidence};
-use crate::certificate::{self, Role};
-use crate::individual_json;
+use crate::certificate::{self, Certificate, Role};
+use crate::crl::Crl;
+use crate::individual_json::{self, IndividualSigning};
 use crate::policy::Purpose;
-use crate::report::{Finding, Instant, InstantSource};
+use crate::report::{Component, Finding, Instant, InstantSource, Profile};
+use crate::statements::{BindingStatement, ConsentStatement};
 
+/// Everything individual signing v1 checks, before the revocation of the
+/// time-stamping certificate and the current status, which depend on the
+/// CRLs a profile offers for it.
+pub(super) struct Parts {
+    pub document_signature: Vec<Finding>,
+    pub binding_consent: Vec<Finding>,
+    pub certificates: Vec<Finding>,
+    /// Revocation of the holder at both instants and CRL decoding failures.
+    pub revocation: Vec<Finding>,
+    pub context: Vec<Finding>,
+    pub instants: Vec<Instant>,
+    /// The document token; its findings form the document token component
+    /// and its chain findings are already in `certificates`.
+    pub token: TokenCheck,
+    pub crl: Result<Crl, Finding>,
+    pub binding_crl: Result<Crl, Finding>,
+    pub record: Result<IndividualSigning, Finding>,
+    pub statements: Option<(BindingStatement, ConsentStatement)>,
+    pub holder: Result<Certificate, Finding>,
+    pub root: Result<Certificate, Finding>,
+}
+
+impl Parts {
+    /// The certificates of the current status: the holder, its root and the
+    /// document token's time-stamping chain.
+    pub fn subjects(&self) -> Vec<Subject<'_>> {
+        let mut subjects = Vec::new();
+        if let (Ok(holder), Ok(root)) = (&self.holder, &self.root) {
+            subjects.push(Subject {
+                role: "holder",
+                certificate: holder,
+                issuer: Some(root),
+            });
+        }
+        if let Ok(root) = &self.root {
+            subjects.push(Subject {
+                role: "holder root",
+                certificate: root,
+                issuer: None,
+            });
+        }
+        current::tsa_subjects(self.token.tsa.as_ref(), &mut subjects);
+        subjects
+    }
+
+    /// The CRL entries that decoded, as fallbacks of the current status.
+    pub fn package_crls(&self) -> Vec<&Crl> {
+        [&self.crl, &self.binding_crl]
+            .into_iter()
+            .filter_map(|list| list.as_ref().ok())
+            .collect()
+    }
+
+    /// The components of the report, with `manifest` for the manifest
+    /// component or not applicable when it is `None`.
+    pub fn into_components(self, manifest: Option<Vec<Finding>>) -> Vec<Component> {
+        Components {
+            document_token: self.token.findings,
+            document_signature: self.document_signature,
+            binding_consent: Some(self.binding_consent),
+            certificates: self.certificates,
+            revocation: self.revocation,
+            manifest,
+            context: self.context,
+        }
+        .into_vec()
+    }
+}
+
+/// Individual signing v1: the parts, with `crl.pem` for the time-stamping
+/// certificate when its issuer issued that list.
 pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
+    let mut parts = assemble(evidence);
+    let lists: Vec<TsaList<'_>> = parts
+        .crl
+        .as_ref()
+        .ok()
+        .map(|crl| TsaList::IfIssuer("crl.pem", crl))
+        .into_iter()
+        .collect();
+    let tsa = revocation::tsa_status(
+        "time-stamping certificate",
+        parts.token.tsa.as_ref(),
+        parts.token.facts.as_ref(),
+        &lists,
+    );
+    let current = current::status(&parts.subjects(), &parts.package_crls(), evidence.policy);
+    parts.revocation.push(tsa);
+    let trust = std::mem::take(&mut parts.token.notes);
+    Checked {
+        instants: std::mem::take(&mut parts.instants),
+        components: parts.into_components(None),
+        trust,
+        current,
+    }
+}
+
+/// Check everything individual signing v1 and v2 share.
+pub(super) fn assemble(evidence: &Evidence<'_>) -> Parts {
     let layout = evidence.layout;
     let policy = evidence.policy;
     let document = evidence.entry(&layout.document);
@@ -31,7 +134,7 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
     let binding_root_der = evidence.entry("binding-root.der");
     let binding_root = super::der_certificate("binding-root.der", binding_root_der);
     let record = individual_json::parse(evidence.entry("individual-signing.json"));
-    let token = token::check(
+    let mut token = token::check(
         evidence.entry(&layout.token()),
         &certificate::sha256(document),
         &Candidates {
@@ -88,7 +191,7 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
         },
         policy,
     );
-    certificates.extend(token.chain);
+    certificates.append(&mut token.chain);
 
     let binding_crl = super::der_crl("binding-crl.der", evidence.entry("binding-crl.der"));
     let crl = super::pem_crl("crl.pem", evidence.entry("crl.pem"));
@@ -114,11 +217,6 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
     ] {
         revocation_findings.extend(revocation::role_status(&check));
     }
-    revocation_findings.push(revocation::tsa_status(
-        token.tsa.as_ref(),
-        token.facts.as_ref(),
-        crl.as_ref().ok(),
-    ));
 
     let context = consistency::check(&consistency::Input {
         record: record.as_ref().ok(),
@@ -129,6 +227,7 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
         crl: crl.as_ref().ok(),
         binding_crl: binding_crl.as_ref().ok(),
         binding_crl_der: evidence.entry("binding-crl.der"),
+        manifest: layout.profile == Profile::IndividualSigningV2,
     });
 
     let mut instants = Vec::new();
@@ -152,41 +251,19 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
         }
     }
 
-    let mut subjects = Vec::new();
-    if let (Ok(holder), Ok(root)) = (&holder, &root) {
-        subjects.push(Subject {
-            role: "holder",
-            certificate: holder,
-            issuer: Some(root),
-        });
-    }
-    if let Ok(root) = &root {
-        subjects.push(Subject {
-            role: "holder root",
-            certificate: root,
-            issuer: None,
-        });
-    }
-    current::tsa_subjects(token.tsa.as_ref(), &mut subjects);
-    let package_crls: Vec<_> = [&crl, &binding_crl]
-        .into_iter()
-        .filter_map(|list| list.as_ref().ok())
-        .collect();
-    let current = current::status(&subjects, &package_crls, policy);
-
-    Checked {
-        components: Components {
-            document_token: token.findings,
-            document_signature,
-            binding_consent: Some(binding_consent),
-            certificates,
-            revocation: revocation_findings,
-            manifest: None,
-            context,
-        }
-        .into_vec(),
+    Parts {
+        document_signature,
+        binding_consent,
+        certificates,
+        revocation: revocation_findings,
+        context,
         instants,
-        trust: token.notes,
-        current,
+        token,
+        crl,
+        binding_crl,
+        record,
+        statements: decoded,
+        holder,
+        root,
     }
 }
