@@ -57,7 +57,9 @@ reimportacion, vinculo y acceso Owner con MFA, vinculo documental y firma
 del PDF y su consentimiento. PR111 corrigio el reloj de una simulacion CA.
 Qadra `v0.1.12/201fbb026eb5cbac8b3c0a28a898c0ae21bd4aba` lo desplego; desde
 el 21 de octubre Qadra y la CA corren `v0.1.13/54b9a015257f01fbfa8be15ef3a1a891c3770147`,
-con las mismas credenciales y certificados. El registro de
+con las mismas credenciales y certificados. Desde el 29 de octubre Qadra corre
+`v0.1.14/e6a5baf972d374f865844f944fe4efbb22600f5e`, con el validador de evidencia
+en el navegador y el manifiesto sellado; la CA sigue en `v0.1.13`. El registro de
 [verificacion](verification-report.md) separa pruebas nativas, navegador,
 paquete, retorno sobre restauracion existente y comprobacion publica.
 La firma local de declaraciones de participantes conserva una decision

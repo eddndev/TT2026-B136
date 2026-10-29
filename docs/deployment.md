@@ -129,7 +129,7 @@ con copia privada de los originales y sin cambiar los procesos activos.
 Desde el 22 de octubre de 2026 la generación instalada es
 `c496fb0ad8bdb69bec157043978f22953c65f0c11e7b81c8b3fbf197335297a4`, construida
 desde `6077df6edf139ac77337e9b880b93f9726f0dc7a` con el mismo launcher e
-intérprete. Las versiones `v0.1.2` a `v0.1.13` se activaron con `prepare_version`
+intérprete. Las versiones `v0.1.2` a `v0.1.14` se activaron con `prepare_version`
 y recetas administrativas, no con tags, por lo que `QADRA_CONTROLLER_SHA256` no
 se actualizó; antes de reactivar la ruta por tag hay que fijarla al inventario
 vigente.
