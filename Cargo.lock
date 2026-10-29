@@ -84,6 +84,7 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "domain",
+ "evidence-verify",
  "mockall",
  "serde",
  "serde_json",

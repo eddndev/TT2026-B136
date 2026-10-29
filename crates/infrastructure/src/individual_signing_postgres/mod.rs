@@ -1,7 +1,10 @@
 //! Exact individual signature receipts committed with document evidence and audit.
 mod inventory;
+mod manifest_inventory;
 mod read;
+pub(crate) mod read_manifest;
 mod write;
+mod write_manifest;
 
 use application::{
     document_signing::{
@@ -16,7 +19,13 @@ use postgres::Client;
 use std::sync::{Arc, Mutex, MutexGuard};
 use uuid::Uuid;
 
-pub(crate) use inventory::validate as validate_inventory;
+/// Rechecks immutable receipts with historical trust, then their manifests.
+pub(crate) fn validate_inventory<C: postgres::GenericClient>(
+    client: &mut C,
+) -> Result<(), ApplicationError> {
+    inventory::validate(client)?;
+    manifest_inventory::validate(client)
+}
 
 pub struct PostgresIndividualSigningStore {
     client: Mutex<Client>,

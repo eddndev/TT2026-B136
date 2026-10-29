@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { fixture, loginAs } from './helpers.mjs';
+import { validateEvidence } from './evidence-validation-helpers.mjs';
 import {
   bindingsPath,
   documentPath,
@@ -127,6 +128,9 @@ for (const [name, width, height] of [
         'individual-evidence.zip',
       );
       expect(evidence.bytes.subarray(0, 2).toString()).toBe('PK');
+      // The package carries the sealed manifest; the real engine in the panel
+      // must read it as complete.
+      if (name === 'desktop') await validateEvidence(page, evidence.path);
       await navigate(page, 'Mi firma documental');
       await expect(page.getByText('Vinculo registrado', { exact: true })).toBeVisible();
       await button(page, 'Retirar vinculo').click();

@@ -1,4 +1,4 @@
-use super::{recognize, Layout};
+use super::{is_reserved_document_name, recognize, Layout, FIXED_NAMES};
 use crate::report::{Outcome, Profile};
 
 const SEAL: [&str; 8] = [
@@ -123,4 +123,51 @@ fn names_differing_only_in_case_are_different() {
         .map(|name| if *name == "crl.pem" { "CRL.pem" } else { name })
         .collect();
     assert_eq!(refused(&names), "profile.missing_entry");
+}
+
+#[test]
+fn fixed_names_are_the_union_of_every_profile_and_the_instructions() {
+    let mut expected: Vec<&str> = SEAL[3..].to_vec();
+    expected.extend(INDIVIDUAL_EXTRA);
+    expected.extend(MANIFEST_EXTRA);
+    expected.sort_unstable();
+    let mut fixed = FIXED_NAMES.to_vec();
+    fixed.sort_unstable();
+    assert_eq!(fixed, expected);
+    let mut from_specs: Vec<&str> = super::SPECS
+        .iter()
+        .flat_map(|spec| spec.required.iter().chain(spec.optional))
+        .copied()
+        .chain([super::INSTRUCTIONS])
+        .collect();
+    from_specs.sort_unstable();
+    from_specs.dedup();
+    assert_eq!(from_specs, fixed);
+}
+
+#[test]
+fn a_document_name_is_reserved_when_it_or_a_sibling_is_fixed_ignoring_case() {
+    for reserved in [
+        "ca.pem",
+        "CA.PEM",
+        "Manifiesto.JSON",
+        "manifiesto.json",
+        "MANIFIESTO.JSON",
+        "certificado.pem",
+        "instrucciones.md",
+        "Recibo-Aceptacion.json",
+        "TSA-CRL.pem",
+    ] {
+        assert!(is_reserved_document_name(reserved), "{reserved}");
+    }
+    for free in [
+        "acta.pdf",
+        "ACTA.PDF",
+        "manifiesto.pdf",
+        "ca",
+        "crl.pem.txt",
+        "",
+    ] {
+        assert!(!is_reserved_document_name(free), "{free}");
+    }
 }

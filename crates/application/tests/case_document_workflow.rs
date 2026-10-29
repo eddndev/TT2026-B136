@@ -321,3 +321,29 @@ fn wrong_case_errors_from_storage_are_preserved_even_for_owner() {
         Err(ApplicationError::DocumentNotFound(_))
     ));
 }
+
+#[test]
+fn uploads_reject_names_that_collide_with_evidence_entries_ignoring_case() {
+    for name in [
+        "Manifiesto.JSON",
+        "TSA-CRL.PEM",
+        "Recibo-Aceptacion.json",
+        "CA.pem",
+    ] {
+        let (identity, _) = identity(Role::Litigator, 1);
+        let mut store = MockStore::new();
+        store.expect_check_access().returning(|_, _, _| Ok(()));
+        assert!(matches!(
+            service(store, identity).upload("session", CaseId::new(), name, b"data"),
+            Err(ApplicationError::Domain(
+                domain::DomainError::InvalidArchiveEntryName { .. }
+            ))
+        ));
+        assert!(matches!(
+            crypto::workflow().upload("offline", name, b"data"),
+            Err(ApplicationError::Domain(
+                domain::DomainError::InvalidArchiveEntryName { .. }
+            ))
+        ));
+    }
+}

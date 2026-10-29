@@ -131,6 +131,7 @@ fn fixture(
                         consent,
                         evidence: record.evidence.clone().unwrap(),
                         accepted_at: bindings::at(300).replace_nanosecond(123456789).unwrap(),
+                        manifest: None,
                     })
                 },
                 record: record.clone(),

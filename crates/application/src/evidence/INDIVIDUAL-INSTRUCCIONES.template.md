@@ -137,3 +137,4 @@ de registro o aceptación auditados.
 Una TSA local demuestra el flujo técnico RFC 3161 y no constituye una constancia de un PSC autorizado.
 La verificación de firmas y cadenas dentro de esta CA interna tampoco acredita
 FIREL, e.firma, identidad civil o una categoría jurídica distinta.
+{{MANIFIESTO}}

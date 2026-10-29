@@ -153,6 +153,20 @@ pub fn validate_signing_receipt(
     {
         return Err(Error::Inconsistent.into());
     }
+    if let Some(manifest) = &receipt.manifest {
+        let parsed = manifest.check(operation, document, &consent.content_digest())?;
+        let material = consent.material();
+        let consistent = parsed.case_id == case.as_uuid().to_string()
+            && parsed.deployment_id == material.deployment().to_string()
+            && parsed.signers.iter().all(|signer| {
+                signer.account_id == principal.id.as_uuid().to_string()
+                    && signer.binding_id == material.binding().to_string()
+                    && signer.binding_registered_at == individual.binding_registered_at
+            });
+        if !consistent {
+            return Err(Error::Inconsistent.into());
+        }
+    }
     let binding = SigningBindingStatement::from_canonical_bytes(&individual.binding_statement)
         .map_err(|_| Error::Inconsistent)?;
     let registered = binding.material();

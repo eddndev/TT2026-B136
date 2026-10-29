@@ -1,3 +1,5 @@
+#[path = "evidence_individual_cases/manifest.rs"]
+mod manifest;
 #[allow(dead_code)]
 #[path = "support/individual_evidence.rs"]
 mod support;
@@ -61,7 +63,8 @@ fn individual_archive_retains_existing_evidence_and_adds_exact_public_proofs() {
     let legacy_writer = Archive::default();
     let legacy = export_with_ports(&Hasher, &legacy_writer, &request).unwrap();
     let writer = Archive::default();
-    let exported = export_individual_with_ports(&Hasher, &writer, &request, &individual).unwrap();
+    let exported =
+        export_individual_with_ports(&Hasher, &writer, &request, &individual, None).unwrap();
     assert_eq!(exported.document_digest_hex, record.digest.to_hex());
     assert_eq!(exported.document_digest_hex, legacy.document_digest_hex);
     let entries = writer.0.lock().unwrap();
@@ -112,9 +115,14 @@ fn individual_archive_retains_existing_evidence_and_adds_exact_public_proofs() {
 #[test]
 fn instructions_verify_each_proof_and_explain_historical_time_and_internal_trust() {
     let (_, sealed, individual) = fixture();
-    let exported =
-        export_individual_with_ports(&Hasher, &Archive::default(), &request(&sealed), &individual)
-            .unwrap();
+    let exported = export_individual_with_ports(
+        &Hasher,
+        &Archive::default(),
+        &request(&sealed),
+        &individual,
+        None,
+    )
+    .unwrap();
     let text = &exported.instructions;
     for expected in [
         "openssl dgst -sha256 -verify firmante.pub.pem -signature certificate-binding.sig certificate-binding.bin",
@@ -167,10 +175,38 @@ fn all_colliding_document_signature_and_reserved_names_fail_before_archiving() {
             ..request(&sealed)
         };
         assert!(
-            export_individual_with_ports(&Hasher, &writer, &request, &individual).is_err(),
+            export_individual_with_ports(&Hasher, &writer, &request, &individual, None).is_err(),
             "duplicate archive name was admitted: {name}"
         );
         assert!(writer.0.lock().unwrap().is_empty());
+    }
+}
+
+/// A signature accepted before the evidence manifest existed may carry a
+/// name that upload now reserves; its package without a manifest has no
+/// duplicate entry and stays exportable.
+#[test]
+fn a_package_without_a_manifest_admits_names_reserved_after_its_acceptance() {
+    let (_, sealed, individual) = fixture();
+    for name in [
+        "CA.PEM",
+        "Crl.PEM",
+        "individual-signing.JSON",
+        "manifiesto.json",
+        "Manifiesto.JSON",
+        "tsa-crl.pem",
+        "recibo-aceptacion.json",
+        "TSA-CHAIN.pem",
+    ] {
+        let request = EvidenceRequest {
+            document_name: name,
+            ..request(&sealed)
+        };
+        assert!(
+            export_individual_with_ports(&Hasher, &Archive::default(), &request, &individual, None)
+                .is_ok(),
+            "a historical package was refused: {name}"
+        );
     }
 }
 
@@ -186,10 +222,14 @@ fn malformed_individual_format_or_statement_cannot_be_packaged_as_supported_evid
             _ => individual.consent_signature.clear(),
         }
         let writer = Archive::default();
-        assert!(
-            export_individual_with_ports(&Hasher, &writer, &request(&sealed), &individual,)
-                .is_err()
-        );
+        assert!(export_individual_with_ports(
+            &Hasher,
+            &writer,
+            &request(&sealed),
+            &individual,
+            None
+        )
+        .is_err());
         assert!(writer.0.lock().unwrap().is_empty());
     }
 }

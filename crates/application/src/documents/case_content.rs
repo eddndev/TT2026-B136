@@ -99,7 +99,10 @@ impl CaseDocumentService {
         let record = self
             .store
             .load(actor, case, id, selection, DocumentAction::Export)?;
-        let export = self.processor.export_evidence(&record)?;
+        let manifest = self.store.signing_manifest(&record)?;
+        let export = self
+            .processor
+            .export_signed_evidence(&record, manifest.as_ref())?;
         self.reauthenticate(token, actor, DocumentAction::Export.permission())?;
         self.store.record_access(
             actor,

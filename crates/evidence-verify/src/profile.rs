@@ -52,6 +52,46 @@ const INDIVIDUAL_SIGNING_V2: [&str; 15] = [
     "recibo-aceptacion.json",
 ];
 
+/// Every name some profile fixes, and [`INSTRUCTIONS`]; a name may appear
+/// in several profiles but appears here once.
+pub const FIXED_NAMES: &[&str] = &[
+    "certificado.pem",
+    "ca.pem",
+    "crl.pem",
+    "tsa-chain.pem",
+    "document-consent.bin",
+    "document-consent.sig",
+    "certificate-binding.bin",
+    "certificate-binding.sig",
+    "binding-root.der",
+    "binding-crl.der",
+    "individual-signing.json",
+    "manifiesto.json",
+    "manifiesto.json.tsr",
+    "tsa-crl.pem",
+    "recibo-aceptacion.json",
+    INSTRUCTIONS,
+];
+
+/// Whether a document named `name` would collide with a fixed name of any
+/// profile: `name`, `name.sig` or `name.tsr` equals one ignoring ASCII
+/// case. The server refuses such names at upload and before acceptance, so
+/// every package it exports keeps a single document under every profile.
+/// Rationale: the section "Generation inside the acceptance operation" of
+/// `docs/adr/0085-in-browser-evidence-validation.md`.
+pub fn is_reserved_document_name(name: &str) -> bool {
+    let siblings = [
+        name.to_owned(),
+        format!("{name}.sig"),
+        format!("{name}.tsr"),
+    ];
+    siblings.iter().any(|candidate| {
+        FIXED_NAMES
+            .iter()
+            .any(|fixed| fixed.eq_ignore_ascii_case(candidate))
+    })
+}
+
 /// The fixed names of one profile.
 struct Spec {
     profile: Profile,

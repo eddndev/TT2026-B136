@@ -96,6 +96,31 @@ test('the special rows carry the agreed plain texts', () => {
   assert.match(HISTORICAL_NOTE, /paquetes hist\u00f3ricos/);
 });
 
+test('the manifest and receipt rows describe what the package holds', () => {
+  assert.match(findingMessages['manifest.artifact_mismatch'], /no coincide con el manifiesto/);
+  assert.match(findingMessages['manifest.signers_not_supported'], /m\u00e1s de una persona/);
+  assert.match(findingMessages['receipt.manifest_mismatch'], /^El recibo de aceptaci\u00f3n/);
+  assert.match(findingMessages['context.document_after_manifest'], /del manifiesto/);
+  assert.match(findingMessages['json.not_canonical'], /forma exacta/);
+  assert.notEqual(
+    findingMessages['manifest.artifact_missing'],
+    findingMessages['manifest.artifact_unexpected'],
+  );
+});
+
+test('the context rows shared by both tokens do not name only the document', () => {
+  for (const code of [
+    'context.token_before_acceptance',
+    'context.token_time_unknown',
+    'context.records_not_time_stamped',
+  ]) {
+    assert.doesNotMatch(findingMessages[code], /del documento/, code);
+    assert.doesNotMatch(findingMessages[code], /Las fechas de registro y aceptaci\u00f3n/, code);
+  }
+  assert.match(findingMessages['context.token_time_unknown'], /un sello de tiempo/);
+  assert.match(findingMessages['context.token_before_acceptance'], /anteriores a la aceptaci/);
+});
+
 test('an unknown code falls back to the message of its family', () => {
   for (const family of [
     'der',
@@ -108,6 +133,8 @@ test('an unknown code falls back to the message of its family', () => {
     'context',
     'binding',
     'consent',
+    'manifest',
+    'receipt',
   ]) {
     assert.ok(FAMILY_FALLBACKS[family], family);
     assert.equal(findingMessage(`${family}.not_a_real_code`), FAMILY_FALLBACKS[family]);

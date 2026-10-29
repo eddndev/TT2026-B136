@@ -58,9 +58,11 @@ fn external_signature_retains_the_personal_material_and_configured_tsa() {
         .prepare("reviewed.pdf", b"reviewed exact PDF bytes")
         .unwrap();
     let signature = Signature::from_bytes(pending.digest.as_bytes().to_vec()).unwrap();
-    let sealed = processor
+    let measured = processor
         .seal_external(&pending, &signature, &material())
         .unwrap();
+    assert_eq!(measured.size, b"reviewed exact PDF bytes".len() as u64);
+    let sealed = measured.record;
     assert_eq!(
         (sealed.id, sealed.version, sealed.digest),
         (pending.id, pending.version, pending.digest)

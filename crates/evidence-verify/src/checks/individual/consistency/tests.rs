@@ -52,6 +52,7 @@ fn progression(
         crl: Some(acceptance),
         binding_crl: Some(registration),
         binding_crl_der: &registration.der,
+        manifest: false,
     });
     findings
         .into_iter()

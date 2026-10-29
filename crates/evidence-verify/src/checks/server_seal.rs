@@ -7,7 +7,7 @@
 //! `docs/adr/0085-in-browser-evidence-validation.md`.
 
 use super::current::{self, Subject};
-use super::revocation::{self, RoleRevocation};
+use super::revocation::{self, RoleRevocation, TsaList};
 use super::token::{self, Candidates};
 use super::trust::{self, Anchor, Chain};
 use super::{Checked, Components, Evidence};
@@ -68,10 +68,17 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
         crl: crl.as_ref().ok(),
         at,
     }));
+    let lists: Vec<TsaList<'_>> = crl
+        .as_ref()
+        .ok()
+        .map(|list| TsaList::IfIssuer("crl.pem", list))
+        .into_iter()
+        .collect();
     revocation_findings.push(revocation::tsa_status(
+        "time-stamping certificate",
         token.tsa.as_ref(),
         token.facts.as_ref(),
-        crl.as_ref().ok(),
+        &lists,
     ));
 
     let mut instants = Vec::new();

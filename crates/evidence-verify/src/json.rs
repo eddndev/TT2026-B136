@@ -16,7 +16,7 @@ mod canonical_tests;
 #[cfg(test)]
 mod parser_tests;
 
-pub use canonical::canonical;
+pub use canonical::{canonical, parse_canonical};
 pub use parser::parse;
 
 /// Deepest admitted nesting of arrays and objects; the outermost container
@@ -108,6 +108,9 @@ pub enum ErrorKind {
     DuplicateKey,
     TooDeep,
     TooManyValues,
+    /// Admitted bytes that are not the RFC 8785 serialization of their own
+    /// value.
+    NotCanonical,
 }
 
 /// A rejection with the byte offset where it was detected; canonical
@@ -141,6 +144,7 @@ impl JsonError {
             ErrorKind::DuplicateKey => "json.duplicate_key",
             ErrorKind::TooDeep => "json.too_deep",
             ErrorKind::TooManyValues => "json.too_many_values",
+            ErrorKind::NotCanonical => "json.not_canonical",
         }
     }
 }

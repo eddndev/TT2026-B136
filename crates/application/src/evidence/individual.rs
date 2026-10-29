@@ -9,30 +9,42 @@ use domain::{
 };
 use time::OffsetDateTime;
 
-use crate::{documents::IndividualSigningEvidence, ApplicationError};
+use crate::{
+    documents::{IndividualSigningEvidence, ManifestExport},
+    ApplicationError,
+};
 
 use super::{
-    assemble, finish, EvidencePackage, EvidenceRequest, INSTRUCTIONS_ENTRY_NAME,
-    ISSUER_CERTIFICATE_ENTRY_NAME, TSA_CHAIN_ENTRY_NAME,
+    assemble, finish, individual_manifest, EvidencePackage, EvidenceRequest,
+    INSTRUCTIONS_ENTRY_NAME, ISSUER_CERTIFICATE_ENTRY_NAME, TSA_CHAIN_ENTRY_NAME,
 };
 
 const INSTRUCTIONS: &str = include_str!("INDIVIDUAL-INSTRUCCIONES.template.md");
 
-/// Adds individual public proofs to the existing document evidence package.
+/// Adds individual public proofs to the existing document evidence package
+/// and, when the acceptance sealed one, the manifest entries.
 ///
 /// The caller must validate historical cryptography and persisted case association
 /// before export. This assembly checks supported structure and digest correspondence;
-/// it does not establish current authority or an external trust anchor.
+/// it does not establish current authority or an external trust anchor. With
+/// a manifest, a document name that collides, ignoring ASCII case, with a
+/// fixed entry name of any package profile is refused; without one, the
+/// signature predates that reservation and only an exact duplicate entry
+/// name is refused, so its package stays exportable.
 pub fn export_individual_with_ports<H, A>(
     hasher: &H,
     archiver: &A,
     request: &EvidenceRequest<'_>,
     individual: &IndividualSigningEvidence,
+    manifest: Option<&ManifestExport>,
 ) -> Result<EvidencePackage, ApplicationError>
 where
     H: DocumentHasher + ?Sized,
     A: ArchiveWriter + ?Sized,
 {
+    if manifest.is_some() {
+        crate::documents::reserve_document_name(request.document_name)?;
+    }
     let (binding, consent) = statements(individual)?;
     let mut assembly = assemble(hasher, request)?;
     if consent.content_digest().to_hex() != assembly.digest_hex
@@ -88,6 +100,10 @@ where
         .replace(
             "{{PDF_FIRMA_DIGEST}}",
             &consent.pdf_signature_digest().to_hex(),
+        )
+        .replace(
+            "{{MANIFIESTO}}\n",
+            &individual_manifest::section(manifest, token_anchor),
         );
     for (name, content) in [
         ("document-consent.bin", &individual.consent_statement),
@@ -102,9 +118,20 @@ where
             .push(ArchiveEntry::new(name, content.clone())?);
     }
     let metadata = serde_json::to_vec(individual).map_err(|_| invalid())?;
-    assembly
-        .entries
-        .push(ArchiveEntry::new("individual-signing.json", metadata)?);
+    assembly.entries.push(ArchiveEntry::new(
+        individual_manifest::RECORD_ENTRY,
+        metadata,
+    )?);
+    if let Some(export) = manifest {
+        individual_manifest::append(
+            hasher,
+            &mut assembly,
+            request.document_name,
+            &consent,
+            individual,
+            export,
+        )?;
+    }
     let mut names = HashSet::new();
     names.insert(INSTRUCTIONS_ENTRY_NAME);
     if assembly
@@ -144,6 +171,6 @@ fn statements(
     ))
 }
 
-fn invalid() -> ApplicationError {
+pub(super) fn invalid() -> ApplicationError {
     ApplicationError::StoredDocumentInconsistent("individual export evidence is invalid".into())
 }

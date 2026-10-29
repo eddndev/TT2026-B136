@@ -1,4 +1,4 @@
-use super::{canonical, parse, ErrorKind, Limits, Value, MAX_CANONICAL_INTEGER};
+use super::{canonical, parse, parse_canonical, ErrorKind, Limits, Value, MAX_CANONICAL_INTEGER};
 
 const LIMITS: Limits = Limits { max_values: 1000 };
 
@@ -125,4 +125,45 @@ fn empty_containers_and_strings() {
     assert_eq!(canonical_of(b"[ ]"), b"[]".to_vec());
     assert_eq!(canonical_of(b"{ }"), b"{}".to_vec());
     assert_eq!(canonical_of(br#"[ "" , [ ] ]"#), br#"["",[]]"#.to_vec());
+}
+
+#[test]
+fn parse_canonical_admits_exactly_the_canonical_bytes() {
+    let bytes = br#"{"a":[1,"x"],"b":{"c":0}}"#;
+    assert_eq!(
+        parse_canonical(bytes, LIMITS).expect("canonical"),
+        parse(bytes, LIMITS).expect("parses")
+    );
+}
+
+#[test]
+fn parse_canonical_rejects_every_non_canonical_spelling() {
+    for input in [
+        &b"{\"a\":1}\n"[..],
+        b"\xef\xbb\xbf{\"a\":1}",
+        br#"{"b":1,"a":2}"#,
+        br#"{"a": 1}"#,
+        br#"{"a":"\u0041"}"#,
+        br#"{"a":"\/"}"#,
+    ] {
+        let error = parse_canonical(input, LIMITS).expect_err("not canonical");
+        assert!(
+            matches!(
+                error.kind,
+                ErrorKind::NotCanonical | ErrorKind::UnexpectedByte
+            ),
+            "{input:?}: {error:?}"
+        );
+    }
+    let reordered = parse_canonical(br#"{"b":1,"a":2}"#, LIMITS).unwrap_err();
+    assert_eq!(reordered.kind, ErrorKind::NotCanonical);
+    assert_eq!(reordered.code(), "json.not_canonical");
+    let newline = parse_canonical(b"{\"a\":1}\n", LIMITS).unwrap_err();
+    assert_eq!(newline.kind, ErrorKind::NotCanonical);
+}
+
+#[test]
+fn parse_canonical_rejects_values_outside_the_canonical_range() {
+    let error = parse_canonical(b"[-1]", LIMITS).unwrap_err();
+    assert_eq!(error.kind, ErrorKind::IntegerOutOfRange);
 }

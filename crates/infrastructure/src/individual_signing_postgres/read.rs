@@ -144,7 +144,9 @@ pub(super) fn load<C: GenericClient>(
         JOIN documents d ON d.id=r.document_id AND d.version=r.document_version AND d.case_id=r.case_id
         WHERE r.operation_id=$1", &[&operation]).map_err(port)?;
     let Some(row) = row else { return Ok(None) };
-    decode(&row).map(Some)
+    let mut receipt = decode(&row)?;
+    receipt.manifest = super::read_manifest::find(client, &receipt.consent)?;
+    Ok(Some(receipt))
 }
 
 pub(super) fn decode(row: &Row) -> Result<SigningReceipt, ApplicationError> {
@@ -162,6 +164,7 @@ pub(super) fn decode(row: &Row) -> Result<SigningReceipt, ApplicationError> {
         consent,
         evidence: crate::documents::decode_evidence(row.try_get("evidence").map_err(port)?)?,
         accepted_at,
+        manifest: None,
     };
     let actor = Principal {
         id: consent.account().id(),

@@ -1,4 +1,7 @@
+mod manifest;
 mod processor;
+
+pub use manifest::{ManifestFailure, MANIFEST_TOKEN, ROOT_PEM};
 
 use crate::{case_document_support::MockStore as Documents, document_signing_support as bindings};
 use application::{
@@ -14,7 +17,8 @@ use domain::{
     cases::CaseId,
     clock::{Clock, OffsetDateTime},
     crypto::{
-        CredentialCheck, DocumentHasher, DocumentId, DocumentVersion, DocumentVersionRef, Signature,
+        CredentialCheck, DocumentHasher, DocumentId, DocumentVersion, DocumentVersionRef,
+        Sha256Digest, Signature,
     },
     document_signing::DocumentConsent,
 };
@@ -75,6 +79,10 @@ pub struct State {
     pub corrupt_receipt: bool,
     pub change_on_find: bool,
     pub concurrent_receipt: Option<SigningReceipt>,
+    pub document_gen_time: i64,
+    pub manifest_gen_time: i64,
+    pub manifest_failure: Option<ManifestFailure>,
+    pub manifest_digest: Option<Sha256Digest>,
 }
 struct ClockView(Arc<Mutex<bindings::State>>);
 impl Clock for ClockView {
@@ -91,6 +99,10 @@ pub struct Harness {
 }
 impl Harness {
     pub fn new() -> Self {
+        Self::with_anchor(ROOT_PEM)
+    }
+    /// A harness whose processor verifies tokens against `anchor`.
+    pub fn with_anchor(anchor: &[u8]) -> Self {
         let binding = bindings::Harness::new();
         binding.state.lock().unwrap().found = Some(bindings::receipt());
         let record = crate::crypto::processor()
@@ -109,8 +121,12 @@ impl Harness {
             corrupt_receipt: false,
             change_on_find: false,
             concurrent_receipt: None,
+            document_gen_time: 990,
+            manifest_gen_time: 995,
+            manifest_failure: None,
+            manifest_digest: None,
         }));
-        let processor = Arc::new(processor::processor(state.clone()));
+        let processor = Arc::new(processor::processor(state.clone(), anchor));
         let mut documents = Documents::new();
         let observed = state.clone();
         documents
@@ -165,10 +181,17 @@ impl Harness {
                 evidence.individual.as_ref().unwrap().consent_signature,
                 consent_signature().as_bytes()
             );
+            let manifest = verified.manifest().clone();
+            assert_eq!(manifest.token, MANIFEST_TOKEN);
+            assert_eq!(manifest.tsa_crl_pem, application_pem(b"crl"));
+            manifest
+                .check(operation(), reference(), &bindings::Hasher.hash_bytes(PDF))
+                .unwrap();
             let mut receipt = SigningReceipt {
                 consent: *verified.consent(),
                 evidence,
                 accepted_at: bindings::at(1000),
+                manifest: Some(manifest),
             };
             let mut state = observed.lock().unwrap();
             state.commits += 1;
@@ -219,7 +242,18 @@ impl Harness {
             hasher: Arc::new(bindings::Hasher),
             clock: Arc::new(ClockView(self.binding.state)),
             processor: self.processor,
-            formats: Arc::new(processor::Format(self.state)),
+            formats: Arc::new(processor::Format(self.state.clone())),
+            manifest_timestamps: Arc::new(manifest::Timestamps(self.state)),
         })
     }
+}
+
+/// The PEM block the service writes for `der` labelled `X509 CRL`.
+pub fn application_pem(der: &[u8]) -> Vec<u8> {
+    use base64::{engine::general_purpose::STANDARD, Engine};
+    format!(
+        "-----BEGIN X509 CRL-----\n{}\n-----END X509 CRL-----\n",
+        STANDARD.encode(der)
+    )
+    .into_bytes()
 }

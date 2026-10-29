@@ -2,7 +2,7 @@
 
 mod current;
 mod external;
-pub use external::ExternalSignerMaterial;
+pub use external::{ExternalSignerMaterial, SealedExternal};
 
 use domain::audit::{verify_chain, ChainVerification, ChainedEvent};
 use domain::crypto::keys::KEY_ENCRYPTION_KEY_LEN;
@@ -204,6 +204,16 @@ impl DocumentProcessor {
         &self,
         record: &DocumentRecord,
     ) -> Result<EvidenceExport, ApplicationError> {
+        self.export_signed_evidence(record, None)
+    }
+
+    /// Exports the evidence package with the stored manifest of an
+    /// individual signature, when its acceptance sealed one.
+    pub fn export_signed_evidence(
+        &self,
+        record: &DocumentRecord,
+        manifest: Option<&super::ManifestExport>,
+    ) -> Result<EvidenceExport, ApplicationError> {
         let id = record.id;
         let plaintext = self.plaintext(record)?;
         let evidence = record
@@ -228,7 +238,12 @@ impl DocumentProcessor {
                 self.ports.archiver.as_ref(),
                 &request,
                 individual,
+                manifest,
             )?
+        } else if manifest.is_some() {
+            return Err(ApplicationError::StoredDocumentInconsistent(
+                "a signing manifest belongs only to individual evidence".into(),
+            ));
         } else {
             export_with_ports(
                 self.ports.hasher.as_ref(),

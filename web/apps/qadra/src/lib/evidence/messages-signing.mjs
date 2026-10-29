@@ -46,16 +46,16 @@ export const statementMessages = {
 
 export const contextMessages = {
   'context.token_time': 'La fecha del sello de tiempo del documento qued\u00f3 establecida.',
-  'context.token_time_unknown': 'No se pudo establecer la fecha del sello de tiempo del documento.',
+  'context.token_time_unknown': 'No se pudo establecer la fecha de un sello de tiempo del paquete.',
   'context.records_not_time_stamped':
-    'Las fechas de registro y aceptaci\u00f3n vienen de Qadra y ning\u00fan sello de tiempo las respalda.',
+    'Alguna fecha viene de un registro de Qadra que ning\u00fan sello de tiempo respalda.',
   'context.records_unavailable': 'No se pudieron leer las fechas de registro y aceptaci\u00f3n.',
   'context.registration_before_acceptance':
     'El certificado se registr\u00f3 antes de aceptar la firma, como corresponde.',
   'context.registration_after_acceptance':
     'La fecha de registro del certificado es posterior a la aceptaci\u00f3n de la firma.',
   'context.token_before_acceptance':
-    'El sello de tiempo del documento es anterior a la aceptaci\u00f3n, como corresponde.',
+    'Los sellos de tiempo del paquete son anteriores a la aceptaci\u00f3n, como corresponde.',
   'context.token_after_acceptance':
     'El sello de tiempo del documento es posterior a la aceptaci\u00f3n de la firma.',
   'context.same_root': 'La ra\u00edz del paquete es la misma que la de la vinculaci\u00f3n.',
@@ -71,6 +71,12 @@ export const contextMessages = {
     'La lista de revocaci\u00f3n de la aceptaci\u00f3n no es posterior a la del registro.',
   'context.trust_unavailable': 'No se pudo leer una lista de revocaci\u00f3n del paquete.',
   'context.statements_unavailable': 'No se pudieron leer las declaraciones firmadas.',
+  'context.document_after_manifest':
+    'El sello de tiempo del documento es posterior al sello de tiempo del manifiesto.',
+  'context.manifest_after_acceptance':
+    'El sello de tiempo del manifiesto es posterior a la aceptaci\u00f3n de la firma.',
+  'context.binding_registration_mismatch':
+    'El manifiesto y el resumen de la firma indican fechas distintas de registro del certificado.',
 };
 
 export const signingFallbacks = {

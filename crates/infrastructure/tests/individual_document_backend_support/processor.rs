@@ -6,15 +6,12 @@ use application::{
     ApplicationError,
 };
 use domain::{
-    crypto::{
-        DocumentSigner, Sha256Digest, Signature, TimestampService, TimestampVerification,
-        TimestampVerifier,
-    },
+    crypto::{DocumentSigner, Sha256Digest, Signature},
     DomainError,
 };
 use infrastructure::{
-    EnvelopeKeyManager, RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Verifier, StoredZipWriter,
-    X509ChainValidator,
+    EnvelopeKeyManager, LocalOpensslTsa, ManifestTimestampAuthority, Rfc3161Verifier,
+    RingAesGcmCipher, RingSha256Hasher, RsaPkcs1Verifier, StoredZipWriter, X509ChainValidator,
 };
 use zeroize::Zeroizing;
 
@@ -24,24 +21,16 @@ impl DocumentSigner for ForbiddenSigner {
         panic!("no global signing")
     }
 }
-struct Timestamp;
-impl TimestampService for Timestamp {
-    fn request(&self, digest: &Sha256Digest) -> Result<Vec<u8>, DomainError> {
-        Ok(digest.as_bytes().to_vec())
-    }
+/// The time-stamping authority issued by the declaration fixture root.
+pub fn authority() -> LocalOpensslTsa {
+    LocalOpensslTsa::new(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../pki/tsa.cnf"),
+        &crate::declaration_fixture::fixture().tsa,
+    )
 }
-impl TimestampVerifier for Timestamp {
-    fn verify(
-        &self,
-        token: &[u8],
-        digest: &Sha256Digest,
-        _: &[u8],
-    ) -> Result<TimestampVerification, DomainError> {
-        assert_eq!(token, digest.as_bytes());
-        Ok(TimestampVerification::Valid {
-            generated_at: "2026-10-10T20:00:00Z".into(),
-        })
-    }
+/// The manifest time-stamping port over the same authority.
+pub fn manifest_timestamps() -> ManifestTimestampAuthority {
+    ManifestTimestampAuthority::new(Box::new(authority()), Box::new(Rfc3161Verifier::new()))
 }
 pub struct Pdf;
 impl DocumentFormatBatchValidator for Pdf {
@@ -60,18 +49,18 @@ pub fn processor() -> DocumentProcessor {
             cipher: Box::new(RingAesGcmCipher::new()),
             keys: Box::new(EnvelopeKeyManager::new()),
             signer: Box::new(ForbiddenSigner),
-            timestamp_service: Box::new(Timestamp),
+            timestamp_service: Box::new(authority()),
             signature_verifier: Box::new(RsaPkcs1Verifier),
             certificate_validator: Box::new(X509ChainValidator),
-            timestamp_verifier: Box::new(Timestamp),
+            timestamp_verifier: Box::new(Rfc3161Verifier::new()),
             archiver: Box::new(StoredZipWriter),
         },
         EvidenceMaterial {
             signer_certificate_pem: b"unused global cert".to_vec(),
             issuer_certificate_pem: b"unused global root".to_vec(),
             crl_pem: b"unused global crl".to_vec(),
-            tsa_chain_pem: Some(b"synthetic TSA trust for atomicity tests".to_vec()),
-            openssl_version: "synthetic timestamp adapter".into(),
+            tsa_chain_pem: Some(crate::declaration_fixture::fixture().root.clone()),
+            openssl_version: "local OpenSSL time-stamping authority".into(),
         },
         Zeroizing::new(vec![7; 32]),
     )

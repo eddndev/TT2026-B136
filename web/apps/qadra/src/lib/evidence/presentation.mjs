@@ -74,14 +74,16 @@ const TITLES = {
   'binding-consent': 'Vinculaci\u00f3n y consentimiento',
   certificates: 'Certificados y ra\u00edz de confianza',
   revocation: 'Revocaci\u00f3n',
-  manifest: 'Manifiesto de evidencia',
+  manifest: 'Manifiesto y su sello de tiempo',
   context: 'Fechas y registros',
 };
 
 const INSTANT_LABELS = {
   'document token genTime': 'Fecha del sello de tiempo del documento',
+  'manifest token genTime': 'Fecha del sello de tiempo del manifiesto',
   binding_registered_at: 'Registro del certificado en Qadra',
   accepted_at: 'Aceptaci\u00f3n de la firma',
+  'receipt accepted_at': 'Aceptaci\u00f3n de la firma, seg\u00fan el recibo',
   'current status': 'Momento de esta revisi\u00f3n',
 };
 

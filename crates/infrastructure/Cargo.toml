@@ -61,12 +61,14 @@ crc32fast.workspace = true
 pdf-writer = "=0.15.0"
 harfrust = "=0.13.3"
 skrifa = { version = "=0.46.2", default-features = false, features = ["std"] }
+# The pure evidence verifier reads time-stamp facts and checks the
+# time-stamping certificate and CRL of the evidence manifest, and parity
+# tests compare it with the server's domain codec, certificate profiles and
+# package writer; the verifier never depends on server crates. Rationale:
+# docs/adr/0085-in-browser-evidence-validation.md.
+evidence-verify = { path = "../evidence-verify" }
 [dev-dependencies]
 proptest.workspace = true
-# Parity tests compare the pure evidence verifier with the server's domain
-# codec, certificate profiles and package writer; the verifier never depends
-# on server crates. Rationale: docs/adr/0085-in-browser-evidence-validation.md.
-evidence-verify = { path = "../evidence-verify" }
 [[test]]
 name = "aead_properties"
 path = "tests/aead_properties.rs"
@@ -414,6 +416,15 @@ path = "tests/individual_document_backend.rs"
 [[test]]
 name = "individual_document_backend_invariants"
 path = "tests/individual_document_backend_invariants.rs"
+[[test]]
+name = "individual_document_backend_manifest"
+path = "tests/individual_document_backend_manifest.rs"
+[[test]]
+name = "individual_document_backend_manifest_guards"
+path = "tests/individual_document_backend_manifest_guards.rs"
+[[test]]
+name = "individual_signing_manifest_end_to_end"
+path = "tests/individual_signing_manifest_end_to_end.rs"
 
 [[test]]
 name = "member_invitations"

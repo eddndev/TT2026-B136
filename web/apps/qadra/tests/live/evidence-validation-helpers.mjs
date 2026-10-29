@@ -1,7 +1,7 @@
 // Validates a downloaded evidence package in the browser with the real
 // engine. scripts/web-demo.sh pins its disposable CA with the label "CI" and
-// writes the CRL before the server starts, so the server seal of a version
-// sealed during the run is complete.
+// writes the CRL before the server starts, so a package exported during the
+// run, sealed by the server or signed individually, is complete.
 import { readFileSync } from 'node:fs';
 import { expect } from '@playwright/test';
 

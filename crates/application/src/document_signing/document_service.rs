@@ -6,14 +6,14 @@ use domain::{
 };
 
 use super::{
-    document_validation as validation, evidence, validate_binding_receipt, DocumentSigningPorts,
-    PreparedDocumentSigning, SigningCommit, SigningReceipt, SigningWorkflowError as Error,
-    VerifiedDocumentSigning,
+    document_manifest, document_validation as validation, evidence, validate_binding_receipt,
+    DocumentSigningPorts, PreparedDocumentSigning, SigningCommit, SigningReceipt,
+    SigningWorkflowError as Error, VerifiedDocumentSigning,
 };
 use crate::{
     documents::{
-        DocumentAction, ExternalSignerMaterial, IndividualSigningEvidence, StageDocumentFormat,
-        StageSupportReadLimits, VersionSelection,
+        reserve_document_name, DocumentAction, ExternalSignerMaterial, IndividualSigningEvidence,
+        StageDocumentFormat, StageSupportReadLimits, VersionSelection,
     },
     identity::Principal,
     ApplicationError,
@@ -77,6 +77,7 @@ impl DocumentSigningService {
         if record.id != document.id || record.version != document.version {
             return Err(Error::Inconsistent.into());
         }
+        reserve_document_name(&record.name)?;
         if record.is_sealed() {
             return Err(ApplicationError::DocumentAlreadySealed(
                 record.id.to_string(),
@@ -213,23 +214,23 @@ impl DocumentSigningService {
         }
         evidence::check_time(&check, before_timestamp.unix_timestamp())?;
         self.reauthenticate(token, &principal)?;
+        let material = self.ports.processor.evidence_material();
+        let anchor = material
+            .tsa_chain_pem
+            .as_deref()
+            .unwrap_or(&material.issuer_certificate_pem);
+        document_manifest::check_anchor(anchor, &prepared.trust)?;
         let public = ExternalSignerMaterial {
             certificate_pem: validation::pem("CERTIFICATE", &check.certificate.der),
             issuer_pem: validation::pem("CERTIFICATE", &check.trust.root_der),
             crl_pem: validation::pem("X509 CRL", &check.trust.crl_der),
         };
-        let mut record =
+        let sealed =
             self.ports
                 .processor
                 .seal_external(&prepared.record, pdf_signature, &public)?;
-        let not_before = self.ports.clock.now();
-        if not_before < before_timestamp {
-            return Err(Error::Inconsistent.into());
-        }
-        evidence::check_time(&check, not_before.unix_timestamp())?;
-        self.reauthenticate(token, &principal)?;
-        let evidence = record.evidence.as_mut().ok_or(Error::Inconsistent)?;
-        evidence.individual = Some(IndividualSigningEvidence {
+        let mut record = sealed.record;
+        let mut individual = IndividualSigningEvidence {
             format_version: 1,
             binding_statement: prepared.binding.statement.canonical_bytes().to_vec(),
             binding_signature: prepared.binding.check.signature.as_bytes().to_vec(),
@@ -238,15 +239,35 @@ impl DocumentSigningService {
             binding_registered_at: prepared.binding.registered_at.unix_timestamp(),
             consent_statement: consent.canonical_bytes().to_vec(),
             consent_signature: consent_signature.as_bytes().to_vec(),
-            accepted_at: not_before.unix_timestamp(),
-        });
+            accepted_at: 0,
+        };
+        let generated = document_manifest::generate(
+            &self.ports,
+            &prepared.trust,
+            &record,
+            sealed.size,
+            &individual,
+            consent,
+        )?;
+        let not_before = self.ports.clock.now();
+        if not_before < before_timestamp {
+            return Err(Error::Inconsistent.into());
+        }
+        evidence::check_time(&check, not_before.unix_timestamp())?;
+        document_manifest::check_before(&generated.facts, not_before.unix_timestamp())?;
+        self.reauthenticate(token, &principal)?;
+        individual.accepted_at = not_before.unix_timestamp();
+        let evidence = record.evidence.as_mut().ok_or(Error::Inconsistent)?;
+        evidence.individual = Some(individual);
         let expected_evidence = evidence.clone();
         let valid_until = check.valid_until;
+        let manifest = generated.manifest;
         let committed = self.ports.store.commit(VerifiedDocumentSigning {
             prepared,
             check,
             record,
             not_before,
+            manifest: manifest.clone(),
         })?;
         let (receipt, applied) = match committed {
             SigningCommit::Applied(receipt) => (receipt, true),
@@ -263,7 +284,8 @@ impl DocumentSigningService {
         if applied
             && (receipt.accepted_at < not_before
                 || receipt.accepted_at.unix_timestamp() > valid_until
-                || returned_evidence != expected_evidence)
+                || returned_evidence != expected_evidence
+                || receipt.manifest.as_ref() != Some(&manifest))
         {
             return Err(Error::Inconsistent.into());
         }

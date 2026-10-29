@@ -890,6 +890,21 @@ en la fecha de ejecución, con los certificados y CRL capturados y la política
 vigente del verificador. Un indicador `sealed` no almacena un veredicto permanente.
 Véase [ADR-0019](adr/0019-immutable-document-versions.md).
 
+El ZIP de una versión firmada individualmente contiene, en este orden, el
+documento, `{nombre}.sig`, `{nombre}.tsr`, `certificado.pem`, `ca.pem`,
+`crl.pem`, `tsa-chain.pem`, `document-consent.bin`, `document-consent.sig`,
+`certificate-binding.bin`, `certificate-binding.sig`, `binding-root.der`,
+`binding-crl.der` e `individual-signing.json`. Si la aceptación selló un
+manifiesto, siguen `manifiesto.json`, `manifiesto.json.tsr`, `tsa-crl.pem` y
+`recibo-aceptacion.json`; el recibo se genera con datos guardados, de modo que
+exportaciones repetidas devuelven los mismos bytes. `INSTRUCCIONES.md` cierra
+siempre el archivo. Las firmas aceptadas antes de la migración 0049 se exportan
+sin esas cuatro entradas. La carga rechaza un nombre `S` para el que `S`,
+`S.sig` o `S.tsr` coincide, sin distinguir mayúsculas ASCII, con un nombre fijo
+de cualquier perfil de paquete, con `422 invalid_document_name`; la preparación
+de una firma individual aplica la misma reserva. Véase
+[ADR 0085](adr/0085-in-browser-evidence-validation.md).
+
 ### Clasificación actual e historial independiente
 
 Base: `/api/v1/cases/{case_id}/documents/{document_id}`.

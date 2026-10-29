@@ -112,6 +112,7 @@ impl DocumentWorkflow for LocalDocumentWorkflow {
         document: &[u8],
     ) -> Result<DocumentSummary, ApplicationError> {
         let _guard = self.operation_guard(actor)?;
+        super::reserve_document_name(name)?;
         let record = self.processor.prepare(name, document)?;
         self.repository.insert(record.clone())?;
         self.append_audit(actor, "document.uploaded", record.id)?;

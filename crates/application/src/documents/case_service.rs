@@ -81,6 +81,7 @@ impl CaseDocumentService {
             return Err(ApplicationError::DocumentContentTooLarge);
         }
         ArchiveEntry::new(name.to_owned(), Vec::new())?;
+        super::reserve_document_name(name)?;
         self.admission.validate(bytes)?;
         Ok(())
     }

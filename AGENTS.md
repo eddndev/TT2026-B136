@@ -42,12 +42,16 @@ independent crates sit outside that graph:
 The server dependency direction is enforced by the crate graph:
 
     domain          <- no dependency on any other workspace crate
-    application     -> domain
-    infrastructure  -> domain, application
+    application     -> domain, evidence-verify
+    infrastructure  -> domain, application, evidence-verify
     web             -> domain, application
     bin             -> domain, application, infrastructure, web
 
 `bin` is the composition root and the only crate allowed to use `anyhow`.
+`application` uses `evidence-verify` for the evidence manifest and receipt
+codecs and the reserved entry names, and `infrastructure` for time-stamp facts
+and the time-stamping CRL checks, so the server writes exactly what the
+validator reads.
 
 ## Hard rules
 

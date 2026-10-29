@@ -1641,7 +1641,8 @@ nanosegundos. El sello RFC 3161 sigue cubriendo el digest del contenido; su fech
 no demuestra que la firma personal ya existiera entonces. El estado actual de
 certificado o vínculo se informa por separado de la comprobación histórica.
 
-Para restaurar, conservar juntas las tres tablas nuevas, `documents`,
+Para restaurar, conservar juntas las tres tablas nuevas, las dos tablas del
+manifiesto descritas abajo, `documents`,
 `document_series`, usuarios, expedientes y asignaciones, confianza publicada y
 la cadena completa de auditoría. Mantener también la KEK y los materiales de CA
 y TSA requeridos por la instalación. Las claves privadas de los titulares
@@ -1663,3 +1664,39 @@ variable no demuestra que se haya ejercitado el backend. El
 [informe de verificación](verification-report.md) conserva los resultados
 efectivamente ejecutados y el [contrato HTTP](http-individual-signing.md)
 describe conciliación y lectura autorizada.
+
+### Manifiesto sellado de firmas individuales
+
+La [migración 0049](../migrations/0049_individual_signing_manifests.sql) añade
+`individual_document_manifests`, con una fila por operación aceptada: bytes
+exactos de `manifiesto.json`, su SHA-256, el digest del documento, el sello
+RFC 3161 sobre el manifiesto y la CRL PEM del emisor de la TSA capturada en la
+aceptación. También añade `individual_manifest_cutoff`, una única fila con la
+primera secuencia de auditoría que exige manifiesto: los recibos anteriores a
+la migración conservan sus bytes y se siguen exportando sin manifiesto. Ambas
+tablas son inmutables y el rol operativo sólo consulta la segunda. Una
+restricción diferida sobre `individual_document_signatures` exige al
+confirmar exactamente un manifiesto coherente para cada recibo posterior al
+corte. La apertura valida el catálogo de ambas tablas, analiza cada manifiesto
+canónico, recalcula sus huellas a partir de la evidencia guardada, verifica su
+sello sobre el digest y decodifica la CRL. La decisión y el formato se
+describen en [ADR 0085](adr/0085-in-browser-evidence-validation.md).
+
+Aplicar la migración con escritores detenidos y respaldo previo, mediante
+`database migrate --runtime-role`. La nueva clave foránea añade disparadores a
+`individual_document_signatures`; los binarios anteriores cuentan esos
+disparadores al arrancar y se niegan a abrir la base una vez aplicada. Volver a
+una versión anterior requiere restaurar el respaldo previo al despliegue y
+conciliar las aceptaciones y demás escrituras confirmadas después de él; no
+eliminar disparadores, filas ni el corte para forzar el arranque. La aceptación
+individual exige además que la raíz de confianza publicada haya emitido el
+certificado de la TSA: el despliegue documentado lo cumple porque
+`tsa-chain.pem` y `ca.pem` contienen la misma raíz. Sin esa condición la
+aceptación se rechaza como error de configuración antes de pedir sellos.
+
+Un respaldo debe conservar ambas tablas junto con los recibos y documentos.
+La restauración repone primero los datos y después los disparadores, como hace
+`pg_restore`; al abrir con el rol operativo se repite la validación descrita.
+Las [pruebas del manifiesto](../crates/infrastructure/tests/individual_document_backend_manifest.rs)
+y la [prueba extremo a extremo](../crates/infrastructure/tests/individual_signing_manifest_end_to_end.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
