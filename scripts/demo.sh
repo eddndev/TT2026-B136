@@ -144,7 +144,7 @@ run openssl verify -crl_check -CAfile ca-y-crl.pem certificado.pem
 run openssl ts -verify -data document.txt -in document.txt.tsr -CAfile ca.pem
 cd "$WORK_DIR"
 
-banner "Revoke the certificate: verification reports the revoked status"
+banner "Revoke the certificate: the newer list names its serial and verification fails"
 run "$CLI" pki --scripts-dir "$PKI_SCRIPTS" revoke --serial "$SERIAL"
 run "$CLI" pki --scripts-dir "$PKI_SCRIPTS" gen-crl
 expect_failure "$CLI" verify document.txt --sig document.txt.sig \

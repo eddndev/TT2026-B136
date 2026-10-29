@@ -157,7 +157,7 @@ como un objeto JSON en lugar de texto legible.
 | `pki show <certificado>` | Muestra sujeto, emisor, serie y vigencia de un certificado. |
 | `sign <archivo> --cert <cert> --key <llave>` | Firma el resumen del documento (RSA-3072, PKCS#1 v1.5) y escribe `<archivo>.sig`. |
 | `timestamp <archivo> [--mock] [--out RUTA] [--pki-dir DIR]` | Obtiene un sello de tiempo RFC 3161; `--mock` usa la autoridad local. |
-| `verify <archivo> --sig F --cert C --ca R [--tsr T] [--crl L] [--tsa-cert A] [--at INSTANTE]` | Reporte integral de cuatro componentes (integridad, firma, estado del certificado, sello); sale con código distinto de cero si el veredicto no es válido. |
+| `verify <archivo> --sig F --cert C --ca R [--tsr T] [--crl L] [--tsa-cert A] [--at INSTANTE]` | Reporte integral de cuatro componentes (integridad, firma, estado del certificado, sello); con un sello verificado el certificado se juzga en su `genTime` y `--at` sólo añade una nota informativa; una serie listada en `--crl` falla aunque la lista sea posterior a la firma, y sin `--tsr` una CRL vencida deja el certificado omitido; sale con código distinto de cero si el veredicto no es válido. |
 | `package export <archivo> --sig F --tsr T --cert C --ca R --crl L [--tsa-chain CH] --out RUTA` | Exporta el paquete de evidencia (ZIP) con `INSTRUCCIONES.md` para verificar todo con `openssl`. |
 | `auth calibrate` | Mide el costo del hash de contraseñas (Argon2id) en este equipo. |
 | `auth hash-password` | Lee una contraseña por entrada estándar e imprime su hash PHC. |

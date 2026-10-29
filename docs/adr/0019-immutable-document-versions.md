@@ -4,7 +4,9 @@
 
 Aceptada. Amplía la persistencia por expediente de
 [ADR-0016](0016-case-document-transactions.md) y las consultas de
-[ADR-0018](0018-authorized-document-queries.md).
+[ADR-0018](0018-authorized-document-queries.md). Enmendada el 2026-10-29: el
+veredicto histórico juzga el certificado en el instante de firma (véase la
+enmienda al final).
 
 ## Context
 
@@ -113,9 +115,10 @@ versiones y sus exportaciones, además de reconciliar el origen preservado.
   destructiva de la historia ni reasignación de expediente.
 - Las aplicaciones antiguas deben adoptar rutas explícitas para documentos
   con varias versiones. La API continúa aceptando su flujo con una sola versión.
-- Verificar evidencia histórica usa la política y fecha de evaluación del
-  verificador actual. Conservar bytes no garantiza un veredicto válido permanente;
-  no se reemplaza material histórico con certificados o CRL actuales.
+- Verificar evidencia histórica usa la política del verificador actual y juzga el
+  certificado del firmante en el instante de firma, según la enmienda de
+  2026-10-29. Conservar bytes no garantiza un veredicto válido permanente; no se
+  reemplaza material histórico con certificados o CRL actuales.
 - Los nuevos eventos incluyen versión; el prefijo anterior no se reescribe.
   AES-GCM impide sustituir un vault entre contextos diferentes, pero una copia
   antigua íntegra puede seguir siendo internamente válida. El anclaje externo
@@ -126,3 +129,71 @@ versiones y sus exportaciones, además de reconciliar el origen preservado.
   un escaneo adicional por petición.
 - Clasificación, participantes procesales, firma individual e identidad por
   certificado requieren sus propios contratos; el historial no los sustituye.
+
+## Enmienda 2026-10-29: veredicto histórico en el instante de firma
+
+### Context
+
+La verificación de una versión sellada evaluaba el certificado del firmante en
+la fecha de ejecución con la CRL capturada al sellar. Esa CRL tiene un
+`nextUpdate` siete días posterior a su emisión, así que pasado ese plazo toda
+verificación terminaba en un error interno, aunque la evidencia fuera íntegra.
+La validación de registros históricos y la de firmas individuales ya evaluaban
+el certificado en el instante de firma, igual que el validador del navegador de
+[ADR-0085](0085-in-browser-evidence-validation.md).
+
+### Decision
+
+El veredicto histórico juzga el certificado del firmante en el instante de firma
+con el material capturado: el `genTime` del sello de tiempo verificado para un
+sello del servidor y la aceptación registrada para una firma individual, que
+sólo se usa cuando el sello también verifica. Es la práctica de validación a
+largo plazo: el artículo 32, apartado 1, letra b, del Reglamento (UE) 910/2014
+(eIDAS) exige que el certificado fuera válido en el momento de la firma, y
+ETSI EN 319 102-1 valida en un instante pasado demostrado por un sello de
+tiempo.
+
+El estado en la fecha de ejecución se informa en el detalle del componente
+`certificate` como nota y nunca cambia el veredicto. Una CRL que ya no cubre la
+fecha de ejecución no es un error. Una CRL vencida en el instante de firma, un
+certificado fuera de vigencia, un emisor no confiable o una revocación listada
+en la CRL capturada hacen fallar el componente. Sin un sello verificado no hay
+instante de firma confiable: el certificado se evalúa en la fecha de ejecución
+y una CRL que ya no la cubre deja el componente omitido con su motivo.
+
+### Status
+
+Aceptada. Reemplaza la evaluación en la fecha de ejecución descrita antes en
+este documento.
+
+### Consequences
+
+- El contrato JSON del reporte no cambia; cambia el texto de `detail` del
+  componente `certificate`.
+- La exportación de paquetes por línea de comandos sigue exigiendo un estado
+  válido en la fecha de ejecución, porque sus instrucciones ejecutan
+  `openssl verify -crl_check` sin fijar un instante.
+- La comprobación de la cadena de la TSA conserva la política del verificador
+  OpenSSL actual, que la evalúa en la fecha de ejecución. ETSI EN 319 102-1
+  (cláusulas 5.3 y 5.4.4) también valida el sello como firma básica en la fecha
+  actual mientras no exista otra prueba de existencia; fijar la verificación en el `genTime`
+  que el propio sello declara no se adopta.
+- El sello se juzga en su `genTime` exacto; la precisión del sello no se
+  aplica en este verificador.
+- El sellado del servidor exige que el certificado del firmante sea válido en
+  el `genTime` del sello nuevo con la CRL que se capturará. Si el proceso
+  conserva una CRL ya vencida porque su renovación falló, el sellado se rechaza
+  en lugar de crear una versión que nunca podría verificarse.
+- Una serie listada en la CRL suministrada hace fallar el componente sin
+  comparar su fecha de revocación con el instante de firma. Con la CRL capturada
+  al sellar toda revocación listada es anterior a la firma. En la línea de
+  comandos, `--crl` con una lista posterior puede nombrar una revocación
+  ocurrida después de la firma: el detalle indica que la lista nombra la serie,
+  sin fecharla en el instante de firma. ETSI EN 319 102-1 compara la fecha de
+  revocación con el instante de firma, igual que el validador del navegador;
+  adoptar esa comparación aquí queda como decisión pendiente.
+- Sin un sello verificado, un componente `certificate` en `skipped` por una CRL
+  que ya no cubre la fecha de ejecución no hace fallar el veredicto, como
+  cualquier componente omitido. La línea de comandos sin `--tsr` puede así
+  informar `valid` sin haber comprobado la revocación; las versiones selladas
+  del servidor siempre incluyen sello.

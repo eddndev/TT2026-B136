@@ -11,6 +11,8 @@ use crate::ApplicationError;
 
 impl DocumentSigningService {
     /// Historical evidence and current certificate status have independent outcomes.
+    /// The historical report judges the certificate at the signing time and
+    /// receives the check time only for its informative current-status note.
     pub fn verify(
         &self,
         token: &str,
@@ -38,17 +40,12 @@ impl DocumentSigningService {
             .as_ref()
             .ok_or_else(|| ApplicationError::DocumentNotSealed(record.id.to_string()))?;
         let checked_at = self.ports.clock.now();
-        let (signing, evaluated_at, certificate_current, withdrawn) = match &evidence.individual {
+        let (signing, certificate_current, withdrawn) = match &evidence.individual {
             None => {
                 if context.signing.is_some() {
                     return Err(Error::Inconsistent.into());
                 }
-                (
-                    None,
-                    checked_at.unix_timestamp(),
-                    CurrentSigningStatus::NotIndividual,
-                    None,
-                )
+                (None, CurrentSigningStatus::NotIndividual, None)
             }
             Some(individual) => {
                 let consent = DocumentConsent::from_canonical_bytes(&individual.consent_statement)
@@ -74,15 +71,13 @@ impl DocumentSigningService {
                         Err(reason) => CurrentSigningStatus::Rejected(reason),
                     },
                 };
-                (
-                    Some(receipt),
-                    individual.accepted_at,
-                    current,
-                    context.binding_withdrawn_at,
-                )
+                (Some(receipt), current, context.binding_withdrawn_at)
             }
         };
-        let historical = self.ports.processor.verify(record, evaluated_at)?;
+        let historical = self
+            .ports
+            .processor
+            .verify(record, checked_at.unix_timestamp())?;
         if self.ports.identity.authenticate(token)? != principal {
             return Err(ApplicationError::InvalidSession);
         }

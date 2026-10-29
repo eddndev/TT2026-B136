@@ -1,6 +1,7 @@
 //! Behavior of the integral document verification use case on its
 //! passing paths: a fully valid report, honest reporting of skipped
-//! components, and propagation of hard errors. The mocked ports live
+//! components, and propagation of hard errors. The behavior over time
+//! lives in `verify_document_history.rs`. The mocked ports live
 //! in `verification_mocks`; the per-component failure cases live in
 //! `verify_document_failures.rs`.
 
@@ -10,10 +11,11 @@ use application::ApplicationError;
 use domain::crypto::certificate::CertificateValidation;
 use domain::crypto::SignatureVerification;
 use domain::DomainError;
+use mockall::Sequence;
 use verification_mocks::{
     accepting_signature_verifier, digest, full_request, hasher, signature,
     token_verifier_reporting, unused_token_verifier, valid_token, validator_reporting,
-    MockCertValidator, MockHasher, MockSigVerifier, MockTsVerifier, EVALUATION_UNIX,
+    MockCertValidator, MockHasher, MockSigVerifier, MockTsVerifier, EVALUATION_UNIX, TOKEN_UNIX,
 };
 
 #[test]
@@ -21,7 +23,7 @@ fn all_supplied_components_passing_yield_a_valid_verdict() {
     let use_case = VerifyDocument::new(
         hasher(),
         accepting_signature_verifier(),
-        validator_reporting(CertificateValidation::Valid),
+        validator_reporting(CertificateValidation::Valid, 2),
         token_verifier_reporting(valid_token()),
     );
     let sig = signature();
@@ -56,17 +58,23 @@ fn ports_receive_the_digest_signature_and_supplied_material() {
         .times(1)
         .returning(|_, _, _| Ok(SignatureVerification::Valid));
 
+    // The verdict judges the certificate at the token time first; the
+    // second call only informs about the status at the evaluation time.
+    let mut order = Sequence::new();
     let mut validator = MockCertValidator::new();
-    validator
-        .expect_validate()
-        .withf(|cert, issuer, crl, at| {
-            cert == b"signer pem"
-                && issuer == b"issuer pem"
-                && crl == &Some(&b"crl pem"[..])
-                && *at == EVALUATION_UNIX
-        })
-        .times(1)
-        .returning(|_, _, _, _| Ok(CertificateValidation::Valid));
+    for instant in [TOKEN_UNIX, EVALUATION_UNIX] {
+        validator
+            .expect_validate()
+            .withf(move |cert, issuer, crl, at| {
+                cert == b"signer pem"
+                    && issuer == b"issuer pem"
+                    && crl == &Some(&b"crl pem"[..])
+                    && *at == instant
+            })
+            .times(1)
+            .in_sequence(&mut order)
+            .returning(|_, _, _, _| Ok(CertificateValidation::Valid));
+    }
 
     let mut token_verifier = MockTsVerifier::new();
     token_verifier
@@ -90,7 +98,7 @@ fn without_a_token_integrity_and_timestamp_are_skipped_with_reasons() {
     let use_case = VerifyDocument::new(
         hasher(),
         accepting_signature_verifier(),
-        validator_reporting(CertificateValidation::Valid),
+        validator_reporting(CertificateValidation::Valid, 1),
         unused_token_verifier(),
     );
     let sig = signature();
@@ -121,10 +129,11 @@ fn without_a_token_integrity_and_timestamp_are_skipped_with_reasons() {
 #[test]
 fn without_a_revocation_list_the_certificate_detail_says_so() {
     let mut validator = MockCertValidator::new();
+    // One call judges the token time, the other informs about today.
     validator
         .expect_validate()
         .withf(|_, _, crl, _| crl.is_none())
-        .times(1)
+        .times(2)
         .returning(|_, _, _, _| Ok(CertificateValidation::Valid));
 
     let use_case = VerifyDocument::new(
@@ -149,34 +158,6 @@ fn without_a_revocation_list_the_certificate_detail_says_so() {
         report.certificate.detail
     );
     assert_eq!(report.verdict, Verdict::Valid);
-}
-
-#[test]
-fn a_stale_revocation_list_is_a_hard_error_not_a_report() {
-    let mut validator = MockCertValidator::new();
-    validator
-        .expect_validate()
-        .times(1)
-        .returning(|_, _, _, _| {
-            Err(DomainError::StaleCrl {
-                next_update_unix: 100,
-            })
-        });
-
-    let use_case = VerifyDocument::new(
-        hasher(),
-        accepting_signature_verifier(),
-        validator,
-        unused_token_verifier(),
-    );
-    let sig = signature();
-    let err = use_case
-        .execute(&mut &b"document body"[..], &full_request(&sig))
-        .unwrap_err();
-    assert!(matches!(
-        err,
-        ApplicationError::Domain(DomainError::StaleCrl { .. })
-    ));
 }
 
 #[test]

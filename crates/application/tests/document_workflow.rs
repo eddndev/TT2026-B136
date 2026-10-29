@@ -229,7 +229,7 @@ fn historical_validation_rejects_every_unaccepted_certificate_status() {
             serial_hex: "1234".into(),
         },
     ] {
-        let validator = verification_mocks::validator_reporting(outcome);
+        let validator = verification_mocks::validator_reporting(outcome, 1);
         assert!(matches!(
             historical_reader(validator, None).validate_record(&sealed_record()),
             Err(ApplicationError::StoredDocumentInconsistent(_))
@@ -252,4 +252,78 @@ fn historical_validation_rejects_an_unparseable_verified_timestamp_date() {
         .validate_record(&sealed_record()),
         Err(ApplicationError::StoredDocumentInconsistent(_))
     ));
+}
+
+#[test]
+fn verifying_a_sealed_version_after_its_captured_list_expired_judges_the_seal_time() {
+    use application::verification::{ComponentStatus, Verdict};
+    use domain::crypto::CertificateValidation;
+    // Generation time the support timestamp verifier reports for every seal.
+    const SEALED_UNIX: i64 = 1_786_968_000;
+    const NEXT_UPDATE_UNIX: i64 = SEALED_UNIX + 7 * 86_400;
+    let validator = verification_mocks::validator_answering(|at, with_list| {
+        if with_list && at > NEXT_UPDATE_UNIX {
+            Err(domain::DomainError::StaleCrl {
+                next_update_unix: NEXT_UPDATE_UNIX,
+            })
+        } else {
+            Ok(CertificateValidation::Valid)
+        }
+    });
+    let report = historical_reader(validator, None)
+        .verify(&sealed_record(), NEXT_UPDATE_UNIX + 30 * 86_400)
+        .unwrap();
+    assert_eq!(report.certificate.status, ComponentStatus::Passed);
+    assert!(
+        report
+            .certificate
+            .detail
+            .contains("signing time 2026-08-17T12:00:00Z"),
+        "{}",
+        report.certificate.detail
+    );
+    assert_eq!(report.verdict, Verdict::Valid);
+}
+
+#[test]
+fn sealing_checks_the_signer_material_at_the_token_time_with_the_captured_list() {
+    // Generation time the support timestamp verifier reports for every seal.
+    const SEALED_UNIX: i64 = 1_786_968_000;
+    let mut validator = verification_mocks::MockCertValidator::new();
+    validator
+        .expect_validate()
+        .times(1)
+        .withf(|_, _, crl, at| crl.is_some() && *at == SEALED_UNIX)
+        .returning(|_, _, _, _| Ok(domain::crypto::CertificateValidation::Valid));
+    let processor = historical_reader(validator, None);
+    let pending = processor.prepare("acta.txt", b"case document").unwrap();
+    assert!(processor.seal(&pending).unwrap().is_sealed());
+}
+
+#[test]
+fn sealing_refuses_signer_material_that_cannot_verify_at_the_token_time() {
+    use domain::crypto::CertificateValidation;
+    let stale = verification_mocks::validator_answering(|at, _| {
+        Err(domain::DomainError::StaleCrl {
+            next_update_unix: at - 1,
+        })
+    });
+    for validator in [
+        stale,
+        verification_mocks::validator_reporting(CertificateValidation::Expired, 1),
+        verification_mocks::validator_reporting(
+            CertificateValidation::Revoked {
+                serial_hex: "1234".into(),
+            },
+            1,
+        ),
+    ] {
+        let processor = historical_reader(validator, None);
+        let pending = processor.prepare("acta.txt", b"case document").unwrap();
+        assert!(matches!(
+            processor.seal(&pending),
+            Err(ApplicationError::InvalidConfiguration(message))
+                if message.contains("timestamp generation time")
+        ));
+    }
 }

@@ -92,10 +92,14 @@ Verification allows the existing per-case VerifyDocument roles. It returns
 "certificate_current":{"status":"valid"|"rejected"|"trust_unavailable"|"not_individual",
 "reason":null|"credential_failure_code","checked_at_unix":123},
 "binding_withdrawn_at":null|"RFC3339","signing":null|<accepted receipt>}`.
-The historical report uses captured evidence and the acceptance time for
-individual signatures. Current certificate rejection or binding withdrawal is
-reported separately and does not rewrite historical validity. Legacy server
-evidence is never represented as a personal signature.
+The historical report uses captured evidence and judges the certificate at the
+acceptance time for individual signatures and at the generation time of the
+verified timestamp token for legacy server evidence. Its certificate detail
+adds the status at the check time only as an informative note. A captured
+revocation list past its next update never turns the response into a 500.
+Current certificate rejection or binding withdrawal is reported separately and
+does not rewrite historical validity. Legacy server evidence is never
+represented as a personal signature.
 
 ## Errors
 

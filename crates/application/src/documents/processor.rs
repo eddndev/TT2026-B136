@@ -2,6 +2,7 @@
 
 mod current;
 mod external;
+mod seal_material;
 pub use external::{ExternalSignerMaterial, SealedExternal};
 
 use domain::audit::{verify_chain, ChainVerification, ChainedEvent};
@@ -139,11 +140,16 @@ impl DocumentProcessor {
             .tsa_chain_pem
             .as_deref()
             .unwrap_or(&self.material.issuer_certificate_pem);
-        ensure_timestamp_matches(
+        let generated_at = ensure_timestamp_matches(
             self.ports.timestamp_verifier.as_ref(),
             &token,
             &record.digest,
             anchor,
+        )?;
+        seal_material::ensure_material_valid_at_token_time(
+            self.ports.certificate_validator.as_ref(),
+            &self.material,
+            &generated_at,
         )?;
         let evidence = SealedEvidence {
             signature: signature.into_bytes(),
@@ -160,6 +166,14 @@ impl DocumentProcessor {
         Ok(record)
     }
 
+    /// Builds the historical report of a sealed version.
+    ///
+    /// The certificate is judged at the signing time with the captured
+    /// revocation list: the acceptance time of an individual signature, or
+    /// the generation time of the verified timestamp token for a server
+    /// seal, matching [`Self::validate_record`]. `evaluation_unix` is the
+    /// time of the run; its status is only an informative note. Rationale:
+    /// docs/adr/0019-immutable-document-versions.md.
     pub fn verify(
         &self,
         record: &DocumentRecord,
@@ -187,6 +201,10 @@ impl DocumentProcessor {
                 trust_anchor_pem: anchor,
             }),
             evaluation_unix,
+            recorded_signing_unix: evidence
+                .individual
+                .as_ref()
+                .map(|individual| individual.accepted_at),
         };
         let report = verify_with_ports(
             self.ports.hasher.as_ref(),
@@ -344,9 +362,9 @@ fn ensure_timestamp_matches(
     token: &[u8],
     digest: &domain::crypto::Sha256Digest,
     anchor: &[u8],
-) -> Result<(), ApplicationError> {
+) -> Result<String, ApplicationError> {
     match verifier.verify(token, digest, anchor)? {
-        TimestampVerification::Valid { .. } => Ok(()),
+        TimestampVerification::Valid { generated_at } => Ok(generated_at),
         outcome => Err(ApplicationError::TimestampEvidenceRejected(format!(
             "{outcome:?}"
         ))),

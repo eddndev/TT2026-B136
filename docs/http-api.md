@@ -797,6 +797,10 @@ Sellar otra vez un documento sellado responde `409 document_already_sealed`
 sin reemplazar su evidencia. Dos preparaciones concurrentes pueden solicitar
 sellos, pero solo una confirma y la otra recibe conflicto. El contenido nuevo
 se añade como otra versión; no se sobrescribe contenido ni se reasigna expediente.
+Si el certificado del firmante configurado no es válido en el `genTime` del
+sello nuevo con la CRL que se capturaría, por ejemplo porque la CRL cargada al
+iniciar ya superó su `nextUpdate`, el sellado responde `500` sin persistir
+evidencia; reiniciar el servicio con la CRL renovada lo corrige.
 
 ### Listado y búsqueda de metadatos
 
@@ -885,9 +889,18 @@ utiliza siempre las rutas explícitas de la versión seleccionada.
 
 Cada versión conserva su cifrado y evidencia independiente. Nombre, digest,
 vault y asociación no se sobrescriben. Firma y TSA cubren el digest del contenido;
-los metadatos HTTP no amplían lo firmado. La verificación histórica se evalúa
-en la fecha de ejecución, con los certificados y CRL capturados y la política
-vigente del verificador. Un indicador `sealed` no almacena un veredicto permanente.
+los metadatos HTTP no amplían lo firmado. La verificación histórica juzga el
+certificado del firmante en el instante de firma: el `genTime` del sello de
+tiempo verificado para un sello del servidor, o la aceptación para una firma
+individual, con los certificados y la CRL capturados, que cubren ese instante.
+El campo `detail` del componente `certificate` añade el estado en la fecha de
+ejecución sólo como nota informativa; esa nota no cambia el veredicto. Una CRL
+capturada que ya superó su `nextUpdate` hoy no produce un error `500`. Si la CRL
+ya había vencido en el instante de firma, el componente falla. Sin un sello
+verificado no hay instante de firma confiable: el certificado se evalúa en la
+fecha de ejecución y, si la CRL ya no cubre esa fecha, el componente queda
+`skipped` con el motivo. La política vigente del verificador sigue aplicando a
+la cadena de la TSA. Un indicador `sealed` no almacena un veredicto permanente.
 Véase [ADR-0019](adr/0019-immutable-document-versions.md).
 
 El ZIP de una versión firmada individualmente contiene, en este orden, el
