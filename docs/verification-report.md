@@ -1,5 +1,31 @@
 # Informe de verificación local
 
+## Despliegue de v0.1.15: 29 de octubre de 2026 UTC
+
+`v0.1.15` (`be80b909`) corrige la verificación de versiones selladas: el
+certificado del firmante se juzga en el instante de firma con la CRL capturada,
+y el estado en la fecha de ejecución queda como nota informativa
+([ADR 0019](adr/0019-immutable-document-versions.md), enmienda del 2026-10-29).
+Antes, toda versión cuya CRL capturada había pasado su `nextUpdate` respondía 500
+en `POST .../versions/{n}/verify`. Se preparó con `prepare_version` (run
+40892338133), reutilizando CI y Web aprobados sobre ese `main`; el paquete tiene
+SHA-256 `b9bf7fb3cfac8c7b697e9819ff92da59e31778e0bfee7320f73c4297950fae71` y la
+misma huella de esquema `acd05569…` que `v0.1.14`, por lo que se activó con
+`release.py activate` mediante el launcher aprobado, sin mantenimiento SQL. La
+activación tomó el respaldo completo `backups/20261029T144208Z-e6998fd7` y duró
+54 segundos (14:42:05 a 14:42:59 UTC); `current` apunta a `v0.1.15` y `previous`
+a `v0.1.14`.
+
+Después respondieron `version.json` con `v0.1.15` y la portada con 200. Con la
+cuenta Owner de demostración, `verify` e `individual-signing/verification`
+respondieron 200 con veredicto `valid` para la única versión de D13 (sello del
+servidor) y las tres versiones del documento ficticio DEMO-TT-001 (sello del
+servidor, firma individual v1 y v2). Con `v0.1.14`, `verify` respondía 500 en
+D13 y en las versiones 1 y 2 de DEMO-TT-001, igual que la verificación
+individual de las dos versiones con sello del servidor.
+En D13 el certificado se juzgó en el `genTime` del 22 de octubre con la CRL
+capturada, y la nota informa que esa CRL venció el 28 de octubre.
+
 ## Despliegue de v0.1.14 con la migración 0049: 29 de octubre de 2026 UTC
 
 `v0.1.14` (`e6a5baf9`) integra la validación de evidencia en el navegador y el
