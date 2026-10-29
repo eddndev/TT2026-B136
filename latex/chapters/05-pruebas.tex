@@ -13,13 +13,15 @@ Este capítulo reporta la validación del prototipo cuya implementación documen
   \label{fig:pruebas-niveles}
 \end{figure}
 
-La cobertura se mide con \texttt{cargo-llvm-cov}. El umbral de integración continua exige al menos 90\,\% de líneas en cada uno de los crates \texttt{domain}, \texttt{application} e \texttt{infrastructure}, conforme a RNF-13. El capítulo sigue el mismo orden por dominios que el Capítulo~\ref{cap:implementacion}. Presenta primero la matriz de pruebas y su entorno (\cref{sec:pruebas-matriz}), los resultados criptográficos junto con la verificación del portal administrativo de la CA (\cref{sec:pruebas-cripto}), la verificación independiente (\cref{sec:pruebas-interop}) y los ensayos de autorización y persistencia (\cref{sec:pruebas-transacciones}). Después reporta la verificación de identidad y cuentas, expedientes y participantes, repositorio documental, etapas y audiencias, cómputo de plazos, recursos procesales, alertas, supervisión operativa y despliegue. Cierra con el balance de cobertura y criterios de éxito (\cref{sec:pruebas-cobertura}), que conserva cada corte con su fecha y sus propias cifras, y con el protocolo de evaluación humana preparado (\cref{sec:pruebas-protocolo-humano}).
+La cobertura se mide con \texttt{cargo-llvm-cov}. El umbral de integración continua exige al menos 90\,\% de líneas en cada uno de los crates \texttt{domain}, \texttt{application} e \texttt{infrastructure}, conforme a RNF-13. El capítulo sigue el mismo orden por dominios que el Capítulo~\ref{cap:implementacion}. Presenta primero la matriz de pruebas y su entorno (\cref{sec:pruebas-matriz}), los resultados criptográficos junto con la verificación del portal administrativo de la CA (\cref{sec:pruebas-cripto}), la verificación independiente (\cref{sec:pruebas-interop}), la validación de paquetes en el navegador (\cref{sec:pruebas-validador}) y los ensayos de autorización y persistencia (\cref{sec:pruebas-transacciones}). Después reporta la verificación de identidad y cuentas, expedientes y participantes, repositorio documental, etapas y audiencias, cómputo de plazos, recursos procesales, alertas, supervisión operativa y despliegue. Cierra con el balance de cobertura y criterios de éxito (\cref{sec:pruebas-cobertura}), que conserva cada corte con su fecha y sus propias cifras, y con el protocolo de evaluación humana preparado (\cref{sec:pruebas-protocolo-humano}).
 
 \input{chapters/05-matriz}
 
 \input{chapters/05-criptografia}
 
 \input{chapters/05-verificacion-independiente}
+
+\input{chapters/05-validador-evidencia}
 
 \input{chapters/05-transacciones}
 

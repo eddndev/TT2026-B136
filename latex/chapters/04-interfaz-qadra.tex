@@ -4,7 +4,7 @@
 
 \section{Interfaz de navegador Qadra}\label{sec:impl-http-interfaz}
 
-Qadra es la aplicación de navegador del despacho: Astro genera una sola página que monta en el cliente el componente raíz Svelte (\cref{sec:frontend-astro}), y el servidor Rust solo la sirve por HTTP. Realiza el inicio de sesión y el acceso protegido de CU-03 y CU-04 (\cref{fig:cu-seq-sesion}). El navegador solo presenta datos y resultados: autorización, persistencia y criptografía permanecen detrás de los puertos de aplicación (\cref{fig:impl-qadra-bloques}).
+Qadra es la aplicación de navegador del despacho: Astro genera una sola página que monta en el cliente el componente raíz Svelte (\cref{sec:frontend-astro}), y el servidor Rust solo la sirve por HTTP. Realiza el inicio de sesión y el acceso protegido de CU-03 y CU-04 (\cref{fig:cu-seq-sesion}). El navegador solo presenta datos y resultados: autorización, persistencia y criptografía permanecen detrás de los puertos de aplicación (\cref{fig:impl-qadra-bloques}). Hay dos excepciones deliberadas, ambas en un worker: el ayudante que firma con la clave del titular (\cref{sec:impl-criptografia-local}) y el validador de paquetes de evidencia, que revisa el ZIP dentro del navegador y solo consulta al servidor las raíces de confianza vigentes (\cref{sec:impl-validador}).
 
 \begin{figure}[!htbp]
   \centering
@@ -58,6 +58,10 @@ Una respuesta perdida o un error transitorio nunca reproducen la escritura autom
   \end{tabularx}
 \end{table}
 
+\subsection{Pestaña Evidencia}\label{sec:impl-qadra-evidencia}
+
+La vista de un documento agrupa en la pestaña \emph{Evidencia} la descarga del paquete de la versión seleccionada y el panel \emph{Validar un paquete de evidencia} (\cref{sec:impl-validador}). La persona elige un ZIP guardado en su equipo, puede cancelar mientras ve las etapas y recibe primero un resumen con el tipo de paquete y el resultado global (\emph{Completo}, \emph{Parcial}, \emph{Fallido} o \emph{No compatible}) y, debajo, el estado de cada componente con una frase corta (\cref{fig:cripto-validador-resultados}). Cuando la firma es correcta pero el resultado no es completo, el panel aclara que eso no significa que el PDF se haya alterado. La sección \emph{Estado actual (informativo)} reúne la vigencia y la revocación al día de hoy, separadas del resultado histórico.
+
 \subsection{Vistas y editores}\label{sec:impl-qadra-vistas}
 
 La \cref{tab:impl-qadra-vistas} resume lo que añade cada vista o editor. Todos tienen adaptador de recuperación, que preserva texto incompleto y selecciones no confirmadas; también lo tienen la carga documental principal y las nuevas versiones.
@@ -79,6 +83,7 @@ La \cref{tab:impl-qadra-vistas} resume lo que añade cada vista o editor. Todos 
     \endlastfoot
     Expedientes (\cref{sec:impl-expedientes}) & Owner, Litigante y Paralegal ven el índice compacto; Cliente, el listado básico sin pedir el perfil. Alta penal única con delitos independientes; distingue perfil pendiente, registro inicial de Investigación y etapa sin registrar; completar un básico o legado no inventa etapa. \\
     Documentos (\cref{sec:impl-documentos}) & Los metadatos localizan un pendiente sin darlo por firmado; sellado no es verificación. Sellar se confirma sobre la versión exacta; verificar y descargar esperan las recargas. Filtra y pagina el servidor. \\
+    Evidencia (\cref{sec:impl-qadra-evidencia}) & Descarga el paquete de la versión exacta y valida un ZIP local dentro del navegador, sin subirlo. Cancelar, cambiar de versión o cerrar el panel descarta resultados tardíos; el informe descargable describe la revisión y no es una firma nueva. \\
     Versiones (\cref{sec:impl-http-versiones}) & Las acciones llevan el número de versión. Si la versión vigente cambió, el anexado guarda el archivo y pide decidir, sin probar otro número; consultar una instantánea anterior no altera nombre, huella ni evidencia. \\
     Clasificación (\cref{sec:impl-http-clasificacion}) & Se envía completa aunque haya campos opcionales vacíos; la historia registra revisión, fecha y autor. Clasifica el documento, no la versión; admite etiquetas con comas y acentos. \\
     Participantes (\cref{sec:impl-http-participantes,sec:impl-participantes-tipificados}) & El directorio no da acceso a cuentas ni presenta la etiqueta procesal como identidad verificada. Firmas y certificados previos no rehabilitan por sí solos una declaración tipificada; nunca se guardan claves privadas, contraseñas ni códigos MFA. \\

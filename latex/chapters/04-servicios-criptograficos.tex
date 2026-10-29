@@ -132,9 +132,11 @@ En el servidor la cadena es única, con secuencia y hash bajo un bloqueo común 
 
 \subsection{S10. Paquete de evidencia}\label{sec:impl-s10-evidencia}
 
-S10 escribe un ZIP con documento, firma, sello, certificados, CRL e instrucciones de plantilla versionada que, con la versión local de OpenSSL, repiten S6 (\cref{tab:verificacion-contenido}), más las pruebas de firma individual si aplica (\cref{sec:verificacion-individual}). En HTTP se conserva la CRL capturada al sellar, que exportar no actualiza (\cref{sec:verificacion-historica}).
+S10 escribe un ZIP con documento, firma, sello, certificados, CRL e instrucciones de plantilla versionada que, con la versión local de OpenSSL, repiten S6 (\cref{tab:verificacion-contenido}), más las pruebas de firma individual si aplica (\cref{sec:verificacion-individual}). En HTTP se conserva la CRL capturada al sellar, que exportar no actualiza (\cref{sec:verificacion-historica}). Las firmas individuales aceptadas desde que se incorporó el manifiesto sellado agregan el manifiesto sellado que se genera dentro de la operación de aceptación, la CRL del emisor de la TSA y el recibo (\cref{sec:verificacion-manifiesto}). Además de seguir sus instrucciones con OpenSSL, el paquete puede validarse en el navegador sin enviarlo al servidor (\cref{sec:impl-validador}).
 
 El escritor ZIP es propio \cite{pkware2022}: sin compresión, con orden y fechas fijas, de modo que el mismo contenido produce los mismos bytes. El ADR~0006 descartó la biblioteca \texttt{zip} por exigir un compilador posterior a Rust 1.78, motivo que el ADR~0013 anuló al fijar 1.88, y por traer por omisión compresión y criptografía innecesarias, motivo que se mantiene (\cref{tab:impl-adrs}). Los nombres de entrada se limitan a ASCII sin separadores de ruta: extraer nunca escribe fuera del destino.
+
+\input{chapters/04-validador-evidencia}
 
 \input{chapters/04-criptografia-local}
 

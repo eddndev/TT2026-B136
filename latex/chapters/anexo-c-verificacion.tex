@@ -1,9 +1,9 @@
 % =====================================================================
-%  anexo-c-verificacion.tex — Guía de verificación independiente
+%  anexo-c-verificacion.tex: Guía de verificación independiente
 % =====================================================================
 \chapter[Guía de verificación independiente con OpenSSL]{Guía de verificación independiente\\ con OpenSSL}\label{anexo:verificacion}
 
-Cada paquete de evidencia exportado por el prototipo (mediante la CLI o la descarga HTTP autorizada por expediente) viaja con un instructivo \texttt{INSTRUCCIONES.md} que permite a un tercero (un perito, la contraparte procesal o un tribunal) verificar el documento, su firma, el estado del certificado y el sello de tiempo usando únicamente la herramienta de línea de comandos \texttt{openssl}, sin el software que generó el paquete. El recorrido principal de este anexo corresponde al sellado con la identidad técnica del servicio y a la plantilla versionada \texttt{crates/application/src/evidence/\allowbreak INSTRUCCIONES.template.md}, cuyos marcadores se rellenan al exportar (\cref{tab:verificacion-marcadores}). La firma documental individual utiliza una plantilla propia y agrega pruebas de vinculación y consentimiento, descritas en el apartado~\ref{sec:verificacion-individual}. Ambos recorridos materializan la verificabilidad independiente del objetivo OE-3, con las comprobaciones y límites de su respectiva evidencia. Las salidas mostradas son transcripciones históricas de \rutarepo{docs/demo-transcript.md}. El ensayo del 12 de septiembre de 2026 añadió la comparación de paquetes obtenidos desde dos servidores y después de migrar y restaurar los documentos, según el \cref{cap:pruebas}.
+Cada paquete de evidencia exportado por el prototipo (mediante la CLI o la descarga HTTP autorizada por expediente) viaja con un instructivo \texttt{INSTRUCCIONES.md} que permite a un tercero (un perito, la contraparte procesal o un tribunal) verificar el documento, su firma, el estado del certificado y el sello de tiempo usando únicamente la herramienta de línea de comandos \texttt{openssl}, sin el software que generó el paquete. Esta guía describe esa ruta; el mismo paquete también puede validarse desde la pestaña Evidencia de Qadra, dentro del navegador y sin enviarlo al servidor, como resume el apartado~\ref{sec:verificacion-manifiesto}. El recorrido principal de este anexo corresponde al sellado con la identidad técnica del servicio y a la plantilla versionada \texttt{crates/application/src/evidence/\allowbreak INSTRUCCIONES.template.md}, cuyos marcadores se rellenan al exportar (\cref{tab:verificacion-marcadores}). La firma documental individual utiliza una plantilla propia y agrega pruebas de vinculación y consentimiento, descritas en el apartado~\ref{sec:verificacion-individual}. Ambos recorridos materializan la verificabilidad independiente del objetivo OE-3, con las comprobaciones y límites de su respectiva evidencia. Las salidas mostradas son transcripciones históricas de \rutarepo{docs/demo-transcript.md}. El ensayo del 12 de septiembre de 2026 añadió la comparación de paquetes obtenidos desde dos servidores y después de migrar y restaurar los documentos, según el \cref{cap:pruebas}.
 
 \begin{table}[H]
   \centering
@@ -25,7 +25,7 @@ Cada paquete de evidencia exportado por el prototipo (mediante la CLI o la desca
 
 \section{Requisitos y versión de referencia}\label{sec:verificacion-requisitos}
 
-La verificación requiere únicamente dos herramientas presentes en prácticamente cualquier sistema operativo de escritorio o servidor: \texttt{unzip} (o cualquier extractor de archivos ZIP) para abrir el paquete, y \texttt{openssl} \cite{openssl_docs} para ejecutar las cuatro comprobaciones. La versión de referencia es \textbf{OpenSSL 3.5.7}: con ella se probaron los scripts de la autoridad interna (Anexo~\ref{anexo:pki}) y sobre ella se capturó la transcripción de la demostración. El propio instructivo cita la línea de versión exacta de la máquina exportadora (en la ejecución de referencia, \texttt{OpenSSL 3.5.7 9 Jun 2026}), de modo que el lector sepa contra qué herramienta se redactaron los comandos y pueda atribuir a la versión cualquier diferencia menor en el formato de las salidas. Todos los comandos se ejecutan dentro del directorio donde se extrajo el paquete.
+La ruta con OpenSSL requiere únicamente dos herramientas presentes en prácticamente cualquier sistema operativo de escritorio o servidor: \texttt{unzip} (o cualquier extractor de archivos ZIP) para abrir el paquete, y \texttt{openssl} \cite{openssl_docs} para ejecutar las cuatro comprobaciones. La versión de referencia es \textbf{OpenSSL 3.5.7}: con ella se probaron los scripts de la autoridad interna (Anexo~\ref{anexo:pki}) y sobre ella se capturó la transcripción de la demostración. El propio instructivo cita la línea de versión exacta de la máquina exportadora (en la ejecución de referencia, \texttt{OpenSSL 3.5.7 9 Jun 2026}), de modo que el lector sepa contra qué herramienta se redactaron los comandos y pueda atribuir a la versión cualquier diferencia menor en el formato de las salidas. Todos los comandos se ejecutan dentro del directorio donde se extrajo el paquete.
 
 La verificación tampoco requiere acceso a la red: las anclas de confianza (el certificado de la autoridad emisora y, cuando viaja, la cadena de la autoridad de sellado) y la lista de revocación están contenidas en el propio paquete. La contraparte de esa autosuficiencia es temporal y el instructivo la hace explícita: la lista de revocación incluida refleja el estado que publicó su emisor al generarla, de modo que quien necesite el estado actual del certificado debe solicitar una lista vigente a la autoridad emisora.
 
@@ -191,6 +191,8 @@ La transcripción de la demostración ilustra el efecto sobre el resumen: tras v
 
 La verificación descrita no requiere el prototipo en ningún punto: ni el binario \texttt{despacho-cli}, ni la base de datos, ni la disponibilidad de la plataforma que exportó el paquete. Todo lo necesario (documento, firma, sello, certificados, lista de revocación e instructivo) viaja dentro del ZIP, y las cuatro comprobaciones se ejecutan con herramientas de terceros ampliamente auditadas. Esta autonomía es deliberada: el valor probatorio de la evidencia no puede depender de que el sistema que la produjo siga existiendo u operando al momento de valorarla.
 
+La validación en el navegador no envía el paquete al servidor, pero no comparte esa autonomía: requiere abrir Qadra con una sesión que tenga acceso al documento y confiar en la integridad del programa entregado al navegador. Las raíces que permiten un resultado completo vienen fijadas en la versión de Qadra que se ejecuta, no en el ZIP ni en una consulta en línea. Una raíz que la ruta del servidor devuelve sin estar en esa lista queda como confianza sin confirmar (\emph{Parcial}) y, si la ruta no responde, solo cambia el estado actual y la validación continúa. La ruta con OpenSSL sigue siendo la que no requiere ningún software del proyecto.
+
 La CLI y la descarga HTTP tienen controles diferentes. El comando
 \texttt{package export} comprueba integralmente los artefactos antes de escribir
 el ZIP. La descarga HTTP descifra el registro, comprueba su integridad y conserva
@@ -269,4 +271,39 @@ La retirada posterior del vínculo y el estado actual del certificado se
 consultan por separado y no sustituyen la evidencia histórica. Incluir una
 raíz en el ZIP tampoco establece confianza externa: su autenticidad debe
 contrastarse por un canal independiente. Estas pruebas internas no acreditan
-identidad civil, FIREL ni una constancia de un PSC autorizado.
+identidad civil, FIREL ni una constancia de un PSC autorizado. En la versión 2
+del paquete, el sello del manifiesto sí cubre las firmas separadas y el
+consentimiento (apartado~\ref{sec:verificacion-manifiesto}).
+
+\section{Manifiesto sellado y validación en el navegador}\label{sec:verificacion-manifiesto}
+
+Las firmas individuales aceptadas desde que se incorporó el manifiesto sellado se exportan como versión 2 del paquete. Conservan todas las entradas descritas en el apartado~\ref{sec:verificacion-individual} y agregan cuatro:
+
+\begin{itemize}
+  \item \texttt{manifiesto.json}: lista, en JSON canónico RFC 8785 \cite{rundgren2020}, las catorce piezas de evidencia del paquete con su función, su huella SHA-256 y su tamaño, además del caso, el documento, la versión, la operación y el firmante.
+  \item \texttt{manifiesto.json.tsr}: sello RFC 3161 sobre la huella del manifiesto, obtenido en la misma operación de aceptación, después del sello del documento.
+  \item \texttt{tsa-crl.pem}: lista de revocación del emisor del certificado de la TSA, capturada al obtener ese sello.
+  \item \texttt{recibo-aceptacion.json}: repite la huella del manifiesto y el instante de aceptación registrado por la aplicación. Se genera al exportar y ningún sello lo cubre.
+\end{itemize}
+
+El instructivo de la versión 2 añade una sección para la ruta con OpenSSL: calcular la huella del manifiesto, verificar su sello con la misma ancla que el del documento, comparar la huella de cada archivo con la que declara el manifiesto, confirmar que el sello del manifiesto no es anterior al del documento y revisar que \texttt{tsa-crl.pem} cubra ese instante sin listar el certificado de la TSA. Ni el manifiesto ni su sello cubren \texttt{individual-signing.json}, el recibo o el instructivo.
+
+En Qadra, el validador revisa todos los tipos de paquete y presenta un resultado por componente y uno global (\cref{sec:validacion-navegador}). La \cref{tab:verificacion-resultados} indica cómo leer el resultado global.
+
+\begin{table}[H]
+  \centering
+  \caption{Resultado global del validador en el navegador y su lectura.}
+  \label{tab:verificacion-resultados}
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    \textbf{Resultado} & \textbf{Qué significa} \\
+    \midrule
+    \emph{Completo} & Todos los componentes obligatorios se comprobaron con raíces fijas en la versión de Qadra. \\
+    \emph{Parcial} & Ningún componente falló, pero falta evidencia para decidir alguno; por ejemplo, una CRL que no cubre la fecha de un sello en un paquete histórico, o una raíz que el servidor devuelve pero no está fija. \\
+    \emph{Fallido} & Algún componente obligatorio falló: un byte alterado, una firma que no corresponde, un certificado revocado en el instante evaluado o un perfil de certificado que no se cumple. Un perfil que no se cumple no significa, por sí solo, que el documento se haya alterado. \\
+    \emph{No compatible} & El paquete no es uno que Qadra reconozca: fue recomprimido, tiene archivos desconocidos o le faltan, su raíz no está en la lista fija ni la devuelve el servidor, o su sello usa una política no admitida. No permite afirmar que la evidencia sea falsa ni verdadera. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El estado actual del certificado y de la TSA, calculado con el reloj del equipo, se presenta aparte como informativo y no cambia el resultado. Como el validador aplica perfiles estrictos y revisa cada certificado en su propio instante, su veredicto sobre un paquete histórico puede diferir del que dio el servidor al verificarlo. Igual que en la ruta con OpenSSL, un resultado completo demuestra integridad y correspondencia técnica dentro de la confianza del prototipo; no acredita identidad civil, FIREL ni una constancia de un PSC autorizado.

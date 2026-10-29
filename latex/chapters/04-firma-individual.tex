@@ -46,9 +46,11 @@ cuerpos admiten hasta 32~KiB sin campos desconocidos ni repetidos, con binario
 en Base64 canónico e identificadores del consentimiento iguales a los de la
 ruta.
 
-\paragraph{Límites.} El sello cubre solo el PDF (\cref{fig:cripto-consentimiento})
+\paragraph{Límites.} El sello del documento cubre solo el PDF (\cref{fig:cripto-consentimiento})
 y no acredita el instante de aceptación personal, que registran auditoría y
-recibo dentro de la confianza de la plataforma. La TSA local es una
+recibo dentro de la confianza de la plataforma; desde que se incorporó el
+manifiesto sellado, un segundo sello cubre el manifiesto y acota ese instante
+(\cref{sec:impl-validador}). La TSA local es una
 demostración técnica, no constancia de un PSC autorizado (NOM-151), y la firma
 es electrónica simple, sin identidad civil ni FIREL. Las pruebas del 10 de
 octubre de 2026 se reportan en la \cref{sec:pruebas-firma-individual} y la

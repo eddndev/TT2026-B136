@@ -1,0 +1,33 @@
+% =====================================================================
+%  04-validador-evidencia.tex: Validador de paquetes de evidencia
+% =====================================================================
+
+\subsection{Validador de paquetes de evidencia}\label{sec:impl-validador}
+
+Esta subsección implementa el diseño de la \cref{sec:validacion-navegador} (ADR~0085). Tiene tres partes: un motor de verificación puro, su ejecución dentro del navegador y la generación del manifiesto sellado durante la aceptación de una firma individual. El motor es el mismo en los dos extremos: el navegador lo usa para leer paquetes y el servidor, para escribir el manifiesto y el recibo.
+
+\paragraph{Motor puro.} El crate \texttt{evidence-verify} no depende de ningún otro crate del workspace ni usa archivos, red, reloj o números aleatorios; por eso compila igual para el servidor y para WebAssembly. Recorre la evidencia en un orden fijo. Primero comprueba que el ZIP tenga exactamente la forma que escribe Qadra; después reconoce el tipo de paquete y revisa cada pieza: firmas, certificados, listas de revocación, sellos de tiempo \cite{adams2001,housley2009}, declaraciones y, en la versión 2, el manifiesto. Cada pieza se evalúa en su propio instante, como se explica en la \cref{sec:validacion-navegador}. El resultado es un informe estructurado con el modelo de la \cref{fig:cripto-validador-resultados}. Las reglas de bytes y de perfiles se reimplementaron a partir del código del servidor y se contrastan con él mediante pruebas de paridad sobre los mismos casos.
+
+\paragraph{Ejecución en el navegador.} El crate \texttt{evidence-verify-wasm} envuelve el motor para WebAssembly y lo expone a un worker dedicado. La \cref{fig:impl-validador-secuencia} muestra el recorrido. La pestaña calcula la huella del archivo con la criptografía del navegador y consulta la ruta de confianza, de solo lectura, disponible para cualquier sesión y sin expediente, porque un archivo local no pertenece a ninguno. Con las raíces fijas, la respuesta de esa ruta, la política de sello admitida y el instante del reloj del equipo arma la política, y el cliente crea un worker para esa validación. El panel muestra cuatro etapas: las dos primeras (\emph{Leyendo el archivo} y \emph{Consultando las raíces de confianza del servidor}) ocurren en la pestaña; las dos últimas (\emph{Preparando el validador} y \emph{Revisando la evidencia}) las informa el worker, que entrega el informe y se cierra. Cancelar, cambiar de documento o de versión o cerrar el panel descarta cualquier respuesta tardía. El informe puede descargarse en JSON con la versión del motor, la política aplicada, las raíces, los instantes y el resultado de cada componente; el propio panel aclara que esa descarga describe la revisión y no es una firma ni un sello nuevo.
+
+\begin{figure}[!tb]
+  \centering
+  \input{figures/fig-04b-validador-secuencia}
+  \caption{Validación de un paquete en el navegador. La única consulta al servidor obtiene las raíces vigentes y no lleva el paquete; si falla, la validación sigue con las raíces fijas.}
+  \label{fig:impl-validador-secuencia}
+\end{figure}
+
+\paragraph{Manifiesto en la aceptación.} Las firmas individuales nuevas generan el manifiesto dentro de la misma operación que las acepta (\cref{fig:impl-manifiesto-aceptacion}), no al exportar ni en una tarea posterior. Después de verificar la firma del PDF, la vinculación y el consentimiento, el servicio obtiene el sello del documento, construye el manifiesto con los bytes finales y pide un segundo sello sobre su huella. Rechaza un sello del manifiesto anterior al del documento, porque la TSA no garantiza el orden, y verifica la CRL del emisor de la TSA que acompañará al paquete. Las consultas a la TSA ocurren fuera de la transacción de base de datos, para no mantener la base bloqueada mientras responde la TSA; si el segundo sello o la CRL fallan, no se guarda nada. No hay reintento automático: reenviar la misma operación pide sellos nuevos, y una operación ya aceptada devuelve su manifiesto sin cambios.
+
+\begin{figure}[!tb]
+  \centering
+  \input{figures/fig-04b-manifiesto-aceptacion}
+  \caption{Aceptación de una firma individual con manifiesto sellado. Los dos sellos se piden antes de abrir la transacción; recibo y manifiesto se guardan juntos o no se guardan.}
+  \label{fig:impl-manifiesto-aceptacion}
+\end{figure}
+
+La base de datos guarda cada manifiesto junto al recibo de su operación y no permite modificarlo; al confirmar la aceptación comprueba que cada recibo nuevo tenga exactamente un manifiesto que coincida con él en documento, versión y huella (migración 0049, \cref{tab:anexo-migraciones}). Al arrancar, el servidor recalcula las huellas de cada manifiesto guardado y verifica su sello. La exportación agrega las cuatro entradas de la versión 2 a partir de lo guardado, de modo que exportar dos veces produce los mismos bytes. Las firmas aceptadas antes de que se incorporara el manifiesto conservan su evidencia y se exportan como versión 1. El despliegue debe cumplir un requisito: la raíz de credenciales tiene que ser la emisora del certificado de la TSA, porque de ella se toma la CRL que cubre a la TSA; el despliegue documentado lo cumple, pues usa una sola raíz.
+
+\paragraph{Límites.} El motor admite hasta 32 entradas, 16~MiB para el documento, 1~MiB por CRL y 25~MiB de contenido en total; el panel acepta archivos de hasta 26~MiB, margen que cubre las cabeceras del ZIP. Cada manifiesto admite un solo firmante, una sola política de sello y la TSA interna; una TSA externa, varios firmantes, una firma del servidor sobre el manifiesto, reemplazar OpenSSL en el verificador del servidor y abrir el validador fuera de la vista del documento quedan fuera de esta entrega. El validador es código nuevo con relevancia de seguridad: su confianza descansa en la integridad del programa entregado al navegador, igual que el ayudante local (\cref{sec:impl-criptografia-local}). Las pruebas están en la \cref{sec:pruebas-validador}.
+
+\Fuentes{ADR 0085; \rutarepo{crates/evidence-verify/}, \rutarepo{crates/evidence-verify-wasm/}, \rutarepo{web/apps/qadra/src/lib/evidence/}, \rutarepo{crates/web/src/evidence_trust/mod.rs} y \rutarepo{migrations/0049_individual_signing_manifests.sql}.}

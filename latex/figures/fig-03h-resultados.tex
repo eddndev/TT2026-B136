@@ -1,0 +1,50 @@
+% Fuente: docs/adr/0085-in-browser-evidence-validation.md (resultados por componente);
+% crates/evidence-verify/src/report.rs y web/apps/qadra/src/lib/evidence/presentation.mjs.
+\begin{tikzpicture}[
+  comp/.style={caja, text width=3.75cm, minimum height=0.6cm, align=left},
+  esc/.style={caja, text width=3.3cm, minimum height=0.95cm, align=left},
+  r/.style={font=\diag, text=ESCOMGris}]
+
+  % Componentes
+  \draw[zona] (0,0) rectangle (4.45,-7.7);
+  \node[zonaLabel] at (0,0) {COMPONENTES};
+  \foreach \i/\t in {
+      1/{Paquete},
+      2/{Sello de tiempo del documento},
+      3/{Firma del documento},
+      4/{Vinculación y consentimiento\\{\diag no aplica al sello del servidor}},
+      5/{Certificados y raíz de confianza},
+      6/{Revocación},
+      7/{Manifiesto y su sello de tiempo\\{\diag solo en la versión 2}},
+      8/{Fechas y registros}} {
+    \node[comp] (c\i) at (2.225,{-0.2-0.88*\i}) {\t};
+    \draw[ESCOMAzulOscuro, line width=0.6pt] (c\i.east) -- (4.8,{-0.2-0.88*\i});
+  }
+  \draw[ESCOMAzulOscuro, line width=0.6pt] (4.8,-1.08) -- (4.8,-7.24);
+
+  % Cinco resultados
+  \node[cajaClara, text width=2.6cm, align=left, minimum height=3.3cm] (cinco) at (6.55,-4.16)
+    {\textbf{Cada uno obtiene uno de cinco resultados}\\[3pt]
+     Correcto\\ Fallido\\ Falta evidencia para decidirlo\\ No compatible\\ No aplica};
+  \draw[flecha] (4.8,-4.16) -- (cinco.west);
+
+  % Precedencia
+  \node[r, anchor=south west, align=left] at (8.4,-0.5) {Resultado global: se toma el primero que aplica};
+  \node[esc, cajaError] (f) at (10.15,-1.2) {\textbf{Fallido}: algún componente obligatorio falló};
+  \node[esc] (nc) at (10.15,-2.7) {\textbf{No compatible}: un obligatorio no es compatible o ningún perfil coincide};
+  \node[esc] (p) at (10.15,-4.2) {\textbf{Parcial}: falta evidencia en algún obligatorio};
+  \node[esc, cajaOsc] (c) at (10.15,-5.7) {\textbf{Completo}: todos los obligatorios comprobados};
+  \draw[flecha] (cinco.east) -- ++(0.2,0) |- (f.west);
+  \draw[flecha] (f) -- node[etq, right=1pt]{si no} (nc);
+  \draw[flecha] (nc) -- node[etq, right=1pt]{si no} (p);
+  \draw[flecha] (p) -- node[etq, right=1pt]{si no} (c);
+
+  % Informativo y aclaración
+  \node[cajaGris, text width=2.4cm] (act) at (14.65,-1.2) {\textbf{Estado actual}\\ vigencia y revocación hoy, con el reloj del equipo};
+  \draw[flechaSuave] (act.west) -- node[etq, below=3pt, align=center]{informativo:\\ no cambia\\ el resultado} (f.east);
+  \node[caja, text width=2.4cm, align=left] (nota) at (14.65,-4.7)
+    {\textbf{Firma correcta con perfil de certificado fallido}: el resultado no es completo, pero eso no significa por sí solo que el PDF se haya alterado};
+
+  \node[r, text width=10.6cm, align=left, anchor=north west] at (5.25,-6.65)
+    {Se separan tres preguntas: si la firma corresponde a los bytes exactos, si los certificados cumplen el perfil y encadenan a una raíz fija, y si falta evidencia para decidir.};
+\end{tikzpicture}

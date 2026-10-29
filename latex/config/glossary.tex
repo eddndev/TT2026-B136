@@ -1,5 +1,5 @@
 % ============================================================
-%  glossary.tex — Glosario de Términos (84 entradas)
+%  glossary.tex: Glosario de Términos (87 entradas)
 %  Para imprimir todas las entradas usamos \glsaddall en main.tex
 % ============================================================
 
@@ -44,6 +44,7 @@
 \newglossaryentry{HSM}{name={HSM}, description={Hardware Security Module (módulo de seguridad de hardware). Dispositivo dedicado a custodiar claves criptográficas y a ejecutar operaciones con ellas sin exponer el material de clave al sistema anfitrión.}}
 \newglossaryentry{IETF}{name={IETF}, description={Internet Engineering Task Force. Organismo internacional que desarrolla y publica estándares de protocolos de Internet, incluyendo las RFC.}}
 \newglossaryentry{IV}{name={IV}, description={Initialization Vector (Vector de Inicialización). Valor aleatorio o único utilizado junto con una clave para iniciar un algoritmo de cifrado, garantizando que el mismo texto plano produzca diferentes textos cifrados.}}
+\newglossaryentry{JCS}{name={JCS}, description={JSON Canonicalization Scheme (esquema de canonicalización de JSON), definido en RFC 8785. Fija una única serialización en bytes para cada valor JSON, de modo que un resumen o un sello calculado sobre esos bytes se pueda recalcular y comparar sin ambigüedad.}}
 \newglossaryentry{JSON}{name={JSON}, description={Notación de Objetos de JavaScript (JavaScript Object Notation). Formato textual ligero de intercambio de datos estructurados, empleado por el prototipo para la salida legible por máquina de la interfaz de línea de comandos y para la bitácora en formato JSON Lines.}}
 \newglossaryentry{JSONL}{name={JSONL}, description={JSON Lines: formato de texto en el que cada línea del archivo es un objeto JSON independiente; lo emplea la bitácora de auditoría del prototipo para persistir un evento encadenado por línea.}}
 \newglossaryentry{JWT}{name={JWT}, description={JSON Web Token. Estándar abierto (RFC 7519) para la creación de tokens de acceso firmados digitalmente en formato JSON, utilizados para autenticación y autorización.}}
@@ -83,7 +84,9 @@
 \newglossaryentry{TOTP}{name={TOTP}, description={Time-Based One-Time Password (Contraseña de Un Solo Uso basada en Tiempo). Algoritmo definido en RFC 6238 que genera códigos temporales a partir de un secreto compartido y la hora actual, utilizado como segundo factor de autenticación.}}
 \newglossaryentry{TSA}{name={TSA}, description={Time-Stamp Authority (Autoridad de Sellado de Tiempo). Entidad de confianza que emite sellos de tiempo criptográficos conforme al protocolo RFC 3161, acreditando la existencia de un documento en un momento determinado.}}
 \newglossaryentry{UUID}{name={UUID}, description={Identificador Único Universal (Universally Unique Identifier), valor de 128 bits empleado para identificar recursos con probabilidad de colisión despreciable.}}
+\newglossaryentry{WebAssembly}{name={WebAssembly (WASM)}, description={Formato binario de código portable, estandarizado por el W3C, que los navegadores ejecutan de forma aislada y con rendimiento cercano al nativo. El prototipo compila a WebAssembly el código Rust que genera claves en el equipo del titular y el que valida paquetes de evidencia.}}
 \newglossaryentry{WebAuthn}{name={WebAuthn}, description={Web Authentication. Estándar del W3C y FIDO Alliance para autenticación sin contraseña basada en criptografía de clave pública, mediante llaves de seguridad físicas o biometría del dispositivo.}}
+\newglossaryentry{WebWorker}{name={Web Worker}, description={Hilo de ejecución del navegador, separado de la página, que se comunica con ella mediante mensajes. Permite realizar trabajo pesado, como la validación criptográfica de un paquete, sin bloquear la interfaz.}}
 \newglossaryentry{workspace}{name={workspace}, description={Espacio de trabajo de Cargo que agrupa varios crates bajo un manifiesto raíz común, compartiendo el archivo de bloqueo de versiones y el directorio de compilación, y permitiendo declarar dependencias y perfiles una sola vez para todos los miembros.}}
 \newglossaryentry{X509}{name={X.509}, description={Estándar de la ITU-T que define el formato de los certificados digitales de clave pública, incluyendo la estructura de la cadena de confianza, las extensiones y los perfiles de listas de revocación (CRL).}}
 \newglossaryentry{ZIP}{name={ZIP}, description={Formato contenedor que agrupa uno o más archivos, con o sin compresión; el paquete de evidencia del prototipo emplea su subconjunto almacenado, sin compresión.}}

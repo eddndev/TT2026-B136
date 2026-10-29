@@ -102,7 +102,7 @@ La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de é
   \endfoot
   \bottomrule
   \endlastfoot
-  OE-3 & Firma RSA-3072 con SHA-256 verificable de forma independiente sobre el 100\,\% de los contratos firmados. & Toda firma se verifica antes de escribirse; interoperabilidad bidireccional con OpenSSL; paquete de evidencia verificable sin el software propio. & Cumplido \\
+  OE-3 & Firma RSA-3072 con SHA-256 verificable de forma independiente sobre el 100\,\% de los contratos firmados. & Toda firma se verifica antes de escribirse; interoperabilidad bidireccional con OpenSSL; paquete de evidencia verificable sin el software propio y, además, en el navegador sin enviarlo al servidor (\cref{sec:pruebas-validador}). & Cumplido \\
   \addlinespace
   OE-3 & Sello de tiempo RFC 3161 local vinculado al hash del documento y verificable con OpenSSL. & Tokens emitidos sobre el digest SHA-256, verificados en dos etapas y aceptados por \texttt{openssl ts -verify}; el binario comprueba que el token cubre el digest antes de almacenarlo. & Cumplido \\
   \addlinespace

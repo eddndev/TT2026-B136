@@ -16,7 +16,7 @@
   % Fila 1: montaje de la interfaz
   \node[b, cajaOsc] (astro) at (1.8,-0.55) {\textbf{Página Astro única}\\ monta la aplicación en el cliente};
   \node[b] (app) at (5.5,-0.55) {\textbf{Componente raíz Svelte}\\ autenticación y navegación};
-  \node[b, text width=3.1cm] (vis) at (9.2,-0.55) {\textbf{Vistas del expediente}\\ Resumen, Documentos, Participantes, Etapas y procesales};
+  \node[b, text width=3.1cm] (vis) at (9.2,-0.55) {\textbf{Vistas del expediente}\\ Resumen, Documentos (con Evidencia), Participantes, Etapas y procesales};
   \draw[flecha] (astro) -- (app);
   \draw[flecha] (app) -- (vis);
 

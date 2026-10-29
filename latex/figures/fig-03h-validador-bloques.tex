@@ -1,0 +1,55 @@
+% Fuente: docs/adr/0085-in-browser-evidence-validation.md;
+% web/apps/qadra/src/components/EvidenceValidation.svelte,
+% web/apps/qadra/src/lib/evidence/, web/apps/qadra/src/lib/evidence-verify-*.mjs;
+% crates/evidence-verify, crates/evidence-verify-wasm,
+% crates/web/src/evidence_trust/mod.rs y crates/application/src/document_signing/.
+\begin{tikzpicture}[
+  a/.style={caja, text width=2.6cm, minimum height=1.05cm},
+  b/.style={caja, text width=3.3cm, minimum height=1.05cm},
+  s/.style={caja, text width=3.6cm, minimum height=1.05cm}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (10.6,-7.6);
+  \draw[zona, fill=white] (3.85,-4.2) rectangle (10.4,-7.35);
+  \draw[zona] (11.5,0) rectangle (16,-7.6);
+  \node[zonaLabel] at (0,0) {NAVEGADOR · PÁGINA DE QADRA};
+  \node[zonaLabel, anchor=north east] at (10.4,-4.2) {WEB WORKER · UNO POR VALIDACIÓN};
+  \node[zonaLabel] at (11.5,0) {SERVIDOR};
+
+  % Navegador
+  \node[a, cajaClara] (zip) at (1.55,-1.2) {\textbf{Paquete ZIP} guardado en el equipo};
+  \node[b] (panel) at (5.75,-1.2) {\textbf{Pestaña Evidencia}: elige el ZIP, calcula su huella, arma la política y permite cancelar};
+  \node[a, cajaOsc] (fijas) at (1.55,-3.0) {\textbf{Raíces fijas} de la versión de Qadra};
+  \node[b] (cliente) at (5.75,-3.0) {\textbf{Cliente del worker}: crea un worker por validación y descarta respuestas tardías};
+  \node[a, cajaClara] (inf) at (1.55,-5.4) {\textbf{Informe} global y por componente; descarga en JSON};
+
+  % Worker
+  \node[caja, text width=2.7cm, minimum height=1.05cm] (wasm) at (5.75,-5.4) {\textbf{Módulo WebAssembly}: recibe bytes y política; informa etapas};
+  \node[cajaOsc, text width=2.3cm, minimum height=1.05cm] (motor) at (9.1,-5.4) {\textbf{Motor} en Rust, sin red, reloj ni azar};
+  \node[font=\diag, text=ESCOMGris, text width=6.0cm, align=center] at (7.1,-6.85)
+    {El worker se cierra al entregar el informe, al fallar o al cancelar};
+
+  \draw[flecha] (zip) -- node[etq, above=2pt]{elige} (panel);
+  \draw[flecha] (panel) -- node[etq, right=2pt]{bytes y política} (cliente);
+  \draw[flecha] (fijas.east) -- (3.6,-3.0) |- node[etq, pos=0.25, right=1pt, align=left]{raíces\\ fijas} ([yshift=-2.5mm]panel.west);
+  \draw[flecha] (cliente) -- node[etq, left=2pt]{inicia} (wasm);
+  \draw[flechaD] (wasm) -- (motor);
+  \draw[flecha] (wasm) -- node[etq, above=2pt]{informe} (inf);
+
+  % Servidor
+  \node[s] (ruta) at (13.75,-1.2) {\textbf{Ruta de confianza}: solo lectura, para cualquier sesión, sin expediente};
+  \node[s] (exp) at (13.75,-2.95) {\textbf{Exportación}: arma el ZIP con los bytes guardados};
+  \node[s] (acep) at (13.75,-4.65) {\textbf{Aceptación de la firma}: escribe el manifiesto con el codificador del motor y lo hace sellar por la TSA};
+  \node[s, cajaOsc] (pg) at (13.75,-6.4) {\textbf{PostgreSQL}: recibos y manifiestos inmutables};
+  \draw[flecha] (acep) -- (pg);
+  \draw[flecha] (pg.east) -- ++(0.2,0) |- (exp.east);
+
+  % Cruces
+  \draw[flecha] ([yshift=1.5mm]panel.east) -- node[etq, above=1pt, pos=0.5]{raíces vigentes} ([yshift=1.5mm]ruta.west);
+  \draw[flechaSuave] ([yshift=-1.5mm]ruta.west) -- node[etq, below=1pt, pos=0.5]{estado actual y notas de confianza} ([yshift=-1.5mm]panel.east);
+
+  % Frontera
+  \draw[IPNGuinda, dashed, line width=0.9pt] (11.05,0.15) -- (11.05,-7.75);
+  \node[font=\diag\bfseries, text=IPNGuinda, rotate=90, fill=white, inner sep=1.5pt, align=center]
+    at (11.05,-4.6) {el ZIP no se envía\\ al servidor};
+\end{tikzpicture}

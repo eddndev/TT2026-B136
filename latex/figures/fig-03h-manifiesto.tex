@@ -1,0 +1,68 @@
+% Fuente: docs/adr/0085-in-browser-evidence-validation.md (perfiles y manifiesto);
+% crates/application/src/evidence.rs, crates/application/src/evidence/individual.rs
+% y crates/application/src/documents/signing_manifest.rs.
+\begin{tikzpicture}[
+  e/.style={cajaClara, text width=3.15cm, minimum height=0.62cm, inner sep=2pt},
+  n/.style={cajaGris, text width=3.15cm, minimum height=0.62cm, inner sep=2pt},
+  r/.style={font=\diag, text=ESCOMGris}]
+
+  % Zonas
+  \draw[zona] (0,0) rectangle (3.75,-7.55);
+  \draw[zona] (4.05,0) rectangle (7.8,-7.55);
+  \draw[zona] (8.1,0) rectangle (16,-7.55);
+  \node[zonaLabel] at (0,0) {A · TODOS LOS PAQUETES};
+  \node[zonaLabel] at (4.05,0) {B · FIRMA INDIVIDUAL};
+  \node[zonaLabel] at (8.1,0) {C · SOLO FIRMA INDIVIDUAL, VERSIÓN 2};
+
+  % A: comunes
+  \foreach \y/\st/\t/\d in {
+      -0.95/e/{\texttt{<documento>}}/{documento firmado},
+      -1.75/e/{\texttt{<documento>.sig}}/{firma separada},
+      -2.55/e/{\texttt{<documento>.tsr}}/{sello de tiempo del documento},
+      -3.35/e/{\texttt{certificado.pem}}/{certificado firmante},
+      -4.15/e/{\texttt{ca.pem}}/{raíz emisora},
+      -4.95/e/{\texttt{crl.pem}}/{CRL de esa raíz},
+      -5.75/e/{\texttt{tsa-chain.pem}}/{raíz de la TSA},
+      -6.75/n/{\texttt{INSTRUCCIONES.md}}/{guía para OpenSSL}} {
+    \node[\st] at (1.875,\y) {\t\\[-1pt]{\diag \d}};
+  }
+
+  % B: firma individual
+  \foreach \y/\st/\t/\d in {
+      -1.1/e/{\texttt{certificate-binding.bin}\\[-1pt]\texttt{certificate-binding.sig}}/{vinculación y su firma},
+      -2.25/e/{\texttt{binding-root.der}}/{raíz al registrar el vínculo},
+      -3.05/e/{\texttt{binding-crl.der}}/{CRL al registrar el vínculo},
+      -4.2/e/{\texttt{document-consent.bin}\\[-1pt]\texttt{document-consent.sig}}/{consentimiento y su firma},
+      -6.75/n/{\texttt{individual-signing.json}}/{registro de tiempos de Qadra}} {
+    \node[\st] at (5.925,\y) {\t\\[-1pt]{\diag \d}};
+  }
+
+  % C: manifiesto sellado
+  \node[cajaOsc, text width=3.9cm, align=left] (man) at (10.45,-1.75)
+    {\textbf{\texttt{manifiesto.json}}\\[1pt]
+     {\diag JSON canónico (RFC 8785). Lista los 14 archivos en azul claro (dos cajas agrupan un archivo y su firma) con su función, SHA-256 y tamaño, y nombra caso, documento, versión, operación y firmante}};
+  \node[caja, text width=2.55cm] (tsr) at (14.5,-1.75)
+    {\textbf{\texttt{manifiesto.json.tsr}}\\ {\diag sello RFC 3161 sobre la huella del manifiesto}};
+  \node[e, text width=2.55cm] (tcrl) at (14.5,-3.95)
+    {\texttt{tsa-crl.pem}\\[-1pt] {\diag CRL del emisor de la TSA}};
+  \node[n, text width=3.9cm, align=left] (rec) at (10.45,-4.05)
+    {\texttt{recibo-aceptacion.json}\\[-1pt] {\diag operación, huella del manifiesto e instante de aceptación; se genera al exportar y no lleva sello}};
+
+  \draw[flecha] (tsr) -- node[etq, above=1pt]{sella} (man);
+  \draw[flecha] (tcrl) -- node[etq, left=1pt, align=right]{TSA no\\ revocada} (tsr);
+  \draw[flecha] (rec) -- node[etq, right=1pt]{cita su huella} (man);
+
+  % Orden de los instantes
+  \node[r, anchor=west] at (8.35,-5.15) {Orden que exige la versión 2:};
+  \node[caja, text width=1.8cm] (t1) at (9.3,-6.0) {sello del documento};
+  \node[caja, text width=1.8cm] (t2) at (12.05,-6.0) {sello del manifiesto};
+  \node[cajaOsc, text width=1.8cm] (t3) at (14.8,-6.0) {aceptación registrada};
+  \node at ($(t1.east)!0.5!(t2.west)$) {$\le$};
+  \node at ($(t2.east)!0.5!(t3.west)$) {$\le$};
+
+  % Leyenda
+  \node[e, text width=0.4cm, minimum height=0.3cm] (l1) at (8.6,-7.05) {};
+  \node[r, anchor=west] at (8.9,-7.05) {cubierta por el manifiesto};
+  \node[n, text width=0.4cm, minimum height=0.3cm] (l2) at (11.9,-7.05) {};
+  \node[r, anchor=west] at (12.2,-7.05) {auxiliar o registro, sin cubrir};
+\end{tikzpicture}

@@ -1,0 +1,37 @@
+% Fuente: docs/adr/0085-in-browser-evidence-validation.md (raíces de confianza);
+% web/apps/qadra/src/lib/evidence/pinned-roots.json, policy.mjs y notes.mjs;
+% crates/web/src/evidence_trust/mod.rs.
+\begin{tikzpicture}[
+  q/.style={cajaClara, text width=3.3cm, minimum height=1.2cm},
+  nota/.style={cajaGris, text width=4.6cm, minimum height=0.85cm, align=left}]
+
+  \node[caja, text width=2.7cm, minimum height=1.2cm] (raiz) at (1.5,-1.0)
+    {\textbf{Raíz que trae el paquete} o que aparece dentro de un sello};
+  \node[q] (fija) at (5.75,-1.0)
+    {¿Su huella SHA-256 está en la lista fija de esta versión para el propósito requerido?};
+  \node[q, text width=2.8cm] (ruta) at (10.0,-1.0)
+    {¿La ruta de confianza del servidor también la devuelve?};
+  \node[cajaOsc, text width=2.3cm, minimum height=1.2cm] (ok) at (14.5,-1.0)
+    {\textbf{Comprobada}\\ Raíz fija en Qadra};
+  \node[caja, text width=2.8cm, minimum height=1.0cm] (dif) at (10.0,-3.05)
+    {\textbf{Sigue comprobada}; el informe señala la diferencia};
+  \node[q, text width=2.8cm] (ruta2) at (5.75,-3.15)
+    {¿La ruta del servidor la devuelve?};
+  \node[caja, text width=2.7cm, minimum height=1.0cm] (sin) at (1.5,-3.15)
+    {\textbf{Confianza sin confirmar}: falta evidencia para decidir (Parcial)};
+  \node[caja, text width=3.3cm, minimum height=1.0cm] (nc) at (5.75,-5.2)
+    {\textbf{No compatible}, no Fallido: ninguna fuente reconoce la raíz};
+
+  \draw[flecha] (raiz) -- (fija);
+  \draw[flecha] (fija) -- node[etq, above=1pt]{sí} (ruta);
+  \draw[flecha] (ruta) -- node[etq, above=1pt]{sí} (ok);
+  \draw[flecha] (ruta) -- node[etq, right=1pt]{no} (dif);
+  \draw[flecha] (fija) -- node[etq, right=1pt]{no} (ruta2);
+  \draw[flecha] (ruta2) -- node[etq, above=1pt]{sí} (sin);
+  \draw[flecha] (ruta2) -- node[etq, right=1pt]{no} (nc);
+
+  \node[font=\diag, text=ESCOMGris, anchor=north west] at (0,-6.2)
+    {Propósitos: sello del servidor, firma individual y sello de tiempo. El despliegue documentado fija una sola raíz con los tres.};
+  \node[nota] at (2.45,-7.25) {Ruta no disponible: la validación sigue y solo cambia el estado actual};
+  \node[nota] at (8.0,-7.25) {Nunca se siguen direcciones encontradas dentro del paquete};
+\end{tikzpicture}

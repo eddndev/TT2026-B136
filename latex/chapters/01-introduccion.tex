@@ -80,7 +80,7 @@ Controles de acceso sin vinculación criptográfica. Si bien existen mecanismos 
 
 El prototipo propuesto aborda estas brechas al proveer servicios criptográficos orientados a la generación de evidencia técnica verificable de forma independiente:
 
-No repudio con evidencia temporal. Implementación de firma digital mediante certificados X.509 y sellado de tiempo conforme al protocolo RFC 3161, vinculando criptográficamente la autoría del firmante con el contenido del contrato y una marca temporal emitida por la TSA configurada. En la demostración, la autoridad es local; un PSC autorizado queda reservado para una integración posterior con garantías contractuales verificables.
+No repudio con evidencia temporal. Implementación de firma digital mediante certificados X.509 y sellado de tiempo conforme al protocolo RFC 3161, vinculando criptográficamente la autoría del firmante con el contenido del contrato y una marca temporal emitida por la TSA configurada. En la demostración, la autoridad es local; un PSC autorizado queda reservado para una integración posterior con garantías contractuales verificables. La evidencia exportada puede comprobarse con OpenSSL o desde el navegador, sin enviarla a la plataforma.
 
 Integridad y confidencialidad mediante cifrado autenticado. Uso de AES-256-GCM en el almacenamiento de expedientes y documentos, proveyendo simultáneamente protección contra accesos no autorizados y detección de modificaciones, de modo que la seguridad de la información dependa de protocolos criptográficos y no únicamente de políticas de acceso administrativo.
 

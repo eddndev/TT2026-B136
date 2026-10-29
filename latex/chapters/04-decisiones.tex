@@ -4,7 +4,7 @@
 
 \section{Decisiones de implementación}\label{sec:impl-divergencias}
 
-Las decisiones técnicas se registran como Architecture Decision Records en \rutarepo{docs/adr/}, con el formato de Nygard \cite{nygard2011}: contexto, decisión, estatus y consecuencias. El directorio contiene 84 registros numerados de 0001 a 0083, dos de ellos con el número 0048. La \cref{tab:impl-adrs} complementa las cinco decisiones de la \cref{sec:adrs} con una selección: 0001 a 0016, 0022 a 0024, 0064 y 0065. Los registros de despliegue se citan en la \cref{sec:impl-despliegue} y el resto, en la sección del dominio que fundamentan.
+Las decisiones técnicas se registran como Architecture Decision Records en \rutarepo{docs/adr/}, con el formato de Nygard \cite{nygard2011}: contexto, decisión, estatus y consecuencias. El directorio contiene 85 registros numerados de 0001 a 0085, dos de ellos con el número 0048 y ninguno con el 0084. La \cref{tab:impl-adrs} complementa las cinco decisiones de la \cref{sec:adrs} con una selección: 0001 a 0016, 0022 a 0024, 0064, 0065 y 0085. Los registros de despliegue se citan en la \cref{sec:impl-despliegue} y el resto, en la sección del dominio que fundamentan.
 
 \begingroup
 \footnotesize
@@ -32,6 +32,7 @@ Las decisiones técnicas se registran como Architecture Decision Records en \rut
   0007 & Anclar la cabeza de la cadena en la persistencia & La cadena no detecta un corte al final & Una cadena válida puede estar truncada al final \\
   0008 & Puerto TOTP sin estado & Un código vale una vez & El llamador debe impedir reutilizar un código \\
   0009 & TSA local de OpenSSL (\cref{sec:impl-spike-tsa}) & Campaña externa no reproducible & Sin equivalencia jurídica; la TSA remota solo se prueba con un simulador \\
+  0085 & Validar paquetes en el navegador con un motor puro en WebAssembly y sellar un manifiesto en la aceptación (\cref{sec:impl-validador}) & Revisar evidencia sin terminal ni enviarla al servidor; atar todas las piezas a un sello & Raíces fijas en cada versión; perfiles estrictos; la raíz de credenciales debe emitir el certificado de la TSA \\
   \multicolumn{4}{@{}l}{\textit{Entrada HTTP y sesiones}} \\
   0010 & Axum como adaptador HTTP de entrada & Fijar primero una frontera probada & La API se construye a partir del contrato de salud \\
   0012 & Tokens opacos revocables & Revocación inmediata & RBAC sin Cincel (\cref{sec:impl-identidad}) \\
