@@ -89,7 +89,7 @@ Cincel, PSC acreditado con entorno de pruebas RFC 3161 \cite{cincel2024}, no se 
 
 Guardar el token como archivo .tsr, en lugar de incrustarlo en CAdES-T o PAdES-T, permite inspeccionar por separado documento, firma, sello y certificado con herramientas estándar. CAdES-T y PAdES-T exigirían ingeniería de formatos (estructuras CMS o firmas internas del PDF) sin aportar al objetivo criptográfico. El alcance jurídico depende de la autoridad emisora y su cadena de confianza \cite{nom151_2016}, no del contenedor; un despliegue productivo podría migrar a CAdES-T o PAdES-T reutilizando el mismo token.
 
-El paquete de evidencia es un ZIP con el PDF original, su firma separada, el token RFC 3161 y la confianza capturada. En una firma individual agrega las declaraciones de vínculo y consentimiento con sus firmas, la raíz y la CRL del registro y una representación pública de sus tiempos. Sus instrucciones permiten comprobar todo con OpenSSL sin acceso a la plataforma, siguiendo los cuatro pasos de la \cref{fig:cripto-sello}. El sello del servidor nunca sustituye la firma del titular.
+El paquete de evidencia es un ZIP con el PDF original, su firma separada, el token RFC 3161 y la confianza capturada. En una firma individual agrega las declaraciones de vínculo y consentimiento con sus firmas, la raíz y la CRL del registro y una representación pública de sus tiempos. Las firmas individuales nuevas añaden un manifiesto sellado, la lista de revocación del emisor de la TSA y un recibo de aceptación (\cref{fig:cripto-manifiesto}). Sus instrucciones permiten comprobar todo con OpenSSL sin acceso a la plataforma, siguiendo los cuatro pasos de la \cref{fig:cripto-sello}; el mismo paquete también puede validarse en el navegador sin enviarlo al servidor (\cref{sec:validacion-navegador}). El sello del servidor nunca sustituye la firma del titular.
 
 \begin{figure}[!htbp]
   \centering
@@ -99,6 +99,54 @@ El paquete de evidencia es un ZIP con el PDF original, su firma separada, el tok
 \end{figure}
 
 El instante del token corresponde al digest del PDF, no al consentimiento personal. La aceptación individual queda en un recibo y un evento auditado, bajo el reloj y la frontera de confianza de la plataforma. Por ello, un sello válido del contenido no demuestra por sí solo que el titular autorizó esa versión en ese instante. La verificación conserva las pruebas históricas y presenta aparte la vigencia y revocación actuales del certificado y el posible retiro del vínculo.
+
+\subsection{Validación de evidencia en el navegador}\label{sec:validacion-navegador}
+
+La ruta con OpenSSL exige una terminal, conocer los comandos y comparar a mano campos binarios. Para que cualquier persona con acceso al documento pueda revisar un paquete exportado, Qadra incorpora un validador en la pestaña \emph{Evidencia} de cada versión documental. La persona elige un ZIP guardado en su equipo y obtiene, en lenguaje llano, qué se comprobó, qué falló y qué no se pudo decidir. La ruta con OpenSSL se conserva sin cambios (\cref{anexo:verificacion}); el validador es una segunda forma de llegar a las mismas conclusiones, no un sustituto.
+
+\paragraph{Por qué en el navegador.} El paquete nunca sale del equipo de la persona: el validador lo lee, lo revisa y muestra el resultado sin enviarlo al servidor (\cref{fig:cripto-validador-bloques}). Hay tres razones. Primera, el paquete es evidencia que ya está en manos de quien la revisa, y devolverlo al servidor que la produjo haría que el sistema juzgara su propia evidencia. Segunda, el servidor no tiene que recibir ni conservar archivos de terceros, de modo que la validación no abre una nueva vía de carga. Tercera, el resultado no depende de la respuesta del servidor: solo se le consulta qué raíces admite hoy y, si no responde, la validación continúa.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-03h-validador-bloques}
+  \caption{Bloques del validador. El paquete se procesa dentro del navegador, en un worker que se crea para cada validación; el servidor solo informa qué raíces admite hoy, y esa respuesta nunca convierte una raíz en ancla.}
+  \label{fig:cripto-validador-bloques}
+\end{figure}
+
+El motor de verificación está escrito en Rust y se compila a WebAssembly \cite{w3c_wasm2019}, el formato de código que los navegadores ejecutan de forma aislada. Se ejecuta en un Web Worker \cite{whatwg_workers}, un hilo separado de la página, para que una revisión pesada no congele la interfaz y para que pueda cancelarse cerrando ese hilo. Es un módulo distinto del ayudante que abre claves privadas (\cref{sec:impl-criptografia-local}): validar evidencia pública no necesita ninguna clave. El motor no usa red, reloj ni números aleatorios; recibe los bytes del paquete y una política explícita, que incluye el instante de evaluación, y con las mismas entradas produce siempre el mismo informe. El servidor reutiliza ese mismo motor para escribir el manifiesto y el recibo de la firma individual, así que escribe exactamente lo que el validador lee.
+
+\paragraph{En qué raíces se confía.} Una raíz no se vuelve confiable por viajar dentro del ZIP, porque quien altera un paquete también puede cambiar su raíz. Cada versión de Qadra incluye una lista fija de huellas SHA-256 de raíces admitidas, cada una con los propósitos que puede cumplir: sello del servidor, firma individual o sello de tiempo. Una raíz del paquete solo se admite si su huella está en esa lista para el propósito requerido. Además, el panel consulta una ruta autenticada del servidor que devuelve las raíces y listas de revocación que admite en ese momento, y contrasta ambas fuentes (\cref{fig:cripto-validador-raices}). Solo la lista fija convierte una raíz en ancla y permite un resultado completo. Una raíz que la ruta devuelve sin estar en la lista queda como confianza sin confirmar, con resultado \emph{Parcial}; si ninguna de las dos fuentes la reconoce, el paquete no es compatible. Si la ruta no responde, solo cambia el estado actual. El validador nunca sigue direcciones encontradas dentro del paquete.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-03h-raices}
+  \caption{Decisión sobre una raíz de confianza. Solo la lista fija de la versión de Qadra convierte una raíz en ancla; una raíz que no está en la lista fija ni la devuelve la ruta deja el paquete como no compatible, no como alterado.}
+  \label{fig:cripto-validador-raices}
+\end{figure}
+
+\paragraph{Tres tipos de paquete.} El validador reconoce los dos paquetes que Qadra ya exportaba y uno nuevo: el sello del servidor, la firma individual en su versión 1 y la firma individual en su versión 2, que añade un manifiesto sellado (\cref{fig:cripto-manifiesto}). El tipo se decide por el conjunto de archivos que contiene, no por su orden. Un archivo desconocido, uno obligatorio ausente o un documento ambiguo hacen que el paquete se informe como no compatible: el validador no adivina qué quiso exportarse.
+
+\paragraph{Manifiesto sellado de la versión 2.} El sello de tiempo del documento cubre solo la huella del PDF; no demuestra que la firma separada, el consentimiento o el material de confianza ya existieran en ese instante. El manifiesto cierra esa brecha. Es un archivo JSON que enumera las catorce piezas de evidencia del paquete, cada una con su función, su huella SHA-256 y su tamaño, y que identifica el caso, el documento, su versión, la operación de aceptación y al firmante. Inmediatamente después de verificar la firma y obtener el sello del PDF, dentro de la misma operación de aceptación, el servidor construye el manifiesto con los bytes finales y pide a la TSA un segundo sello sobre su huella. Así, un solo sello ata todas las piezas a un instante emitido por la TSA.
+
+El manifiesto se escribe en la forma canónica de JSON definida por RFC 8785 \cite{rundgren2020}. JSON admite muchas escrituras equivalentes del mismo contenido (orden de claves, espacios, escapes); la forma canónica fija una sola, de modo que cualquiera puede recalcular la huella sobre los mismos bytes y el validador rechaza un manifiesto que no esté exactamente en esa forma. El paquete agrega además la lista de revocación del emisor de la TSA, capturada al sellar, para comprobar que la TSA no estaba revocada, y un recibo de aceptación que repite la huella del manifiesto y el instante registrado. El manifiesto no se incluye a sí mismo, ni a su sello, ni al recibo, ni al instructivo, ni al registro de tiempos de Qadra, cuyo instante de aceptación se fija al confirmar la operación. Ese instante sigue siendo un registro de la aplicación, pero en la versión 2 queda acotado: el sello del documento no puede ser posterior al del manifiesto, ni este a la aceptación. El perfil admite un solo firmante; varios firmantes quedan fuera de esta entrega.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-03h-manifiesto}
+  \caption{Contenido de los tres tipos de paquete y cobertura del manifiesto. El sello del servidor contiene A, con \texttt{tsa-chain.pem} opcional; la firma individual, versión 1, contiene A y B; la versión 2 añade C. El manifiesto lista los catorce archivos en azul claro, dos de ellos agrupados con su firma, y su propio sello lo ata a un instante de la TSA.}
+  \label{fig:cripto-manifiesto}
+\end{figure}
+
+\paragraph{Cómo se expresa el resultado.} El informe se divide en ocho componentes, desde la forma del paquete hasta las fechas y registros, y cada uno obtiene uno de cinco resultados: correcto, fallido, falta evidencia para decidirlo, no compatible o no aplica (\cref{fig:cripto-validador-resultados}). Todos los componentes son obligatorios, salvo dos que se muestran como \emph{No aplica}: la vinculación y el consentimiento en el sello del servidor, y el manifiesto fuera de la versión 2. El resultado global toma el primero que aplica: \emph{Fallido} si algún componente obligatorio falló; \emph{No compatible} si alguno no es compatible; \emph{Parcial} si falta evidencia en alguno; y \emph{Completo} en otro caso. Un estado actual, con la vigencia y la revocación al día de hoy según el reloj del equipo, se presenta aparte como informativo y nunca cambia el resultado.
+
+\begin{figure}[!htbp]
+  \centering
+  \input{figures/fig-03h-resultados}
+  \caption{Modelo de resultados. Cada componente se evalúa por separado y el resultado global sigue una precedencia fija; el estado actual es informativo y no interviene.}
+  \label{fig:cripto-validador-resultados}
+\end{figure}
+
+El informe separa tres preguntas que una sola palabra confundiría: si la firma corresponde a los bytes exactos del documento, si los certificados cumplen el perfil estricto y encadenan a una raíz fija, y si falta evidencia para decidir. Por eso, un certificado que no cumple el perfil estricto produce un resultado que no es completo, pero no significa que el PDF se haya alterado; el panel lo aclara cuando la firma es correcta. Cada comprobación se evalúa en su propio instante: el certificado de la TSA, en la fecha de cada sello; el vínculo, al registrarse; la firma y el consentimiento del titular, al aceptarse. Así, una revocación posterior no borra la validez histórica y se muestra solo en el estado actual. Los paquetes históricos se leen sin reescribirse: si no traen la lista de revocación del emisor de la TSA y la lista general no cubre la fecha del sello, quedan en \emph{Parcial}. Como el validador aplica perfiles estrictos a todos los certificados y revisa la TSA en la fecha de cada sello, a diferencia del verificador del servidor, su veredicto sobre un paquete histórico puede diferir del que mostró el servidor. Las decisiones constan en el ADR~0085 y la implementación, en la \cref{sec:impl-validador}.
 
 \subsection{Cifrado en reposo}\label{sec:cifrado-reposo}
 

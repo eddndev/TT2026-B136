@@ -112,7 +112,7 @@ ambas comprobaciones se repiten antes de entregar un solo byte
   \input{figures/fig-03c-firma-secuencia}
   \caption{Firma individual de un contrato (CU-13). El titular produce dos
   firmas en su equipo; el servidor solo recibe material público, pide el sello
-  sobre la huella del PDF y confirma todo en una transacción.}
+  sobre la huella del PDF y confirma todo en una transacción. Las firmas nuevas piden además un sello sobre el manifiesto de evidencia (\cref{fig:impl-manifiesto-aceptacion}).}
   \label{fig:cu-13}
 \end{figure}
 
@@ -129,9 +129,9 @@ constancia de un PSC autorizado conforme a la NOM-151.
 \CUcFicha{CU-13: Firma digital de contrato con sellado de tiempo.}\label{tab:cu-13}\nopagebreak[4]
 \CUcFila[t]{Actores}{Litigante firmante; apoyo: TSA configurada (local en la demostración).}
 \CUcFila{Precondición}{Existe una versión PDF exacta sin sellar en un expediente activo. El Litigante está asignado, tiene sesión con segundo factor y un vínculo propio vigente con un certificado de firma de la autoridad certificadora interna.}
-\CUcFila{Flujo principal}{1. El Litigante elige expediente, documento y versión, y revisa el PDF. 2. Lo firma en su equipo. 3. El sistema prepara un consentimiento (\cref{sec:firma-digital}); el titular lo firma por separado. 4. El sistema verifica ambas firmas y pide a la TSA un sello sobre la huella del PDF. 5. Valida el sello, vuelve a comprobar identidad, permisos y vigencia, y guarda evidencia, recibo y auditoría en una transacción. 6. Presenta el recibo y permite exportar la evidencia.}
-\CUcFila{Flujos alternos}{Certificado revocado o vencido, confianza cambiada o prueba incorrecta: no hay aceptación. Fallo o espera agotada de la TSA: no se confirma ni se reintenta de forma implícita. Si se pierde la respuesta, el usuario puede consultar el recibo; repetir la misma solicitud no crea una segunda firma.}
-\CUcFila[p]{Postcondición}{La versión conserva la prueba de su contenido y del consentimiento de la cuenta. El instante de aceptación consta en el registro auditado; el sello cubre solo la huella del PDF y no atestigua por sí solo el consentimiento.}
+\CUcFila{Flujo principal}{1. El Litigante elige expediente, documento y versión, y revisa el PDF. 2. Lo firma en su equipo. 3. El sistema prepara un consentimiento (\cref{sec:firma-digital}); el titular lo firma por separado. 4. El sistema verifica ambas firmas y pide a la TSA un sello sobre la huella del PDF y, con los bytes finales, un segundo sello sobre el manifiesto de evidencia. 5. Valida el sello, vuelve a comprobar identidad, permisos y vigencia, y guarda evidencia, recibo y auditoría en una transacción. 6. Presenta el recibo y permite exportar la evidencia.}
+\CUcFila{Flujos alternos}{Certificado revocado o vencido, confianza cambiada o prueba incorrecta: no hay aceptación. Fallo o espera agotada de la TSA: no se confirma ni se reintenta de forma implícita. Si falla el sello del manifiesto o la CRL de la TSA, no hay aceptación. Si se pierde la respuesta, el usuario puede consultar el recibo; repetir la misma solicitud no crea una segunda firma.}
+\CUcFila[p]{Postcondición}{La versión conserva la prueba de su contenido y del consentimiento de la cuenta. El instante de aceptación consta en el registro auditado; el sello del documento cubre solo la huella del PDF; en las firmas aceptadas desde que se incorporó el manifiesto sellado, el sello del manifiesto ata además la firma, el consentimiento y el material de confianza a un instante de la TSA.}
 \CUcFila[b]{Trazabilidad}{HU-34, HU-35; RF-15, RF-16; RNF-03, RNF-11.}
 \CUcFin
 
@@ -139,7 +139,7 @@ constancia de un PSC autorizado conforme a la NOM-151.
 \CUcFila[t]{Actores}{Usuario autenticado con acceso al contrato (Owner, Litigante o Paralegal asignado).}
 \CUcFila{Precondición}{El contrato fue firmado y tiene un sello de tiempo asociado.}
 \CUcFila{Flujo principal}{1. El usuario elige la versión exacta. 2. El sistema descifra el contenido y recalcula su huella. 3. Verifica las firmas del PDF, del vínculo y del consentimiento con el material capturado. 4. Evalúa la confianza en los instantes registrados y comprueba el sello contra la huella del PDF. 5. Consulta aparte el certificado bajo la confianza actual y el posible retiro del vínculo. 6. Presenta ambos resultados por separado (\cref{fig:cu-14}).}
-\CUcFila{Flujos alternos}{Una alteración del contenido, de la declaración o de una prueba impide aceptar la verificación. Un sello inválido impide afirmar su validez. La revocación, expiración o retiro actuales se informan sin reescribir el resultado histórico; sin confianza vigente, el estado actual se presenta como no disponible.}
+\CUcFila{Flujos alternos}{Una alteración del contenido, de la declaración o de una prueba impide aceptar la verificación. Un sello inválido impide afirmar su validez. La revocación, expiración o retiro actuales se informan sin reescribir el resultado histórico; sin confianza vigente, el estado actual se presenta como no disponible. Validar un paquete exportado: en la pestaña Evidencia el usuario elige un ZIP de su equipo; el navegador lo revisa sin enviarlo al servidor y presenta un resultado por componente y uno global (\cref{sec:validacion-navegador}).}
 \CUcFila[p]{Postcondición}{El usuario obtiene el resultado histórico y el estado actual disponible. Los contratos sellados antes de que existiera la firma individual no se atribuyen a ninguna persona.}
 \CUcFila[b]{Trazabilidad}{HU-36, HU-37; RF-17; RNF-11.}
 \CUcFin

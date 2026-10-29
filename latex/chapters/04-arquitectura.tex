@@ -23,7 +23,9 @@ Las dependencias siguen el grafo de la \cref{fig:workspace} y la \cref{tab:impl-
     \texttt{infrastructure} & Adaptadores de PostgreSQL, Redis, cifrado, firma, TSA, ZIP, correo, admisión documental aislada e importación local \\
     \texttt{web} & Adaptador HTTP, DTO y límites de concurrencia \\
     \texttt{bin} & Raíz de composición: servidor, servicio de la CA, preparación de esquema, importación y herramientas offline (binarios \texttt{despacho-cli} y \texttt{qadra-ca}); único crate con \texttt{anyhow}, en la frontera del proceso \\
-    \texttt{browser-\allowbreak crypto} & Módulo WebAssembly independiente de los otros cinco crates: claves cifradas, CSR y firmas de bytes preparados \\
+    \texttt{browser-\allowbreak crypto} & Módulo WebAssembly independiente de los otros siete crates: claves cifradas, CSR y firmas de bytes preparados \\
+    \texttt{evidence-\allowbreak verify} & Motor puro de verificación de paquetes de evidencia, sin E/S, reloj ni azar y sin depender de ningún crate propio; lo usan \texttt{application} para escribir el manifiesto y el recibo, \texttt{infrastructure} para comprobar el sello del manifiesto, la CRL de la TSA y el inventario de arranque, y \texttt{bin} para preparar el material de la ruta de confianza; también lo usa el validador del navegador \\
+    \texttt{evidence-\allowbreak verify-\allowbreak wasm} & Envoltura WebAssembly del motor para el worker de Qadra; recibe bytes y política y devuelve el informe (\cref{sec:impl-validador}) \\
     \bottomrule
   \end{tabularx}
 \end{table}

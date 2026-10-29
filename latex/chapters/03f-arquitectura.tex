@@ -97,16 +97,16 @@ Cada contexto reparte sus tipos, casos de uso y adaptadores entre las capas hexa
 
 \subsection{Estructura del workspace de Cargo}\label{sec:workspace-cargo}
 
-El proyecto es un workspace de Cargo, el sistema de compilación y paquetes de Rust, con seis módulos de compilación (crates). Cinco forman el servidor y reproducen las capas hexagonales; el sexto implementa la criptografía local del navegador sin depender de los anteriores (\cref{fig:workspace}).
+El proyecto es un workspace de Cargo, el sistema de compilación y paquetes de Rust, con ocho módulos de compilación (crates). Cinco forman el servidor y reproducen las capas hexagonales. Dos se ejecutan en el navegador: uno implementa la criptografía local del titular y otro, el validador de paquetes de evidencia. El octavo es el motor de verificación de evidencia, que no depende de ningún otro crate y que comparten el servidor y el validador del navegador (\cref{fig:workspace}).
 
 \begin{figure}[tbp]
   \centering
   \input{figures/fig-03f-workspace}
-  \caption{Workspace de Cargo. Las flechas son dependencias declaradas: todas bajan hacia \texttt{domain}, que no depende de nadie; el crate del navegador queda aparte.}
+  \caption{Workspace de Cargo. Las flechas son dependencias declaradas: las del servidor bajan hacia \texttt{domain}, que no depende de nadie. El motor \texttt{evidence-verify} tampoco depende de ningún crate propio; lo usan \texttt{application}, \texttt{infrastructure} y \texttt{bin}, y el módulo del navegador que valida paquetes. \texttt{browser-crypto} queda aparte.}
   \label{fig:workspace}
 \end{figure}
 
-Con esta organización las dependencias prohibidas no son una convención: son imposibles. Si el dominio intentara usar un adaptador de infraestructura, la compilación fallaría con un error de importación no resuelta, porque su manifiesto no declara esa dependencia. El crate \texttt{bin} es la raíz de composición. Al iniciar, el servidor crea la TSA local, los repositorios de PostgreSQL, el estado de autenticación en Redis, los validadores documentales aislados y los procesos internos de plazos, alertas, informes y correo, y los conecta con los servicios de aplicación. Sustituir un adaptador consiste en entregar otra implementación del mismo puerto. El crate del navegador se compila a WebAssembly y genera claves y firmas en un worker (\cref{sec:impl-criptografia-local}).
+Con esta organización las dependencias prohibidas no son una convención: son imposibles. Si el dominio intentara usar un adaptador de infraestructura, la compilación fallaría con un error de importación no resuelta, porque su manifiesto no declara esa dependencia. El crate \texttt{bin} es la raíz de composición. Al iniciar, el servidor crea la TSA local, los repositorios de PostgreSQL, el estado de autenticación en Redis, los validadores documentales aislados y los procesos internos de plazos, alertas, informes y correo, y los conecta con los servicios de aplicación. Sustituir un adaptador consiste en entregar otra implementación del mismo puerto. Los dos crates del navegador se compilan a WebAssembly y se ejecutan en un worker: uno genera claves y firmas (\cref{sec:impl-criptografia-local}) y el otro valida paquetes de evidencia con el motor compartido (\cref{sec:validacion-navegador}).
 
 \subsection{Stack tecnológico}\label{sec:stack-tecnologico}
 

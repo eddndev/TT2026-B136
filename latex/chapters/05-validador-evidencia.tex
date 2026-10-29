@@ -1,0 +1,41 @@
+% =====================================================================
+%  05-validador-evidencia.tex: Validación de paquetes en el navegador
+% =====================================================================
+
+\section{Validación de paquetes en el navegador}\label{sec:pruebas-validador}
+
+El validador de la \cref{sec:impl-validador} se probó en cuatro niveles, más dos comprobaciones sobre paquetes exportados y una aceptación en la instancia desplegada: el motor por sí solo, el motor frente a entradas hostiles, el panel de Qadra con el módulo WebAssembly real y un recorrido completo contra servicios reales. La \cref{tab:pruebas-validador} resume lo observado. Las cifras corresponden a la entrega que integró el validador y el manifiesto (ADR~0085); como en el resto del capítulo, cada nivel es una forma distinta de evidencia y ninguno sustituye a los demás.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Evidencia observada del validador de paquetes y del manifiesto sellado.}
+  \label{tab:pruebas-validador}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}L{3.3cm} X@{}}
+    \toprule
+    \textbf{Nivel} & \textbf{Resultado observado} \\
+    \midrule
+    Motor de verificación & 307 pruebas unitarias y 92 de integración aprobadas. Las pruebas de paridad con el códec, los perfiles y el escritor de paquetes del servidor están en el crate \texttt{infrastructure}. \\
+    \addlinespace
+    Entradas hostiles & 5\,400 mutaciones sobre un paquete de la versión 2: ningún cierre inesperado del motor y ningún paquete alterado reportado como \emph{Completo}. \\
+    \addlinespace
+    Panel de Qadra & La suite unitaria de Qadra, que incluye las pruebas de la política, las raíces fijas, la ruta de confianza, el cliente del worker y la presentación del informe, aprobó sus 969 pruebas. Las pruebas en navegador ejecutan el panel con el módulo WebAssembly real. \\
+    \addlinespace
+    Recorrido completo & En integración continua, una firma individual real se acepta contra PostgreSQL, Redis y la TSA local; el paquete de la versión 2 se exporta y el panel lo informa como \emph{Completo}. \\
+    \addlinespace
+    Exportación repetible & Exportar varias veces el mismo paquete de la versión 2 produce los mismos bytes, y el motor lo valida como completo. \\
+    \addlinespace
+    Paquetes históricos & Un paquete de sello del servidor y uno de firma individual, versión 1, exportados por el despliegue existente, se validan como \emph{Completo}. \\
+    \addlinespace
+    Despliegue y aceptación & El 29 de octubre de 2026 la instancia de demostración pasó a la versión 0.1.14, después de ensayar la migración sobre una copia restaurada y de tomar un respaldo completo. Una firma individual nueva sobre un documento ficticio se aceptó; su paquete de la versión 2 se exportó dos veces con los mismos bytes y el panel desplegado lo informó como \emph{Completo} sin enviar el archivo. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Casos negativos observados.} Dos manipulaciones se ensayaron directamente sobre paquetes reales. Con un solo byte cambiado dentro de una entrada del ZIP, el resultado es \emph{Fallido}: la suma CRC-32 que guarda el propio ZIP ya no coincide. Con el mismo contenido recomprimido con otra herramienta, el resultado es \emph{No compatible}, con el aviso de que no es el paquete que exportó Qadra. La diferencia es intencional: un byte alterado es evidencia de cambio, mientras que un ZIP con otra forma solo indica que no es el archivo original y no permite afirmar más (\cref{fig:cripto-validador-resultados}).
+
+\paragraph{Casos negativos cubiertos por pruebas.} Además, la suite del motor fija el resultado esperado para un documento o una firma alterados, un consentimiento de otra operación, una raíz desconocida dentro del ZIP, un certificado con un propósito incorrecto, una CRL ausente, vencida, de otro emisor o que revoca el certificado, un sello sobre otra huella, metadatos JSON contradictorios, un manifiesto alterado, con funciones intercambiadas, que contradice el consentimiento o sellado por un token de otro objeto y un archivo omitido. Estos casos son pruebas con resultado fijo, no mediciones sobre evidencia real.
+
+\paragraph{Límites.} Las pruebas no miden si el panel resulta más claro que la ruta con OpenSSL: su uso con personas no se ha evaluado. No se ensayaron una TSA externa ni varios firmantes, que quedan fuera del alcance. El recorrido completo usa la TSA local y una sola raíz con los tres propósitos, como el despliegue documentado. Las 5\,400 mutaciones exploran una muestra de alteraciones, no todas las posibles.
+
+\Fuentes{\rutarepo{crates/evidence-verify/tests/}, \rutarepo{crates/infrastructure/tests/}, \rutarepo{web/apps/qadra/tests/} (incluido \rutarepo{web/apps/qadra/tests/browser/}) y ADR 0085.}

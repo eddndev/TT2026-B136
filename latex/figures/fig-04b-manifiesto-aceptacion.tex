@@ -1,0 +1,27 @@
+% Fuente: crates/application/src/document_signing/ (document_service.rs,
+% document_manifest.rs, manifest_port.rs), crates/application/src/documents/signing_manifest.rs,
+% migrations/0049_individual_signing_manifests.sql y ADR 0085.
+\begin{tikzpicture}[actor/.append style={minimum width=2.5cm, text width=2.3cm}]
+  \Actores{tit/1.45/{Titular\\ en Qadra},api/5.4/{API: aceptación},tsa/10.0/{TSA interna},pg/14.5/{PostgreSQL}}{-12.3}
+
+  \Msg{1.45}{5.4}{-1.1}{\textbf{1} firmas del PDF\\ y del consentimiento}
+  \Paso{5.4}{-1.25}{3.3}{Verifica la firma del PDF, la vinculación y el consentimiento; revisa vigencias y reautentica; exige que la raíz de credenciales emita el certificado de la TSA}
+  \Msg{5.4}{10.0}{-3.05}{\textbf{2} huella del PDF}
+  \Msg[msgR]{10.0}{5.4}{-3.6}{sello del documento}
+  \Paso{5.4}{-3.75}{3.3}{\textbf{3} Construye \texttt{manifiesto.json} con los bytes finales de cada pieza}
+  \Msg{5.4}{10.0}{-5.0}{\textbf{4} huella del manifiesto}
+  \Msg[msgR]{10.0}{5.4}{-5.55}{sello del manifiesto}
+  \Paso{5.4}{-5.7}{3.3}{Rechaza un sello anterior al del documento; verifica la CRL capturada del emisor de la TSA: firma, vigencia y TSA no revocada}
+  \Paso[pasoError]{10.0}{-5.85}{2.9}{Si falla el segundo sello o la CRL, no se guarda nada y no se reintenta solo}
+  \Paso{5.4}{-7.45}{3.3}{\textbf{5} Repite la revisión de vigencias y la reautenticación; fija el instante mínimo de aceptación}
+  \Msg{5.4}{14.5}{-8.7}{\textbf{6} recibo, manifiesto, sello y CRL}
+  \Paso{14.5}{-8.85}{2.7}{Una sola transacción asigna el instante de aceptación; un disparador diferido exige un manifiesto coherente por recibo; la tabla es inmutable}
+  \Msg[msgR]{14.5}{5.4}{-10.55}{confirmado}
+  \Msg[msgR]{5.4}{1.45}{-11.1}{recibo}
+  \Paso{1.45}{-11.25}{2.6}{Reenviar la operación pide sellos nuevos; una ya aceptada devuelve su manifiesto}
+
+  % Fuera de la transacción
+  \draw[ESCOMGris, line width=0.5pt] (11.45,-2.85) -- (11.6,-2.85) -- (11.6,-5.6) -- (11.45,-5.6);
+  \node[font=\diag, text=ESCOMGris, align=left, anchor=west] at (11.7,-4.25)
+    {Las consultas a la TSA\\ quedan fuera de la\\ transacción};
+\end{tikzpicture}

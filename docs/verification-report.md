@@ -1,5 +1,47 @@
 # Informe de verificación local
 
+## Despliegue de v0.1.14 con la migración 0049: 29 de octubre de 2026 UTC
+
+`v0.1.14` (`e6a5baf9`) integra la validación de evidencia en el navegador y el
+manifiesto sellado de firma individual ([ADR 0085](adr/0085-in-browser-evidence-validation.md)).
+Se preparó con `prepare_version` (run 40811908542), reutilizando CI y Web
+aprobados sobre ese `main`; el paquete tiene SHA-256
+`0f5dc960b72bfd672d72c3cb58e98fd7d73b0c6b9df198524bb4aa83d0507707`, 246 archivos
+y la huella de esquema `acd05569...`, distinta de la instalada (`aa27e665...`)
+por la [migración 0049](../migrations/0049_individual_signing_manifests.sql).
+
+El ensayo restauró el respaldo del 26 de octubre en un PostgreSQL 16 desechable
+de VPS3, con puertos y directorio propios: 79 tablas, 187 disparadores y
+3,022,767 eventos de auditoría. La restauración tardó 32 s y la migración 1 s;
+quedaron 81 tablas y 191 disparadores, sin cambio en la auditoría ni en el único
+recibo individual existente, que conserva su exportación v1. `database check`
+con el rol runtime aprobó con el binario nuevo, una segunda migración no cambió
+nada y el binario `v0.1.13` rechazó la base migrada, como documenta
+[operación de base de datos](database-operations.md).
+
+La ventana, de 03:37 a 03:42 UTC, tomó el respaldo completo
+`20261029T033723Z-89de65df` con API y web detenidas (copia externa con SHA-256
+verificado), migró con el rol administrativo, validó con el runtime y registró
+la nueva huella. La activación con `release.activate` falló al tomar un segundo
+respaldo: su manifiesto exige que la huella coincida con la versión en
+`current`, todavía `v0.1.13`. La recuperación automática intentó `v0.1.13`, que
+rechaza la base migrada, y dejó el ingreso detenido. Se apuntó `current` a
+`v0.1.14` y `previous` a `v0.1.13` y se arrancó la nueva versión con el
+controlador aprobado. El respaldo incompleto `20261029T033814Z-1fcde03b` no
+tiene `COMPLETE` y no debe usarse. Para un salto de esquema, no invocar
+`release.activate` después de migrar a mano. La CA sigue en `v0.1.13`: usa el
+esquema `qadra_ca` y no las tablas nuevas.
+
+Después respondieron `version.json` con `v0.1.14`, la portada con 200, la API sin
+sesión con 401 JSON, la ruta de confianza con 401 y la CA con 200. Como
+aceptación, la cuenta litigante de demostración firmó la versión 3 de un
+documento ficticio de DEMO-TT-001 (operación `9b48981b`, aceptada a las
+03:46:18 UTC). Dos exportaciones de su evidencia fueron idénticas, con
+`manifiesto.json`, su sello, `tsa-crl.pem` y `recibo-aceptacion.json`. El motor
+con la raíz de producción la informó como `IndividualSigningV2` completa, con
+los ocho componentes comprobados, y el panel desplegado mostró *Completo* sin
+enviar el archivo.
+
 ## Manifiesto sellado de firma individual: 28 de octubre de 2026 UTC
 
 Ejecucion local sobre la rama `feat/evidence-manifest` (base `d21ea6ca`) con
