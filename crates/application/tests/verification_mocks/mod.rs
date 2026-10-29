@@ -70,6 +70,12 @@ mock! {
 
 pub const EVALUATION_UNIX: i64 = 1_780_000_000;
 
+/// Generation time of [`valid_token`], in Unix seconds.
+pub const TOKEN_UNIX: i64 = 1_783_814_400;
+
+/// An evaluation time thirty days after the token generation time.
+pub const AFTER_TOKEN_UNIX: i64 = TOKEN_UNIX + 30 * 86_400;
+
 pub fn digest() -> Sha256Digest {
     Sha256Digest::from_array([7u8; 32])
 }
@@ -96,12 +102,27 @@ pub fn accepting_signature_verifier() -> MockSigVerifier {
     verifier
 }
 
-pub fn validator_reporting(outcome: CertificateValidation) -> MockCertValidator {
+/// Reports `outcome` for exactly `calls` validations: one for the judged
+/// instant and, when a verified token sets a signing time other than the
+/// evaluation time, a second one for the informative current status.
+pub fn validator_reporting(outcome: CertificateValidation, calls: usize) -> MockCertValidator {
     let mut validator = MockCertValidator::new();
     validator
         .expect_validate()
-        .times(1)
+        .times(calls)
         .returning(move |_, _, _, _| Ok(outcome.clone()));
+    validator
+}
+
+/// Answers each validation call through `answer`, keyed by the evaluated
+/// instant and whether a revocation list travelled with the call.
+pub fn validator_answering(
+    answer: impl Fn(i64, bool) -> Result<CertificateValidation, DomainError> + Send + 'static,
+) -> MockCertValidator {
+    let mut validator = MockCertValidator::new();
+    validator
+        .expect_validate()
+        .returning(move |_, _, crl, at| answer(at, crl.is_some()));
     validator
 }
 
@@ -137,5 +158,6 @@ pub fn full_request(sig: &Signature) -> VerifyDocumentRequest<'_> {
             trust_anchor_pem: b"anchor pem",
         }),
         evaluation_unix: EVALUATION_UNIX,
+        recorded_signing_unix: None,
     }
 }

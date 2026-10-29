@@ -116,11 +116,11 @@ fn a_flipped_document_byte_fails_the_signature_component_with_its_cause() {
 }
 
 #[test]
-fn an_evaluation_time_after_expiry_reports_the_expired_status() {
+fn without_a_token_an_evaluation_time_after_expiry_reports_the_expired_status() {
     let fixture = Fixture::build();
     let (_, not_after) = certificate_window(&fixture);
     let after_expiry = rfc3339(not_after + Duration::days(1));
-    let output = fixture.verify(&fixture.document, true, &["--at", &after_expiry]);
+    let output = fixture.verify(&fixture.document, false, &["--at", &after_expiry]);
     assert!(!output.status.success());
     let text = stdout_of(&output);
     assert!(
@@ -138,16 +138,57 @@ fn an_evaluation_time_after_expiry_reports_the_expired_status() {
 }
 
 #[test]
-fn an_evaluation_time_before_issuance_reports_not_yet_valid() {
+fn without_a_token_an_evaluation_time_before_issuance_reports_not_yet_valid() {
     let fixture = Fixture::build();
     let (not_before, _) = certificate_window(&fixture);
     let before_issuance = rfc3339(not_before - Duration::days(1));
-    let output = fixture.verify(&fixture.document, true, &["--at", &before_issuance]);
+    let output = fixture.verify(&fixture.document, false, &["--at", &before_issuance]);
     assert!(!output.status.success());
     let text = stdout_of(&output);
     assert!(
         text.contains("certificate: failed") && text.contains("not yet valid"),
         "the not-yet-valid status must be reported: {text}"
+    );
+}
+
+#[test]
+fn a_crl_past_its_next_update_still_verifies_valid_at_the_token_time() {
+    let fixture = Fixture::build();
+    let crl = fixture.crl.to_str().unwrap().to_string();
+    // The fixture list is current for seven days after its issue.
+    let later = rfc3339(OffsetDateTime::now_utc() + Duration::days(30));
+    let output = fixture.verify(&fixture.document, true, &["--crl", &crl, "--at", &later]);
+    let text = stdout_of(&output);
+    assert!(
+        output.status.success(),
+        "the historical verdict must stay valid: {text}{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        text.contains("certificate: passed") && text.contains("verdict:     valid"),
+        "the certificate must pass at the token time: {text}"
+    );
+    assert!(
+        text.contains("signing time") && text.contains("informative"),
+        "the judged instant and the current note must be stated: {text}"
+    );
+    assert!(
+        text.contains("revocation not determined"),
+        "the note must say the list no longer covers the evaluation time: {text}"
+    );
+}
+
+#[test]
+fn a_certificate_expired_at_the_evaluation_time_passes_at_the_token_time_with_a_note() {
+    let fixture = Fixture::build();
+    let (_, not_after) = certificate_window(&fixture);
+    let after_expiry = rfc3339(not_after + Duration::days(1));
+    let output = fixture.verify(&fixture.document, true, &["--at", &after_expiry]);
+    let text = stdout_of(&output);
+    assert!(output.status.success(), "report: {text}");
+    assert!(
+        text.contains("certificate: passed") && text.contains("expired"),
+        "the expiry must appear only as the current note: {text}"
     );
 }
 

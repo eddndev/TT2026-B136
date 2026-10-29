@@ -5,3 +5,5 @@ mod verification_mocks;
 mod verify_document;
 #[path = "../verify_document_failures.rs"]
 mod verify_document_failures;
+#[path = "../verify_document_history.rs"]
+mod verify_document_history;

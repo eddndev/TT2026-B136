@@ -70,6 +70,7 @@ pub fn run(args: &VerifyArgs, json: bool) -> anyhow::Result<()> {
         crl_pem: crl.as_deref(),
         timestamp,
         evaluation_unix,
+        recorded_signing_unix: None,
     };
 
     let mut document = File::open(&args.file)

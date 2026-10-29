@@ -25,7 +25,7 @@ fn a_rejected_signature_fails_only_the_signature_component() {
     let use_case = VerifyDocument::new(
         hasher(),
         sig_verifier,
-        validator_reporting(CertificateValidation::Valid),
+        validator_reporting(CertificateValidation::Valid, 2),
         token_verifier_reporting(valid_token()),
     );
     let sig = signature();
@@ -49,11 +49,11 @@ fn a_rejected_signature_fails_only_the_signature_component() {
 }
 
 #[test]
-fn an_expired_certificate_fails_as_a_status_without_negating_the_signature() {
+fn a_certificate_expired_at_the_signing_time_fails_without_negating_the_signature() {
     let use_case = VerifyDocument::new(
         hasher(),
         accepting_signature_verifier(),
-        validator_reporting(CertificateValidation::Expired),
+        validator_reporting(CertificateValidation::Expired, 2),
         token_verifier_reporting(valid_token()),
     );
     let sig = signature();
@@ -68,11 +68,8 @@ fn an_expired_certificate_fails_as_a_status_without_negating_the_signature() {
         report.certificate.detail
     );
     assert!(
-        report
-            .certificate
-            .detail
-            .contains("does not by itself invalidate"),
-        "the phrasing must leave the legal reading to the operator: {}",
+        report.certificate.detail.contains("signing time"),
+        "the status must name the judged instant: {}",
         report.certificate.detail
     );
     assert_eq!(report.signature.status, ComponentStatus::Passed);
@@ -84,9 +81,12 @@ fn a_revoked_certificate_reports_the_matched_serial() {
     let use_case = VerifyDocument::new(
         hasher(),
         accepting_signature_verifier(),
-        validator_reporting(CertificateValidation::Revoked {
-            serial_hex: "10A3".to_string(),
-        }),
+        validator_reporting(
+            CertificateValidation::Revoked {
+                serial_hex: "10A3".to_string(),
+            },
+            2,
+        ),
         token_verifier_reporting(valid_token()),
     );
     let sig = signature();
@@ -100,6 +100,18 @@ fn a_revoked_certificate_reports_the_matched_serial() {
         "the matched serial must be reported: {}",
         report.certificate.detail
     );
+    assert!(
+        report
+            .certificate
+            .detail
+            .contains("the supplied revocation list names the certificate as revoked")
+            && !report
+                .certificate
+                .detail
+                .contains("status at the signing time"),
+        "a listed serial must not be dated at the signing time: {}",
+        report.certificate.detail
+    );
     assert_eq!(report.verdict, Verdict::NotValid);
 }
 
@@ -108,7 +120,7 @@ fn an_untrusted_issuer_fails_the_certificate_component() {
     let use_case = VerifyDocument::new(
         hasher(),
         accepting_signature_verifier(),
-        validator_reporting(CertificateValidation::UntrustedIssuer),
+        validator_reporting(CertificateValidation::UntrustedIssuer, 2),
         token_verifier_reporting(valid_token()),
     );
     let sig = signature();
@@ -126,7 +138,7 @@ fn an_imprint_mismatch_fails_integrity_and_timestamp() {
     let use_case = VerifyDocument::new(
         hasher(),
         accepting_signature_verifier(),
-        validator_reporting(CertificateValidation::Valid),
+        validator_reporting(CertificateValidation::Valid, 1),
         token_verifier_reporting(TimestampVerification::ImprintMismatch),
     );
     let sig = signature();
@@ -149,7 +161,7 @@ fn an_untrusted_token_fails_the_timestamp_but_not_the_integrity() {
     let use_case = VerifyDocument::new(
         hasher(),
         accepting_signature_verifier(),
-        validator_reporting(CertificateValidation::Valid),
+        validator_reporting(CertificateValidation::Valid, 1),
         token_verifier_reporting(TimestampVerification::UntrustedToken(
             "chain does not reach the anchor".to_string(),
         )),
@@ -177,7 +189,7 @@ fn a_malformed_token_fails_the_timestamp_and_leaves_integrity_without_reference(
     let use_case = VerifyDocument::new(
         hasher(),
         accepting_signature_verifier(),
-        validator_reporting(CertificateValidation::Valid),
+        validator_reporting(CertificateValidation::Valid, 1),
         token_verifier_reporting(TimestampVerification::MalformedToken("not der".to_string())),
     );
     let sig = signature();

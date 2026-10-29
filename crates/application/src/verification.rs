@@ -2,16 +2,18 @@
 //!
 //! One pass over the document produces a four-component report: document
 //! integrity against the digest a timestamp token attests, signature
-//! validity under the signer certificate, certificate status at an
-//! explicit evaluation time, and the timestamp token's own validity.
-//! Every component carries an outcome and its cause; components whose
-//! evidence was not supplied are reported as skipped with the reason,
-//! never silently omitted.
+//! validity under the signer certificate, certificate status at the
+//! signing time a verified timestamp token establishes, and the timestamp
+//! token's own validity. Every component carries an outcome and its cause;
+//! components whose evidence was not supplied are reported as skipped with
+//! the reason, never silently omitted.
+
+mod certificate;
 
 use std::fmt;
 use std::io::Read;
 
-use domain::crypto::certificate::{CertificateValidation, CertificateValidator};
+use domain::crypto::certificate::CertificateValidator;
 use domain::crypto::timestamp::{TimestampVerification, TimestampVerifier};
 use domain::crypto::{DocumentHasher, Signature, SignatureVerification, SignatureVerifier};
 
@@ -98,7 +100,10 @@ pub struct VerificationReport {
     pub integrity: ComponentReport,
     /// Signature validity under the signer certificate.
     pub signature: ComponentReport,
-    /// Certificate status at the evaluation time.
+    /// Certificate status at the signing time a verified timestamp token
+    /// establishes, or at the evaluation time without one. With a signing
+    /// time, the status at the evaluation time is only an informative note
+    /// in the detail.
     pub certificate: ComponentReport,
     /// Validity of the timestamp token under its trust anchor.
     pub timestamp: ComponentReport,
@@ -130,8 +135,15 @@ pub struct VerifyDocumentRequest<'a> {
     /// Timestamp token and anchor; `None` skips the token components and
     /// is reported.
     pub timestamp: Option<TimestampEvidence<'a>>,
-    /// Unix time at which the certificate status is evaluated.
+    /// Unix time of the verification run. It judges the certificate only
+    /// when no verified timestamp token establishes a signing time;
+    /// otherwise it only feeds the informative current-status note.
     pub evaluation_unix: i64,
+    /// Signing instant recorded by verified evidence other than the token,
+    /// such as the acceptance time of an individual signature. It replaces
+    /// the token generation time only when the token itself verifies;
+    /// `None` judges the certificate at the token generation time.
+    pub recorded_signing_unix: Option<i64>,
 }
 
 /// Composes the hashing, signature, certificate, and timestamp ports into
@@ -172,8 +184,9 @@ where
     /// Component rejections are outcomes inside the report, never errors.
     /// The error path is reserved for evidence that cannot be assessed at
     /// all: an unreadable stream, unparseable certificate or revocation
-    /// list bytes, an untrusted or stale revocation list, or a backend
-    /// failure of one of the ports.
+    /// list bytes, a revocation list not signed by the issuer, or a backend
+    /// failure of one of the ports. A revocation list past its next update
+    /// is an outcome of the certificate component.
     pub fn execute(
         &self,
         reader: &mut dyn Read,
@@ -220,15 +233,16 @@ where
         }
     };
 
-    let status = certificate_validator.validate(
-        request.signer_certificate_pem,
-        request.issuer_certificate_pem,
-        request.crl_pem,
-        request.evaluation_unix,
-    )?;
-    let certificate = certificate_component(&status, request.crl_pem.is_some());
+    let token = match request.timestamp {
+        None => None,
+        Some(evidence) => {
+            Some(timestamp_verifier.verify(evidence.token, &digest, evidence.trust_anchor_pem)?)
+        }
+    };
+    let certificate =
+        certificate::certificate_component(certificate_validator, request, token.as_ref())?;
 
-    let (integrity, timestamp) = match request.timestamp {
+    let (integrity, timestamp) = match &token {
         None => (
             ComponentReport::skipped(
                 "digest recomputed from the document, but without a timestamp \
@@ -236,11 +250,7 @@ where
             ),
             ComponentReport::skipped("no timestamp token supplied"),
         ),
-        Some(evidence) => {
-            let outcome =
-                timestamp_verifier.verify(evidence.token, &digest, evidence.trust_anchor_pem)?;
-            token_components(&outcome)
-        }
+        Some(outcome) => token_components(outcome),
     };
 
     let components = [&integrity, &signature, &certificate, &timestamp];
@@ -261,37 +271,6 @@ where
         timestamp,
         verdict,
     })
-}
-
-/// Renders the certificate component from the validation outcome.
-///
-/// The status speaks for the evaluation time only: a certificate that is
-/// expired or revoked now may still have been valid when the signature
-/// was made, so the wording states the status and leaves the legal
-/// reading to the operator.
-fn certificate_component(status: &CertificateValidation, crl_supplied: bool) -> ComponentReport {
-    match status {
-        CertificateValidation::Valid => {
-            let revocation = if crl_supplied {
-                "revocation checked against the supplied list"
-            } else {
-                "revocation not checked: no revocation list supplied"
-            };
-            ComponentReport::passed(format!(
-                "status at the evaluation time: valid ({revocation})"
-            ))
-        }
-        CertificateValidation::Expired | CertificateValidation::Revoked { .. } => {
-            ComponentReport::failed(format!(
-                "status at the evaluation time: {status}; this status speaks for the \
-                 evaluation time only and does not by itself invalidate a signature \
-                 made while the certificate was valid"
-            ))
-        }
-        CertificateValidation::NotYetValid | CertificateValidation::UntrustedIssuer => {
-            ComponentReport::failed(format!("status at the evaluation time: {status}"))
-        }
-    }
 }
 
 /// Renders the integrity and timestamp components from one token outcome.

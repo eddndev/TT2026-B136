@@ -115,3 +115,51 @@ fn personal_certificate_is_evaluated_at_acceptance_not_content_timestamp() {
     .with_individual_verifier(Box::new(proofs::Verifier::default()));
     reader.validate_record(&input()).unwrap();
 }
+
+#[test]
+fn personal_verification_judges_acceptance_and_reports_today_only_as_a_note() {
+    use application::verification::{ComponentStatus, Verdict};
+    use domain::crypto::{CertificateSummary, CertificateValidation, CertificateValidator};
+    struct ListExpiredToday;
+    impl CertificateValidator for ListExpiredToday {
+        fn validate(
+            &self,
+            _: &[u8],
+            _: &[u8],
+            crl: Option<&[u8]>,
+            at: i64,
+        ) -> Result<CertificateValidation, DomainError> {
+            match (at, crl.is_some()) {
+                (300, true) | (10_000, false) => Ok(CertificateValidation::Valid),
+                (10_000, true) => Err(DomainError::StaleCrl {
+                    next_update_unix: 5_000,
+                }),
+                other => panic!("unexpected evaluation {other:?}"),
+            }
+        }
+        fn inspect(&self, _: &[u8]) -> Result<CertificateSummary, DomainError> {
+            unreachable!("verification does not inspect display metadata")
+        }
+    }
+    let mut ports = super::crypto::processor_ports();
+    ports.signature_verifier = Box::new(ContentSignature);
+    ports.certificate_validator = Box::new(ListExpiredToday);
+    let reader = DocumentProcessor::new(
+        ports,
+        super::crypto::evidence_material(),
+        Zeroizing::new(vec![0x44; 32]),
+    )
+    .unwrap()
+    .with_individual_verifier(Box::new(proofs::Verifier::default()));
+    let report = reader.verify(&input(), 10_000).unwrap();
+    assert_eq!(report.certificate.status, ComponentStatus::Passed);
+    assert!(
+        report
+            .certificate
+            .detail
+            .contains("signing time 1970-01-01T00:05:00Z"),
+        "{}",
+        report.certificate.detail
+    );
+    assert_eq!(report.verdict, Verdict::Valid);
+}

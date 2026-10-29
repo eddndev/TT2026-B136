@@ -270,8 +270,11 @@ pub struct VerifyArgs {
     /// --ca certificate, which anchors the internal authorities.
     #[arg(long)]
     pub tsa_cert: Option<PathBuf>,
-    /// Evaluate the certificate status at this RFC 3339 instant
-    /// instead of the current time.
+    /// Evaluation time as an RFC 3339 instant instead of the current
+    /// time. A verified timestamp token fixes the instant at which the
+    /// certificate is judged; this time then only adds an informative
+    /// current-status note. Without a verified token it is the instant
+    /// at which the certificate is judged.
     #[arg(long)]
     pub at: Option<String>,
 }

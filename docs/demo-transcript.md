@@ -20,7 +20,11 @@ ejecución y se destruyeron al terminar; no protegen nada.
 Esta transcripción es histórica: fue capturada antes de la calibración final
 de Argon2id y conserva la salida correspondiente a los parámetros anteriores.
 La corrida de cierre y los parámetros vigentes están documentados en
-`docs/verification-report.md`.
+`docs/verification-report.md`. Las líneas `certificate:` conservan la redacción
+de esa fecha, que evaluaba el certificado en la fecha de ejecución; la versión
+actual lo juzga en el `genTime` del sello verificado y agrega el estado de la
+fecha de ejecución como nota informativa, según
+[ADR-0019](adr/0019-immutable-document-versions.md).
 
 ```text
 =====================================================================

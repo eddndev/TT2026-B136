@@ -17,6 +17,7 @@ use application::verification::{
     ComponentReport, ComponentStatus, TimestampEvidence, Verdict, VerifyDocument,
     VerifyDocumentRequest,
 };
+use domain::crypto::certificate::{CertificateValidation, CertificateValidator};
 use domain::crypto::Signature;
 use infrastructure::{
     openssl_version, Rfc3161Verifier, RingSha256Hasher, RsaPkcs1Verifier, StoredZipWriter,
@@ -132,6 +133,24 @@ fn verify_artifacts(
 ) -> anyhow::Result<()> {
     let signature = Signature::from_bytes(signature_bytes.to_vec())
         .context("the supplied signature file does not hold a signature")?;
+    let evaluation_unix = now_unix()?;
+    // The report judges the certificate at the token time, but the
+    // documented `openssl verify -crl_check` judges the certificate and the
+    // list at the current time, so the gate also requires that status.
+    let current = X509ChainValidator::new()
+        .validate(
+            signer_certificate_pem,
+            issuer_certificate_pem,
+            Some(crl_pem),
+            evaluation_unix,
+        )
+        .context("the artifacts could not be verified before export")?;
+    if current != CertificateValidation::Valid {
+        anyhow::bail!(
+            "refusing to export: the package would fail its own verification \
+             instructions; the certificate status at the current time is {current}"
+        );
+    }
     let request = VerifyDocumentRequest {
         signature: &signature,
         signer_certificate_pem,
@@ -145,7 +164,8 @@ fn verify_artifacts(
             // the token against the same anchor.
             trust_anchor_pem: tsa_chain_pem.unwrap_or(issuer_certificate_pem),
         }),
-        evaluation_unix: now_unix()?,
+        evaluation_unix,
+        recorded_signing_unix: None,
     };
 
     let use_case = VerifyDocument::new(
