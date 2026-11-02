@@ -5,24 +5,23 @@ use std::sync::Arc;
 use anyhow::Context;
 use application::case_stages::CaseStageService;
 use application::cases::CaseService;
-use application::deadline_profiles::DeadlineProfileService;
-use application::deadlines::DeadlineService;
 use application::documents::CaseDocumentService;
 use application::identity::SessionPolicy;
-use application::judicial_calendars::JudicialCalendarService;
 use application::participants::ParticipantService;
 use application::procedural_facts::ProceduralFactService;
 use application::typed_participants::TypedParticipantService;
 use infrastructure::case_stages::PostgresCaseStageStore;
 use infrastructure::certificates::InternalRsaDeclarationVerifier;
+use infrastructure::PostgresProceduralFactStore;
 use infrastructure::{
-    PostgresCaseDocumentStore, PostgresCaseRepository, PostgresJudicialCalendarStore,
-    PostgresParticipantStore, PostgresTypedParticipantStore, RingSha256Hasher, SystemClock,
+    PostgresCaseDocumentStore, PostgresCaseRepository, PostgresParticipantStore,
+    PostgresTypedParticipantStore, RingSha256Hasher, SystemClock,
 };
-use infrastructure::{PostgresDeadlineProfileStore, PostgresProceduralFactStore};
 
 use crate::cli::ServeArgs;
 
+mod catalogs;
+mod deadline_services;
 mod derived_deadlines;
 mod documents;
 mod evidence_trust;
@@ -34,6 +33,7 @@ mod owner_certificates;
 mod owner_login_acceptance;
 use crate::serve_deadline_runtime::DeadlineRuntimeConfig;
 use crate::vault_cmd::load_kek;
+use deadline_services::DeadlineServices;
 use inputs::required_env;
 
 const KEK_VAR: &str = "KEK_BASE64";
@@ -188,85 +188,14 @@ pub fn run(args: &ServeArgs) -> anyhow::Result<()> {
                     resource_hasher,
                     resource_clock,
                 );
-            let calendar_hasher = Arc::new(RingSha256Hasher::new());
-            let calendar_clock = Arc::new(SystemClock::new());
-            let calendars = JudicialCalendarService::new(
-                Arc::new(
-                    PostgresJudicialCalendarStore::open(
-                        database,
-                        calendar_hasher.clone(),
-                        calendar_clock.clone(),
-                    )
-                    .context("cannot open PostgreSQL judicial calendar store")?,
-                ),
-                identity.clone(),
-                calendar_hasher,
-                calendar_clock,
-            );
-            let profile_hasher = Arc::new(RingSha256Hasher::new());
-            let profile_clock = Arc::new(SystemClock::new());
-            let profiles = DeadlineProfileService::new(
-                Arc::new(
-                    PostgresDeadlineProfileStore::open(
-                        database,
-                        profile_hasher.clone(),
-                        profile_clock.clone(),
-                    )
-                    .context("cannot open PostgreSQL deadline profile store")?,
-                ),
-                identity.clone(),
-                profile_hasher,
-                profile_clock,
-            );
-            let deadline_hasher = Arc::new(RingSha256Hasher::new());
-            let deadline_clock = Arc::new(SystemClock::new());
-            let dispatch = infrastructure::PostgresDeadlineDispatchStore::open(
-                database,
-                deadline_hasher.clone(),
-                deadline_clock.clone(),
-            )
-            .context("cannot open PostgreSQL deadline dispatcher")?;
-            let worker = infrastructure::PostgresDeadlineWorkerStore::open(
-                database,
-                deadline_hasher.clone(),
-                deadline_clock.clone(),
-            )
-            .context("cannot open PostgreSQL deadline worker")?;
-            let dashboard = application::dashboard::DashboardService::new(
-                Arc::new(
-                    infrastructure::PostgresDashboardStore::open(
-                        database,
-                        deadline_hasher.clone(),
-                        deadline_clock.clone(),
-                    )
-                    .context("cannot open PostgreSQL dashboard store")?,
-                ),
-                identity.clone(),
-            );
-            let agenda = application::agenda::AgendaService::new(
-                Arc::new(
-                    infrastructure::PostgresAgendaStore::open(
-                        database,
-                        deadline_hasher.clone(),
-                        deadline_clock.clone(),
-                    )
-                    .context("cannot open PostgreSQL agenda store")?,
-                ),
-                identity.clone(),
-            );
-            let deadlines = DeadlineService::new(
-                Arc::new(
-                    infrastructure::PostgresDeadlineStore::open(
-                        database,
-                        deadline_hasher.clone(),
-                        deadline_clock.clone(),
-                    )
-                    .context("cannot open PostgreSQL deadline store")?,
-                ),
-                identity.clone(),
-                deadline_hasher,
-                deadline_clock,
-            );
+            let (calendars, profiles) = catalogs::open(database, identity.clone())?;
+            let DeadlineServices {
+                dispatch,
+                worker,
+                dashboard,
+                agenda,
+                deadlines,
+            } = deadline_services::open(database, identity.clone())?;
             let (document_content, document_integrity) =
                 documents::access(&repository, &identity, &processor);
             let evidence_trust = evidence_trust::open(database, identity.clone(), &processor)?;
