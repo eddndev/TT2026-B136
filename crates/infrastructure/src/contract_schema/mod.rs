@@ -2,7 +2,9 @@
 //! contracts: docs/adr/0086-bilateral-contract-signing.md.
 mod checks;
 mod columns;
+mod completion;
 mod constraints;
+mod evidence;
 mod functions;
 mod indexes;
 mod inventory;
@@ -41,9 +43,11 @@ pub(crate) fn validate_schema<C: CatalogClient>(client: &mut C) -> Result<(), Ap
     triggers::validate(client)
 }
 
-/// Checks stored links and rebuilt statements in SQL.
+/// Checks stored links in SQL, then rebuilds statements and rechecks
+/// signatures, time-stamps and manifests with historical trust.
 pub(crate) fn validate_inventory<C: GenericClient>(client: &mut C) -> Result<(), ApplicationError> {
-    inventory::validate(client)
+    inventory::validate(client)?;
+    evidence::validate(client)
 }
 
 fn incomplete() -> ApplicationError {

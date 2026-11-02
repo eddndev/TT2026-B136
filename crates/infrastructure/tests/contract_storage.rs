@@ -12,7 +12,7 @@ mod signing_binding_support;
 
 use contract_storage_support::{
     flow::{insert_event, resource, Event},
-    in_transaction, opens, rejection, Harness,
+    in_transaction, opens, rejection, tamper, Harness,
 };
 use serde_json::Value;
 use uuid::Uuid;
@@ -251,6 +251,31 @@ fn audit_rows_accept_exactly_the_contract_event_reference_among_twenty_eight_tri
         )
         .unwrap();
     assert!(!opens(&test));
+}
+
+#[test]
+fn the_startup_recheck_rejects_a_changed_signature_or_manifest() {
+    for target in ["signature", "manifest"] {
+        let Some(mut test) = Harness::new() else {
+            return;
+        };
+        let request = test.prepare(test.now() + 60, 7);
+        test.insert_request(&request).unwrap();
+        test.sign_client(&request, request.created() + 60).unwrap();
+        test.sign_firm(&request, request.created() + 120).unwrap();
+        assert!(opens(&test));
+        tamper(
+            &mut test,
+            if target == "signature" {
+                "UPDATE contract_party_signatures
+                SET signature=set_byte(signature,8,get_byte(signature,8) # 1) WHERE \"position\"=2"
+            } else {
+                "UPDATE contract_completions SET manifest=manifest || ' '::bytea,
+                manifest_sha256=sha256(manifest || ' '::bytea)"
+            },
+        );
+        assert!(!opens(&test), "{target}");
+    }
 }
 
 #[test]
