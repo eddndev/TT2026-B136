@@ -6,7 +6,8 @@
 use super::errors::{port, refusal};
 use application::{
     contracts::{
-        ContractCommand, ContractNotice, ContractWrite, EventKind, ExpiryStep, EXPIRY_ACTOR,
+        ContractCommand, ContractNotice, ContractWorkflowError, ContractWrite, EventKind,
+        ExpiryStep, EXPIRY_ACTOR,
     },
     identity::Principal,
     ApplicationError,
@@ -174,6 +175,11 @@ pub(super) fn insert_root(
     else {
         return Err(super::errors::inconsistent());
     };
+    // Without staff scope on the case, a missing document, a document and a
+    // document that already has a contract all read alike.
+    if !super::read::staff_scope(tx, actor, case.as_uuid())? {
+        return Err(ContractWorkflowError::NotFound.into());
+    }
     let series = tx
         .query_opt(
             "SELECT 1 FROM document_series WHERE id=$1 AND case_id=$2",

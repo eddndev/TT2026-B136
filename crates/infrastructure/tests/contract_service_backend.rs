@@ -153,6 +153,35 @@ fn a_different_signature_for_the_same_operation_conflicts() {
 }
 
 #[test]
+fn an_unassigned_litigator_cannot_tell_documents_or_contracts_apart() {
+    let Some(mut live) = Live::new() else { return };
+    let id = live.test.db().user("litigator", false);
+    let outsider = signing_binding_support::principal(live.test.db(), id);
+    let case = live.test.individual.db.case;
+    let document = live.test.individual.record.id;
+    let create = |live: &Live, document| {
+        live.service(&outsider)
+            .create(TOKEN, case, Uuid::new_v4(), document, "Contrato ajeno")
+    };
+    let missing = domain::crypto::DocumentId::from_uuid(Uuid::new_v4());
+    assert_eq!(
+        contract_error(create(&live, missing)),
+        ContractWorkflowError::NotFound
+    );
+    assert_eq!(
+        contract_error(create(&live, document)),
+        ContractWorkflowError::NotFound
+    );
+    let mut live = live.requested();
+    assert_eq!(
+        contract_error(create(&live, document)),
+        ContractWorkflowError::NotFound
+    );
+    assert_eq!(live.count("contracts"), 1);
+    assert_eq!(audits(&mut live, "contract.created"), 1);
+}
+
+#[test]
 fn staff_without_a_designation_cannot_sign_and_strangers_learn_nothing() {
     let Some(live) = Live::new() else { return };
     let mut live = live.requested();

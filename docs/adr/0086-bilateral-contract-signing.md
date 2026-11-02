@@ -746,7 +746,10 @@ These details are fixed by the service:
   next cycle; any other failure ends the consumer, which stops the server
   like every other supervised consumer.
 - Creating a second contract for a document series answers 409
-  `contract_exists`; the series identifies its contract.
+  `contract_exists`; the series identifies its contract. The store checks
+  the creator's staff scope on the case under its locks before it looks up
+  the document, so a creator without scope receives `contract_not_found`
+  whether the document is missing, exists or already has a contract.
 - Document lists, details and version histories carry the derived
   `contract_state` of the series (`None` without a contract), computed in SQL
   with the instant of the read. The `sealed=false` filter omits a current
