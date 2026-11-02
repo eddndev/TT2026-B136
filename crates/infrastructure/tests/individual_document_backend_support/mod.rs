@@ -23,7 +23,11 @@ pub struct Harness {
 }
 impl Harness {
     pub fn new() -> Option<Self> {
-        let (mut db, clock, actor) = binding::fixture()?;
+        Self::new_at(crate::declaration_fixture::fixture().at)
+    }
+    /// The same harness with trust, binding and document written at `at`.
+    pub fn new_at(at: i64) -> Option<Self> {
+        let (mut db, clock, actor) = binding::fixture_at(at)?;
         db.admin
             .execute(
                 "INSERT INTO case_memberships(case_id,user_id) VALUES($1,$2)",

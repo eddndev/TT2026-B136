@@ -717,6 +717,15 @@ These details are fixed by the service:
 - The expiry closer runs with no actor, writes one `expired` event per
   exhausted unclosed request, at most 20 per cycle, and skips a request
   whose revision another writer changed in between.
+- Creating a second contract for a document series answers 409
+  `contract_exists`; the series identifies its contract.
+- `PostgresContractStore` returns a contract to a party without staff scope
+  with only the requests that designate it, and blanks the actor and reason
+  of every event of another request, while keeping every revision so the
+  party can send the right `expected_revision`. The store finds the exact
+  replay of an operation inside the write transaction, after the audited
+  mutation lock and the contract lock, before rechecking the author and the
+  expected revision, and maps each trigger refusal to its contract error.
 
 ## Consequences
 

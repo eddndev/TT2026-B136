@@ -51,6 +51,28 @@ impl Verifier {
         Ok(crl.trust(&root))
     }
 
+    /// Whether `certificate`, issued by `root`, is listed in `crl` at `at`;
+    /// it checks no signature and no validity period of the certificate.
+    pub fn revocation(
+        &self,
+        certificate: &[u8],
+        root: &[u8],
+        crl: &[u8],
+        at: i64,
+    ) -> Result<(), CredentialFailure> {
+        bounds(certificate, CERTIFICATE_LIMIT)?;
+        bounds(root, CERTIFICATE_LIMIT)?;
+        bounds(crl, CRL_LIMIT)?;
+        let leaf = profile::certificate(certificate, self.0)?;
+        let root = profile::certificate(root, Profile::Root)?;
+        leaf.check_issuer(&root)?;
+        let crl = revocation::inspect(crl, &root, at)?;
+        if crl.revoked(&leaf.certificate.tbs_certificate.serial_number) {
+            return Err(CredentialFailure::Revoked);
+        }
+        Ok(())
+    }
+
     pub fn verify(
         &self,
         statement_digest: &Sha256Digest,

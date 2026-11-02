@@ -35,6 +35,8 @@ impl ContractBlockers {
 pub enum ContractWorkflowError {
     #[error("contract was not found")]
     NotFound,
+    #[error("the document series already has a contract")]
+    Exists,
     #[error("contract revision differs from the expected revision")]
     RevisionConflict,
     #[error("an open contract request already exists")]

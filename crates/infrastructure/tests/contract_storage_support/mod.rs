@@ -38,7 +38,12 @@ impl Harness {
 
     /// The parties and the document, before any contract row or audit exists.
     pub fn without_contract() -> Option<Self> {
-        let mut individual = Individual::new()?;
+        Self::without_contract_at(crate::declaration_fixture::fixture().at)
+    }
+
+    /// The same parties and document, registered at `at`, Unix seconds.
+    pub fn without_contract_at(at: i64) -> Option<Self> {
+        let mut individual = Individual::new_at(at)?;
         let firm_binding = binding::store(&individual.db, &individual.clock)
             .find(individual.actor.id, individual.binding_id)
             .unwrap()

@@ -8,6 +8,7 @@
 //! docs/adr/0004-certificate-validation-implementation.md.
 
 mod authority;
+mod contract_signing;
 mod document_signing;
 mod internal_declaration;
 mod internal_profile;

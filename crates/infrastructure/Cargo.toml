@@ -471,6 +471,10 @@ name = "contract_storage_migration"
 path = "tests/contract_storage_migration.rs"
 
 [[test]]
+name = "contract_service_backend"
+path = "tests/contract_service_backend.rs"
+
+[[test]]
 name = "evidence_statement_parity"
 path = "tests/evidence_statement_parity.rs"
 
