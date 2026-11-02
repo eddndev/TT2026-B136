@@ -24,6 +24,9 @@ runtime-data/
 # scripts/evidence-verify-fixtures.sh; they hold no private material.
 !crates/evidence-verify/tests/fixtures/*.tsr
 !crates/evidence-verify/tests/fixtures/*.sig
+# The same for scripts/evidence-verify-contract-fixtures.sh.
+!crates/evidence-verify/tests/contract-fixtures/*.tsr
+!crates/evidence-verify/tests/contract-fixtures/*.sig
 
 # Node / frontend
 node_modules
