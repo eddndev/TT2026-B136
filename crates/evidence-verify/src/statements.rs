@@ -135,9 +135,13 @@ pub fn uuid_text(uuid: [u8; 16]) -> String {
 const BINDING_MAGIC: &[u8; 8] = b"DOCBIND1";
 const CONSENT_MAGIC: &[u8; 8] = b"DOCSIGN1";
 /// Byte 8 is the purpose number and byte 9 the format version; both are 1.
-const FORMAT: [u8; 2] = [1, 1];
+pub(crate) const FORMAT: [u8; 2] = [1, 1];
 
-fn header<'a>(bytes: &'a [u8], magic: &[u8; 8], length: usize) -> Result<&'a [u8], Finding> {
+pub(crate) fn header<'a>(
+    bytes: &'a [u8],
+    magic: &[u8; 8],
+    length: usize,
+) -> Result<&'a [u8], Finding> {
     if bytes.len() != length {
         return Err(Finding::failed(
             "statement.length",
@@ -158,7 +162,7 @@ fn header<'a>(bytes: &'a [u8], magic: &[u8; 8], length: usize) -> Result<&'a [u8
 
 /// Reads the shared prefix in the order of the domain constructors: account,
 /// account counters, then deployment, binding and trust revision.
-fn prefix(bytes: &[u8]) -> Result<BindingStatement, Finding> {
+pub(crate) fn prefix(bytes: &[u8]) -> Result<BindingStatement, Finding> {
     let account = identity(bytes, 62, "account")?;
     let account_revision = u64::from_be_bytes(field(bytes, 78));
     let authentication_generation = u64::from_be_bytes(field(bytes, 86));
@@ -195,7 +199,7 @@ fn prefix(bytes: &[u8]) -> Result<BindingStatement, Finding> {
     })
 }
 
-fn write_prefix(bytes: &mut [u8], magic: &[u8; 8], statement: &BindingStatement) {
+pub(crate) fn write_prefix(bytes: &mut [u8], magic: &[u8; 8], statement: &BindingStatement) {
     bytes[..8].copy_from_slice(magic);
     bytes[8..10].copy_from_slice(&FORMAT);
     bytes[10..26].copy_from_slice(&statement.deployment);
@@ -209,13 +213,17 @@ fn write_prefix(bytes: &mut [u8], magic: &[u8; 8], statement: &BindingStatement)
 }
 
 /// Copies a fixed-width field; callers have already checked the full length.
-fn field<const N: usize>(bytes: &[u8], offset: usize) -> [u8; N] {
+pub(crate) fn field<const N: usize>(bytes: &[u8], offset: usize) -> [u8; N] {
     let mut value = [0; N];
     value.copy_from_slice(&bytes[offset..offset + N]);
     value
 }
 
-fn identity(bytes: &[u8], offset: usize, name: &'static str) -> Result<[u8; 16], Finding> {
+pub(crate) fn identity(
+    bytes: &[u8],
+    offset: usize,
+    name: &'static str,
+) -> Result<[u8; 16], Finding> {
     let value = field(bytes, offset);
     if value == [0; 16] {
         return Err(Finding::failed("statement.nil_identity", name));
@@ -225,7 +233,7 @@ fn identity(bytes: &[u8], offset: usize, name: &'static str) -> Result<[u8; 16],
 
 /// Re-encodes the decoded values and requires the supplied bytes exactly, as
 /// the domain decoder does after construction.
-fn exact(supplied: &[u8], expected: &[u8]) -> Result<(), Finding> {
+pub(crate) fn exact(supplied: &[u8], expected: &[u8]) -> Result<(), Finding> {
     if supplied != expected {
         return Err(Finding::failed(
             "statement.not_canonical",
