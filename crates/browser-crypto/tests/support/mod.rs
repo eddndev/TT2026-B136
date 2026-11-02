@@ -11,6 +11,7 @@ pub struct Fixture {
     pub directory: tempfile::TempDir,
     pub key: String,
     pub csr: String,
+    pub spki_sha256: String,
     pub cert: Vec<u8>,
 }
 
@@ -57,6 +58,7 @@ pub fn fixture() -> &'static Fixture {
             directory,
             key: generated.encrypted_key_pem,
             csr: generated.csr_pem,
+            spki_sha256: generated.spki_sha256,
             cert,
         }
     })

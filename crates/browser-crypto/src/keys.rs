@@ -59,7 +59,7 @@ fn generate_with_entropy(
         .map_err(|_| CryptoError("generation_failed"))?;
     let signing_key =
         KeyPair::from_pkcs8(private.as_bytes()).map_err(|_| CryptoError("generation_failed"))?;
-    let csr_pem = request::create(&key, &signing_key, subject)?;
+    let (csr_pem, spki_sha256) = request::create(&key, &signing_key, subject)?;
     let mut salt = [0u8; 16];
     let mut iv = [0u8; 16];
     entropy(&mut salt)?;
@@ -77,6 +77,7 @@ fn generate_with_entropy(
     Ok(GeneratedKey {
         encrypted_key_pem,
         csr_pem,
+        spki_sha256,
     })
 }
 

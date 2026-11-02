@@ -8,6 +8,7 @@ use pkcs8::{
     EncodePublicKey,
 };
 use ring::signature::{UnparsedPublicKey, RSA_PKCS1_2048_8192_SHA256};
+use sha2::{Digest, Sha256};
 use x509_cert::{
     attr::AttributeTypeAndValue,
     name::{Name, RdnSequence, RelativeDistinguishedName},
@@ -43,11 +44,13 @@ pub(crate) fn subject(cn: &str, organization: &str, country: &str) -> Result<Nam
     Ok(RdnSequence(rdns))
 }
 
+/// Returns the PEM request and the hexadecimal SHA-256 of its exact DER
+/// SubjectPublicKeyInfo, which an issued certificate copies unchanged.
 pub(crate) fn create(
     key: &rsa::RsaPrivateKey,
     signer: &ring::rsa::KeyPair,
     subject: Name,
-) -> Result<String> {
+) -> Result<(String, String)> {
     let spki = key
         .to_public_key()
         .to_public_key_der()
@@ -65,6 +68,14 @@ pub(crate) fn create(
             .to_der()
             .map_err(|_| CryptoError("generation_failed"))?,
     )?;
+    let spki_sha256 = format!(
+        "{:x}",
+        Sha256::digest(
+            info.public_key
+                .to_der()
+                .map_err(|_| CryptoError("generation_failed"))?
+        )
+    );
     let request = CertReq {
         info,
         algorithm: AlgorithmIdentifierOwned {
@@ -77,9 +88,10 @@ pub(crate) fn create(
         signature: BitString::from_bytes(&signature)
             .map_err(|_| CryptoError("generation_failed"))?,
     };
-    request
+    let pem = request
         .to_pem(der::pem::LineEnding::LF)
-        .map_err(|_| CryptoError("generation_failed"))
+        .map_err(|_| CryptoError("generation_failed"))?;
+    Ok((pem, spki_sha256))
 }
 
 pub(crate) fn parse(pem: &str) -> Result<CertReq> {

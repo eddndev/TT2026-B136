@@ -25,6 +25,11 @@ impl std::error::Error for CryptoError {}
 pub struct GeneratedKey {
     pub encrypted_key_pem: String,
     pub csr_pem: String,
+    /// Lowercase hexadecimal SHA-256 of the DER SubjectPublicKeyInfo in the
+    /// request, the same value `inspect` later reports for the issued
+    /// certificate. The holder reads it to the CA operator before issuance:
+    /// docs/adr/0086-bilateral-contract-signing.md.
+    pub spki_sha256: String,
 }
 
 #[derive(Debug, Serialize)]
