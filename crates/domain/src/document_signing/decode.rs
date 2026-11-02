@@ -6,7 +6,7 @@ use super::{
 use crate::{
     cases::CaseId,
     crypto::{DocumentId, DocumentVersion, DocumentVersionRef, Sha256Digest},
-    identity::{Role, UserId},
+    identity::UserId,
 };
 use uuid::Uuid;
 
@@ -43,7 +43,8 @@ impl DocumentConsent {
     }
 }
 
-fn prefix(
+/// Reads the shared 142-byte prefix after checking length, purpose and format.
+pub(super) fn prefix(
     bytes: &[u8],
     purpose: &[u8; 8],
     length: usize,
@@ -51,10 +52,8 @@ fn prefix(
     if bytes.len() != length || &bytes[..8] != purpose || bytes[8..10] != [1, 1] {
         return Err(SigningError::StatementMismatch);
     }
-    let account = SignerAccount::new(
+    let account = SignerAccount::from_signed_counters(
         UserId::from_uuid(Uuid::from_bytes(field(bytes, 62)?)),
-        Role::Litigator,
-        true,
         u64::from_be_bytes(field(bytes, 78)?),
         u64::from_be_bytes(field(bytes, 86)?),
     )?;
@@ -68,7 +67,7 @@ fn prefix(
     Ok((account, material))
 }
 
-fn field<const N: usize>(bytes: &[u8], offset: usize) -> Result<[u8; N], SigningError> {
+pub(super) fn field<const N: usize>(bytes: &[u8], offset: usize) -> Result<[u8; N], SigningError> {
     bytes
         .get(offset..offset + N)
         .and_then(|value| value.try_into().ok())

@@ -4,6 +4,7 @@
 //! Rationale: docs/adr/0074-individual-document-signatures.md.
 
 mod consent;
+pub mod contract;
 mod decode;
 
 pub use consent::DocumentConsent;
@@ -21,6 +22,8 @@ use crate::{
 pub enum SigningError {
     #[error("an active litigator account is required")]
     LitigatorRequired,
+    #[error("an active owner, litigator or client account is required")]
+    ContractSignerRequired,
     #[error("certificate binding belongs to another signing account")]
     DifferentAccount,
     #[error("individual signing identities must not be nil")]
@@ -50,12 +53,48 @@ impl SignerAccount {
         revision: u64,
         generation: u64,
     ) -> Result<Self, SigningError> {
-        if id.as_uuid().is_nil() {
-            return Err(SigningError::InvalidIdentity);
-        }
+        Self::require_identity(id)?;
         if role != Role::Litigator || !active {
             return Err(SigningError::LitigatorRequired);
         }
+        Self::counted(id, revision, generation)
+    }
+
+    /// Requires an active party of a bilateral contract: an Owner or Litigator
+    /// firm signer, or a Client. Rationale:
+    /// docs/adr/0086-bilateral-contract-signing.md.
+    pub fn for_contract(
+        id: UserId,
+        role: Role,
+        active: bool,
+        revision: u64,
+        generation: u64,
+    ) -> Result<Self, SigningError> {
+        Self::require_identity(id)?;
+        if !matches!(role, Role::Owner | Role::Litigator | Role::Client) || !active {
+            return Err(SigningError::ContractSignerRequired);
+        }
+        Self::counted(id, revision, generation)
+    }
+
+    /// Account facts read back from signed bytes, which carry no role.
+    pub(crate) fn from_signed_counters(
+        id: UserId,
+        revision: u64,
+        generation: u64,
+    ) -> Result<Self, SigningError> {
+        Self::require_identity(id)?;
+        Self::counted(id, revision, generation)
+    }
+
+    fn require_identity(id: UserId) -> Result<(), SigningError> {
+        if id.as_uuid().is_nil() {
+            return Err(SigningError::InvalidIdentity);
+        }
+        Ok(())
+    }
+
+    fn counted(id: UserId, revision: u64, generation: u64) -> Result<Self, SigningError> {
         if revision > i64::MAX as u64 || generation > revision {
             return Err(SigningError::InvalidAccountVersion);
         }
