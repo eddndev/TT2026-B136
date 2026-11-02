@@ -28,6 +28,9 @@ path = "tests/suites/agenda_suite_1.rs"
 name = "contract_service"
 path = "tests/contract_service.rs"
 [[test]]
+name = "contract_service_access"
+path = "tests/contract_service_access.rs"
+[[test]]
 name = "alert_suite_1"
 path = "tests/suites/alert_suite_1.rs"
 [[test]]

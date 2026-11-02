@@ -102,8 +102,15 @@ impl ContractService {
             .store
             .contract_by_request(principal, request)?
             .ok_or(Error::NotFound)?;
+        // A party without case scope receives only the requests that
+        // designate it, so another request of the same contract is absent.
         if snapshot.request(request).is_none() {
-            return Err(Error::Inconsistent.into());
+            let missing = if snapshot.case_scope {
+                Error::Inconsistent
+            } else {
+                Error::NotFound
+            };
+            return Err(missing.into());
         }
         Ok(snapshot)
     }
