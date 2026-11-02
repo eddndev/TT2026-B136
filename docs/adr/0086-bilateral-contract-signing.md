@@ -270,6 +270,51 @@ application data, not signed bytes. The version 1 manifest parser and
 records each party's `accepted_at`, `completed_at`, the ceremony reference and
 `provenance: application-record`; no token covers it and it decides nothing.
 
+**Contract manifest members.** The top-level members are exactly
+`profile`, `profile_version`, `purpose`, `deployment_id`, `case_id`,
+`request_id`, `document_id`, `document_version` (at least 1),
+`document_sha256`, `request_sha256` (of `contrato-solicitud.bin`),
+`expires_at` (the request's, non-negative integer Unix seconds), `algorithms`,
+`artifacts` and `signers`. Identifiers are lowercase hyphenated UUIDs and
+digests lowercase hexadecimal. The artifacts are sorted by entry name in byte
+order, each `(party, role)` pair appears once, and each pair names exactly
+one entry:
+
+| Party | Role | Entry |
+|---|---|---|
+| 0 | `document` | `contrato.pdf` |
+| 0 | `document-timestamp` | `contrato.pdf.tsr` |
+| 0 | `request` | `contrato-solicitud.bin` |
+| 0 | `issuer-certificate` | `ca.pem` |
+| 0 | `tsa-chain` | `tsa-chain.pem` |
+| N | `statement` | `parte-N-declaracion.bin` |
+| N | `statement-signature` | `parte-N-declaracion.sig` |
+| N | `signer-certificate` | `parte-N-certificado.pem` |
+| N | `issuer-crl` | `parte-N-crl.pem` |
+| N | `binding-statement` | `parte-N-vinculo.bin` |
+| N | `binding-signature` | `parte-N-vinculo.sig` |
+| N | `binding-root` | `parte-N-vinculo-raiz.der` |
+| N | `binding-crl` | `parte-N-vinculo-crl.der` |
+| 1 | `statement-timestamp` | `parte-1-declaracion.sig.tsr` |
+| 1 | `statement-tsa-chain` | `parte-1-tsa-chain.pem` |
+
+N is 1 or 2, so a full manifest lists 23 artifacts. The two signers come in
+position order: `id` is `signer-1` or `signer-2`, `position` 1 or 2, `side`
+`client` or `firm`, and `account_role` `client` for position 1 and `owner` or
+`litigator` for position 2. `account_id`, `binding_id` and `operation_id` are
+the party's, `binding_registered_at` is non-negative integer Unix seconds, and
+`entries` has exactly the members `statement`, `statement_signature`,
+`signer_certificate`, `issuer_crl`, `binding_statement`, `binding_signature`,
+`binding_root` and `binding_crl`, each naming that party's entry of the
+matching role. A schema departure fails `manifest.contract_schema`.
+
+**`contrato-recibo.json`** is RFC 8785 JSON with exactly these keys:
+`provenance` (the string `application-record`), `request_id`,
+`request_sha256`, `ceremony_reference` (1 to 80 characters),
+`client_accepted_at`, `firm_accepted_at` and `completed_at` (non-negative
+integer Unix seconds). A malformed file fails `receipt.contract_schema`; its
+values are reported as application records and decide nothing.
+
 **Partial package, profile `BilateralContractPartialV1`: 14 mandatory entries
 plus the optional `INSTRUCCIONES.md`.** `contrato.pdf`,
 `contrato-solicitud.bin`, `contrato-acuse-parcial.json`, `ca.pem`, the eight
@@ -310,6 +355,27 @@ historical result (`crl.revoked_later`) and the current state is informative.
 The check components stay the eight of ADR 0085; the document token component
 becomes optional so that the partial package reports it as not applicable,
 while v1 and v2 reports are unchanged.
+
+**Checks.** Each party statement must name the request, the SHA-256 of
+`contrato-solicitud.bin`, the PDF digest of the request and of `contrato.pdf`,
+its own position, and the account and certificate leaf the request fixes for
+that position, which must be the digest of `parte-N-certificado.pem`; any
+departure fails `contract.statement_mismatch` or `contract.party_mismatch`.
+Each party's `DOCBIND1` binding must describe the same deployment, account,
+binding, root and leaf as its statement, with counters that do not decrease.
+Both statements and both binding roots must name `ca.pem`
+(`contract.root_mismatch`). The serial of the position 1 certificate counts as
+revoked in `parte-2-crl.pem` when its revocation instant is not after the end
+of the Tf interval (`genTime` plus accuracy), the same bound every other
+revocation check uses. In the full package each `binding_registered_at` of
+the manifest must not be after the end of its party's token interval. The
+components are: Td for the document token; both statement signatures and T1
+for the document signature; the request, statements and bindings for binding
+and consent; each party's chain and the three time-stamping chains for
+certificates; each party's binding and signature CRL, each token's
+time-stamping CRL and the counterparty rule for revocation; the manifest, its
+coverage and Tf for the manifest; and the hash chain, the token order, the
+validity window, the receipts and `contract.partial` for the context.
 
 ### Finding codes
 
