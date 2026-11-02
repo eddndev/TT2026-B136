@@ -27,8 +27,9 @@ const INDIVIDUAL_STATEMENT_LIMIT: u64 = 4 * MIB + MIB / 2;
 /// Limit for every other entry, with a fixed name or without one.
 const OTHER_LIMIT: u64 = 64 * KIB;
 
-/// Names fixed in every package profile, which can never be the document.
-const NAMES_FIXED_IN_EVERY_PROFILE: [&str; 5] = [
+/// Names fixed in every profile that admits a free document name, so none
+/// of them can ever be the document.
+const NAMES_NEVER_DOCUMENT: [&str; 5] = [
     "certificado.pem",
     "ca.pem",
     "crl.pem",
@@ -41,18 +42,18 @@ const NAMES_FIXED_IN_EVERY_PROFILE: [&str; 5] = [
 ///
 /// The document is not known before a profile is selected, so any name
 /// that has both a `.sig` and a `.tsr` sibling may hold a document, unless
-/// it is fixed in every profile. A server seal document may carry a name
+/// it can never be one. A server seal document may carry a name
 /// that only the individual signing profiles fix, so such a candidate takes
 /// the document limit instead of the fixed one. Every other entry without a
 /// fixed limit, including the document's signature and response, takes the
 /// 64 KiB limit.
 pub(super) fn entry_limit(name: &[u8], names: &[&[u8]]) -> u64 {
-    let fixed_everywhere = NAMES_FIXED_IN_EVERY_PROFILE
+    let never_document = NAMES_NEVER_DOCUMENT
         .iter()
         .any(|fixed| fixed.as_bytes() == name);
     if name == b"crl.pem" {
         CRL_LIMIT
-    } else if fixed_everywhere {
+    } else if never_document {
         OTHER_LIMIT
     } else if is_document_candidate(name, names) {
         DOCUMENT_LIMIT

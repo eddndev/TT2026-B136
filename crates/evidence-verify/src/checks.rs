@@ -51,7 +51,7 @@ pub(crate) struct Checked {
 /// The findings of every component after the package, in report order;
 /// `None` marks a component the profile does not include.
 struct Components {
-    document_token: Vec<Finding>,
+    document_token: Option<Vec<Finding>>,
     document_signature: Vec<Finding>,
     binding_consent: Option<Vec<Finding>>,
     certificates: Vec<Finding>,
@@ -67,7 +67,7 @@ impl Components {
             None => Component::not_applicable(kind),
         };
         vec![
-            Component::new(ComponentKind::DocumentToken, self.document_token),
+            optional(ComponentKind::DocumentToken, self.document_token),
             Component::new(ComponentKind::DocumentSignature, self.document_signature),
             optional(ComponentKind::BindingConsent, self.binding_consent),
             Component::new(ComponentKind::Certificates, self.certificates),
