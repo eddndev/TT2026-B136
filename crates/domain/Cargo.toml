@@ -57,6 +57,10 @@ name = "contract_statements"
 path = "tests/contract_statements.rs"
 
 [[test]]
+name = "contract_permissions"
+path = "tests/contract_permissions.rs"
+
+[[test]]
 name = "document_metadata"
 path = "tests/document_metadata.rs"
 
