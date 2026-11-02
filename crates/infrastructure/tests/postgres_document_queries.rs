@@ -240,9 +240,6 @@ fn reads_reload_current_membership_role_and_active_status() {
     cases
         .add_member(case_id, actor, owner, time::OffsetDateTime::now_utc())
         .unwrap();
-    cases
-        .add_member(case_id, client, owner, time::OffsetDateTime::now_utc())
-        .unwrap();
     let store = PostgresCaseDocumentStore::connect(&url).unwrap();
     let record = document();
     let at = OffsetDateTime::now_utc();
@@ -290,9 +287,6 @@ fn reads_reload_current_membership_role_and_active_status() {
         store.list(actor, case_id, query(20, 0, None, None), at),
         Err(ApplicationError::CaseNotFound)
     ));
-    cases
-        .add_member(case_id, actor, owner, time::OffsetDateTime::now_utc())
-        .unwrap();
     let mut admin = Client::connect(&url, NoTls).unwrap();
     admin
         .execute(

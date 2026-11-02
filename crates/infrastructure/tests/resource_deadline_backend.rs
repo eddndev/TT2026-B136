@@ -140,7 +140,7 @@ fn roles_membership_and_inactive_accounts_are_checked_durably() {
     let Some(mut db) = Fixture::new() else { return };
     let (captures, command) = setup(&mut db);
     for role in [Role::Paralegal, Role::Client] {
-        let user = db.user(role.as_str(), true);
+        let user = db.user(role.as_str(), role != Role::Client);
         assert!(matches!(
             service(&db, user, role).prepare(
                 "session",

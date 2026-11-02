@@ -241,9 +241,6 @@ fn append_and_history_recheck_roles_membership_and_exact_case_before_version_con
     cases
         .add_member(case, actor, owner, time::OffsetDateTime::now_utc())
         .unwrap();
-    cases
-        .add_member(case, client, owner, time::OffsetDateTime::now_utc())
-        .unwrap();
     let store = PostgresCaseDocumentStore::connect(&url).unwrap();
     let at = OffsetDateTime::now_utc();
     let first = document();

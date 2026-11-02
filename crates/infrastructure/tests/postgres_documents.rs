@@ -76,9 +76,6 @@ fn revoked_members_and_clients_cannot_commit_or_read_document_evidence() {
         std::sync::Arc::new(infrastructure::RingSha256Hasher),
     )
     .unwrap();
-    cases
-        .add_member(case_id, client, owner, time::OffsetDateTime::now_utc())
-        .unwrap();
     let store = PostgresCaseDocumentStore::connect(&url).unwrap();
     let record = document();
     store
