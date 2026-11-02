@@ -436,6 +436,7 @@ is allowed to the requester or an Owner.
 |---|---|---|
 | 404 | `contract_not_found` | Missing, or no relation to the caller, without distinction |
 | 409 | `contract_revision_conflict` | `expected_revision` differs |
+| 409 | `contract_exists` | The document series already has a contract |
 | 409 | `contract_request_open` | An open request already exists |
 | 409 | `contract_request_closed` | The request is closed |
 | 409 | `contract_out_of_turn` | Signature out of order |
@@ -719,6 +720,14 @@ These details are fixed by the service:
   whose revision another writer changed in between.
 - Creating a second contract for a document series answers 409
   `contract_exists`; the series identifies its contract.
+- Document lists, details and version histories carry the derived
+  `contract_state` of the series (`None` without a contract), computed in SQL
+  with the instant of the read. The `sealed=false` filter omits a current
+  version that a completed request names or that an unclosed request names
+  before its `expires_at`, because no seal can be written for it. The seal
+  and individual signing adapters check the same freeze with the database
+  clock, the instant the storage guard reads, and answer
+  `contract_version_frozen` before writing.
 - `PostgresContractStore` returns a contract to a party without staff scope
   with only the requests that designate it, and blanks the actor and reason
   of every event of another request, while keeping every revision so the

@@ -206,6 +206,7 @@ impl Harness {
                 content: CaseDocumentSummary {
                     case_id: case,
                     document: DocumentSummary::from(&record),
+                    contract_state: None,
                 },
                 current_metadata: CurrentDocumentMetadata {
                     metadata_revision: MetadataRevision::new(1),

@@ -71,6 +71,10 @@ impl DocumentAction {
 pub struct CaseDocumentSummary {
     pub case_id: CaseId,
     pub document: DocumentSummary,
+    /// The derived state of the series' contract, `None` without one.
+    /// Document queries derive it; a seal result does not carry it.
+    /// Rationale: docs/adr/0086-bilateral-contract-signing.md.
+    pub contract_state: Option<crate::contracts::ContractState>,
 }
 
 /// The online document boundary accepts credentials, never an actor label.

@@ -69,6 +69,7 @@ fn reads_forward_authenticated_scope_query_and_audit_time() {
     let summary = CaseDocumentSummary {
         case_id: case,
         document: record,
+        contract_state: None,
     };
     let summary = DocumentOverview {
         content: summary,

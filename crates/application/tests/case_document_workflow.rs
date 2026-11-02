@@ -139,6 +139,7 @@ fn authorized_upload_preserves_local_crypto_format_and_commits_authenticated_sco
                 content: CaseDocumentSummary {
                     case_id: scope,
                     document: DocumentSummary::from(&record),
+                    contract_state: None,
                 },
                 current_metadata: CurrentDocumentMetadata {
                     metadata_revision: MetadataRevision::unclassified(),

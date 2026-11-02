@@ -25,6 +25,12 @@ impl ContractState {
             Self::Abandoned => "abandonado",
         }
     }
+
+    pub fn parse(value: &str) -> Option<Self> {
+        [Self::Draft, Self::Signing, Self::Signed, Self::Abandoned]
+            .into_iter()
+            .find(|state| state.as_str() == value)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

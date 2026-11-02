@@ -56,6 +56,7 @@ fn classified_upload_checks_both_permissions_and_returns_the_atomic_commit_overv
                     content: CaseDocumentSummary {
                         case_id: scope,
                         document: DocumentSummary::from(&record),
+                        contract_state: None,
                     },
                     current_metadata: CurrentDocumentMetadata {
                         metadata_revision: MetadataRevision::new(1),

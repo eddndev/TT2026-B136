@@ -483,6 +483,10 @@ name = "contract_service_revocation"
 path = "tests/contract_service_revocation.rs"
 
 [[test]]
+name = "contract_document_state"
+path = "tests/contract_document_state.rs"
+
+[[test]]
 name = "evidence_statement_parity"
 path = "tests/evidence_statement_parity.rs"
 

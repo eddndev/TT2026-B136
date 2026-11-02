@@ -91,6 +91,11 @@ pub(super) fn commit(
         ));
     }
     crate::document_postgres::unchanged_signing_record(&current, command.record())?;
+    crate::document_postgres::contract_state::require_unfrozen(
+        &mut tx,
+        consent.document().id,
+        consent.document().version,
+    )?;
     let at = store.clock.now();
     if at < command.not_before()
         || at < command.trust().published_at

@@ -52,6 +52,7 @@ fn append_preserves_identity_and_uses_expected_successor_after_reauthentication(
                 content: CaseDocumentSummary {
                     case_id: scope,
                     document: DocumentSummary::from(&record),
+                    contract_state: None,
                 },
                 current_metadata: CurrentDocumentMetadata {
                     metadata_revision: MetadataRevision::new(3),
@@ -234,6 +235,7 @@ fn history_and_version_detail_preserve_exact_query_and_authorized_metadata() {
     let expected = CaseDocumentSummary {
         case_id: case,
         document: DocumentSummary::from(&record),
+        contract_state: None,
     };
     let summary = expected.clone();
     let mut store = MockStore::new();

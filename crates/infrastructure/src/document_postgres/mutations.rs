@@ -74,6 +74,7 @@ pub(super) fn insert(
         content: CaseDocumentSummary {
             case_id: case,
             document: DocumentSummary::from(&record),
+            contract_state: None,
         },
         current_metadata,
     };
@@ -121,10 +122,13 @@ pub(super) fn append(
         &resource(case, record.id, record.version, &record.digest.to_hex()),
         at,
     )?;
+    let contract_state =
+        super::contract_state::of(&mut transaction, record.id, at.unix_timestamp())?;
     let overview = DocumentOverview {
         content: CaseDocumentSummary {
             case_id: case,
             document: DocumentSummary::from(&record),
+            contract_state,
         },
         current_metadata,
     };
