@@ -475,6 +475,14 @@ name = "contract_service_backend"
 path = "tests/contract_service_backend.rs"
 
 [[test]]
+name = "contract_service_failures"
+path = "tests/contract_service_failures.rs"
+
+[[test]]
+name = "contract_service_revocation"
+path = "tests/contract_service_revocation.rs"
+
+[[test]]
 name = "evidence_statement_parity"
 path = "tests/evidence_statement_parity.rs"
 
