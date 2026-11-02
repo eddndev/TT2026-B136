@@ -25,6 +25,7 @@ fn commit_rechecks_current_actor_assignment_and_responsible_eligibility() {
         definition_mut(&mut command).responsible = responsible;
         let pending = prepared_legacy(&db, actor, &command);
         let target = if change < 3 { actor } else { responsible };
+        let opened = store(&db);
         match change {
             0 | 3 => {
                 db.admin
@@ -51,17 +52,19 @@ fn commit_rechecks_current_actor_assignment_and_responsible_eligibility() {
                     .unwrap();
             }
             _ => {
+                // No trigger on users refuses this demotion; the startup
+                // inventory reports the Client membership it leaves, so the
+                // store is opened before it and the commit recheck refuses it.
                 db.admin
-                    .batch_execute(&format!(
-                        "DELETE FROM case_memberships WHERE user_id='{target}';
-                        UPDATE users SET role='client',revision=revision+1,
-                            auth_generation=auth_generation+1 WHERE id='{target}'"
-                    ))
+                    .execute(
+                        "UPDATE users SET role='client',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
+                        &[&target.as_uuid()],
+                    )
                     .unwrap();
             }
         }
         let before = snapshot(&mut db);
-        let result = store(&db).commit(actor, pending);
+        let result = opened.commit(actor, pending);
         match change {
             0 => assert!(matches!(result, Err(ApplicationError::InvalidSession))),
             1 => assert!(matches!(result, Err(ApplicationError::CaseNotFound))),
