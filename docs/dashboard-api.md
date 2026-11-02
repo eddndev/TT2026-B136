@@ -20,17 +20,20 @@ Todas las respuestas conservan `Cache-Control: no-store`. El objeto contiene:
 | `checked_at` | Instante UTC RFC 3339 común a toda la instantánea. |
 | `scope` | `office` o `assigned_cases`, determinado por el servidor. |
 | `active_cases` | Expedientes autorizados administrativamente activos. |
-| `pending_contracts` | Documentos cuya última versión no tiene sello y cuyo tipo actual es `contrato` o `contract`, sin distinguir mayúsculas ASCII. |
+| `pending_contracts` | Contratos registrados en estado `borrador` o `en_firma`: aquellos cuyo último evento no es `completed` ni `abandoned`. |
 | `deadlines_overdue` | Plazos vigentes no atendidos con vencimiento anterior al instante consultado. |
 | `deadlines_due_48h` | Vencimientos desde el instante consultado, incluido, hasta 48 horas después, excluido. |
 | `deadlines_due_7d` | La misma ventana hasta siete días, incluidos los próximos a 48 horas. |
 | `deadlines_unresolved` | Plazos activos no atendidos sin fecha operativa comprobada. |
 | `workload` | Lista ordenada por `user_id` con correo y número de expedientes activos asignados por litigante activo. |
 
-El conteo documental usa versiones y clasificación actuales, no nombres de
-archivo ni versiones históricas selladas. Incluye expedientes cerrados que el
-actor todavía puede consultar. "Pendiente de sello" describe la evidencia
-interna del prototipo; no acredita ausencia de firmas externas ni firma personal.
+El conteo de contratos usa los registros de contrato de
+`docs/adr/0086-bilateral-contract-signing.md`, no el tipo documental de texto
+libre, los nombres de archivo ni el sello de la versión: un documento
+clasificado como `contrato` sin registro de contrato no cuenta. Incluye
+expedientes cerrados que el actor todavía puede consultar. Un contrato cuya
+solicitud venció sigue contando como `borrador` hasta que se abandone o se
+firme.
 
 Owner ve a todos los litigantes activos, incluidos quienes no tienen casos.
 Litigator sólo ve colegas que comparten sus expedientes activos autorizados;
