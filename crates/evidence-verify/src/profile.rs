@@ -161,7 +161,10 @@ impl Spec {
     }
 }
 
-/// Every known profile, simplest first; a new profile is one more entry.
+/// Every known profile, in the order that breaks ties for the closest-profile
+/// finding: an earlier entry wins. The full contract profile comes before its
+/// partial acknowledgement on purpose, so an inventory equally close to both
+/// reports the missing full-package entries. A new profile is one more entry.
 const SPECS: [Spec; 5] = [
     Spec {
         profile: Profile::ServerSealV1,
@@ -217,7 +220,7 @@ impl Layout {
 /// Select the one profile whose inventory `names` has exactly.
 ///
 /// When none matches, the finding explains the mismatch against the profile
-/// with the most fixed names present, the simplest one on a tie.
+/// with the most fixed names present, the earliest entry of `SPECS` on a tie.
 pub fn recognize(names: &[&str]) -> Result<Layout, Finding> {
     let mut matched = Vec::new();
     let mut closest: Option<(usize, Finding)> = None;
