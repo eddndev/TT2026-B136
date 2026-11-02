@@ -24,6 +24,13 @@ tiene implementación local y aceptación en curso; su integración y despliegue
 se distinguen en el [cierre técnico](technical-closure.md). Los sellos anteriores
 del servidor conservan su identidad histórica.
 
+El [contrato de firma bilateral](http-contract-signing.md) añade catorce rutas
+para contratos de un expediente y solicitudes de firma entre un Cliente invitado
+y un firmante del despacho, con recibos exactos, lectura del PDF por relación y
+paquetes parcial y completo. Se resume en
+[Contratos bilaterales](#contratos-bilaterales); la decisión está en
+[ADR 0086](adr/0086-bilateral-contract-signing.md).
+
 El [tablero operativo](dashboard-api.md) agrega indicadores mediante
 `GET /api/v1/dashboard`: despacho completo para Owner y expedientes asignados
 para Litigante, con una instantánea auditada y sin caché. Paralegal y Cliente
@@ -780,7 +787,10 @@ asignación vigente además del permiso de la siguiente matriz:
 | Verificar auditoría completa | sí | no | no | no |
 | Crear usuario | sí | no | no | no |
 
-Cliente sigue sin acceso documental y nunca es miembro de un expediente. Paralegal recibe `403`
+Cliente sigue sin acceso documental y nunca es miembro de un expediente. La
+única excepción es la versión exacta de una solicitud de contrato que lo
+designa, por la ruta de la solicitud (véase
+[Contratos bilaterales](#contratos-bilaterales)). Paralegal recibe `403`
 al intentar sellar, también fuera de sus expedientes. Para un rol con permiso,
 un documento que no pertenece al expediente indicado responde
 `404 document_not_found`, incluso si el usuario es Owner o pertenece a ambos
@@ -1007,6 +1017,56 @@ La respuesta es el overview confirmado con `201`, incluso si los campos
 opcionales están vacíos. La carga binaria anterior mantiene revisión de
 clasificación cero. Qadra usa una sola carga multipart y conserva el formulario
 ante fallos; una respuesta incierta no dispara reintentos automáticos.
+
+## Contratos bilaterales
+
+Un contrato se liga a una serie documental del expediente y se firma por
+solicitud: primero el Cliente designado y después el firmante del despacho
+(Owner o Litigante asignado), cada uno con su propia llave fuera del servidor y
+su certificado vinculado por las rutas de
+[firma individual](http-individual-signing.md). El contrato completo de
+cuerpos, respuestas y errores está en
+[http-contract-signing.md](http-contract-signing.md).
+
+| Método y ruta | Quién | Resultado |
+| --- | --- | --- |
+| `GET /api/v1/cases/{case}/contracts` | Owner, Litigante y Paralegal asignados | Contratos y firmantes elegibles; `200`. |
+| `POST /api/v1/cases/{case}/contracts` | Owner, Litigante asignado | `{operation_id, document_id, title}`; recibo, `201`. |
+| `GET /api/v1/cases/{case}/contracts/{contract}` | Owner, Litigante y Paralegal asignados | Estado derivado, eventos, solicitudes y revisión; `200`. |
+| `POST /api/v1/cases/{case}/contracts/{contract}/requests` | Owner, Litigante asignado | Solicitud con `client_email` exacto; recibo, `201`. |
+| `POST /api/v1/cases/{case}/contracts/{contract}/abandon` | Owner, Litigante asignado | Abandono con motivo desde `borrador`; recibo, `200`. |
+| `GET /api/v1/cases/{case}/contracts/operations/{operation}` | Owner, Litigante y Paralegal asignados | Recibo exacto de crear o abandonar; `200`. |
+| `GET /api/v1/contract-requests` | Cualquier cuenta | Solicitudes que designan al llamante; `200`. |
+| `GET /api/v1/contract-requests/{request}` | Partes y personal con alcance | Bytes `CTRTREQ1`, certificados, firmas y revisión; `200`. |
+| `GET /api/v1/contract-requests/{request}/content` | Cliente y firmante designados | PDF exacto como adjunto; `HEAD` responde `405`. |
+| `POST /api/v1/contract-requests/{request}/prepare` | La parte en turno | Bytes `CTRTSIG1` por firmar, sin escribir; `200`. |
+| `POST /api/v1/contract-requests/{request}/sign` | La parte en turno | Firma, sello de tiempo y, en posición 2, manifiesto; recibo, `200`. |
+| `POST /api/v1/contract-requests/{request}/close` | Según `reject`, `decline` o `cancel` | Cierre sin éxito; recibo, `200`. |
+| `GET /api/v1/contract-requests/{request}/operations/{operation}` | Partes y personal con alcance | Recibo exacto; `200`. |
+| `GET /api/v1/contract-requests/{request}/evidence/{stage}` | Partes y personal con exportación | ZIP `partial` o `final`; `200`. |
+
+No existe ruta que busque cuentas por correo. Una cuenta sin relación recibe
+`404 contract_not_found`; una cuenta relacionada que no es actora de la acción
+recibe `403 permission_denied`. Toda mutación lleva `operation_id` y, salvo
+crear, `expected_revision`; la respuesta incierta se reconcilia con el recibo
+exacto y no hay reintento automático. Sellar o firmar individualmente una
+versión contratada mientras su solicitud está abierta o completada responde
+`409 contract_version_frozen`, y el filtro `sealed=false` omite esa versión.
+
+Ejemplo de firma del Cliente con su llave local:
+
+```bash
+prepared="$(curl --fail-with-body -X POST "$base/api/v1/contract-requests/$request/prepare" \
+  -H "Authorization: Bearer $client_token" -H 'Content-Type: application/json' \
+  --data "{\"operation_id\":\"$operation\"}")"
+jq -r .statement_base64 <<<"$prepared" | base64 -d >declaracion.bin
+openssl dgst -sha256 -sign private.key.pem -out declaracion.sig declaracion.bin
+curl --fail-with-body -X POST "$base/api/v1/contract-requests/$request/sign" \
+  -H "Authorization: Bearer $client_token" -H 'Content-Type: application/json' \
+  --data "{\"operation_id\":\"$operation\",\"expected_revision\":$(jq .revision <<<"$prepared"),
+  \"statement_base64\":$(jq .statement_base64 <<<"$prepared"),
+  \"signature_base64\":\"$(base64 -w0 declaracion.sig)\"}"
+```
 
 ## Raíces de confianza de la evidencia
 
@@ -1342,6 +1402,10 @@ La envoltura es estable:
 - `413`: cuerpo mayor que el límite de la ruta.
 - `429`: ventana de login bloqueada.
 - `500`: fallo interno sin exponer detalles del backend ni secretos.
+- Los contratos bilaterales usan códigos `contract_*` propios, entre ellos
+  `422 contract_party_ineligible` con `blockers` y
+  `503 contract_timestamp_unavailable`, y reutilizan los `signing_*` de la firma
+  individual; véase [http-contract-signing.md](http-contract-signing.md).
 - `503`: presupuesto de peticiones o de entregas de contenido verificado agotado
   (`server_busy`). Las peticiones admitidas esperan el turno del trabajador sin
   aumentar la concurrencia bloqueante.

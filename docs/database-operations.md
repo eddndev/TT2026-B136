@@ -1827,3 +1827,33 @@ de las [guardas](../crates/infrastructure/tests/contract_storage_guards.rs),
 de las [partes](../crates/infrastructure/tests/contract_storage_parties.rs) y
 de la [migración](../crates/infrastructure/tests/contract_storage_migration.rs)
 requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+### Cierre de vencidas y correo de avisos
+
+`serve` siempre ejecuta un consumidor de contratos supervisado junto con los
+demás. Cada cinco segundos escribe el evento `expired` de hasta 20 solicitudes
+agotadas y sin cerrar, con sus avisos. No depende del correo ni de ninguna
+variable. Si falla de forma no transitoria, el supervisor detiene el servidor
+como con cualquier otro consumidor.
+
+El correo de avisos de contrato se habilita solo con
+`TT_CONTRACT_EMAIL_ENABLED=true`. Ausencia o `false` lo deshabilita sin leer
+secretos; otro valor impide arrancar. Al habilitarlo reutiliza
+`REPORT_EMAIL_FROM`, `REPORT_PUBLIC_URL` y `RESEND_API_KEY` con las mismas
+reglas del correo de informes, que puede seguir deshabilitado. El enlace es
+`REPORT_PUBLIC_URL#contracts`, sin token ni adjuntos. Cada aviso se reclama con
+una concesión de 30 segundos y una ventana de 24 horas fijada en su primer
+reclamo; una respuesta incierta admite reintento a los 60 segundos y el
+proveedor recibe el identificador del aviso como clave. Un aviso de una cuenta
+inactiva espera sin enviarse. Con el correo deshabilitado los avisos se guardan
+con el remitente fijo `notificaciones@qadra.invalid` y sin enlace, y las partes
+ven sus solicitudes en Qadra; habilitarlo después intenta enviarlos con ese
+remitente y el proveedor los rechaza.
+
+Antes de restaurar, detener `serve` para que el consumidor no escriba eventos ni
+estados de entrega. Las filas de avisos y sus estados se conservan con el
+respaldo. La [demostración](../scripts/api-contract-demo.sh) recorre el flujo
+completo y una restauración sobre servicios desechables; las
+[pruebas de entrega](../crates/infrastructure/tests/contract_notice_delivery.rs)
+y del [servicio](../crates/infrastructure/tests/contract_service_backend.rs)
+requieren `CASE_TEST_DATABASE_URL`.
