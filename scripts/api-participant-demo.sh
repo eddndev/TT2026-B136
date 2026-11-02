@@ -41,10 +41,13 @@ participant_demo() {
   litigator="$(participant_demo_enroll litigator)"
   paralegal="$(participant_demo_enroll paralegal)"
   client="$(participant_demo_enroll client)"
-  for role in litigator paralegal client; do
+  for role in litigator paralegal; do
     user="$(jq -er '.user.id' "$WORK_DIR/participant-$role-enrollment.json")"
     participant_demo_request PUT 204 "/api/v1/cases/$case_id/members/$user" "$RECOVERY_TOKEN"
   done
+  # A Client account is never a case member.
+  user="$(jq -er '.user.id' "$WORK_DIR/participant-client-enrollment.json")"
+  participant_demo_request PUT 422 "/api/v1/cases/$case_id/members/$user" "$RECOVERY_TOKEN"
   participant_demo_request POST 201 "$route" "$litigator" -H 'Content-Type: application/json' \
     --data '{"display_name":" Ana ","procedural_role":"Witness","organization":"Office","legal_status":"Recorded"}'
   PARTICIPANT_ID="$(jq -er '.id' "$response")"
@@ -65,7 +68,7 @@ participant_demo() {
   done
   participant_demo_request GET 403 "$route" "$client"
   participant_demo_request GET 403 "$route/$PARTICIPANT_ID/history" "$client"
-  participant_demo_request GET 200 "/api/v1/cases/$case_id" "$client"
+  participant_demo_request GET 404 "/api/v1/cases/$case_id" "$client"
   participant_demo_request GET 404 "/api/v1/cases/00000000-0000-4000-8000-000000000000/participants/$PARTICIPANT_ID" "$RECOVERY_TOKEN"
 
   participant_demo_request PUT 200 "$route/$PARTICIPANT_ID" "$litigator" \

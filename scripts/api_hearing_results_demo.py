@@ -34,7 +34,9 @@ def capture_results(api, route, hearing_id, closed_route, tokens):
     users = {}
     for role, token in tokens.items():
         users[role] = request("GET", "/api/v1/auth/me", token=token)["id"]
-        request("PUT", route + "/members/" + users[role], expected=204)
+        # A Client account is never a case member.
+        assigned = (422, "invalid_input") if role == "client" else (204, None)
+        request("PUT", route + "/members/" + users[role], expected=assigned[0], code=assigned[1])
     support = api.upload(route, "declared-session.pdf")
     document = route + "/documents/" + support["document_id"]
     request("POST", document + "/versions/1/seal")

@@ -164,7 +164,11 @@ def capture():
     tokens = {}
     for role in ["litigator", "paralegal", "client"]:
         user, tokens[role] = enroll(role)
-        request("PUT", route + "/members/" + user, expected=204)
+        # A Client account is never a case member.
+        if role == "client":
+            request("PUT", route + "/members/" + user, expected=422, code="invalid_input")
+        else:
+            request("PUT", route + "/members/" + user, expected=204)
     context = request("GET", route + "/hearings/context", token=tokens["litigator"])
     assert context["case_revision"] == context["stage_revision"] == 1
     assert context["stage"] == "investigation" and context["stage_values_digest"] is None

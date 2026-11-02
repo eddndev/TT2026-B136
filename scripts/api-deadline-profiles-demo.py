@@ -105,7 +105,10 @@ def capture():
     users, tokens = {}, {}
     for role in ['litigator', 'paralegal', 'client']:
         users[role], tokens[role] = enroll(role)
-        request('PUT', '/api/v1/cases/' + cases[0] + '/members/' + users[role], expected=204)
+        # A Client account is never a case member.
+        assigned = (422, 'invalid_input') if role == 'client' else (204, None)
+        request('PUT', '/api/v1/cases/' + cases[0] + '/members/' + users[role],
+                expected=assigned[0], code=assigned[1])
     assert request('GET', ROUTE)['profiles'] == []
     command = publish()
     command['profile_id'] = '00000000-0000-0000-0000-000000000000'

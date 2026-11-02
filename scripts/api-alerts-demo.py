@@ -66,7 +66,8 @@ def capture():
     route = '/api/v1/cases/' + case['id']
     request('PUT', route + '/members/' + actor, expected=204)
     client = request('GET', '/api/v1/auth/me', token=tokens['client'])['id']
-    request('PUT', route + '/members/' + client, expected=204)
+    # A Client account is never a case member.
+    request('PUT', route + '/members/' + client, expected=422, code='invalid_input')
     context = request('GET', route + '/hearings/context')
     scheduled = (datetime.now(timezone.utc) + timedelta(hours=36)).replace(microsecond=0)
     command = {'operation_id': str(uuid4()), 'hearing_id': str(uuid4()), 'change': {

@@ -56,7 +56,9 @@ def capture():
     users, tokens = {}, {}
     for role in ['litigator', 'paralegal', 'client']:
         users[role], tokens[role] = enroll(role)
-        request('PUT', route + '/members/' + users[role], expected=204)
+        # A Client account is never a case member.
+        assigned = (422, 'invalid_input') if role == 'client' else (204, None)
+        request('PUT', route + '/members/' + users[role], expected=assigned[0], code=assigned[1])
     initial_facts = request('GET', route + '/resolutions/' + parent['id'] + '/history')
     initial_stage = request('GET', route + '/stage')
     assert request('GET', collection)['resources'] == []

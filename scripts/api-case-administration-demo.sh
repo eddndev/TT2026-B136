@@ -162,15 +162,15 @@ administration_demo() {
     and .created_by == .administration.changed_by.id' "$response" >/dev/null
   stage="$(jq -Sc '.initial_stage' "$response")"
   [ "$(psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM audit_events WHERE action NOT IN ('access.granted','access.denied','access.rejected','access.failed')")" -eq "$((before+4))" ]
-  for role in paralegal client; do
-    user="$(jq -er '.user.id' "$WORK_DIR/administration-$role-enrollment.json")"
-    administration_demo_request PUT 204 "/api/v1/cases/$penal/members/$user" "$RECOVERY_TOKEN"
-  done
+  user="$(jq -er '.user.id' "$WORK_DIR/administration-paralegal-enrollment.json")"
+  administration_demo_request PUT 204 "/api/v1/cases/$penal/members/$user" "$RECOVERY_TOKEN"
+  # A Client account is never a case member.
+  user="$(jq -er '.user.id' "$WORK_DIR/administration-client-enrollment.json")"
+  administration_demo_request PUT 422 "/api/v1/cases/$penal/members/$user" "$RECOVERY_TOKEN"
   route="/api/v1/cases/$penal"
   administration_demo_request GET 200 "$route/administration" "$paralegal"
   administration_demo_request GET 200 "$route/administration/history" "$paralegal"
-  administration_demo_request GET 200 "$route" "$client"
-  jq -e 'keys == ["created_by","id","reference","title"]' "$response" >/dev/null
+  administration_demo_request GET 404 "$route" "$client"
   for endpoint in /api/v1/case-administrations "$route/administration" "$route/administration/history"; do
     administration_demo_request GET 403 "$endpoint" "$client"
   done
@@ -214,7 +214,7 @@ administration_demo() {
   administration_demo_request PUT 409 "$route/administrative-status" "$RECOVERY_TOKEN" \
     -H 'Content-Type: application/json' --data '{"expected_revision":1,"administrative_status":"closed"}'
   jq -e '.error.code == "case_revision_conflict"' "$response" >/dev/null
-  administration_demo_request GET 200 "$route" "$client"
+  administration_demo_request GET 200 "$route" "$paralegal"
   jq -e --arg title "$title" '.title == $title and keys == ["created_by","id","reference","title"]' "$response" >/dev/null
   administration_demo_request PUT 200 "$route/administrative-status" "$litigator" \
     -H 'Content-Type: application/json' --data '{"expected_revision":2,"administrative_status":"closed"}'
@@ -227,10 +227,13 @@ administration_demo() {
   administration_demo_request POST 409 "$route/documents" "$RECOVERY_TOKEN" \
     -H 'X-Document-Name: denied.txt' --data-binary "@$WORK_DIR/document.txt"
   jq -e '.error.code == "case_closed"' "$response" >/dev/null
-  user="$(jq -er '.user.id' "$WORK_DIR/administration-client-enrollment.json")"
+  user="$(jq -er '.user.id' "$WORK_DIR/administration-paralegal-enrollment.json")"
   administration_demo_request DELETE 204 "$route/members/$user" "$RECOVERY_TOKEN"
   administration_demo_request PUT 204 "$route/members/$user" "$RECOVERY_TOKEN"
-  administration_demo_request GET 200 "$route" "$client"
+  administration_demo_request GET 200 "$route" "$paralegal"
+  user="$(jq -er '.user.id' "$WORK_DIR/administration-client-enrollment.json")"
+  administration_demo_request PUT 422 "$route/members/$user" "$RECOVERY_TOKEN"
+  administration_demo_request GET 404 "$route" "$client"
   administration_demo_request GET 200 '/api/v1/case-administrations?status=closed&profile=complete&nuc=NUC-ADMIN&judicial_case_number=CJ-ADMIN' "$paralegal"
   jq -e --arg id "$penal" '(.cases | map(.id)) == [$id] and .cases[0].initial_stage == "investigation"' "$response" >/dev/null
   administration_demo_request GET 200 '/api/v1/case-administrations?status=all&nuc=nuc-admin' "$paralegal"
