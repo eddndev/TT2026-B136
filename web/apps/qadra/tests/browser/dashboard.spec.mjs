@@ -26,6 +26,9 @@ for (const width of [1440, 390]) {
       deadlines_unresolved: 1,
     }))
       await expect(metric(page, name).locator('strong')).toHaveText(String(value));
+    await expect(metric(page, 'pending_contracts')).toContainText(
+      'Contratos en borrador o en firma',
+    );
     await expect(metric(page, 'deadlines_due_48h')).toHaveClass(/dashboard-urgent/);
     await expect(metric(page, 'deadlines_due_7d')).toContainText('Incluye los de 48 horas');
     await expect(dashboard(page)).toContainText('lawyer@example.test');

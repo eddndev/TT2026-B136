@@ -216,8 +216,9 @@ contexto de navegación; comprueba siempre su título y referencia antes de escr
 
 Administrador y Litigante disponen de **Indicadores operativos**. Usa **Actualizar
 indicadores** para consultar una nueva observación. La pantalla distingue
-expedientes activos, contratos pendientes de sello y plazos vencidos, próximos o
-por revisar, además de la carga por litigante.
+expedientes activos, contratos en borrador o en firma (registrados y aún no
+completados ni abandonados) y plazos vencidos, próximos o por revisar, además de
+la carga por litigante.
 
 - El administrador observa todo el despacho; el litigante, sus expedientes asignados.
 - Los plazos de menos de 48 horas están incluidos en los de menos de siete días;

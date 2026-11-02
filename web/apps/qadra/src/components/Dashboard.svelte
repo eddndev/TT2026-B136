@@ -23,9 +23,9 @@
     },
     {
       key: 'pending_contracts',
-      label: 'Contratos pendientes de sello',
+      label: 'Contratos en borrador o en firma',
       icon: 'file',
-      detail: 'Versiones actuales sin sello interno',
+      detail: 'Sin completar ni abandonar',
     },
     {
       key: 'deadlines_overdue',
