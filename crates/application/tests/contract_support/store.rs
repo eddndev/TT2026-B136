@@ -178,7 +178,14 @@ impl ContractStore for FakeStore {
         _: &Principal,
         _: CaseId,
     ) -> Result<CaseContractsListing, ApplicationError> {
-        unreachable!()
+        Ok(CaseContractsListing {
+            contracts: self.state().snapshot.clone().into_iter().collect(),
+            firm_signers: vec![FirmSigner {
+                id: firm().id,
+                email: firm().email,
+                role: Role::Litigator,
+            }],
+        })
     }
     fn contract(
         &self,

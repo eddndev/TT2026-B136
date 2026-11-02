@@ -447,6 +447,13 @@ is allowed to the requester or an Owner.
 | 409 | `contract_not_complete` | Final package requested without completion |
 | 422 | `contract_party_ineligible` | With `blockers` among `client_not_ready`, `firm_signer_not_ready`, `document_not_ready`; the first never distinguishes a missing, ineligible or unbound account |
 | 503 | `contract_timestamp_unavailable` | The authority failed; no state was written |
+| 400 | `invalid_contract_request` | A path value, body member, base64 value or outcome is malformed |
+
+The `contract_party_ineligible` envelope carries the blocker codes as an
+array member `blockers` of its `error` object, next to `code` and `message`.
+The exact content route answers an explicit HEAD with 405, like the document
+content route, so a HEAD request never decrypts the version or records a
+`contract.content_read` event.
 
 The individual signing codes `signing_account_changed`,
 `signing_trust_changed`, `signing_conflict`, `signing_binding_inactive` and

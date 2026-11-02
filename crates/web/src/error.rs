@@ -9,6 +9,7 @@ use serde::Serialize;
 
 mod alerts;
 mod case_report;
+pub(crate) mod contract;
 mod deadline;
 mod deadline_profile;
 mod document_content;
@@ -140,6 +141,7 @@ impl From<ApplicationError> for ApiError {
     fn from(error: ApplicationError) -> Self {
         let error = match owner_certificate::map(error)
             .or_else(document_signing::map)
+            .or_else(contract::map)
             .or_else(members::map)
             .or_else(document_content::map)
             .or_else(document_upload::map)

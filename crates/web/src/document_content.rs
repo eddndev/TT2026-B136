@@ -76,12 +76,26 @@ async fn content(
             Ok((result, permit))
         })
         .await?;
-    if result.case_id != case
-        || result.reference != reference
-        || result.bytes.len() > 16 * 1024 * 1024
-    {
+    if result.case_id != case || result.reference != reference {
         return Err(ApiError::internal());
     }
+    attachment(result, permit)
+}
+
+/// The exact content as a no-store attachment that retains its content
+/// permit until the transport releases every copy of the bytes.
+pub(crate) fn attachment(
+    result: DocumentContent,
+    permit: OwnedSemaphorePermit,
+) -> Result<Response, ApiError> {
+    if result.bytes.len() > 16 * 1024 * 1024 {
+        return Err(ApiError::internal());
+    }
+    let (case, id, version) = (
+        result.case_id,
+        result.reference.id,
+        result.reference.version,
+    );
     let filename = safe_filename(&result.file_name);
     let disposition = HeaderValue::from_str(&format!("attachment; filename=\"{filename}\""))
         .map_err(|_| ApiError::invalid_response_header())?;

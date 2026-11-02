@@ -27,6 +27,7 @@ mod case_administration;
 mod case_reports;
 mod case_stages;
 mod cases;
+mod contracts;
 mod dashboard;
 mod deadline_profiles;
 mod deadlines;
@@ -62,12 +63,13 @@ mod runtime;
 mod typed_participants;
 mod workflows;
 pub use api::{
-    api_router, api_router_with_authentication_budget, api_router_with_individual_signing_budget,
-    api_router_with_invitations_budget, api_router_with_password_reset,
-    api_router_with_password_reset_budget, AuthenticationHttp,
+    api_router, api_router_with_authentication_budget, api_router_with_contracts_budget,
+    api_router_with_individual_signing_budget, api_router_with_invitations_budget,
+    api_router_with_password_reset, api_router_with_password_reset_budget, AuthenticationHttp,
 };
 pub use ca_access::ca_access_router;
 pub use case_reports::case_reports_router;
+pub use contracts::ContractHttp;
 pub use evidence_trust_router::evidence_trust_router;
 pub use individual_signing::IndividualSigningHttp;
 pub use member_invitations::{member_invitation_router, InvitationHttp};
@@ -85,6 +87,12 @@ pub fn individual_signing_router(
         individual_signing::router(components, runtime.clone()),
         runtime,
     ))
+}
+
+/// Builds the bilateral contract routes with bounded blocking work.
+pub fn contract_router(components: ContractHttp, limits: HttpLimits) -> Router {
+    let runtime = HttpRuntime::new(limits);
+    protect(contracts::router(components, runtime.clone()), runtime)
 }
 
 /// Builds standalone reset routes using one admission and blocking-work budget.
