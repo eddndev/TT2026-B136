@@ -350,8 +350,15 @@ signature CRL is `parte-N-crl.pem` at its token. The authority CRL is
 `parte-1-crl.pem` for T1 and `parte-2-crl.pem` for Td and Tf, so a CRL renewal
 between the two signatures never leaves T1 without a covering list. The serial
 of the position 1 certificate must not appear in `parte-2-crl.pem` with a
-revocation instant up to Tf; a revocation after completion keeps the
-historical result (`crl.revoked_later`) and the current state is informative.
+revocation instant up to Tf. A revocation after completion keeps the
+historical result. A CRL never lists a revocation after its own `thisUpdate`,
+so a package list that covers Tf cannot name a later one, and the
+`crl.revoked_later` path of the counterparty check does not arise from
+exported packages: a revocation after completion appears only in the
+informative current status, as `crl.revoked` against a CRL served at
+validation time, while the historical result stays checked. The fixtures of
+`crates/evidence-verify/tests/contract-fixtures` exercise this and each rule
+below; their README lists every variant ceremony and its expected result.
 The check components stay the eight of ADR 0085; the document token component
 becomes optional so that the partial package reports it as not applicable,
 while v1 and v2 reports are unchanged.
