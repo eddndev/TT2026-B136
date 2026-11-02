@@ -316,8 +316,10 @@ matching role. A schema departure fails `manifest.contract_schema`.
 `provenance` (the string `application-record`), `request_id`,
 `request_sha256`, `ceremony_reference` (1 to 80 characters),
 `client_accepted_at`, `firm_accepted_at` and `completed_at` (non-negative
-integer Unix seconds). A malformed file fails `receipt.contract_schema`; its
-values are reported as application records and decide nothing.
+integer Unix seconds). Bytes that are not canonical RFC 8785 JSON in the ADR
+0085 subset fail with the `json.*` codes; well-formed JSON with other members
+or values fails `receipt.contract_schema`. Its values are reported as
+application records and decide nothing.
 
 **Partial package, profile `BilateralContractPartialV1`: 14 mandatory entries
 plus the optional `INSTRUCCIONES.md`.** `contrato.pdf`,
@@ -334,8 +336,9 @@ exactly these keys: `provenance` (the string `application-record`),
 hexadecimal SHA-256 of `contrato-solicitud.bin`), `binding_registered_at`,
 `accepted_at` and `exported_at` (non-negative integer Unix seconds) and
 `ceremony_reference` (the declared sheet reference, 1 to 80 characters). No
-token covers it and it decides no result; a malformed file fails
-`receipt.contract_partial_schema`. It never appears in a full package, so
+token covers it and it decides no result. Bytes that are not canonical JSON in
+that subset fail with the `json.*` codes; well-formed JSON with other members
+or values fails `receipt.contract_partial_schema`. It never appears in a full package, so
 removing any mandatory entry of a full package gives `profile.missing_entry`,
 never a partial and never `checked`.
 
@@ -392,7 +395,13 @@ validity window, the receipts and `contract.partial` for the context.
 
 `CTRTREQ1` structural failures emit `contract.request_schema`. `CTRTSIG1`
 structural failures emit the existing `statement.*` codes of the shared prefix
-plus `statement.position` for an invalid position or chain digest. The
+plus `statement.position` for a position byte other than 1 or 2 and for a
+position 2 statement with an all-zero chain digest. A position 1 statement
+with a non-zero chain digest does not re-encode to its own bytes and fails
+`statement.not_canonical`, as the domain decoder also treats it. Bytes of
+`contrato-manifiesto.json`, `contrato-recibo.json` or
+`contrato-acuse-parcial.json` that are not canonical JSON in the ADR 0085
+subset fail with the `json.*` codes before any schema check. The
 remaining new codes are `contract.statement_mismatch`,
 `contract.party_mismatch`, `contract.same_account`, `contract.same_key`,
 `contract.root_mismatch`, `contract.chain_mismatch`, `contract.token_order`,
