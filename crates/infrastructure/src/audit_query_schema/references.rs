@@ -71,6 +71,11 @@ pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), Applicati
             "member_invitation_completions_audit_sequence_fkey",
             false,
         ),
+        (
+            "contract_events",
+            "contract_events_audit_sequence_fkey",
+            false,
+        ),
     ] {
         let rows = client.query("SELECT g.tgtype,
             g.tgisinternal AND g.tgenabled IN ('O','A') AND g.tgdeferrable=$3 AND g.tginitdeferred=$3
@@ -107,7 +112,7 @@ pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), Applicati
         )
         .map_err(port)?
         .get(0);
-    if count != 26 {
+    if count != 28 {
         return Err(incomplete());
     }
     Ok(())

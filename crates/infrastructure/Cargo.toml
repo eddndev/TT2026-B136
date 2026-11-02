@@ -451,6 +451,26 @@ name = "member_invitation_restore"
 path = "tests/member_invitation_restore.rs"
 
 [[test]]
+name = "contract_storage"
+path = "tests/contract_storage.rs"
+
+[[test]]
+name = "contract_storage_lifecycle"
+path = "tests/contract_storage_lifecycle.rs"
+
+[[test]]
+name = "contract_storage_guards"
+path = "tests/contract_storage_guards.rs"
+
+[[test]]
+name = "contract_storage_parties"
+path = "tests/contract_storage_parties.rs"
+
+[[test]]
+name = "contract_storage_migration"
+path = "tests/contract_storage_migration.rs"
+
+[[test]]
 name = "evidence_statement_parity"
 path = "tests/evidence_statement_parity.rs"
 

@@ -558,6 +558,114 @@ through the audited member workflow before migrating. Client access is limited t
 Client's own contracts: no messaging, no case browsing and no general document
 access. Any other read answers 404.
 
+### Storage
+
+Contract storage is one schema family, `crates/infrastructure/src/contract_schema`,
+registered after the invitation family because the request trigger reads
+accepted Client invitations. Its three migrations are split only to keep each
+file under the 400-line limit and run in this order on every administrative
+connection, idempotently: `migrations/0052_contracts.sql` (tables and the two
+statement builders), `migrations/0052_contract_events.sql` (lock, preservation,
+event and request registration) and `migrations/0052_contract_signatures.sql`
+(signatures, completion, pairing, notifications, version guard and every
+trigger). No table holds a state column.
+
+- `contracts`: the root, one per document series (`document_id` unique), with a
+  foreign key to `document_series(id,case_id)` and the captured creator.
+- `contract_signature_requests`: every `CTRTREQ1` field, both binding
+  identities (foreign keys to `document_signing_binding_identity`), the
+  optional Client subject revision (which must belong to the same case), the
+  `ceremony_reference` of 1 to 80 characters, the 240 bytes and their digest,
+  `created_at_seconds`, `created_at_nanoseconds` and `expires_at_seconds`,
+  with a validity of 1 to 30 days.
+- `contract_events`: primary key `(contract_id, revision)`, unique
+  `operation_id` and `audit_sequence`, the only foreign key to `audit_events`.
+  An `expired` event has no actor account and the actor label
+  `system:contract-expiry`; every other event names an account whose e-mail is
+  its label. Abandoning and cancelling require a reason of 1 to 500
+  characters; rejecting and declining admit one.
+- `contract_party_signatures`: primary key `(request_id, position)`, the 303
+  bytes, the 384-byte signature, the binding and trust revision used, and, in
+  position 1 only, T1 with its time-stamping chain. Its `operation_id` is a
+  foreign key to the event that the signature completes.
+- `contract_completions`: Td, the manifest of at most 64 KiB with its digest,
+  Tf and the time-stamping chain. Each party CRL is the CRL of the trust
+  revision its signature names, so no CRL is stored twice.
+- `contract_notifications`: the only mutable table. Each row names its request
+  and its exact event, a recipient, the event kind, sender, recipient address,
+  `subject` (1 to 200 characters) and `message_text` (1 to 4096 characters),
+  and delivery columns as invitation deliveries have. A `requested` notice goes
+  to the Client; `client_signed`, `completed` and `expired` notices to the
+  Client, the firm signer and the requester; `rejected` to the requester and
+  the firm signer; `declined` to the Client and the requester; `cancelled` to
+  both parties. Only the delivery columns change, never downward in generation.
+
+Every write takes the advisory lock 280603412820 under READ COMMITTED, after
+the audited mutation lock. Within one transaction the audit row comes first;
+the root precedes its `created` event and a request its `requested` event; a
+`client_signed` or `completed` event precedes its signature; the completion
+follows the position 2 signature. The deferred trigger function
+`contract_completion_pair` refuses at commit a root without revision 1, a
+request without its `requested` event, a `client_signed` event without the
+position 1 signature, and a `completed` event without the position 2 signature
+and the completion.
+
+`contract_event_register` requires the previous revision plus one
+(SQLSTATE 40001, `contract revision conflict`), a non-decreasing instant and
+audit sequence, the exact audit row, the event graph of the state table above,
+and the designated actor of each event. The audit chain digest is computed by
+the application, so no trigger can write an event. The expired-closing rule is
+therefore enforced, not performed, by storage: while the previous request is
+nominally open, a new request or an `abandoned` event is refused with
+`contract request is open` before `expires_at` and with
+`contract request must expire first` after it, and the adapter writes the
+audited `expired` event of the exhausted request first. Abandoning follows the
+same rule, so no `expired` event can ever follow a terminal one.
+
+`contract_request_register` checks the open case, the latest version of the
+series with `documents.evidence IS NULL` read `FOR SHARE`, the subject's case,
+an active Client with role `client` created by an accepted `client`
+invitation, an active Owner or member Litigator as firm signer and as
+requester, both bindings unwithdrawn, registered no later than the request and
+under the current root, and rebuilds the 240 bytes with `contract_request_bytes`.
+`contract_signature_register` rebuilds the 303 bytes with `contract_party_bytes`
+(the position 1 chain digests are zeros; position 2 digests the stored position
+1 signature and T1) and requires the designated signer, binding and leaf, the
+event of its turn, `accepted_at < expires_at`, the active account with
+unchanged counters and role, membership for a Litigator in position 2, the
+open case, the latest version, the signer's binding unwithdrawn, the current
+trust revision and the same root as position 1. It does not consult the Client
+binding in position 2.
+
+The registration triggers compare the record's own instants, which come from
+the application clock. `contract_version_guard`, `BEFORE UPDATE OF evidence ON
+documents`, has no such instant and reads the database clock: it refuses
+evidence (`contract version is frozen`) for a version whose request is
+completed, or has no closing event and has not reached `expires_at`. An
+exhausted request therefore frees its version before its `expired` event is
+written. A request waiting on an uncommitted seal, or a seal waiting on an
+uncommitted request, re-reads the committed row and is refused.
+
+Authorization failures use SQLSTATE 42501, revision conflicts 40001 and every
+other refusal 23514; each message is stable so the adapters, which check the
+same conditions before writing, can map a lost race to the HTTP codes above.
+The runtime role may read and insert the five append-only tables, read,
+insert and update only the delivery columns of notifications, and execute the
+two statement builders; it cannot execute any trigger function. The only new
+reference to audit rows raises the audit foreign-key triggers from 26 to 28.
+
+The startup inventory checks, in SQL, every CHECK predicate, the created event
+of each root, contiguous revisions, the event graph, each event's audit row,
+each request's `requested` event and rebuilt bytes, each signature's event,
+designation and rebuilt bytes, the pairs above, and that a completed version
+holds no evidence. It then decodes every statement with the domain codecs,
+verifies each party signature with the trust revision it names at its
+`checked_at`, verifies T1, Td and Tf over their imprints under the admitted
+policy, and parses each manifest to compare its identities, signers and every
+artifact whose bytes are stored. Token instants against `created_at` and
+`expires_at` are judged by the signing service and the validator, and the
+certificates and CRLs encoded for a package are checked by the exporter.
+
 ## Consequences
 
 What the evidence proves: the holder of each bound key accepted that exact
