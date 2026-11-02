@@ -1,5 +1,6 @@
 //! Entry name rules and size limits of admission, from the Admission section
-//! of docs/adr/0085-in-browser-evidence-validation.md.
+//! of docs/adr/0085-in-browser-evidence-validation.md and the section
+//! "Evidence packages" of docs/adr/0086-bilateral-contract-signing.md.
 
 const KIB: u64 = 1024;
 const MIB: u64 = 1024 * KIB;
@@ -37,6 +38,14 @@ const NAMES_NEVER_DOCUMENT: [&str; 5] = [
     "INSTRUCCIONES.md",
 ];
 
+/// CRL entries of the bilateral contract profiles.
+const CONTRACT_CRLS: [&str; 4] = [
+    "parte-1-crl.pem",
+    "parte-2-crl.pem",
+    "parte-1-vinculo-crl.der",
+    "parte-2-vinculo-crl.der",
+];
+
 /// Largest uncompressed size admitted for the entry `name` of an archive
 /// whose entry names are `names`; names are compared byte for byte.
 ///
@@ -44,9 +53,11 @@ const NAMES_NEVER_DOCUMENT: [&str; 5] = [
 /// that has both a `.sig` and a `.tsr` sibling may hold a document, unless
 /// it can never be one. A server seal document may carry a name
 /// that only the individual signing profiles fix, so such a candidate takes
-/// the document limit instead of the fixed one. Every other entry without a
-/// fixed limit, including the document's signature and response, takes the
-/// 64 KiB limit.
+/// the document limit instead of the fixed one. The fixed document and CRL
+/// names of the bilateral contract profiles are checked only after that
+/// rule, so no server seal or individual signing package changes outcome.
+/// Every other entry without a fixed limit, including the document's
+/// signature and response, takes the 64 KiB limit.
 pub(super) fn entry_limit(name: &[u8], names: &[&[u8]]) -> u64 {
     let never_document = NAMES_NEVER_DOCUMENT
         .iter()
@@ -55,9 +66,12 @@ pub(super) fn entry_limit(name: &[u8], names: &[&[u8]]) -> u64 {
         CRL_LIMIT
     } else if never_document {
         OTHER_LIMIT
-    } else if is_document_candidate(name, names) {
+    } else if is_document_candidate(name, names) || name == b"contrato.pdf" {
         DOCUMENT_LIMIT
-    } else if name == b"binding-crl.der" || name == b"tsa-crl.pem" {
+    } else if name == b"binding-crl.der"
+        || name == b"tsa-crl.pem"
+        || CONTRACT_CRLS.iter().any(|crl| crl.as_bytes() == name)
+    {
         CRL_LIMIT
     } else if name == b"individual-signing.json" {
         INDIVIDUAL_STATEMENT_LIMIT

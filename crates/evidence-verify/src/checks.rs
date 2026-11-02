@@ -5,8 +5,10 @@
 //! helpers here decode entries and keep the three kinds of findings apart:
 //! a signature over exact bytes, the profile and trust of a certificate, and
 //! missing evidence. Rationale:
-//! `docs/adr/0085-in-browser-evidence-validation.md`.
+//! `docs/adr/0085-in-browser-evidence-validation.md` and, for the bilateral
+//! contract profiles, `docs/adr/0086-bilateral-contract-signing.md`.
 
+mod contract;
 mod current;
 mod individual;
 mod manifest;
@@ -85,6 +87,9 @@ pub(crate) fn run(evidence: &Evidence<'_>) -> Checked {
         Profile::ServerSealV1 => server_seal::check(evidence),
         Profile::IndividualSigningV1 => individual::check(evidence),
         Profile::IndividualSigningV2 => manifest::check(evidence),
+        Profile::BilateralContractV1 | Profile::BilateralContractPartialV1 => {
+            contract::check(evidence)
+        }
     }
 }
 

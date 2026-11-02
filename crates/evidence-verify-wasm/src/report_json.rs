@@ -32,6 +32,8 @@ fn profile(profile: Profile) -> &'static str {
         Profile::ServerSealV1 => "server-seal-v1",
         Profile::IndividualSigningV1 => "individual-signing-v1",
         Profile::IndividualSigningV2 => "individual-signing-v2",
+        Profile::BilateralContractV1 => "bilateral-contract-v1",
+        Profile::BilateralContractPartialV1 => "bilateral-contract-partial-v1",
     }
 }
 

@@ -1,10 +1,14 @@
 //! End-to-end validation of complete and altered evidence packages built from
-//! the fixtures, against the contract in
-//! `docs/adr/0085-in-browser-evidence-validation.md`.
+//! the fixtures, against the contracts in
+//! `docs/adr/0085-in-browser-evidence-validation.md` and
+//! `docs/adr/0086-bilateral-contract-signing.md`.
 
+mod contract_support;
 mod support;
 
 mod admission;
+mod contract;
+mod contract_negative;
 mod hostile;
 mod individual;
 mod individual_negative;
