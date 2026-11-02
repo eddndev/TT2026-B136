@@ -21,20 +21,40 @@ La confianza en `ca.pem` debe establecerse por un canal independiente, por
 ejemplo con la hoja de huellas firmada a mano; incluirla en el ZIP no la
 convierte en una autoridad confiable.
 
-## 1. Firma de cada declaración
+## 1. Firma de la declaración y de la vinculación del Cliente
 
-Extraiga la clave pública del certificado de la parte y verifique su firma:
+Extraiga la clave pública del certificado de la parte y verifique la firma de
+su declaración y la de su vinculación (`parte-1-vinculo.bin`, el registro
+`DOCBIND1` de 142 bytes con el que la cuenta vinculó ese certificado antes de
+firmar):
 
 ```
-openssl x509 -in parte-1-certificado.pem -pubkey -noout > clave-publica.pem
-openssl dgst -sha256 -verify clave-publica.pem \
+openssl x509 -in parte-1-certificado.pem -pubkey -noout > clave-publica-1.pem
+openssl dgst -sha256 -verify clave-publica-1.pem \
   -signature parte-1-declaracion.sig parte-1-declaracion.bin
+openssl dgst -sha256 -verify clave-publica-1.pem \
+  -signature parte-1-vinculo.sig parte-1-vinculo.bin
 ```
 
-En el paquete completo repita con `parte-2-certificado.pem`,
-`parte-2-declaracion.sig` y `parte-2-declaracion.bin`.
+Ambas verificaciones deben devolver `Verified OK`.
 
-## 2. Huella del PDF dentro de la declaración
+## 2. Certificado del Cliente
+
+Compruebe que el certificado fue emitido por `ca.pem` y que no figura en la
+CRL incluida, y que la raíz de la vinculación es la misma `ca.pem`:
+
+```
+openssl verify -CAfile ca.pem -crl_check -CRLfile parte-1-crl.pem parte-1-certificado.pem
+openssl x509 -in ca.pem -outform DER | openssl dgst -sha256
+openssl dgst -sha256 parte-1-vinculo-raiz.der
+```
+
+La primera orden debe devolver `parte-1-certificado.pem: OK`; las dos huellas
+deben coincidir. `openssl verify` evalúa la vigencia en la fecha actual y puede
+rechazar una CRL o un certificado hoy caducados; para evaluarla en el instante
+de la firma añada `-attime` con ese instante en segundos Unix.
+
+## 3. Huella del PDF dentro de la declaración
 
 Los 32 bytes desde el desplazamiento 206 de la declaración son el SHA-256 del
 PDF; deben coincidir con la huella calculada:
@@ -51,7 +71,7 @@ dd if=parte-1-declaracion.bin bs=1 skip=174 count=32 | xxd -p -c 32
 sha256sum contrato-solicitud.bin
 ```
 
-## 3. Sello de tiempo de la firma del Cliente (T1)
+## 4. Sello de tiempo de la firma del Cliente (T1)
 
 ```
 openssl dgst -sha256 -binary parte-1-declaracion.sig > firma-1.sha256

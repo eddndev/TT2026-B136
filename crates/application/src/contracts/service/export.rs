@@ -212,3 +212,7 @@ fn instructions(record: &RequestRecord, stage: ContractStage) -> String {
         .replace("{{VENCE}}", &fields.expires_at_seconds.to_string())
         .replace("{{COMPLETO}}\n", section)
 }
+
+#[cfg(test)]
+#[path = "export_tests.rs"]
+mod tests;
