@@ -461,7 +461,13 @@ The Client private key never reaches the server.
 
 1. Only an Owner invites an account with role `client`, through the existing
    invitation workflow (24-hour validity, resend). The Client chooses their
-   password and confirms TOTP.
+   password and confirms TOTP. `migrations/0051_client_invitations.sql`
+   widens the invitation role constraint of
+   `migrations/0046_member_invitations.sql` when it still has its original
+   form, without touching stored invitations, and startup requires the
+   widened constraint. It is registered with the invitation family and is a
+   separate file from the membership guard, because the two families migrate
+   at different points. An invitation never creates an Owner.
 2. The Client generates an encrypted key and a CSR locally in "Mi firma", or
    uses OpenSSL, and sees the SHA-256 of the SPKI computed locally.
 3. The Client hands over the public CSR through an external channel and reads

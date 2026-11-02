@@ -104,6 +104,33 @@ async fn owner_routes_require_bearer_and_delegate_role_denial() {
 }
 
 #[tokio::test]
+async fn issue_translates_a_client_role_and_rejects_an_owner_invitation() {
+    let fixture = Harness::ready();
+    let mut body = issue();
+    body["role"] = json!("client");
+    let reply = call(&fixture.router, "POST", OWNER, Some("owner"), Some(body)).await;
+    assert_eq!(reply.status, StatusCode::CREATED);
+    for role in ["owner", "Client", ""] {
+        let mut body = issue();
+        body["role"] = json!(role);
+        call(&fixture.router, "POST", OWNER, Some("owner"), Some(body))
+            .await
+            .error(StatusCode::BAD_REQUEST, "invalid_invitation_request");
+    }
+    assert_eq!(
+        fixture.workflow.calls(),
+        vec![Call::Issue(
+            "owner".into(),
+            InvitationIssueRequest {
+                operation_id: operation(),
+                email: "staff@example.test".into(),
+                role: Role::Client,
+            }
+        )]
+    );
+}
+
+#[tokio::test]
 async fn public_enrollment_and_receipt_contracts_never_issue_a_session() {
     let fixture = Harness::ready();
     let reply = call(

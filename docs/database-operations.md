@@ -1749,3 +1749,17 @@ disparadores y se niega a abrir la base migrada, de modo que volver atrás
 requiere restaurar el respaldo previo. Las
 [pruebas de la guarda](../crates/infrastructure/tests/member_client_guard.rs)
 requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+### Invitaciones de cuentas Cliente
+
+La [migración 0051 de invitaciones](../migrations/0051_client_invitations.sql)
+reemplaza la restricción `member_invitations_role_check` de la migración 0046
+para admitir `client` además de `litigator` y `paralegal`. Solo actúa cuando la
+restricción conserva su forma original, de modo que repetir
+`database migrate --runtime-role` no la toca, y no modifica invitaciones
+almacenadas. La apertura exige la restricción ampliada y acepta invitaciones
+`client` guardadas; un binario anterior rechaza esas filas al arrancar, por lo
+que volver atrás después de emitir una invitación `client` requiere restaurar
+el respaldo previo. Las
+[pruebas de invitaciones Cliente](../crates/infrastructure/tests/member_invitation_clients.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.

@@ -439,6 +439,10 @@ name = "member_invitation_boundaries"
 path = "tests/member_invitation_boundaries.rs"
 
 [[test]]
+name = "member_invitation_clients"
+path = "tests/member_invitation_clients.rs"
+
+[[test]]
 name = "invitation_limiter"
 path = "tests/invitation_limiter.rs"
 

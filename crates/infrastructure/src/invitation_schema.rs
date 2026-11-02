@@ -3,7 +3,13 @@ use crate::postgres::CatalogClient;
 use application::ApplicationError;
 use postgres::GenericClient;
 
-pub(crate) const MIGRATION: &str = include_str!("../../../migrations/0046_member_invitations.sql");
+pub(crate) const MIGRATIONS: &[&str] = &[
+    include_str!("../../../migrations/0046_member_invitations.sql"),
+    include_str!("../../../migrations/0051_client_invitations.sql"),
+];
+/// Invitation roles, Client included: docs/adr/0086-bilateral-contract-signing.md.
+const ROLE_CHECK: &str =
+    "(role = ANY (ARRAY['litigator'::text, 'paralegal'::text, 'client'::text]))";
 const TABLES: [&str; 3] = [
     "member_invitations",
     "member_invitation_operations",
@@ -37,11 +43,24 @@ pub(crate) fn validate_schema<C: CatalogClient>(c: &mut C) -> Result<(), Applica
             return Err(invalid());
         }
     }
+    let roles: bool = c
+        .query_one(
+            "SELECT EXISTS(SELECT 1 FROM pg_constraint c
+                WHERE c.conrelid='member_invitations'::regclass AND c.contype='c'
+                AND c.conname='member_invitations_role_check' AND c.convalidated
+                AND pg_get_expr(c.conbin,c.conrelid)=$1)",
+            &[&ROLE_CHECK],
+        )
+        .map_err(port)?
+        .get(0);
+    if !roles {
+        return Err(invalid());
+    }
     let valid: bool = c
         .query_one(
             "SELECT NOT EXISTS(
                 SELECT 1 FROM member_invitations
-                WHERE role NOT IN ('litigator','paralegal') OR revision<1
+                WHERE role NOT IN ('litigator','paralegal','client') OR revision<1
                     OR expires_at<=issued_at OR octet_length(token_digest)<>32
                     OR NOT (
                         (pending_operation IS NULL AND pending_digest IS NULL

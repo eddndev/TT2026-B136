@@ -2,7 +2,7 @@ use super::support::*;
 
 #[test]
 fn owner_issues_only_encrypted_capability_with_normalized_email_and_24_hour_expiry() {
-    for role in [Role::Litigator, Role::Paralegal] {
+    for role in [Role::Litigator, Role::Paralegal, Role::Client] {
         let mut harness = Harness::new();
         let state = harness.state.clone();
         let observed = state.clone();
@@ -96,19 +96,17 @@ fn non_owners_cannot_issue_resend_list_or_read_invitations() {
 }
 
 #[test]
-fn invitation_cannot_create_an_owner_or_client() {
-    for role in [Role::Owner, Role::Client] {
-        let harness = Harness::new();
-        let state = harness.state.clone();
-        let service = harness.service();
-        let mut request = issue_request();
-        request.role = role;
-        assert!(matches!(
-            service.issue("session", request),
-            Err(ApplicationError::InvalidInput(_))
-        ));
-        assert_eq!(state.lock().unwrap().tokens, 0);
-    }
+fn invitation_cannot_create_an_owner() {
+    let harness = Harness::new();
+    let state = harness.state.clone();
+    let service = harness.service();
+    let mut request = issue_request();
+    request.role = Role::Owner;
+    assert!(matches!(
+        service.issue("session", request),
+        Err(ApplicationError::InvalidInput(_))
+    ));
+    assert_eq!(state.lock().unwrap().tokens, 0);
 }
 
 #[test]

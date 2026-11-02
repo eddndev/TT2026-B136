@@ -172,7 +172,8 @@ o usar **Invitaciones al despacho**. El alta directa conserva la entrega privada
 de la configuración inicial del segundo factor.
 
 Para invitar, completa **Correo de la invitacion**, elige **Rol de la invitacion**
-(Asistente o Litigante) y pulsa **Enviar invitacion**. El enlace vence en 24 horas.
+(Asistente, Litigante o Cliente) y pulsa **Enviar invitacion**. Una cuenta
+Cliente es la contraparte de un contrato y nunca se asigna a un expediente. El enlace vence en 24 horas.
 **Reenviar a…** seguido de **Confirmar reenvio** invalida el enlace y la preparación
 MFA anteriores. Si no llega una respuesta, usa **Comprobar invitacion** antes de
 **Reintentar el mismo envio**; **Retomar invitacion** conserva la intención

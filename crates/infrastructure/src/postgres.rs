@@ -139,9 +139,9 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::individual_signing_manifest_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
-    transaction
-        .batch_execute(crate::invitation_schema::MIGRATION)
-        .map_err(port_error)?;
+    for migration in crate::invitation_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     transaction
         .batch_execute(crate::audit_query_schema::CONTEXT_MIGRATION)
         .map_err(port_error)?;
