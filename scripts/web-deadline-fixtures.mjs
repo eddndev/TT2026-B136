@@ -38,7 +38,8 @@ export async function provisionDeadlines(call) {
       offenses: ['Descripcion sintetica'], general_information: null, complementary_identifiers: null,
     } }, 201);
     fixture[key] = { id: row.id, title, reference };
-    if (key !== 'hiddenCase') for (const role of ['litigator', 'paralegal', 'client'])
+    // A Client account is never a case member.
+    if (key !== 'hiddenCase') for (const role of ['litigator', 'paralegal'])
       await call('PUT', `/cases/${row.id}/members/${fixture[role].id}`, undefined, 204);
   }
   const values = calendarValues();

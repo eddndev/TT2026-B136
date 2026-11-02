@@ -73,10 +73,10 @@ test('real fact permissions retain closed history and clear private data on revo
           await expect(factDetail(other)).toContainText(accounts.policyResolution.values.summary);
         } else {
           await navigate(other, 'Expedientes');
-          await other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }).click();
+          // A Client account is never a case member, so the case is not listed.
           await expect(
-            other.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-          ).toBeVisible();
+            other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }),
+          ).toHaveCount(0);
           await expect(other.getByRole('link', { name: 'Resoluciones', exact: true })).toHaveCount(
             0,
           );

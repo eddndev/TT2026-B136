@@ -60,7 +60,8 @@ try {
   });
   administration.legacyCase = legacy;
   for (const key of ['basicCase', 'legacyCase']) {
-    for (const role of ['owner', 'litigator', 'paralegal', 'client']) {
+    // A Client account is never a case member.
+    for (const role of ['owner', 'litigator', 'paralegal']) {
       await request('PUT', `/api/v1/cases/${administration[key].id}/members/${administration[role].id}`,
         undefined, session.access_token, 204);
     }

@@ -50,7 +50,8 @@ export async function provisionMembers(call) {
       title: administration.title,
       reference: administration.reference,
     };
-    for (const member of [scenario.subject, fixture.client, fixture.selfOwner])
+    // A Client account is never a case member.
+    for (const member of [scenario.subject, fixture.selfOwner])
       await call("PUT", `${base}/members/${member.id}`, undefined, 204);
     scenario.closed = key === "mobile";
     if (scenario.closed)

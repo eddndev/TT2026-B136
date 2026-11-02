@@ -44,7 +44,8 @@ export async function provisionHearings(request, pdf) {
     );
     hearings[key] = { id: row.id, title, reference };
     if (key !== "hiddenCase")
-      for (const role of ["litigator", "paralegal", "client"])
+      // A Client account is never a case member.
+      for (const role of ["litigator", "paralegal"])
         await request(
           "PUT",
           `/cases/${row.id}/members/${hearings[role].id}`,

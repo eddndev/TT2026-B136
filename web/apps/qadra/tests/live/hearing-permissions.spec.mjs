@@ -106,10 +106,10 @@ test('real agenda honors assignments roles closure and revocation without a brow
         } else {
           await expect(other.getByRole('button', { name: 'Alertas', exact: true })).toHaveCount(0);
           await navigate(other, 'Expedientes');
-          await other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }).click();
+          // A Client account is never a case member, so the case is not listed.
           await expect(
-            other.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-          ).toBeVisible();
+            other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }),
+          ).toHaveCount(0);
           await expect(other.getByRole('link', { name: 'Audiencias', exact: true })).toHaveCount(0);
           await other.evaluate(() => {
             location.hash = 'agenda';

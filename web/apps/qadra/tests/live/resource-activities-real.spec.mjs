@@ -153,10 +153,10 @@ test('real association access preserves read-only history and clears revoked mem
     await client.goto('/');
     await loginAs(client, accounts.client, 0);
     await navigate(client, 'Expedientes');
-    await client.getByRole('button', { name: new RegExp(scenario.case.title) }).click();
-    await expect(
-      client.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-    ).toBeVisible();
+    // A Client account is never a case member, so the case is not listed.
+    await expect(client.getByRole('button', { name: new RegExp(scenario.case.title) })).toHaveCount(
+      0,
+    );
     await expect(client.getByRole('link', { name: 'Recursos', exact: true })).toHaveCount(0);
     expect(
       calls.filter(

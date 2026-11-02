@@ -98,10 +98,10 @@ test('real deadline roles retain closed history and clear private state after me
           await expect(detail(other)).toContainText(accounts.policyCaseDeadline.definition.title);
         } else {
           await navigate(other, 'Expedientes');
-          await other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }).click();
+          // A Client account is never a case member, so the case is not listed.
           await expect(
-            other.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-          ).toBeVisible();
+            other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }),
+          ).toHaveCount(0);
           await expect(other.getByRole('link', { name: 'Plazos', exact: true })).toHaveCount(0);
           expect(
             requests.filter((path) => /\/(deadlines|deadline-profiles)(\/|$)/.test(path)),

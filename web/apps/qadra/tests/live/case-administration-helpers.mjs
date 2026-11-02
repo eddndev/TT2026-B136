@@ -103,16 +103,22 @@ export async function permissions(browser, testInfo, errors) {
       await expect(
         page.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
       ).toHaveCount(0);
-      await page.getByRole('button', { name: new RegExp(accounts.basicCase.title) }).click();
-      await expect(
-        page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-      ).toBeVisible();
       if (role === 'client') {
+        // A Client account is never a case member, so no case is listed.
+        await expect(
+          page.getByRole('button', { name: new RegExp(accounts.basicCase.title) }),
+        ).toHaveCount(0);
         expect(
           paths.filter((path) => /case-administrations|\/administration(?:\/|$)/.test(path)),
         ).toEqual([]);
         await expect(page.getByText('Ficha penal completa', { exact: true })).toHaveCount(0);
-      } else if (role === 'litigator') {
+        continue;
+      }
+      await page.getByRole('button', { name: new RegExp(accounts.basicCase.title) }).click();
+      await expect(
+        page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
+      ).toBeVisible();
+      if (role === 'litigator') {
         litigator = page;
         await page.getByRole('button', { name: 'Editar ficha penal', exact: true }).click();
         await page

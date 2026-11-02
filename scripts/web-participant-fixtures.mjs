@@ -45,7 +45,8 @@ try {
     const record = await request('POST', '/api/v1/cases', { title, reference }, session.access_token, 201);
     participants[key] = { id: record.id, title: record.title, reference: record.reference };
   }
-  for (const role of ['litigator', 'paralegal', 'client']) {
+  // A Client account is never a case member.
+  for (const role of ['litigator', 'paralegal']) {
     await request('PUT', `/api/v1/cases/${participants.case.id}/members/${participants[role].id}`,
       undefined, session.access_token, 204);
   }
