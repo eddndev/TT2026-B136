@@ -49,6 +49,37 @@ fn prepare_denies_inactive_binding_non_pdf_and_mismatched_document_before_timest
 }
 
 #[test]
+fn an_owner_or_client_with_a_live_binding_never_prepares_an_individual_signature() {
+    for role in [Role::Owner, Role::Client, Role::Paralegal] {
+        let harness = Harness::new();
+        {
+            let mut value = harness.binding.state.lock().unwrap();
+            value.principal.as_mut().unwrap().role = role;
+            value.context.principal.role = role;
+            value.found = Some(bindings::receipt());
+        }
+        let state = harness.state.clone();
+        let calls = harness.binding.state.clone();
+        assert!(matches!(
+            failure(harness.service().prepare(
+                "session",
+                operation(),
+                case(),
+                reference(),
+                &pdf_signature()
+            )),
+            ApplicationError::PermissionDenied
+        ));
+        assert_eq!(calls.lock().unwrap().calls, ["authenticate"]);
+        let value = state.lock().unwrap();
+        assert_eq!(
+            (value.format_calls, value.tsa_calls, value.commits),
+            (0, 0, 0)
+        );
+    }
+}
+
+#[test]
 fn changed_account_trust_and_permissions_reject_submission_before_verifier_or_tsa() {
     for change in 0..4 {
         let harness = Harness::new();

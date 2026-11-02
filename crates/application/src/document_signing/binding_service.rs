@@ -17,9 +17,12 @@ impl SigningBindingService {
         Self { ports }
     }
 
+    /// Every party of a bilateral contract may hold a binding; individual
+    /// signing still requires a Litigator. See
+    /// docs/adr/0086-bilateral-contract-signing.md.
     fn principal(&self, token: &str) -> Result<Principal, ApplicationError> {
         let principal = self.ports.identity.authenticate(token)?;
-        if principal.role != Role::Litigator {
+        if !matches!(principal.role, Role::Owner | Role::Litigator | Role::Client) {
             return Err(ApplicationError::PermissionDenied);
         }
         Ok(principal)

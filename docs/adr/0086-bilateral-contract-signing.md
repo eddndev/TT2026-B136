@@ -478,6 +478,18 @@ The Client private key never reaches the server.
    technical control; it does not establish civil identity. The sheet
    reference is required to create a request.
 
+A document-signing binding (ADR 0074) may therefore be held by every party of
+a contract: the binding service, the signing account lookup and the storage
+guard admit an active Owner, Litigator or Client, and still reject a
+Paralegal. `migrations/0050_signing_binding_parties.sql` replaces the two
+binding functions of `migrations/0044_document_signing_bindings.sql` with
+`CREATE OR REPLACE` and changes no table, column, trigger or row; the startup
+inventory compares each function with its last registered definition.
+Individual signing keeps requiring an active Litigator who is a case member,
+in its service and in the receipt guard of
+`migrations/0045_individual_document_signatures.sql`, so an Owner or Client
+binding never produces an individual signature.
+
 Only an account created by an accepted `client` invitation is eligible. An
 account created directly by an Owner is not, because the Owner chose its
 initial password and its TOTP secret was generated on the server. The
@@ -582,7 +594,8 @@ generalize. Verification with OpenSSL is a two-step procedure documented in
 Qadra.
 
 The individual signing tables, their storage functions and their inventories
-are not changed, and every v1 and v2 package keeps its verdict. New storage
+are not changed, apart from the two binding functions that admit every
+contract party, and every v1 and v2 package keeps its verdict. New storage
 adds append-only contract tables, two audit references and a version guard
 that blocks seals and individual signatures on contracted versions. The
 dashboard pending-contract indicator is redefined over contracts in

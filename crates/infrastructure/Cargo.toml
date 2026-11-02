@@ -410,6 +410,10 @@ name = "signing_binding_backend"
 path = "tests/signing_binding_backend.rs"
 
 [[test]]
+name = "signing_binding_parties"
+path = "tests/signing_binding_parties.rs"
+
+[[test]]
 name = "individual_document_backend"
 path = "tests/individual_document_backend.rs"
 

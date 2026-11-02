@@ -8,7 +8,16 @@ Account revision and authentication generation are decimal strings.
 
 ## Public certificate binding
 
-These operations require the current Litigator account.
+These operations require the current active account with role `owner`,
+`litigator` or `client`, the parties that may sign a bilateral contract
+([ADR 0086](adr/0086-bilateral-contract-signing.md)). A Paralegal receives the
+same rejection as before. Each account manages only its own binding, and the
+storage guard of `migrations/0050_signing_binding_parties.sql` checks the same
+roles. A binding does not authorize individual signing by itself: the
+exact-version operations below still require a Litigator who is a member of the
+case, both in the service and in the receipt guard of
+`migrations/0045_individual_document_signatures.sql`, so an Owner or Client
+binding never produces an individual signature.
 
 | Method | Path | Body |
 | --- | --- | --- |

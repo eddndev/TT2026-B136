@@ -6,7 +6,7 @@ mod read;
 mod withdrawal;
 mod write;
 
-pub(crate) use account::account;
+pub(crate) use account::{account, binding_account};
 pub(crate) use inventory::validate as validate_inventory;
 pub(crate) use read::load;
 

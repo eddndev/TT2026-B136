@@ -16,9 +16,10 @@ pub(crate) use catalog::validate_schema;
 pub(crate) use inventory::validate_inventory;
 use postgres::GenericClient;
 
-pub(crate) const MIGRATIONS: &[&str] = &[include_str!(
-    "../../../../migrations/0044_document_signing_bindings.sql"
-)];
+pub(crate) const MIGRATIONS: &[&str] = &[
+    include_str!("../../../../migrations/0044_document_signing_bindings.sql"),
+    include_str!("../../../../migrations/0050_signing_binding_parties.sql"),
+];
 const TABLES: [&str; 2] = ["document_signing_bindings", "document_signing_withdrawals"];
 
 pub(crate) fn grant_runtime<C: GenericClient>(

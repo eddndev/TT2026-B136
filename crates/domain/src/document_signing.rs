@@ -77,8 +77,9 @@ impl SignerAccount {
         Self::counted(id, revision, generation)
     }
 
-    /// Account facts read back from signed bytes, which carry no role.
-    pub(crate) fn from_signed_counters(
+    /// Account facts read back from signed bytes or from the stored history of
+    /// those bytes, neither of which carries a role.
+    pub fn from_signed_counters(
         id: UserId,
         revision: u64,
         generation: u64,

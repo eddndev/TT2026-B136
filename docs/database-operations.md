@@ -1700,3 +1700,22 @@ La restauración repone primero los datos y después los disparadores, como hace
 Las [pruebas del manifiesto](../crates/infrastructure/tests/individual_document_backend_manifest.rs)
 y la [prueba extremo a extremo](../crates/infrastructure/tests/individual_signing_manifest_end_to_end.rs)
 requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+### Vínculos de las partes de un contrato
+
+La [migración 0050](../migrations/0050_signing_binding_parties.sql) reemplaza
+con `CREATE OR REPLACE` las funciones `document_signing_register` y
+`document_signing_withdraw` de la migración 0044 para admitir vínculos de
+cuentas activas con rol `owner`, `litigator` o `client`, las partes de un
+contrato bilateral descritas en
+[ADR 0086](adr/0086-bilateral-contract-signing.md). No crea tablas ni
+disparadores, no cambia columnas ni filas y conserva cada vínculo existente.
+La apertura compara el cuerpo de cada función con la última definición
+registrada, de modo que un binario anterior se niega a abrir una base migrada y
+un binario nuevo se niega a abrir una base cuyas funciones conservan la versión
+de 0044. Volver atrás requiere restaurar el respaldo previo, no reescribir las
+funciones. La firma individual no cambia: `0045` sigue exigiendo un Litigante
+activo y miembro del expediente, por lo que un vínculo de Owner o Client nunca
+produce un recibo individual. Las
+[pruebas de las partes](../crates/infrastructure/tests/signing_binding_parties.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.

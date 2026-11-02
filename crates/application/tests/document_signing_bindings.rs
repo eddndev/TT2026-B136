@@ -259,28 +259,44 @@ fn withdrawal_preserves_registration_and_needs_authority_but_no_live_credential(
 }
 
 #[test]
-fn non_litigators_and_invalid_inputs_cannot_reach_the_binding_store() {
-    for role in [Role::Owner, Role::Paralegal, Role::Client] {
+fn every_contract_party_prepares_the_same_role_free_binding_statement() {
+    for role in [Role::Owner, Role::Client] {
         let harness = Harness::new();
-        harness
-            .state
-            .lock()
-            .unwrap()
-            .principal
-            .as_mut()
-            .unwrap()
-            .role = role;
-        let state = harness.state.clone();
-        assert!(matches!(
-            failure(
-                harness
-                    .service()
-                    .prepare("session", id(), &certificate().der)
-            ),
-            ApplicationError::PermissionDenied
-        ));
-        assert_eq!(state.lock().unwrap().calls, ["authenticate"]);
+        {
+            let mut state = harness.state.lock().unwrap();
+            state.principal.as_mut().unwrap().role = role;
+            state.context.principal.role = role;
+        }
+        let prepared = harness
+            .service()
+            .prepare("session", id(), &certificate().der)
+            .unwrap();
+        assert_eq!(prepared.context().principal.role, role);
+        assert_eq!(prepared.statement(), &statement());
     }
+}
+
+#[test]
+fn paralegals_and_invalid_inputs_cannot_reach_the_binding_store() {
+    let harness = Harness::new();
+    harness
+        .state
+        .lock()
+        .unwrap()
+        .principal
+        .as_mut()
+        .unwrap()
+        .role = Role::Paralegal;
+    let state = harness.state.clone();
+    assert!(matches!(
+        failure(
+            harness
+                .service()
+                .prepare("session", id(), &certificate().der)
+        ),
+        ApplicationError::PermissionDenied
+    ));
+    assert_eq!(state.lock().unwrap().calls, ["authenticate"]);
     let harness = Harness::new();
     assert_eq!(
         kind(failure(harness.service().prepare(

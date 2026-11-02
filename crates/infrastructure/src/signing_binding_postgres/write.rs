@@ -1,4 +1,6 @@
-use super::{account, inconsistent, load, port, resource, PostgresSigningBindingStore};
+use super::{
+    binding_account as account, inconsistent, load, port, resource, PostgresSigningBindingStore,
+};
 use application::{
     document_signing::{
         validate_binding_receipt, SigningBindingReceipt, SigningWorkflowError as Error,
