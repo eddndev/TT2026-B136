@@ -666,6 +666,58 @@ artifact whose bytes are stored. Token instants against `created_at` and
 `expires_at` are judged by the signing service and the validator, and the
 certificates and CRLs encoded for a package are checked by the exporter.
 
+### Application service
+
+`crates/application/src/contracts` holds the use cases, their ports and the
+pure rules above, so the store only supplies facts and rechecks them under
+its locks. A store read returns the whole stored contract (root, events,
+requests with both live-at-request binding receipts, signatures with the
+root and CRL of the trust revision they name, and the completion) plus
+whether the caller has staff scope on the case, the latest version of the
+series and whether the case is closed. The service derives every state and
+decides every access from those facts; the derivation is the single
+definition of an open request given above.
+
+These details are fixed by the service:
+
+- An account that can read a contract but is not the actor of an action
+  (a Paralegal who tries to manage, a staff member who is not the designated
+  signer, a party who tries the other party's action) receives
+  `PermissionDenied`; an account with no relation at all receives
+  `contract_not_found`.
+- The designated firm signer may read the exact version through the request
+  route while the request is open, also before the Client signs, so the
+  firm can review what the Client is asked to accept.
+- A request is created with the application clock: `created_at` is the
+  instant of the command in whole seconds and `expires_at` adds the
+  validity in days. Party eligibility is resolved inside the command and
+  reported only as the three blockers.
+- Signing builds the expected statement from the current account counters,
+  the current trust revision and the request's designated binding, which
+  must still be the caller's live binding. A submitted statement whose
+  account counters differ answers `signing_account_changed`, whose
+  deployment, root or trust revision differ `signing_trust_changed`, and
+  any other difference `signing_conflict`.
+- The position 2 manifest is encoded from the exact bytes the export
+  writes: certificates and CRLs as canonical PEM of their stored DER, `ca.pem`
+  from the root of the position 2 trust revision, `tsa-chain.pem` from the
+  anchor of Td and Tf, and `contrato.pdf` from the decrypted, digest-checked
+  content. Td and Tf must use the same anchor. The export rebuilds the
+  covered entries and refuses to write a package whose artifacts differ from
+  the stored manifest.
+- Every T1, Td and Tf failure that is not a configuration error answers
+  `contract_timestamp_unavailable`, including a token whose `genTime`
+  precedes `created_at` or, for Td and Tf, its predecessor token. A token
+  whose `genTime` plus accuracy passes `expires_at` answers
+  `contract_expired`.
+- Notices carry a plain ASCII subject and text that name the contract
+  title, the request and its expiry, and link to `public_url#contracts`
+  when a public address is configured; they never carry a token, signature
+  or certificate.
+- The expiry closer runs with no actor, writes one `expired` event per
+  exhausted unclosed request, at most 20 per cycle, and skips a request
+  whose revision another writer changed in between.
+
 ## Consequences
 
 What the evidence proves: the holder of each bound key accepted that exact

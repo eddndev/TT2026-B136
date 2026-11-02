@@ -22,7 +22,7 @@ use crate::{
 
 /// Rejects a time-stamping anchor other than the credential trust root,
 /// because that root's CRL is the only time-stamping CRL source.
-pub(super) fn check_anchor(
+pub(crate) fn check_anchor(
     anchor_pem: &[u8],
     trust: &CredentialTrustSnapshot,
 ) -> Result<(), ApplicationError> {
@@ -88,7 +88,7 @@ pub(super) fn generate(
 
 /// Rejects a manifest token that would read as issued after the acceptance
 /// instant `accepted_at`, beyond its accuracy.
-pub(super) fn check_before(facts: &TokenFacts, accepted_at: i64) -> Result<(), ApplicationError> {
+pub(crate) fn check_before(facts: &TokenFacts, accepted_at: i64) -> Result<(), ApplicationError> {
     if facts.gen_time.saturating_sub(facts.accuracy_seconds) > accepted_at {
         return Err(ApplicationError::TimestampEvidenceRejected(
             "manifest token genTime follows the acceptance instant".into(),

@@ -26,3 +26,9 @@ pub use manifest_port::{ManifestTimestamping, TokenFacts, TsaAuthority};
 pub use model::{SigningAccountContext, SigningBindingReceipt, SigningWorkflowError};
 pub use port::{DocumentSigningVerifier, SigningBindingPorts, SigningBindingStore};
 pub use prepared::{PreparedSigningBinding, VerifiedSigningBinding};
+
+/// Checks shared with bilateral contract signing, which uses the same
+/// bindings, trust snapshots, PEM encoding and time-stamping anchor.
+pub(crate) use document_manifest::{check_anchor, check_before};
+pub(crate) use document_validation::{pem, successor as check_successor};
+pub(crate) use evidence::{check_time, trust as check_trust};

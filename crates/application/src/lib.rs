@@ -15,6 +15,7 @@ pub mod ca_access;
 pub mod ca_operations;
 pub mod case_stages;
 pub mod cases;
+pub mod contracts;
 pub mod credential_trust;
 pub mod dashboard;
 pub mod deadline_currentness;

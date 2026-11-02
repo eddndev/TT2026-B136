@@ -25,6 +25,9 @@ uuid.workspace = true
 name = "agenda_suite_1"
 path = "tests/suites/agenda_suite_1.rs"
 [[test]]
+name = "contract_service"
+path = "tests/contract_service.rs"
+[[test]]
 name = "alert_suite_1"
 path = "tests/suites/alert_suite_1.rs"
 [[test]]

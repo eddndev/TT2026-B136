@@ -22,7 +22,7 @@ pub(super) fn certificate(
     }
     Ok(())
 }
-pub(super) fn trust(
+pub(crate) fn trust(
     hasher: &dyn DocumentHasher,
     value: &CredentialTrustSnapshot,
 ) -> Result<(), ApplicationError> {
@@ -96,7 +96,7 @@ pub fn validate_binding_receipt(
     Ok(())
 }
 
-pub(super) fn check_time(check: &CredentialCheck, at: i64) -> Result<(), ApplicationError> {
+pub(crate) fn check_time(check: &CredentialCheck, at: i64) -> Result<(), ApplicationError> {
     if at < check.checked_at {
         return Err(Error::Inconsistent.into());
     }
