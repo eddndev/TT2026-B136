@@ -150,6 +150,31 @@ pub(super) fn expire(
     notices(tx, &value, &step.notices)
 }
 
+/// A signature never follows evidence on its version. The version guard
+/// reads the database clock and the signature carries the application's,
+/// so a seal can commit after `expires_at` while a signature accepted
+/// before it waits for the locks; the row is read `FOR SHARE`, like the
+/// storage trigger does.
+pub(super) fn require_unfrozen(
+    tx: &mut Transaction<'_>,
+    request: Uuid,
+) -> Result<(), ApplicationError> {
+    let sealed: bool = tx
+        .query_opt(
+            "SELECT d.evidence IS NOT NULL FROM contract_signature_requests r
+            JOIN documents d ON d.id=r.document_id AND d.version=r.document_version
+            WHERE r.request_id=$1 FOR SHARE OF d",
+            &[&request],
+        )
+        .map_err(port)?
+        .ok_or_else(super::errors::inconsistent)?
+        .get(0);
+    if sealed {
+        return Err(ContractWorkflowError::VersionFrozen.into());
+    }
+    Ok(())
+}
+
 /// The contract a command writes to.
 pub(super) fn contract_of(command: &ContractCommand) -> Uuid {
     match &command.write {

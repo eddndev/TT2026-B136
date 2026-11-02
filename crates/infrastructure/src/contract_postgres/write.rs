@@ -157,6 +157,7 @@ fn apply(tx: &mut Transaction<'_>, command: &ContractCommand) -> Result<(), Appl
                 EventKind::ClientSigned
             };
             let event = base(kind, Some(*request), None);
+            write_steps::require_unfrozen(tx, *request)?;
             write_steps::event(tx, &event, None)?;
             write_rows::signature(
                 tx,

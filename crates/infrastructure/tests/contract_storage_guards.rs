@@ -113,6 +113,52 @@ fn an_exhausted_request_does_not_freeze_its_version() {
     assert_eq!(seal(&mut runtime, &test).unwrap(), 1);
 }
 
+/// Evidence that the version guard admitted: it reads the database clock,
+/// so a seal after `expires_at` commits while a signature accepted before
+/// `expires_at` by the application clock is still on its way.
+fn admitted_seal(test: &Harness) {
+    let mut admin = Client::connect(&test.individual.db.admin_url, postgres::NoTls).unwrap();
+    let mut tx = admin.transaction().unwrap();
+    tx.batch_execute("SET LOCAL session_replication_role=replica")
+        .unwrap();
+    tx.execute(SEAL, &[&test.individual.record.id.as_uuid()])
+        .unwrap();
+    tx.commit().unwrap();
+}
+
+#[test]
+fn no_signature_follows_evidence_on_its_version() {
+    let Some(mut test) = Harness::new() else {
+        return;
+    };
+    let request = test.prepare(test.now() + 60, 7);
+    test.insert_request(&request).unwrap();
+    admitted_seal(&test);
+    assert_eq!(
+        rejection(test.sign_client(&request, request.created() + 60)),
+        frozen()
+    );
+
+    let Some(mut test) = Harness::new() else {
+        return;
+    };
+    let request = test.prepare(test.now() + 60, 7);
+    test.insert_request(&request).unwrap();
+    test.sign_client(&request, request.created() + 60).unwrap();
+    admitted_seal(&test);
+    assert_eq!(
+        rejection(test.sign_firm(&request, request.created() + 120)),
+        frozen()
+    );
+    let completed: i64 = test
+        .db()
+        .admin
+        .query_one("SELECT count(*) FROM contract_completions", &[])
+        .unwrap()
+        .get(0);
+    assert_eq!(completed, 0);
+}
+
 #[test]
 fn signing_a_superseded_version_is_rejected() {
     let Some(mut test) = Harness::new() else {

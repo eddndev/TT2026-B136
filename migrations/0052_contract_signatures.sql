@@ -6,6 +6,7 @@ EXECUTE format($definition$
 CREATE OR REPLACE FUNCTION %1$I.contract_signature_register() RETURNS TRIGGER
 LANGUAGE plpgsql SET search_path=pg_catalog AS $function$
 DECLARE request RECORD; event RECORD; actor RECORD; binding RECORD; trust RECORD; first RECORD;
+    sealed BOOLEAN;
     signature_digest BYTEA := decode(repeat('00',32),'hex'); token_digest BYTEA := signature_digest;
 BEGIN
     SELECT * INTO request FROM %1$I.contract_signature_requests WHERE request_id=NEW.request_id;
@@ -45,6 +46,14 @@ BEGIN
     IF EXISTS(SELECT 1 FROM %1$I.documents WHERE id=request.document_id
         AND version>request.document_version) THEN
         RAISE EXCEPTION 'contract version is superseded' USING ERRCODE='23514';
+    END IF;
+    -- The version guard reads the database clock and this row carries the
+    -- application's, so a seal admitted after expires_at must stop a
+    -- signature accepted before it.
+    SELECT evidence IS NOT NULL INTO sealed FROM %1$I.documents
+        WHERE id=request.document_id AND version=request.document_version FOR SHARE;
+    IF sealed IS NOT FALSE THEN
+        RAISE EXCEPTION 'contract version is frozen' USING ERRCODE='23514';
     END IF;
     SELECT * INTO binding FROM %1$I.document_signing_bindings WHERE binding_id=NEW.binding_id;
     IF binding.deployment_id IS DISTINCT FROM NEW.deployment_id

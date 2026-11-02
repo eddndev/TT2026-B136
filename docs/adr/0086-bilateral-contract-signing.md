@@ -647,9 +647,10 @@ under the current root, and rebuilds the 240 bytes with `contract_request_bytes`
 1 signature and T1) and requires the designated signer, binding and leaf, the
 event of its turn, `accepted_at < expires_at`, the active account with
 unchanged counters and role, membership for a Litigator in position 2, the
-open case, the latest version, the signer's binding unwithdrawn, the current
-trust revision and the same root as position 1. It does not consult the Client
-binding in position 2.
+open case, the latest version, a version with `documents.evidence IS NULL`
+read `FOR SHARE` (`contract version is frozen`), the signer's binding
+unwithdrawn, the current trust revision and the same root as position 1. It
+does not consult the Client binding in position 2.
 
 The registration triggers compare the record's own instants, which come from
 the application clock. `contract_version_guard`, `BEFORE UPDATE OF evidence ON
@@ -658,7 +659,12 @@ evidence (`contract version is frozen`) for a version whose request is
 completed, or has no closing event and has not reached `expires_at`. An
 exhausted request therefore frees its version before its `expired` event is
 written. A request waiting on an uncommitted seal, or a seal waiting on an
-uncommitted request, re-reads the committed row and is refused.
+uncommitted request, re-reads the committed row and is refused. Because the
+two clocks differ, a seal can commit after `expires_at` while a signature
+whose accepted instant precedes `expires_at` still waits for the locks; the
+signature trigger and the store's sign transaction therefore refuse any
+signature on a version that already holds evidence, so a completed or
+Client-signed request never names a sealed or individually signed version.
 
 Authorization failures use SQLSTATE 42501, revision conflicts 40001 and every
 other refusal 23514; each message is stable so the adapters, which check the
