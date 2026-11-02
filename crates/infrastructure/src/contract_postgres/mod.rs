@@ -6,6 +6,7 @@
 //! docs/adr/0086-bilateral-contract-signing.md.
 mod candidates;
 mod decode;
+mod delivery;
 mod errors;
 mod listing;
 mod read;

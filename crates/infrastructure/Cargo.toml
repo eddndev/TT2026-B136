@@ -487,6 +487,10 @@ name = "contract_document_state"
 path = "tests/contract_document_state.rs"
 
 [[test]]
+name = "contract_notice_delivery"
+path = "tests/contract_notice_delivery.rs"
+
+[[test]]
 name = "evidence_statement_parity"
 path = "tests/evidence_statement_parity.rs"
 
