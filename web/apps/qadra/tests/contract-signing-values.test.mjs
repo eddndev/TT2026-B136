@@ -44,10 +44,25 @@ test('the request decodes to the values of the shared vector', () => {
     requesterAccountId: inputs.requester_account_id,
     clientLeafFingerprint: inputs.client_certificate_sha256,
     firmLeafFingerprint: inputs.firm_certificate_sha256,
-    createdAt: inputs.created_at_seconds,
-    expiresAt: inputs.expires_at_seconds,
+    createdAt: String(inputs.created_at_seconds),
+    expiresAt: String(inputs.expires_at_seconds),
   });
   assert.ok(Object.isFrozen(decodeContractRequest(base64(bytes('request')))));
+});
+
+test('a request keeps every signed 64-bit instant the Rust decoders accept', () => {
+  const data = changed('request', (data) => {
+    data.writeBigInt64BE(-(2n ** 63n), 222);
+    data.writeBigInt64BE(2n ** 63n - 1n, 230);
+  });
+  const decoded = decodeContractRequest(base64(data));
+  assert.equal(decoded.createdAt, '-9223372036854775808');
+  assert.equal(decoded.expiresAt, '9223372036854775807');
+  const beyondSafe = changed('request', (data) => {
+    data.writeBigInt64BE(2n ** 53n, 222);
+    data.writeBigInt64BE(2n ** 53n + 1n, 230);
+  });
+  assert.equal(decodeContractRequest(base64(beyondSafe)).expiresAt, '9007199254740993');
 });
 
 function expectedStatement(party, priorSignature, priorToken) {

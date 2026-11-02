@@ -2,7 +2,9 @@
 // CTRTREQ1 request (240 bytes) and the CTRTSIG1 statement each party signs
 // (303 bytes). They apply every rule of the domain and validator decoders
 // and must decode crates/domain/tests/fixtures/contract_statement_vectors.json
-// to its values; they check no signature and recompute no digest.
+// to its values; they check no signature and recompute no digest. Signed and
+// unsigned 64-bit values come back as decimal strings, so the request instants
+// accept every value the Rust decoders accept.
 // Rationale: docs/adr/0086-bilateral-contract-signing.md.
 
 import { ownerBase64, ownerCertificateInvalid as invalid } from './owner-certificate-binary.mjs';
@@ -35,17 +37,11 @@ function reader(value, length, magic) {
     if (text === NIL) invalid();
     return text;
   };
-  const seconds = (start) => {
-    const value = view.getBigInt64(start);
-    if (value < BigInt(Number.MIN_SAFE_INTEGER) || value > BigInt(Number.MAX_SAFE_INTEGER))
-      invalid();
-    return Number(value);
-  };
-  return { bytes, view, hex, uuid, seconds };
+  return { bytes, view, hex, uuid };
 }
 
 export function decodeContractRequest(value) {
-  const { bytes, view, hex, uuid, seconds } = reader(value, CONTRACT_REQUEST_BYTES, 'CTRTREQ1');
+  const { bytes, view, hex, uuid } = reader(value, CONTRACT_REQUEST_BYTES, 'CTRTREQ1');
   const deploymentId = uuid(10),
     requestId = uuid(26),
     caseId = uuid(42),
@@ -59,8 +55,8 @@ export function decodeContractRequest(value) {
   const clientLeafFingerprint = hex(158, 32),
     firmLeafFingerprint = hex(190, 32);
   if (clientLeafFingerprint === firmLeafFingerprint) invalid();
-  const createdAt = seconds(222),
-    expiresAt = seconds(230);
+  const createdAt = view.getBigInt64(222),
+    expiresAt = view.getBigInt64(230);
   if (createdAt >= expiresAt) invalid();
   return Object.freeze({
     deploymentId,
@@ -74,8 +70,8 @@ export function decodeContractRequest(value) {
     requesterAccountId,
     clientLeafFingerprint,
     firmLeafFingerprint,
-    createdAt,
-    expiresAt,
+    createdAt: createdAt.toString(),
+    expiresAt: expiresAt.toString(),
   });
 }
 

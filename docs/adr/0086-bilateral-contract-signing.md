@@ -178,7 +178,11 @@ The copies that must agree, all tested against the single vector
 `crates/domain/tests/fixtures/contract_statement_vectors.json`, are the domain
 codec in `crates/domain/src/document_signing/contract.rs`, the independent
 validator decoder in `crates/evidence-verify/src/contract_statements.rs`, the
-SQL reconstruction and the browser values module.
+SQL reconstruction and the browser values module in
+`web/apps/qadra/src/lib/contract-signing-values.mjs`. The browser module
+returns `created_at` and `expires_at` as decimal strings, like the 64-bit
+account counters, so it accepts every signed 64-bit instant the Rust decoders
+accept rather than only the JavaScript safe-integer range.
 
 ### Why no party signs the raw PDF bytes
 
