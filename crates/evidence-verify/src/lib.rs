@@ -10,6 +10,7 @@
 pub mod archive;
 pub mod certificate;
 mod checks;
+pub mod contract_statements;
 pub mod crl;
 pub mod der_walk;
 pub mod individual_json;

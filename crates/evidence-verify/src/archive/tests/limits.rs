@@ -173,3 +173,36 @@ fn the_total_is_limited_to_25_mib() {
     over[1].1 = b"";
     assert_not_supported(&declaring(&over, 1, 9 * MIB + 1), "zip.total_too_large");
 }
+
+#[test]
+fn the_contract_document_takes_the_document_limit_without_siblings() {
+    limited("contrato.pdf", 16 * MIB, &[]);
+    limited("contrato.pdf", 16 * MIB, &["contrato.pdf.tsr"]);
+}
+
+#[test]
+fn contract_crls_take_the_crl_limit() {
+    for name in [
+        "parte-1-crl.pem",
+        "parte-2-crl.pem",
+        "parte-1-vinculo-crl.der",
+        "parte-2-vinculo-crl.der",
+    ] {
+        limited(name, MIB, &[]);
+    }
+}
+
+#[test]
+fn other_contract_entries_take_the_64_kib_limit() {
+    for name in [
+        "contrato-solicitud.bin",
+        "contrato-manifiesto.json",
+        "contrato-recibo.json",
+        "contrato-acuse-parcial.json",
+        "parte-1-declaracion.bin",
+        "parte-3-crl.pem",
+        "parte-1-vinculo-raiz.der",
+    ] {
+        limited(name, 64 * KIB, &[]);
+    }
+}

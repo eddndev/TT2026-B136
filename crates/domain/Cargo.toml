@@ -53,6 +53,10 @@ name = "deadline_trigger_qualification"
 path = "tests/deadline_trigger_qualification.rs"
 
 [[test]]
+name = "contract_statements"
+path = "tests/contract_statements.rs"
+
+[[test]]
 name = "document_metadata"
 path = "tests/document_metadata.rs"
 

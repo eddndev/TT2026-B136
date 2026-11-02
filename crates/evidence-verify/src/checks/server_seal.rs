@@ -125,7 +125,7 @@ pub(super) fn check(evidence: &Evidence<'_>) -> Checked {
 
     Checked {
         components: Components {
-            document_token: token.findings,
+            document_token: Some(token.findings),
             document_signature,
             binding_consent: None,
             certificates,

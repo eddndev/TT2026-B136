@@ -13,6 +13,11 @@ pub enum Profile {
     ServerSealV1,
     IndividualSigningV1,
     IndividualSigningV2,
+    /// A bilateral contract signed by both parties, with its manifest.
+    BilateralContractV1,
+    /// The Client's acknowledgement of a bilateral contract signed only at
+    /// position 1; it never establishes a contract.
+    BilateralContractPartialV1,
 }
 
 /// One part of the evidence with its own result.

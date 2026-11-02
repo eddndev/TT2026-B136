@@ -134,8 +134,11 @@ fn fixed_names_are_the_union_of_every_profile_and_the_instructions() {
     let mut fixed = FIXED_NAMES.to_vec();
     fixed.sort_unstable();
     assert_eq!(fixed, expected);
+    // Profiles with a fixed document admit no free name, so their names
+    // never collide with an uploaded document and are not reserved.
     let mut from_specs: Vec<&str> = super::SPECS
         .iter()
+        .filter(|spec| spec.document.is_none())
         .flat_map(|spec| spec.required.iter().chain(spec.optional))
         .copied()
         .chain([super::INSTRUCTIONS])
@@ -170,4 +173,122 @@ fn a_document_name_is_reserved_when_it_or_a_sibling_is_fixed_ignoring_case() {
     ] {
         assert!(!is_reserved_document_name(free), "{free}");
     }
+}
+
+const CONTRACT_PARTY_1: [&str; 10] = [
+    "parte-1-declaracion.bin",
+    "parte-1-declaracion.sig",
+    "parte-1-certificado.pem",
+    "parte-1-crl.pem",
+    "parte-1-vinculo.bin",
+    "parte-1-vinculo.sig",
+    "parte-1-vinculo-raiz.der",
+    "parte-1-vinculo-crl.der",
+    "parte-1-declaracion.sig.tsr",
+    "parte-1-tsa-chain.pem",
+];
+
+const CONTRACT_PARTY_2: [&str; 8] = [
+    "parte-2-declaracion.bin",
+    "parte-2-declaracion.sig",
+    "parte-2-certificado.pem",
+    "parte-2-crl.pem",
+    "parte-2-vinculo.bin",
+    "parte-2-vinculo.sig",
+    "parte-2-vinculo-raiz.der",
+    "parte-2-vinculo-crl.der",
+];
+
+fn contract_full() -> Vec<&'static str> {
+    let mut names = vec![
+        "contrato.pdf",
+        "contrato.pdf.tsr",
+        "contrato-solicitud.bin",
+        "contrato-manifiesto.json",
+        "contrato-manifiesto.json.tsr",
+        "contrato-recibo.json",
+        "ca.pem",
+        "tsa-chain.pem",
+        "INSTRUCCIONES.md",
+    ];
+    names.extend(CONTRACT_PARTY_1);
+    names.extend(CONTRACT_PARTY_2);
+    names
+}
+
+fn contract_partial() -> Vec<&'static str> {
+    let mut names = vec![
+        "contrato.pdf",
+        "contrato-solicitud.bin",
+        "contrato-acuse-parcial.json",
+        "ca.pem",
+    ];
+    names.extend(CONTRACT_PARTY_1);
+    names
+}
+
+#[test]
+fn recognizes_both_contract_profiles_with_their_fixed_document() {
+    let full = contract_full();
+    assert_eq!(full.len(), 27);
+    assert_eq!(
+        recognize(&full).expect("full"),
+        Layout {
+            profile: Profile::BilateralContractV1,
+            document: "contrato.pdf".to_owned()
+        }
+    );
+    let partial = contract_partial();
+    assert_eq!(partial.len(), 14);
+    assert_eq!(
+        recognize(&partial).expect("partial").profile,
+        Profile::BilateralContractPartialV1
+    );
+    let mut instructed = partial.clone();
+    instructed.push("INSTRUCCIONES.md");
+    assert_eq!(
+        recognize(&instructed).expect("partial").profile,
+        Profile::BilateralContractPartialV1
+    );
+}
+
+#[test]
+fn removing_any_mandatory_entry_of_a_full_package_is_a_missing_entry() {
+    let full = contract_full();
+    for removed in full.iter().filter(|name| **name != "INSTRUCCIONES.md") {
+        let names: Vec<&str> = full.iter().copied().filter(|n| n != removed).collect();
+        let finding = recognize(&names).expect_err(removed);
+        assert_eq!(
+            (finding.outcome, finding.code, finding.detail.as_str()),
+            (Outcome::NotSupported, "profile.missing_entry", *removed),
+        );
+    }
+}
+
+#[test]
+fn contract_profiles_admit_no_free_or_foreign_entry() {
+    let mut extra = contract_full();
+    extra.push("contrato-acuse-parcial.json");
+    assert_eq!(refused(&extra), "profile.unknown_entry");
+    let mut document = contract_partial();
+    document.extend(["otro.pdf", "otro.pdf.sig", "otro.pdf.tsr"]);
+    assert_eq!(refused(&document), "profile.unknown_entry");
+    let mut sealed = contract_partial();
+    sealed.push("contrato.pdf.sig");
+    assert_eq!(refused(&sealed), "profile.unknown_entry");
+    let mut renamed = contract_partial();
+    renamed.retain(|name| *name != "contrato-acuse-parcial.json");
+    renamed.extend(["contrato-manifiesto.json", "contrato-recibo.json"]);
+    assert_eq!(refused(&renamed), "profile.missing_entry");
+}
+
+#[test]
+fn no_contract_entry_is_a_reserved_document_name() {
+    for name in contract_full().iter().chain(&contract_partial()) {
+        let fixed_elsewhere = ["ca.pem", "tsa-chain.pem", "INSTRUCCIONES.md"];
+        if !fixed_elsewhere.contains(name) {
+            assert!(!FIXED_NAMES.contains(name), "{name}");
+        }
+    }
+    assert!(!is_reserved_document_name("contrato.pdf"));
 }

@@ -26,6 +26,7 @@ import {
   currentMessages,
   trustMessages,
 } from './messages-certificates.mjs';
+import { contractFallbacks, contractMessages } from './messages-contract.mjs';
 
 export { NOT_QADRA_EXPORT } from './messages-package.mjs';
 
@@ -49,6 +50,7 @@ export const findingMessages = Object.freeze({
   ...currentMessages,
   ...manifestMessages,
   ...receiptMessages,
+  ...contractMessages,
 });
 
 export const FAMILY_FALLBACKS = Object.freeze({
@@ -57,6 +59,7 @@ export const FAMILY_FALLBACKS = Object.freeze({
   ...tokenFallbacks,
   ...certificateFallbacks,
   ...manifestFallbacks,
+  ...contractFallbacks,
 });
 
 const UNKNOWN =

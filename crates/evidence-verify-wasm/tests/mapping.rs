@@ -291,6 +291,14 @@ fn the_encoder_emits_every_enum_spelling() {
             Some(Profile::IndividualSigningV2),
             json!("individual-signing-v2"),
         ),
+        (
+            Some(Profile::BilateralContractV1),
+            json!("bilateral-contract-v1"),
+        ),
+        (
+            Some(Profile::BilateralContractPartialV1),
+            json!("bilateral-contract-partial-v1"),
+        ),
         (None, Value::Null),
     ] {
         assert_eq!(report_value(&hand_built(profile))["profile"], name);

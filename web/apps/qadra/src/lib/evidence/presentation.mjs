@@ -32,6 +32,8 @@ const PROFILE_LABELS = {
   'server-seal-v1': 'Sello del servidor',
   'individual-signing-v1': 'Firma individual, versi\u00f3n 1',
   'individual-signing-v2': 'Firma individual, versi\u00f3n 2',
+  'bilateral-contract-v1': 'Contrato firmado por ambas partes',
+  'bilateral-contract-partial-v1': 'Acuse parcial: no acredita contrato',
 };
 
 const OVERALL = {

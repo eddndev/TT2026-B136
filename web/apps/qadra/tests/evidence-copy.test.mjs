@@ -92,8 +92,13 @@ test('the labels of the result are written with accents', () => {
     check(label, overall);
     check(summary, overall);
   }
-  for (const profile of ['server-seal-v1', 'individual-signing-v1', 'individual-signing-v2', 'x'])
-    check(profileLabel(profile), profile);
+  const profiles = ['server-seal-v1', 'individual-signing-v1', 'individual-signing-v2'];
+  profiles.push('bilateral-contract-v1', 'bilateral-contract-partial-v1', 'x');
+  for (const profile of profiles) check(profileLabel(profile), profile);
+  assert.equal(
+    profileLabel('bilateral-contract-partial-v1'),
+    'Acuse parcial: no acredita contrato',
+  );
   const kinds = ['package', 'document-token', 'document-signature', 'binding-consent'];
   kinds.push('certificates', 'revocation', 'manifest', 'context', 'other');
   for (const kind of kinds)

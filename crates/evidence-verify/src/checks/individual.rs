@@ -83,7 +83,7 @@ impl Parts {
     /// component or not applicable when it is `None`.
     pub fn into_components(self, manifest: Option<Vec<Finding>>) -> Vec<Component> {
         Components {
-            document_token: self.token.findings,
+            document_token: Some(self.token.findings),
             document_signature: self.document_signature,
             binding_consent: Some(self.binding_consent),
             certificates: self.certificates,

@@ -1,0 +1,310 @@
+{
+  "files": {
+    "ca.pem": {
+      "sha256": "7b846941ce4e2417c0d447ec58e73827e170cec14f972e70ba9bae7513e806ff",
+      "size": 1903
+    },
+    "contrato-acuse-parcial.json": {
+      "sha256": "8e0a472698a621fc71c9b1f386f34c443a876bbd11767146f32cd44c070def44",
+      "size": 296
+    },
+    "contrato-manifiesto.json": {
+      "sha256": "9c3e62273dd3c9ece0412026ed426b3d2adcd90cb988e0186d73e13e95f134f2",
+      "size": 5407
+    },
+    "contrato-manifiesto.json.tsr": {
+      "sha256": "fdb8daa2ae0831dbcc68666d3950f89ac2003098c24c9567c536d6ff6791973a",
+      "size": 3734
+    },
+    "contrato-recibo.json": {
+      "sha256": "8b300aa11ed90abd30aed8730c88c3a05068ab18a6709633f40133b84288f9fe",
+      "size": 299
+    },
+    "contrato-solicitud.bin": {
+      "sha256": "7ca72216b9b8682968564a82d9a581f9432402100f73ff7530dc5d71decbf857",
+      "size": 240
+    },
+    "contrato.pdf": {
+      "sha256": "a5e91a1722c56bfcf6cb8ddc3015a07301d2450795a9ee10a116afebab8ca61a",
+      "size": 71680
+    },
+    "contrato.pdf.tsr": {
+      "sha256": "7fbd2e2759f5c8c1e708bc63e7e18d075561967a88c0b524a88dfcb9931e63ed",
+      "size": 3733
+    },
+    "parte-1-certificado.pem": {
+      "sha256": "2aee5e2af22309d6e942a8e51b3d888b8afde1f5a644d64957447468f6b94ff3",
+      "size": 1858
+    },
+    "parte-1-crl.pem": {
+      "sha256": "f707ff27d9e6aa3028359d21d02862a648c1a3786411ef07d5c37e40d528c6db",
+      "size": 1003
+    },
+    "parte-1-declaracion.bin": {
+      "sha256": "04358d529ba0deaa626d19a5e908ccdcb5a69465072494660d482805fd5a6b65",
+      "size": 303
+    },
+    "parte-1-declaracion.sig": {
+      "sha256": "b6a34f81d67cec45f6d76c72bd9bf70b99aa727d4bcb46b4ee63b960416bda30",
+      "size": 384
+    },
+    "parte-1-declaracion.sig.tsr": {
+      "sha256": "25c1075116ad86f8e01f8738638ac5cd38bf9563c91554ccef4e29d33383b3d5",
+      "size": 3734
+    },
+    "parte-1-tsa-chain.pem": {
+      "sha256": "7b846941ce4e2417c0d447ec58e73827e170cec14f972e70ba9bae7513e806ff",
+      "size": 1903
+    },
+    "parte-1-vinculo-crl.der": {
+      "sha256": "31b4ed7f9d08ea62c2e80390eace7eb36e784c87cdc779a1bcb372d7a12cce3e",
+      "size": 704
+    },
+    "parte-1-vinculo-raiz.der": {
+      "sha256": "76315b3f309781ba0d41f25fa5e817bda125ce68f3758ca78dc5c6e57c8d8980",
+      "size": 1364
+    },
+    "parte-1-vinculo.bin": {
+      "sha256": "7c9896edc3473c535d0f541e9d6a2a1fdb08bb6344af2d7487e801b78555b2f7",
+      "size": 142
+    },
+    "parte-1-vinculo.sig": {
+      "sha256": "055591b81d92ecb41bad713cab94c0b77dcb5159904d31e8e46903c779339489",
+      "size": 384
+    },
+    "parte-2-certificado.pem": {
+      "sha256": "837c23112c3881e78d4cb13e39f307b94c683ffafa841f99122092eab06869f4",
+      "size": 1883
+    },
+    "parte-2-crl-cliente-revocado.pem": {
+      "sha256": "2a28860f29f36d8f0e1c51ea43c02f8e90620eb2e658a21027779555e51fd317",
+      "size": 1036
+    },
+    "parte-2-crl.pem": {
+      "sha256": "c28289681aa0a5bba4627c8e346f2e5d6600fad1d9e1b39d434ebc74d9639685",
+      "size": 1003
+    },
+    "parte-2-declaracion.bin": {
+      "sha256": "847ba3bc0a54de45e7cc01c80022f7d85313e8bad7e04c85c469504b21406524",
+      "size": 303
+    },
+    "parte-2-declaracion.sig": {
+      "sha256": "ca46d4589265fcf6aa30054ea3541d70b001b9b63a9b9348845896690dd70e22",
+      "size": 384
+    },
+    "parte-2-vinculo-crl.der": {
+      "sha256": "31b4ed7f9d08ea62c2e80390eace7eb36e784c87cdc779a1bcb372d7a12cce3e",
+      "size": 704
+    },
+    "parte-2-vinculo-raiz.der": {
+      "sha256": "76315b3f309781ba0d41f25fa5e817bda125ce68f3758ca78dc5c6e57c8d8980",
+      "size": 1364
+    },
+    "parte-2-vinculo.bin": {
+      "sha256": "b9d3cc0e4a719bc4cef95d6ad140eb1769e5939d8090c3c8c4706ad4f189fb06",
+      "size": 142
+    },
+    "parte-2-vinculo.sig": {
+      "sha256": "05a83f904daef57b036892adf7369891f027d7b8accda049df0ac7e9ba31ddff",
+      "size": 384
+    },
+    "tsa-chain.pem": {
+      "sha256": "7b846941ce4e2417c0d447ec58e73827e170cec14f972e70ba9bae7513e806ff",
+      "size": 1903
+    },
+    "variants/before-issue/contrato-acuse-parcial.json": {
+      "sha256": "d2208746655cd6f0b2a0e6403b7336f17a23fc82fcc5bc2d65b68bd5064ca097",
+      "size": 296
+    },
+    "variants/before-issue/contrato-solicitud.bin": {
+      "sha256": "9793217869739f1078638ba51aba6509261d0c291d1116bf058507ff7b52498d",
+      "size": 240
+    },
+    "variants/before-issue/parte-1-declaracion.bin": {
+      "sha256": "b521625028b645dbcf547b1e03a711a69b138a19ee348bad1df3dddc711b334e",
+      "size": 303
+    },
+    "variants/before-issue/parte-1-declaracion.sig": {
+      "sha256": "2f38c900d9fb2894c12fc7508eac319f36a1b6945c85f62339d3a0ea1c476f7d",
+      "size": 384
+    },
+    "variants/before-issue/parte-1-declaracion.sig.tsr": {
+      "sha256": "27ab95ed286ec1fd5bef43f5437b2c2e5076b7d454e31cd1484b685b40633743",
+      "size": 3733
+    },
+    "variants/expired/contrato-manifiesto.json": {
+      "sha256": "1cb2671ca88171cafe82a0879e71e58fcf596ee2696b86eb425849187e91fd99",
+      "size": 5407
+    },
+    "variants/expired/contrato-manifiesto.json.tsr": {
+      "sha256": "98d3e18d07eae91015a25406294731920d1343c507596fba7855cf297466d72b",
+      "size": 3733
+    },
+    "variants/expired/contrato-recibo.json": {
+      "sha256": "c2e4e02d7adbf5125b182bea6ac47a39cc412f569bbacb2bf0c61f9d7e092faa",
+      "size": 299
+    },
+    "variants/expired/contrato-solicitud.bin": {
+      "sha256": "042431330528294dd2ecf3a77556951d9190fa29454dafb10cca62647b88a732",
+      "size": 240
+    },
+    "variants/expired/contrato.pdf.tsr": {
+      "sha256": "e31dd38a31cf27a205ef2270c1d4e49cf2b46250f8f641bf3267e8406273db12",
+      "size": 3733
+    },
+    "variants/expired/parte-1-declaracion.bin": {
+      "sha256": "027993c7512f82a3380bfb20615ef6f2149e3390a9815314dcd7c380d1b559cd",
+      "size": 303
+    },
+    "variants/expired/parte-1-declaracion.sig": {
+      "sha256": "387755b9c635723af97e0c6a1028513368b603f3bdf36f9398c15b836cbd82f1",
+      "size": 384
+    },
+    "variants/expired/parte-1-declaracion.sig.tsr": {
+      "sha256": "5bdeae3f81819f4586946492f2b440b35d90698a5b76cfad9d62e36341f47c14",
+      "size": 3733
+    },
+    "variants/expired/parte-2-declaracion.bin": {
+      "sha256": "7bd814593c9bf873190738210d8b44f859ff56780124f9ac2e101b2f14997f36",
+      "size": 303
+    },
+    "variants/expired/parte-2-declaracion.sig": {
+      "sha256": "e81eb1528069d052a31696f021fd0a42823d96891126bb64cf4b0ed938f5adf9",
+      "size": 384
+    },
+    "variants/foreign-t1/parte-1-declaracion.sig.tsr": {
+      "sha256": "2273cf7cb253e36c9f0e4ee5ed568351b3c92d50313b34477631935f29c17398",
+      "size": 3582
+    },
+    "variants/inverted-tokens/contrato-manifiesto.json": {
+      "sha256": "761979a559c4da9079176d0d27df93ea590e5954724db21dd691931848699181",
+      "size": 5407
+    },
+    "variants/inverted-tokens/contrato-manifiesto.json.tsr": {
+      "sha256": "b93941f792986e6133bbc88f826e462800b673f509ea8b26f71ac88d3d8a53fd",
+      "size": 3733
+    },
+    "variants/inverted-tokens/contrato.pdf.tsr": {
+      "sha256": "e94c57133c6a81db3637fba5c95c5ef07aaf9d05d1bbee715f3a5609d75fc7af",
+      "size": 3733
+    },
+    "variants/large-crl/contrato-manifiesto.json": {
+      "sha256": "3143035f5b5904c07abda27e11786bfd8536e5de37968aa0080c886ed3b01903",
+      "size": 5408
+    },
+    "variants/large-crl/contrato-manifiesto.json.tsr": {
+      "sha256": "1ee6fcada73e42bc5a17612882125f080206b6542b9b386200d257fe1d31c57a",
+      "size": 3733
+    },
+    "variants/large-crl/parte-1-crl.pem": {
+      "sha256": "b09249dc1e43436f0c4fbc37abb9e98b18b60d4ae806a53584e4f581d70eb48a",
+      "size": 95806
+    },
+    "variants/other-request/contrato-solicitud.bin": {
+      "sha256": "9304eb99dc62ba62101b752eeb6c4a30b0b665d296aa16df42101d68fe33ecb4",
+      "size": 240
+    },
+    "variants/other-request/parte-1-declaracion.bin": {
+      "sha256": "429dc0454eb7ccd88af197cb07edd3a76f33b584ad521d1c74e95bb954a0a830",
+      "size": 303
+    },
+    "variants/other-request/parte-1-declaracion.sig": {
+      "sha256": "90f641bf609eaf8361c9ac72687aac7f595dd98259f54a59893d6827f015d590",
+      "size": 384
+    },
+    "variants/revoked-after-completion/crl-actual.der": {
+      "sha256": "cf70125140f807b55902853db30bb395fe8439e942752a2184193948f225ab3e",
+      "size": 727
+    },
+    "variants/same-account/parte-2-declaracion.bin": {
+      "sha256": "8e827d1e16accc1fffb841f5dcdd16102cd02b8acf4da40ceb707f590626c079",
+      "size": 303
+    },
+    "variants/same-account/parte-2-declaracion.sig": {
+      "sha256": "4e68b0ec983b960c64b1205e29c62ee7e837ef9f350a0f44c13939266f6defe8",
+      "size": 384
+    },
+    "variants/same-account/parte-2-vinculo.bin": {
+      "sha256": "e2906f0dc4c9f041fcc486a33a81c285bdd08086b37f1c9311db9be45a9a9580",
+      "size": 142
+    },
+    "variants/same-account/parte-2-vinculo.sig": {
+      "sha256": "c30e8dac19fbd74b76c42156b93c48e32e52b99339d13c5268d8c04da099d7bd",
+      "size": 384
+    },
+    "variants/same-key/contrato-manifiesto.json": {
+      "sha256": "89a99ac74586a3aead9b56b39d4ee1f53421ead27c750979d966efa02bcf50ee",
+      "size": 5407
+    },
+    "variants/same-key/contrato-manifiesto.json.tsr": {
+      "sha256": "9fde87845b0807a26a48eb2a50b282b44accf59bea2d1416739d61445ce2cbbd",
+      "size": 3733
+    },
+    "variants/same-key/contrato-recibo.json": {
+      "sha256": "b11be1447cfa5638f8ad125c260f30a36de37337b363e37d217873fd1705c7e0",
+      "size": 299
+    },
+    "variants/same-key/contrato-solicitud.bin": {
+      "sha256": "06b16168b859c91f52c19c635cb45873691db686b9d44c55dc0ad95cb033e6ff",
+      "size": 240
+    },
+    "variants/same-key/contrato.pdf.tsr": {
+      "sha256": "afe290b1730ad8e235bd0f5636b1f16d2019bb12b9b7e804d63da1e4f21d9da4",
+      "size": 3733
+    },
+    "variants/same-key/parte-1-declaracion.bin": {
+      "sha256": "fbce1f90def63ce96864641624ace3cd2a7a7a2de81ae6ccaca5143db5575a77",
+      "size": 303
+    },
+    "variants/same-key/parte-1-declaracion.sig": {
+      "sha256": "7ddbf23df6b7b78120bd9d1eb5f54f0fd69e3513b373ea35821d1f1da66521ff",
+      "size": 384
+    },
+    "variants/same-key/parte-1-declaracion.sig.tsr": {
+      "sha256": "367192f876b9db984d9f1e308d9ff303e51ce776deb1b6443feeea5109786f2e",
+      "size": 3734
+    },
+    "variants/same-key/parte-2-certificado.pem": {
+      "sha256": "4f02aaf942e102f03b053f74bd84ac47729a5cac652cbfc045f3af915421ff4b",
+      "size": 1899
+    },
+    "variants/same-key/parte-2-declaracion.bin": {
+      "sha256": "a553f617f1ebb1a338117b70e72ae01a2320593282a166e496e9a88c360a3d93",
+      "size": 303
+    },
+    "variants/same-key/parte-2-declaracion.sig": {
+      "sha256": "a61fa23f26c8508841907f92d000f9541b52a7a865c31c1673525052d1082b3d",
+      "size": 384
+    },
+    "variants/same-key/parte-2-vinculo.bin": {
+      "sha256": "197d8fa8b685ba445785a0ca12a4eb3be8d28b36f479db7000263955384ef8eb",
+      "size": 142
+    },
+    "variants/same-key/parte-2-vinculo.sig": {
+      "sha256": "3c305cf8196eb30acfcdd33dd8d3aa6708ad7e51330603d9c2fbd11564fc4bc2",
+      "size": 384
+    }
+  },
+  "generated_at": 1793608852,
+  "instants": {
+    "renewed_crl_this_update": 1793608857,
+    "t1": 1793608855,
+    "td": 1793608859,
+    "tf": 1793608859
+  },
+  "request": {
+    "case_id": "7a1c2a3b-4d5e-4f60-8a71-b2c3d4e5f603",
+    "client_account_id": "7a1c2a3b-4d5e-4f60-8a71-b2c3d4e5f605",
+    "client_certificate_sha256": "6581d9dbc476e47c1e57df06135c6e0cd87059c265963445fb3e4b89bd000cf3",
+    "created_at_seconds": 1793608252,
+    "deployment_id": "7a1c2a3b-4d5e-4f60-8a71-b2c3d4e5f601",
+    "document_id": "7a1c2a3b-4d5e-4f60-8a71-b2c3d4e5f604",
+    "document_sha256": "a5e91a1722c56bfcf6cb8ddc3015a07301d2450795a9ee10a116afebab8ca61a",
+    "document_version": 2,
+    "expires_at_seconds": 1794213652,
+    "firm_account_id": "7a1c2a3b-4d5e-4f60-8a71-b2c3d4e5f606",
+    "firm_certificate_sha256": "81c5113f7dae72cd3e7571f3f2de14ff22f996c099b55dc3a47e51284affa893",
+    "request_id": "7a1c2a3b-4d5e-4f60-8a71-b2c3d4e5f602",
+    "requester_account_id": "7a1c2a3b-4d5e-4f60-8a71-b2c3d4e5f607"
+  }
+}

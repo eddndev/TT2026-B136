@@ -10,6 +10,7 @@
 //! the section "The evidence manifest" of
 //! `docs/adr/0085-in-browser-evidence-validation.md`.
 
+pub mod contract;
 #[cfg(test)]
 mod tests;
 

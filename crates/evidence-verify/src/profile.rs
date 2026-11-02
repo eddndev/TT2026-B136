@@ -1,14 +1,18 @@
 //! Recognition of the package profile from the inventory of entry names.
 //!
-//! Each profile fixes some entry names, required or optional, and admits one
-//! document: the single name, other than the fixed names of that profile,
-//! that has both a `.sig` and a `.tsr` sibling. Fixed names are evaluated per
-//! profile, so a server seal document may carry a name that only individual
-//! signing fixes. `INSTRUCCIONES.md` is optional in every profile and never
-//! interpreted. Names are compared byte for byte; entry order is irrelevant.
-//! A missing required entry, an unknown entry or a missing or ambiguous
-//! document makes the package not supported. Rationale: the section
-//! "Package profiles" of `docs/adr/0085-in-browser-evidence-validation.md`.
+//! Each profile fixes some entry names, required or optional. The server
+//! seal and individual signing profiles admit one free document: the single
+//! name, other than the fixed names of that profile, that has both a `.sig`
+//! and a `.tsr` sibling. Fixed names are evaluated per profile, so a server
+//! seal document may carry a name that only individual signing fixes. The
+//! bilateral contract profiles fix their document name too, so they admit no
+//! free name and look for no sibling. `INSTRUCCIONES.md` is optional in every
+//! profile and never interpreted. Names are compared byte for byte; entry
+//! order is irrelevant. A missing required entry, an unknown entry or a
+//! missing or ambiguous document makes the package not supported. Rationale:
+//! the section "Package profiles" of
+//! `docs/adr/0085-in-browser-evidence-validation.md` and the section
+//! "Evidence packages" of `docs/adr/0086-bilateral-contract-signing.md`.
 
 #[cfg(test)]
 mod tests;
@@ -52,8 +56,56 @@ const INDIVIDUAL_SIGNING_V2: [&str; 15] = [
     "recibo-aceptacion.json",
 ];
 
-/// Every name some profile fixes, and [`INSTRUCTIONS`]; a name may appear
-/// in several profiles but appears here once.
+const BILATERAL_CONTRACT_V1: [&str; 26] = [
+    "contrato.pdf",
+    "contrato.pdf.tsr",
+    "contrato-solicitud.bin",
+    "contrato-manifiesto.json",
+    "contrato-manifiesto.json.tsr",
+    "contrato-recibo.json",
+    "ca.pem",
+    "tsa-chain.pem",
+    "parte-1-declaracion.bin",
+    "parte-1-declaracion.sig",
+    "parte-1-certificado.pem",
+    "parte-1-crl.pem",
+    "parte-1-vinculo.bin",
+    "parte-1-vinculo.sig",
+    "parte-1-vinculo-raiz.der",
+    "parte-1-vinculo-crl.der",
+    "parte-2-declaracion.bin",
+    "parte-2-declaracion.sig",
+    "parte-2-certificado.pem",
+    "parte-2-crl.pem",
+    "parte-2-vinculo.bin",
+    "parte-2-vinculo.sig",
+    "parte-2-vinculo-raiz.der",
+    "parte-2-vinculo-crl.der",
+    "parte-1-declaracion.sig.tsr",
+    "parte-1-tsa-chain.pem",
+];
+
+const BILATERAL_CONTRACT_PARTIAL_V1: [&str; 14] = [
+    "contrato.pdf",
+    "contrato-solicitud.bin",
+    "contrato-acuse-parcial.json",
+    "ca.pem",
+    "parte-1-declaracion.bin",
+    "parte-1-declaracion.sig",
+    "parte-1-certificado.pem",
+    "parte-1-crl.pem",
+    "parte-1-vinculo.bin",
+    "parte-1-vinculo.sig",
+    "parte-1-vinculo-raiz.der",
+    "parte-1-vinculo-crl.der",
+    "parte-1-declaracion.sig.tsr",
+    "parte-1-tsa-chain.pem",
+];
+
+/// Every name some profile with a free document name fixes, and
+/// [`INSTRUCTIONS`]; a name may appear in several profiles but appears here
+/// once. The bilateral contract profiles admit no free document name, so
+/// their names never collide with an uploaded document and are not here.
 pub const FIXED_NAMES: &[&str] = &[
     "certificado.pem",
     "ca.pem",
@@ -97,6 +149,10 @@ struct Spec {
     profile: Profile,
     required: &'static [&'static str],
     optional: &'static [&'static str],
+    /// The fixed document name, one of `required`, of a profile that admits
+    /// no free document name; `None` when the document is the free name
+    /// with both siblings.
+    document: Option<&'static str>,
 }
 
 impl Spec {
@@ -105,22 +161,40 @@ impl Spec {
     }
 }
 
-/// Every known profile, simplest first; a new profile is one more entry.
-const SPECS: [Spec; 3] = [
+/// Every known profile, in the order that breaks ties for the closest-profile
+/// finding: an earlier entry wins. The full contract profile comes before its
+/// partial acknowledgement on purpose, so an inventory equally close to both
+/// reports the missing full-package entries. A new profile is one more entry.
+const SPECS: [Spec; 5] = [
     Spec {
         profile: Profile::ServerSealV1,
         required: &SERVER_SEAL_V1,
         optional: &["tsa-chain.pem"],
+        document: None,
     },
     Spec {
         profile: Profile::IndividualSigningV1,
         required: &INDIVIDUAL_SIGNING_V1,
         optional: &[],
+        document: None,
     },
     Spec {
         profile: Profile::IndividualSigningV2,
         required: &INDIVIDUAL_SIGNING_V2,
         optional: &[],
+        document: None,
+    },
+    Spec {
+        profile: Profile::BilateralContractV1,
+        required: &BILATERAL_CONTRACT_V1,
+        optional: &[],
+        document: Some("contrato.pdf"),
+    },
+    Spec {
+        profile: Profile::BilateralContractPartialV1,
+        required: &BILATERAL_CONTRACT_PARTIAL_V1,
+        optional: &[],
+        document: Some("contrato.pdf"),
     },
 ];
 
@@ -146,7 +220,7 @@ impl Layout {
 /// Select the one profile whose inventory `names` has exactly.
 ///
 /// When none matches, the finding explains the mismatch against the profile
-/// with the most fixed names present, the simplest one on a tie.
+/// with the most fixed names present, the earliest entry of `SPECS` on a tie.
 pub fn recognize(names: &[&str]) -> Result<Layout, Finding> {
     let mut matched = Vec::new();
     let mut closest: Option<(usize, Finding)> = None;
@@ -199,6 +273,15 @@ fn evaluate(spec: &Spec, names: &[&str]) -> Result<String, Finding> {
         .copied()
         .filter(|name| !spec.fixes(name))
         .collect();
+    if let Some(document) = spec.document {
+        if !free.is_empty() {
+            return Err(Finding::not_supported(
+                "profile.unknown_entry",
+                free.join(", "),
+            ));
+        }
+        return Ok(document.to_owned());
+    }
     let has = |name: String| free.contains(&name.as_str());
     let documents: Vec<&str> = free
         .iter()
