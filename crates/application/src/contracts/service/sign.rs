@@ -14,7 +14,7 @@ use domain::{
 
 use super::{
     expect_revision, identity,
-    sign_rules::{compare, same_signature, turn, within},
+    sign_rules::{compare, same_signature, token_before, turn, within},
     ContractService, Error,
 };
 use crate::{
@@ -265,7 +265,7 @@ impl ContractService {
         let (t1, chain) = self.stamp(&digest, &signed.trust)?;
         within(&t1, fields.created_at_seconds, fields.expires_at_seconds)?;
         let accepted = self.now();
-        signing::check_before(&t1, accepted.unix_timestamp())?;
+        token_before(&t1, accepted.unix_timestamp())?;
         if accepted.unix_timestamp() >= fields.expires_at_seconds {
             return Err(Error::Expired.into());
         }

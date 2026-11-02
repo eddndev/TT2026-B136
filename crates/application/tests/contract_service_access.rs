@@ -12,7 +12,7 @@ mod document_signing_support;
 
 use application::contracts::*;
 use application::ApplicationError;
-use contract_support::{client, contract_error, firm, store::*, FakeStore, Harness};
+use contract_support::{client, contract_error, firm, store::*, FakeStore, Harness, CREATED};
 use std::sync::Arc;
 use uuid::Uuid;
 use EventKind::*;
@@ -145,4 +145,17 @@ fn a_firm_signer_without_case_scope_cannot_sign_or_decline_before_any_work() {
     );
     assert!(matches!(declined, Err(ApplicationError::PermissionDenied)));
     assert_eq!(harness.calls(), (0, 0, 0));
+}
+
+#[test]
+fn a_token_ahead_of_the_server_clock_answers_timestamp_unavailable() {
+    // genTime less its accuracy follows the instant of acceptance.
+    let harness = harness(client(), &[Requested]);
+    harness.set(|world| world.gen_time = CREATED + 12);
+    let value = submitted(&harness, 7);
+    assert_eq!(
+        contract_error(sign(&harness, &value)),
+        ContractWorkflowError::TimestampUnavailable
+    );
+    assert_eq!(harness.calls(), (1, 1, 0));
 }

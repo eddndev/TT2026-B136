@@ -64,6 +64,13 @@ pub(super) fn within(
     Ok(())
 }
 
+/// The token, less its accuracy, must not follow the instant of acceptance;
+/// an authority whose clock runs ahead wrote nothing and may be retried.
+pub(super) fn token_before(facts: &TokenFacts, accepted: i64) -> Result<(), ApplicationError> {
+    crate::document_signing::check_before(facts, accepted)
+        .map_err(|_| Error::TimestampUnavailable.into())
+}
+
 /// The submitted statement against the one built from current facts.
 pub(super) fn compare(
     submitted: &ContractPartyStatement,

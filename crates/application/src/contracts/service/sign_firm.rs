@@ -5,7 +5,11 @@
 
 use domain::crypto::CredentialFailure;
 
-use super::{sign::Signed, sign_rules::within, ContractService, Error};
+use super::{
+    sign::Signed,
+    sign_rules::{token_before, within},
+    ContractService, Error,
+};
 use crate::{
     contracts::{
         model::{Completion, ContractReceipt},
@@ -34,7 +38,11 @@ impl ContractService {
         let t1_facts = self
             .ports
             .timestamps
-            .facts(&t1.token, &self.ports.hasher.hash_bytes(&first.signature))?;
+            .facts(&t1.token, &self.ports.hasher.hash_bytes(&first.signature))
+            .map_err(|error| match error {
+                ApplicationError::InvalidConfiguration(_) => error,
+                _ => Error::TimestampUnavailable.into(),
+            })?;
         let document = self
             .ports
             .store
@@ -83,7 +91,7 @@ impl ContractService {
         }
         within(&tf, fields.created_at_seconds, fields.expires_at_seconds)?;
         let accepted = self.now();
-        signing::check_before(&tf, accepted.unix_timestamp())?;
+        token_before(&tf, accepted.unix_timestamp())?;
         if accepted.unix_timestamp() >= fields.expires_at_seconds {
             return Err(Error::Expired.into());
         }
