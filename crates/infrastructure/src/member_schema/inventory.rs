@@ -14,7 +14,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
         OR EXISTS(SELECT 1 FROM case_memberships m LEFT JOIN users u ON u.id=m.user_id
             LEFT JOIN cases c ON c.id=m.case_id WHERE u.id IS NULL OR c.id IS NULL
                 OR NOT isfinite(m.assigned_at) OR m.assigned_at<'0001-01-01Z'::timestamptz
-                OR m.assigned_at>='10000-01-01Z'::timestamptz)", &[]).map_err(port)?.get(0);
+                OR m.assigned_at>='10000-01-01Z'::timestamptz OR u.role='client')", &[]).map_err(port)?.get(0);
     if invalid {
         return Err(MemberError::Stored("invalid account or membership inventory").into());
     }

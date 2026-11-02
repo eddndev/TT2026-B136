@@ -67,7 +67,7 @@ fn office_and_assigned_scope_never_leak_unrelated_members_or_cases() {
     let colleague = db.user("litigator", true);
     let unassigned = db.user("litigator", false);
     let paralegal = db.user("paralegal", true);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     hearing_database_support::complete(&mut db);
     let unrelated = db.user("litigator", true);
     let store = store(&db, db.at);

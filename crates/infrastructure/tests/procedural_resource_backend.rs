@@ -133,7 +133,7 @@ fn current_membership_and_role_are_checked_before_protected_reads_and_writes() {
         reader.prepare("session", db.case, act(&saved)),
         Err(ApplicationError::PermissionDenied)
     ));
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     assert!(matches!(
         service(&db, client, Role::Client).get("session", db.case, saved.id, None),
         Err(ApplicationError::PermissionDenied)

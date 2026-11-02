@@ -16,7 +16,7 @@ fn current_reads_recheck_roles_membership_and_case_isolation() {
     let (_, base) = worker::accepted(&mut db, 30);
     let litigator = db.user("litigator", true);
     let paralegal = db.user("paralegal", true);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let outsider = db.user("litigator", false);
     let store = dl::store(&db);
     for actor in [db.owner, litigator, paralegal] {

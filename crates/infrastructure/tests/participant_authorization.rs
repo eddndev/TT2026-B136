@@ -19,7 +19,7 @@ fn current_roles_and_memberships_control_every_directory_operation() {
         .create(f.owner, f.case, id, values("Person"), f.at)
         .unwrap();
     for role in ["litigator", "paralegal", "client"] {
-        let actor = f.user(role, true);
+        let actor = f.user(role, role != "client");
         if role == "client" {
             let before = f.snapshot();
             for result in reads(&store, actor, f.case, id, f.at)

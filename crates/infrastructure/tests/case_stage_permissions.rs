@@ -18,7 +18,7 @@ fn four_roles_and_case_membership_are_rechecked_for_reads_and_writes() {
         ("paralegal", true, false),
         ("client", false, false),
     ] {
-        let actor = db.user(role, true);
+        let actor = db.user(role, role != "client");
         assert_eq!(stages.get(actor, db.case, db.at).is_ok(), read, "{role}");
         assert_eq!(
             stages

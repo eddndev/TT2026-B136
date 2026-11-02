@@ -54,7 +54,7 @@ revalidation; no token, password, MFA code or private capability is recorded.
 | mfa | Valid server challenge and TOTP/recovery produce the existing session. | Invalid/expired/consumed challenge, invalid/replayed TOTP, consumed recovery and operational failure stay distinct where already known. | [MFA](mfa-access-logs.md) |
 | session | Current bearer for any of the four roles reads identity/session, records activity, logs out or reads the current evidence trust anchors. | Missing, revoked or expired session; record activity cannot revive it. | [HTTP](http-api.md) |
 | owner-members | Active Owner lists, creates, reads and changes accounts/assignments. | Litigator, Paralegal and Client rejected; last active Owner and revision guards remain. | [Members](members-api.md), [HTTP](http-api.md) |
-| basic-cases | Owner sees all; assigned Litigator, Paralegal and Client read basic metadata. Owner/Litigator create; only Owner assigns/removes members. | Unassigned account cannot learn an exact case; Paralegal/Client cannot create; Litigator cannot manage members. | [HTTP](http-api.md) |
+| basic-cases | Owner sees all; assigned Litigator and Paralegal read basic metadata. Owner/Litigator create; only Owner assigns/removes members. | Unassigned account cannot learn an exact case; a Client account is never assigned ([ADR 0086](adr/0086-bilateral-contract-signing.md)); Paralegal/Client cannot create; Litigator cannot manage members. | [HTTP](http-api.md) |
 | case-administration | Owner and Litigator create penal cases; Owner manages all, assigned Litigator manages, assigned Paralegal reads. | Client denied even if assigned; unassigned staff denied/hidden under current contract. | [Administration](case-administration-api.md) |
 | documents | Owner globally, assigned Litigator/Paralegal read, upload, classify, append, verify and export. Only Owner/Litigator use existing server sealing. | Client denied even if assigned; Paralegal cannot seal; a document/case mismatch remains hidden even to Owner. | [HTTP document matrix](http-api.md), [Content](document-content-api.md) |
 | staff-case | Owner manages globally; assigned Litigator manages; assigned Paralegal reads. Read-only history/receipts survive closure where the family contract allows. | Client denied; Paralegal cannot prepare/submit/mutate; revoked membership blocks later access; closed cases block mutations. | Family contracts listed below |
@@ -299,7 +299,8 @@ has run: B uses synthetic status responses, and existing native fixtures are
 family coverage rather than a 223-row per-role acceptance ledger. In particular,
 assignment loss already has concrete fixtures: [case/documents](../scripts/api-case-demo.sh)
 remove Paralegal and Litigator without replacing their bearer, require hidden
-404s afterward, and retain assigned Client basic metadata with document denial.
+404s afterward, and reject a Client assignment with `422`, leaving the case
+hidden and its documents denied.
 [Resource workflows](../scripts/api-resource-activities-demo.py) and
 [reports](../scripts/api-case-reports-demo.py) also test loss of captured access.
 The accepted HTTP receipt reconciles observed requests with their durable access

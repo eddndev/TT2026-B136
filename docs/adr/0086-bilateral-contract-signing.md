@@ -536,7 +536,19 @@ access certificate.
 
 A Client account is never a case member. The case service, a storage trigger
 on case memberships and the member selectors all reject or omit accounts with
-role `client`. Client access is limited to a restricted Qadra space for the
+role `client`. Assigning a Client answers `422 invalid_input` and writes
+nothing. Because a role change would otherwise turn an existing member into a
+Client member, the member service rejects changing the role of an account that
+holds an assignment to `client` with `400 invalid_input`. The trigger guards
+only writes to case memberships: every runtime path that could create a Client
+member is closed by these checks, and a direct SQL role change is tampering
+that the startup inventory and the migration detect. The guard lives in
+`migrations/0051_client_memberships.sql`, registered with the member schema
+family so that its startup inventory checks the function, the trigger and the
+absence of any Client membership. The migration
+refuses to run while a Client membership exists and never deletes one:
+whether to keep or remove such an assignment is a decision for the firm, taken
+through the audited member workflow before migrating. Client access is limited to a restricted Qadra space for the
 Client's own contracts: no messaging, no case browsing and no general document
 access. Any other read answers 404.
 

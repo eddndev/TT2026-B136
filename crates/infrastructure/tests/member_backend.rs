@@ -69,7 +69,7 @@ fn owner_directory_filters_before_pagination_and_denies_other_roles_before_looku
 fn assigned_members_include_inactive_accounts_and_available_excludes_members() {
     let Some(mut db) = Fixture::new() else { return };
     let assigned = user(&mut db, "assigned@example.test", "paralegal", true, true);
-    let inactive = user(&mut db, "inactive@example.test", "client", false, true);
+    let inactive = user(&mut db, "inactive@example.test", "litigator", false, true);
     let available = user(&mut db, "available@example.test", "litigator", true, false);
     user(&mut db, "disabled@example.test", "litigator", false, false);
     let store = store(&db);

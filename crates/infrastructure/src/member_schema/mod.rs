@@ -13,9 +13,10 @@ use application::ApplicationError;
 pub(crate) use catalog::validate;
 pub(crate) use inventory::validate as validate_inventory;
 pub(crate) use permissions::{grant_runtime, validate_runtime_role};
-pub(crate) const MIGRATIONS: &[&str] = &[include_str!(
-    "../../../../migrations/0025_member_lifecycle.sql"
-)];
+pub(crate) const MIGRATIONS: &[&str] = &[
+    include_str!("../../../../migrations/0025_member_lifecycle.sql"),
+    include_str!("../../../../migrations/0051_client_memberships.sql"),
+];
 const TABLES: [&str; 2] = ["users", "case_memberships"];
 fn incomplete() -> ApplicationError {
     ApplicationError::InvalidConfiguration("member schema is incomplete or altered".into())

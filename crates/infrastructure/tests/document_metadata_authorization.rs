@@ -15,12 +15,14 @@ fn metadata_operations_recheck_roles_membership_and_exact_document_case() {
     for role in ["litigator", "paralegal", "client"] {
         let user = UserId::new();
         f.db.client.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture',$3,'\\x00','{}')",&[&user.as_uuid(),&format!("{user}@example.test"),&role]).unwrap();
-        f.db.client
-            .execute(
-                "INSERT INTO case_memberships(case_id,user_id) VALUES($1,$2)",
-                &[&f.case.as_uuid(), &user.as_uuid()],
-            )
-            .unwrap();
+        if role != "client" {
+            f.db.client
+                .execute(
+                    "INSERT INTO case_memberships(case_id,user_id) VALUES($1,$2)",
+                    &[&f.case.as_uuid(), &user.as_uuid()],
+                )
+                .unwrap();
+        }
         if role == "client" {
             let before = f.snapshot();
             for result in operations(&store, user, f.case, record.id, f.at) {

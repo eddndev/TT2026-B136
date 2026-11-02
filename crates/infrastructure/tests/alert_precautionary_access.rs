@@ -10,7 +10,7 @@ fn precautionary_alerts_require_active_staff_membership_and_revoke_saved_access(
     let paralegal = db.user("paralegal", true);
     let global_owner = db.user("owner", false);
     let outside = db.user("litigator", false);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let inactive = db.user("paralegal", true);
     db.admin.execute("UPDATE users SET active=false,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1", &[&inactive.as_uuid()]).unwrap();
     let alerts = store(&db, Arc::new(MutableClock::new(due - Duration::hours(12))));

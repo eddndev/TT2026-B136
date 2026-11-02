@@ -56,7 +56,7 @@ fn record_reads_require_live_full_principal_and_case_membership() {
         }
     }
     for role in ["client", "litigator", "paralegal"] {
-        let user = db.user(role, role == "client");
+        let user = db.user(role, false);
         let actor = crate::measure_fixture::principal(&mut db, user);
         denied(&mut db, &storage, &actor, expected.reference);
     }

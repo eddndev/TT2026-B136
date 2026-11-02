@@ -42,12 +42,21 @@ fn commit_rechecks_current_actor_assignment_and_responsible_eligibility() {
                     )
                     .unwrap();
             }
-            _ => {
+            2 => {
                 db.admin
                     .execute(
-                        "UPDATE users SET role='client',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
+                        "UPDATE users SET role='paralegal',revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1",
                         &[&target.as_uuid()],
                     )
+                    .unwrap();
+            }
+            _ => {
+                db.admin
+                    .batch_execute(&format!(
+                        "DELETE FROM case_memberships WHERE user_id='{target}';
+                        UPDATE users SET role='client',revision=revision+1,
+                            auth_generation=auth_generation+1 WHERE id='{target}'"
+                    ))
                     .unwrap();
             }
         }

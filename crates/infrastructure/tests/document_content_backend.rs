@@ -99,7 +99,7 @@ fn content_checks_current_membership_and_rejects_changed_snapshots_without_succe
         ));
         assert_eq!(f.content_events(), before);
     }
-    let client = f.db.user("client", true);
+    let client = f.db.user("client", false);
     assert!(matches!(
         f.store.load(
             client,

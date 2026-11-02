@@ -113,7 +113,7 @@ fn precautionary_agenda_preserves_closed_reads_and_current_case_isolation() {
     let second_case = db.case;
     let second = crate::hearing_fixture::persist(&db, actor, command);
     let foreign = db.user("litigator", true);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let store = store(&db);
     let q = query(
         at,

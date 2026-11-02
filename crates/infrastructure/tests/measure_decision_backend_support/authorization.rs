@@ -69,7 +69,7 @@ fn assigned_staff_reads_and_writes_follow_existing_roles_and_membership() {
     ));
     assert_eq!(snapshot(&mut db), before);
     for role in ["client", "litigator", "paralegal"] {
-        let user = db.user(role, role == "client");
+        let user = db.user(role, false);
         let unauthorized = principal(&mut db, user);
         let before = snapshot(&mut db);
         assert!(reads(&db, unauthorized.clone())

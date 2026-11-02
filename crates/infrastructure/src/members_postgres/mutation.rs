@@ -49,6 +49,19 @@ impl PostgresMemberStore {
                 return Err(MemberError::LastActiveOwner.into());
             }
         }
+        if change.role() == Role::Client && old.role != Role::Client {
+            // docs/adr/0086-bilateral-contract-signing.md: a Client is never a case member.
+            let assigned: bool = tx
+                .query_one(
+                    "SELECT EXISTS(SELECT 1 FROM case_memberships WHERE user_id=$1)",
+                    &[&id.as_uuid()],
+                )
+                .map_err(port)?
+                .get(0);
+            if assigned {
+                return Err(MemberError::Invalid("a case member cannot become a client").into());
+            }
+        }
         if old.revision == i64::MAX as u64 || generation == i64::MAX as u64 {
             return Err(MemberError::AccessVersionExhausted.into());
         }

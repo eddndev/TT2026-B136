@@ -161,7 +161,7 @@ El guion comprueba, entre otras condiciones, que:
 - las antiguas rutas globales de documentos responden `404`;
 - los listados y detalles excluyen expedientes no asignados, salvo para Owner;
 - retirar una asignación surte efecto usando la misma sesión;
-- asignar un Cliente permite consultar metadatos, pero no documentos;
+- asignar un Cliente se rechaza con `422` y no le concede metadatos ni documentos;
 - logout invalida el token de inmediato;
 - un código de recuperación funciona una sola vez;
 - PostgreSQL no contiene la contraseña en claro;
@@ -345,7 +345,7 @@ sesión. No hay una transacción distribuida entre PostgreSQL y Redis.
 | `POST /api/v1/cases` | Owner o Litigante | Crea expediente y asigna al creador atómicamente; `201`. |
 | `GET /api/v1/cases?limit=50&offset=0` | Bearer | Array de metadatos visibles, ordenado por UUID; `200`. |
 | `GET /api/v1/cases/{uuid}` | Owner o miembro vigente | Metadatos del expediente; `200`. |
-| `PUT /api/v1/cases/{uuid}/members/{user_uuid}` | Owner | Asigna un usuario activo; idempotente; `204`. |
+| `PUT /api/v1/cases/{uuid}/members/{user_uuid}` | Owner | Asigna un usuario activo que no sea Cliente; idempotente; `204`. Un Cliente responde `422 invalid_input`. |
 | `DELETE /api/v1/cases/{uuid}/members/{user_uuid}` | Owner | Retira la asignación; idempotente; `204`. |
 
 La creación básica, su revisión administrativa 1 sin perfil penal y la asignación
@@ -362,8 +362,9 @@ Las respuestas de creación y detalle tienen esta forma:
 {"id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","title":"Defensa inicial","reference":"INTERNA-123","created_by":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"}
 ```
 
-Owner ve todos los expedientes. Litigante, Paralegal y Cliente solo ven los que
-tienen asignados. Un litigante creador queda asignado automáticamente, pero no
+Owner ve todos los expedientes. Litigante y Paralegal solo ven los que tienen
+asignados. Una cuenta Cliente nunca es miembro de un expediente
+([ADR 0086](adr/0086-bilateral-contract-signing.md)), así que no ve ninguno. Un litigante creador queda asignado automáticamente, pero no
 puede gestionar miembros. Solo Owner asigna y retira usuarios. Si se retira al
 creador litigante, también pierde acceso. El detalle de un UUID ajeno responde
 igual que uno inexistente: `404 case_not_found`.
@@ -387,8 +388,9 @@ El personal del despacho dispone de `POST /api/v1/penal-cases`,
 `GET /api/v1/case-administrations`, GET/PUT
 `/api/v1/cases/{id}/administration`, GET sobre su `/history` y PUT
 `/api/v1/cases/{id}/administrative-status`. Owner administra todos; Litigator
-asignado administra y Paralegal asignado consulta. Client conserva la proyección
-básica de cuatro campos y no accede a estas seis operaciones.
+asignado administra y Paralegal asignado consulta. Client no accede a estas
+seis operaciones y, como nunca es miembro de un expediente, tampoco obtiene la
+proyección básica.
 
 El [contrato de administración](case-administration-api.md) detalla perfil,
 revisiones esperadas, historial, filtros, respuestas, errores y cuerpo JSON
@@ -778,7 +780,7 @@ asignación vigente además del permiso de la siguiente matriz:
 | Verificar auditoría completa | sí | no | no | no |
 | Crear usuario | sí | no | no | no |
 
-Cliente sigue sin acceso documental incluso asignado. Paralegal recibe `403`
+Cliente sigue sin acceso documental y nunca es miembro de un expediente. Paralegal recibe `403`
 al intentar sellar, también fuera de sus expedientes. Para un rol con permiso,
 un documento que no pertenece al expediente indicado responde
 `404 document_not_found`, incluso si el usuario es Owner o pertenece a ambos

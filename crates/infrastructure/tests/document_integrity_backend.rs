@@ -34,7 +34,7 @@ fn rejected_content_is_durable_replayable_and_only_visible_to_current_owners() {
     assert!(!page.has_more);
     assert!(page.next_after_id.is_none());
     for role in ["litigator", "paralegal", "client"] {
-        let actor = f.db.user(role, true);
+        let actor = f.db.user(role, role != "client");
         assert!(matches!(
             f.store.get(actor, receipt.incident_id, f.db.at),
             Err(ApplicationError::PermissionDenied)

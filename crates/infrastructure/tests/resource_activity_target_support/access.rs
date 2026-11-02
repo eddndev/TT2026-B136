@@ -7,7 +7,7 @@ fn authorized_roles_revalidate_activity_and_membership_before_even_empty_results
     let adapter = store(&db);
     let member = db.user("litigator", true);
     let assistant = db.user("paralegal", true);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let outsider = db.user("litigator", false);
     for actor in [db.owner, member, assistant] {
         assert!(adapter

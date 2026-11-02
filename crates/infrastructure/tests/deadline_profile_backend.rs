@@ -129,7 +129,7 @@ fn inactive_or_nonowner_cannot_mutate_and_client_cannot_read_any_collection() {
     let workflow = service(&db, db.owner, Role::Owner);
     let first = persist(&workflow, collection, publish(None));
     for role in ["litigator", "paralegal", "client"] {
-        let actor = db.user(role, true);
+        let actor = db.user(role, role != "client");
         let before = snapshot(&mut db);
         assert!(matches!(
             store(&db).prepare(actor, collection, &publish(None)),

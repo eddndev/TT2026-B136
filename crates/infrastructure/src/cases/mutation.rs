@@ -1,7 +1,7 @@
 use application::cases::*;
 use application::ApplicationError;
 use domain::cases::{can_create_case, can_manage_members, CaseId};
-use domain::identity::UserId;
+use domain::identity::{Role, UserId};
 use time::OffsetDateTime;
 
 use super::{authorization, storage, PostgresCaseRepository};
@@ -169,7 +169,11 @@ impl PostgresCaseRepository {
         }
         authorization::require_scope(&mut tx, &principal, id)?;
         let changed=if add {
-            tx.query_opt("SELECT id FROM users WHERE id=$1 AND active FOR SHARE", &[&user.as_uuid()]).map_err(port)?.ok_or(ApplicationError::UserNotFound)?;
+            let role: String = tx.query_opt("SELECT role FROM users WHERE id=$1 AND active FOR SHARE", &[&user.as_uuid()]).map_err(port)?.ok_or(ApplicationError::UserNotFound)?.get(0);
+            if role == Role::Client.as_str() {
+                // docs/adr/0086-bilateral-contract-signing.md: a Client is never a case member.
+                return Err(ApplicationError::InvalidInput("a client account cannot be assigned to a case".into()));
+            }
             tx.execute("INSERT INTO case_memberships(case_id,user_id) VALUES($1,$2) ON CONFLICT(case_id,user_id) DO NOTHING", &[&id.as_uuid(),&user.as_uuid()])
         } else {tx.execute("DELETE FROM case_memberships WHERE case_id=$1 AND user_id=$2", &[&id.as_uuid(),&user.as_uuid()])}.map_err(port)?;
         if changed != 0 {

@@ -1719,3 +1719,33 @@ activo y miembro del expediente, por lo que un vínculo de Owner o Client nunca
 produce un recibo individual. Las
 [pruebas de las partes](../crates/infrastructure/tests/signing_binding_parties.rs)
 requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+### Cuentas Cliente fuera de las asignaciones
+
+La [migración 0051 de asignaciones](../migrations/0051_client_memberships.sql)
+añade la función `guard_client_membership` y el disparador
+`member_client_guard` sobre `case_memberships`, antes de insertar o actualizar.
+Rechaza asignar una cuenta `client`: una cuenta Cliente nunca es miembro de un
+expediente ([ADR 0086](adr/0086-bilateral-contract-signing.md)). El servicio de
+miembros rechaza además cambiar a `client` el rol de una cuenta con
+asignaciones. La familia de miembros pasa de tres a cuatro funciones y
+`case_memberships` de uno a dos disparadores; la apertura valida cada uno y
+además rechaza cualquier asignación de una cuenta `client`, también la que
+deje un cambio de rol hecho directamente en SQL.
+
+Antes de migrar, comprobar sobre el respaldo si existen asignaciones de cuentas
+Cliente:
+
+```sql
+SELECT m.case_id, m.user_id FROM case_memberships m
+JOIN users u ON u.id = m.user_id WHERE u.role = 'client';
+```
+
+Si la consulta devuelve filas, la migración se detiene sin borrar nada y sin
+aplicar ningún cambio. Quién conserva o retira esas asignaciones es una
+decisión del despacho; después de retirarlas con el flujo auditado de miembros,
+repetir `database migrate --runtime-role`. Un binario anterior cuenta los
+disparadores y se niega a abrir la base migrada, de modo que volver atrás
+requiere restaurar el respaldo previo. Las
+[pruebas de la guarda](../crates/infrastructure/tests/member_client_guard.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.

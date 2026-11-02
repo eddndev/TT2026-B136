@@ -3,6 +3,8 @@
 mod member_atomicity;
 #[path = "../member_backend.rs"]
 mod member_backend;
+#[path = "../member_client_guard.rs"]
+mod member_client_guard;
 #[path = "../member_guards.rs"]
 mod member_guards;
 #[path = "../member_redis.rs"]
