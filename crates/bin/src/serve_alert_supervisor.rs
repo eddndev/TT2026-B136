@@ -6,19 +6,57 @@ use std::sync::Arc;
 use tokio::task::{JoinError, JoinHandle};
 
 type ConsumerResult = Result<Result<(), ApplicationError>, JoinError>;
+type Task = JoinHandle<Result<(), ApplicationError>>;
+
+/// The consumer whose exit ends supervision, in the order failures are
+/// reported.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Exit {
-    Deadlines(ConsumerResult),
-    Alerts(ConsumerResult),
-    Reports(ConsumerResult),
-    PasswordReset(ConsumerResult),
-    Invitations(ConsumerResult),
-    ReportEmail(ConsumerResult),
+    Deadlines,
+    Alerts,
+    Reports,
+    ReportEmail,
+    Invitations,
+    PasswordReset,
+    Contracts,
 }
+
+impl Exit {
+    /// The stable codes of an unexpected stop, a failure and a panic.
+    const fn codes(self) -> [&'static str; 3] {
+        match self {
+            Self::Deadlines => ["deadline_stopped", "deadline_failed", "deadline_panicked"],
+            Self::Alerts => ["alerts_stopped", "alerts_failed", "alerts_panicked"],
+            Self::Reports => ["reports_stopped", "reports_failed", "reports_panicked"],
+            Self::ReportEmail => [
+                "report_email_stopped",
+                "report_email_failed",
+                "report_email_panicked",
+            ],
+            Self::Invitations => [
+                "invitations_stopped",
+                "invitations_failed",
+                "invitations_panicked",
+            ],
+            Self::PasswordReset => [
+                "password_reset_stopped",
+                "password_reset_failed",
+                "password_reset_panicked",
+            ],
+            Self::Contracts => [
+                "contracts_stopped",
+                "contracts_failed",
+                "contracts_panicked",
+            ],
+        }
+    }
+}
+
 #[cfg(test)]
 pub(crate) async fn supervise(
-    deadlines: JoinHandle<Result<(), ApplicationError>>,
-    alerts: JoinHandle<Result<(), ApplicationError>>,
-    reports: JoinHandle<Result<(), ApplicationError>>,
+    deadlines: Task,
+    alerts: Task,
+    reports: Task,
     stop: Arc<Stop>,
 ) -> Result<(), ApplicationError> {
     supervise_with_password_reset(deadlines, alerts, reports, None, stop).await
@@ -26,10 +64,10 @@ pub(crate) async fn supervise(
 
 #[cfg(test)]
 pub(crate) async fn supervise_with_password_reset(
-    deadlines: JoinHandle<Result<(), ApplicationError>>,
-    alerts: JoinHandle<Result<(), ApplicationError>>,
-    reports: JoinHandle<Result<(), ApplicationError>>,
-    password_reset: Option<JoinHandle<Result<(), ApplicationError>>>,
+    deadlines: Task,
+    alerts: Task,
+    reports: Task,
+    password_reset: Option<Task>,
     stop: Arc<Stop>,
 ) -> Result<(), ApplicationError> {
     supervise_with_invitations(deadlines, alerts, reports, password_reset, None, stop).await
@@ -37,11 +75,11 @@ pub(crate) async fn supervise_with_password_reset(
 
 #[cfg(test)]
 pub(crate) async fn supervise_with_invitations(
-    deadlines: JoinHandle<Result<(), ApplicationError>>,
-    alerts: JoinHandle<Result<(), ApplicationError>>,
-    reports: JoinHandle<Result<(), ApplicationError>>,
-    password_reset: Option<JoinHandle<Result<(), ApplicationError>>>,
-    invitations: Option<JoinHandle<Result<(), ApplicationError>>>,
+    deadlines: Task,
+    alerts: Task,
+    reports: Task,
+    password_reset: Option<Task>,
+    invitations: Option<Task>,
     stop: Arc<Stop>,
 ) -> Result<(), ApplicationError> {
     supervise_with_report_email(
@@ -56,203 +94,69 @@ pub(crate) async fn supervise_with_invitations(
     .await
 }
 
+#[cfg(test)]
 pub(crate) async fn supervise_with_report_email(
-    mut deadlines: JoinHandle<Result<(), ApplicationError>>,
-    mut alerts: JoinHandle<Result<(), ApplicationError>>,
-    mut reports: JoinHandle<Result<(), ApplicationError>>,
-    mut password_reset: Option<JoinHandle<Result<(), ApplicationError>>>,
-    mut invitations: Option<JoinHandle<Result<(), ApplicationError>>>,
-    mut report_email: Option<JoinHandle<Result<(), ApplicationError>>>,
+    deadlines: Task,
+    alerts: Task,
+    reports: Task,
+    password_reset: Option<Task>,
+    invitations: Option<Task>,
+    report_email: Option<Task>,
     stop: Arc<Stop>,
 ) -> Result<(), ApplicationError> {
-    let exit = {
-        let reset_exit = async {
-            match &mut password_reset {
-                Some(task) => task.await,
-                None => std::future::pending().await,
-            }
-        };
-        let invitation_exit = async {
-            match &mut invitations {
-                Some(task) => task.await,
-                None => std::future::pending().await,
-            }
-        };
-        let report_email_exit = async {
-            match &mut report_email {
-                Some(task) => task.await,
-                None => std::future::pending().await,
-            }
-        };
-        tokio::select! {
-            result = &mut deadlines => Exit::Deadlines(result),
-            result = &mut alerts => Exit::Alerts(result),
-            result = &mut reports => Exit::Reports(result),
-            result = reset_exit => Exit::PasswordReset(result),
-            result = invitation_exit => Exit::Invitations(result),
-            result = report_email_exit => Exit::ReportEmail(result),
-        }
-    };
+    supervise_with_contracts(
+        deadlines,
+        alerts,
+        reports,
+        password_reset,
+        invitations,
+        report_email,
+        None,
+        stop,
+    )
+    .await
+}
+
+/// Waits for the first consumer exit, requests stop, joins every other
+/// consumer and reports each unexpected stop, failure or panic by code.
+#[allow(clippy::too_many_arguments)]
+pub(crate) async fn supervise_with_contracts(
+    deadlines: Task,
+    alerts: Task,
+    reports: Task,
+    password_reset: Option<Task>,
+    invitations: Option<Task>,
+    report_email: Option<Task>,
+    contracts: Option<Task>,
+    stop: Arc<Stop>,
+) -> Result<(), ApplicationError> {
+    let mut tasks = [
+        (Exit::Deadlines, Some(deadlines)),
+        (Exit::Alerts, Some(alerts)),
+        (Exit::Reports, Some(reports)),
+        (Exit::ReportEmail, report_email),
+        (Exit::Invitations, invitations),
+        (Exit::PasswordReset, password_reset),
+        (Exit::Contracts, contracts),
+    ];
+    let (exit, first) = first_exit(&mut tasks).await;
     let was_stopped = stop.is_stopped();
     stop.request();
     let mut failures = Vec::new();
-    let (
-        deadline_result,
-        alert_result,
-        report_result,
-        reset_result,
-        invitation_result,
-        report_email_result,
-    ) = match exit {
-        Exit::Deadlines(result) => {
-            if !was_stopped && matches!(result, Ok(Ok(()))) {
-                failures.push("deadline_stopped");
-            }
-            let (alert_result, report_result, reset_result, invitation_result, report_email_result) = tokio::join!(
-                alerts,
-                reports,
-                join_optional(password_reset),
-                join_optional(invitations),
-                join_optional(report_email)
-            );
-            (
-                result,
-                alert_result,
-                report_result,
-                reset_result,
-                invitation_result,
-                report_email_result,
-            )
-        }
-        Exit::Alerts(result) => {
-            if !was_stopped && matches!(result, Ok(Ok(()))) {
-                failures.push("alerts_stopped");
-            }
-            let (
-                deadline_result,
-                report_result,
-                reset_result,
-                invitation_result,
-                report_email_result,
-            ) = tokio::join!(
-                deadlines,
-                reports,
-                join_optional(password_reset),
-                join_optional(invitations),
-                join_optional(report_email)
-            );
-            (
-                deadline_result,
-                result,
-                report_result,
-                reset_result,
-                invitation_result,
-                report_email_result,
-            )
-        }
-        Exit::Reports(result) => {
-            if !was_stopped && matches!(result, Ok(Ok(()))) {
-                failures.push("reports_stopped");
-            }
-            let (
-                deadline_result,
-                alert_result,
-                reset_result,
-                invitation_result,
-                report_email_result,
-            ) = tokio::join!(
-                deadlines,
-                alerts,
-                join_optional(password_reset),
-                join_optional(invitations),
-                join_optional(report_email)
-            );
-            (
-                deadline_result,
-                alert_result,
-                result,
-                reset_result,
-                invitation_result,
-                report_email_result,
-            )
-        }
-        Exit::PasswordReset(result) => {
-            if !was_stopped && matches!(result, Ok(Ok(()))) {
-                failures.push("password_reset_stopped");
-            }
-            let (
-                deadline_result,
-                alert_result,
-                report_result,
-                invitation_result,
-                report_email_result,
-            ) = tokio::join!(
-                deadlines,
-                alerts,
-                reports,
-                join_optional(invitations),
-                join_optional(report_email)
-            );
-            (
-                deadline_result,
-                alert_result,
-                report_result,
-                result,
-                invitation_result,
-                report_email_result,
-            )
-        }
-        Exit::Invitations(result) => {
-            if !was_stopped && matches!(result, Ok(Ok(()))) {
-                failures.push("invitations_stopped");
-            }
-            let (d, a, r, reset, email) = tokio::join!(
-                deadlines,
-                alerts,
-                reports,
-                join_optional(password_reset),
-                join_optional(report_email)
-            );
-            (d, a, r, reset, result, email)
-        }
-        Exit::ReportEmail(result) => {
-            if !was_stopped && matches!(result, Ok(Ok(()))) {
-                failures.push("report_email_stopped");
-            }
-            let (d, a, r, reset, invitations) = tokio::join!(
-                deadlines,
-                alerts,
-                reports,
-                join_optional(password_reset),
-                join_optional(invitations)
-            );
-            (d, a, r, reset, invitations, result)
-        }
-    };
-    for (result, failed, panicked) in [
-        (deadline_result, "deadline_failed", "deadline_panicked"),
-        (alert_result, "alerts_failed", "alerts_panicked"),
-        (report_result, "reports_failed", "reports_panicked"),
-        (
-            report_email_result,
-            "report_email_failed",
-            "report_email_panicked",
-        ),
-        (
-            invitation_result,
-            "invitations_failed",
-            "invitations_panicked",
-        ),
-        (
-            reset_result,
-            "password_reset_failed",
-            "password_reset_panicked",
-        ),
-    ] {
+    if !was_stopped && matches!(first, Ok(Ok(()))) {
+        failures.push(exit.codes()[0]);
+    }
+    let mut first = Some(first);
+    for (kind, task) in tasks {
+        let result = match task {
+            Some(task) => task.await,
+            None if kind == exit => first.take().unwrap_or(Ok(Ok(()))),
+            None => Ok(Ok(())),
+        };
         match result {
             Ok(Ok(())) => (),
-            Ok(Err(_)) => failures.push(failed),
-            Err(_) => failures.push(panicked),
+            Ok(Err(_)) => failures.push(kind.codes()[1]),
+            Err(_) => failures.push(kind.codes()[2]),
         }
     }
     if failures.is_empty() {
@@ -265,12 +169,36 @@ pub(crate) async fn supervise_with_report_email(
     }
 }
 
-async fn join_optional(task: Option<JoinHandle<Result<(), ApplicationError>>>) -> ConsumerResult {
+/// The first consumer to exit; its slot is emptied because a finished
+/// handle cannot be awaited again.
+async fn first_exit(tasks: &mut [(Exit, Option<Task>); 7]) -> (Exit, ConsumerResult) {
+    let (exit, result) = {
+        let [a, b, c, d, e, f, g] = &mut *tasks;
+        tokio::select! {
+            result = optional(&mut a.1) => (a.0, result),
+            result = optional(&mut b.1) => (b.0, result),
+            result = optional(&mut c.1) => (c.0, result),
+            result = optional(&mut d.1) => (d.0, result),
+            result = optional(&mut e.1) => (e.0, result),
+            result = optional(&mut f.1) => (f.0, result),
+            result = optional(&mut g.1) => (g.0, result),
+        }
+    };
+    for (kind, task) in tasks.iter_mut() {
+        if *kind == exit {
+            *task = None;
+        }
+    }
+    (exit, result)
+}
+
+async fn optional(task: &mut Option<Task>) -> ConsumerResult {
     match task {
         Some(task) => task.await,
-        None => Ok(Ok(())),
+        None => std::future::pending().await,
     }
 }
+
 #[cfg(test)]
 #[path = "serve_report_supervisor_tests.rs"]
 mod report_tests;

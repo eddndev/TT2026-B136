@@ -179,6 +179,7 @@ fn scenario(bind: &'static str, consumer_started: bool) {
             password_reset: None,
             invitations: None,
             report_email: None,
+            contracts: crate::serve_contract_runtime::ContractConsumer::idle(),
         };
         let result = serve_start::run(bind, server, dispatch, worker, config, consumers, reports);
         let _ = sender.send((thread::current().id(), result));

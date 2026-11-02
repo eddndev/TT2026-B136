@@ -25,6 +25,7 @@ pub(crate) struct ServerComponents {
     pub password_reset: Option<PasswordResetRuntime>,
     pub invitations: Option<crate::serve_invitation_runtime::InvitationConsumer>,
     pub report_email: Option<crate::serve_report_email_runtime::ReportEmailConsumer>,
+    pub contracts: crate::serve_contract_runtime::ContractConsumer,
 }
 
 pub(crate) fn run<D, W>(
@@ -48,6 +49,7 @@ where
         password_reset,
         invitations,
         report_email,
+        contracts,
     } = server;
     let (_reset_owner, password_reset) = match password_reset {
         Some(reset) => (Some(reset.owner), Some(reset.consumer)),
@@ -111,14 +113,19 @@ where
                 crate::serve_report_email_runtime::run(next.as_ref(), stop.as_ref())
             })
         });
+        let contract_stop = Arc::clone(&stop);
+        let contract_task = tokio::task::spawn_blocking(move || {
+            crate::serve_contract_runtime::run(&contracts, contract_stop.as_ref())
+        });
         let reset_task = password_reset.map(|reset| tokio::spawn(reset.run()));
-        let consumer = tokio::spawn(serve_alert_supervisor::supervise_with_report_email(
+        let consumer = tokio::spawn(serve_alert_supervisor::supervise_with_contracts(
             deadlines,
             alerts,
             reports,
             reset_task,
             invitation_task,
             report_email_task,
+            Some(contract_task),
             Arc::clone(&stop),
         ));
         let (http_shutdown, shutdown) = tokio::sync::oneshot::channel();

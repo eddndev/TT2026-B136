@@ -734,6 +734,17 @@ These details are fixed by the service:
   seconds later and before its deadline; without a retry it stays final.
   Claims and outcomes use the database clock and change only the delivery
   columns. A notice of an inactive recipient is not claimed and waits.
+- The server always composes one supervised contract consumer. Every five
+  seconds it runs one expiry cycle and, only when
+  `TT_CONTRACT_EMAIL_ENABLED=true`, up to 20 notice attempts until none is
+  claimable. Enabling contract e-mail requires `REPORT_EMAIL_FROM`,
+  `REPORT_PUBLIC_URL` and `RESEND_API_KEY`, validated as for ready-report
+  e-mail, and its notices link to `REPORT_PUBLIC_URL#contracts`. While it
+  is disabled, notices are written with the fixed sender
+  `notificaciones@qadra.invalid` and no link, and the parties see their
+  requests in Qadra. A transient storage or provider failure waits for the
+  next cycle; any other failure ends the consumer, which stops the server
+  like every other supervised consumer.
 - Creating a second contract for a document series answers 409
   `contract_exists`; the series identifies its contract.
 - Document lists, details and version histories carry the derived
