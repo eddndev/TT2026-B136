@@ -142,7 +142,8 @@ acknowledgement, available to the Client once it signed, also after an
 unsuccessful close; it never establishes a contract. `final` is the
 `BilateralContractV1` package of a completed request. Staff reads also need
 `ExportEvidence`. Both include `INSTRUCCIONES.md` with the OpenSSL check and
-record `contract.evidence_exported`. The final package of a request is the
+record `contract.evidence_exported`. A HEAD request answers 405 and builds no
+package, like route 8. The final package of a request is the
 same bytes on every export.
 
 ## Reconciliation

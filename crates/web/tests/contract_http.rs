@@ -277,8 +277,10 @@ async fn the_requester_cancels_with_a_reason_and_malformed_input_is_refused() {
     }
     let stage = call(&app, "GET", &request_path("/evidence/draft"), json!(null)).await;
     assert_eq!(stage.1["error"]["code"], "invalid_contract_request");
-    let head = call(&app, "HEAD", &request_path("/content"), json!(null)).await;
-    assert_eq!(head.0, 405);
+    for suffix in ["/content", "/evidence/partial", "/evidence/final"] {
+        let head = call(&app, "HEAD", &request_path(suffix), json!(null)).await;
+        assert_eq!(head.0, 405, "{suffix}");
+    }
     assert_eq!(harness.calls().2, 0);
     let cancelled = call(
         &app,

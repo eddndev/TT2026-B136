@@ -80,7 +80,7 @@ revalidation; no token, password, MFA code or private capability is recorded.
 | owner-invitations | Current Owner invites Litigator/Paralegal/Client and reads/resends existing invitations ([ADR 0086](adr/0086-bilateral-contract-signing.md)). | Non-Owner rejected; unsupported invitation roles and existing-account constraints preserved. | [Invitations](member-invitations-api.md) |
 | invitation-recipient | Public private-capability workflow prepares/finishes enrollment and reconciles the exact receipt. | Invalid/expired capability, wrong password/code and conflicting operation retain existing rejection; no unrelated bearer is adopted. | [Invitations](member-invitations-api.md) |
 | password-reset | Existing public request/completion workflow with generic public responses and private reset capability. | Invalid/expired/used capability and operational errors retain existing semantics; generic request acceptance does not prove account existence or email delivery. | [Reset](password-reset-public.md) |
-| head-rejected | No positive operation: explicit document content, contract content and report HEAD is 405. | Retain 405 and audit transport outcome without emitting a business read/download action. | Source handlers in appendix |
+| head-rejected | No positive operation: explicit document content, contract content, contract evidence and report HEAD is 405. | Retain 405 and audit transport outcome without emitting a business read/download action. | Source handlers in appendix |
 
 The `staff-case` group covers [participants and identities](typed-participants-api.md),
 [stages](case-stages-api.md), [hearings](hearings-api.md),
@@ -202,12 +202,12 @@ Every functional appendix row resolves to three separate checks: its exact
 method/path in **B**, its `policy` in the table below, and its source-family
 fixture where a policy spans multiple routers. The 26 policy counts sum to
 237. The 112 `staff-case` rows are expanded by exact source below; no appendix
-row is added or removed by this mapping. The three HEAD rows resolve separately.
+row is added or removed by this mapping. The four HEAD rows resolve separately.
 
 **B - common access boundary:**
 [`catalog_tests.rs`](../crates/web/src/access_audit/catalog_tests.rs) consumes
 every appendix pair and exercises 200, 401, 403, 404, 422 and 500 with exactly
-one outcome and recognized route/resource identity. It includes the three HEAD
+one outcome and recognized route/resource identity. It includes the four HEAD
 patterns for boundary behavior. This is a synthetic router test, not an
 execution of the composed workflow, role authorization or actual HEAD handler.
 Reproduce it with `cargo test -p web --lib access_audit:: -- --test-threads=1`.
@@ -693,4 +693,5 @@ method	path	policy	source
 HEAD	/api/v1/case-reports/:id/download	head-rejected	crates/web/src/case_reports/mod.rs
 HEAD	/api/v1/cases/:case/documents/:id/versions/:version/content	head-rejected	crates/web/src/document_content.rs
 HEAD	/api/v1/contract-requests/:request/content	head-rejected	crates/web/src/contracts_requests.rs
+HEAD	/api/v1/contract-requests/:request/evidence/:stage	head-rejected	crates/web/src/contracts_requests.rs
 ```

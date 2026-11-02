@@ -453,7 +453,8 @@ The `contract_party_ineligible` envelope carries the blocker codes as an
 array member `blockers` of its `error` object, next to `code` and `message`.
 The exact content route answers an explicit HEAD with 405, like the document
 content route, so a HEAD request never decrypts the version or records a
-`contract.content_read` event.
+`contract.content_read` event. The evidence route does the same, so a HEAD
+request never builds a package or records `contract.evidence_exported`.
 
 The individual signing codes `signing_account_changed`,
 `signing_trust_changed`, `signing_conflict`, `signing_binding_inactive` and

@@ -30,7 +30,10 @@ pub(super) fn router(state: ContractState) -> Router {
             &format!("{PREFIX}/:request/operations/:operation"),
             get(receipt),
         )
-        .route(&format!("{PREFIX}/:request/evidence/:stage"), get(evidence))
+        .route(
+            &format!("{PREFIX}/:request/evidence/:stage"),
+            get(evidence).head(|| async { StatusCode::METHOD_NOT_ALLOWED }),
+        )
         .layer(DefaultBodyLimit::max(input::BODY_LIMIT))
         .with_state(state)
 }
