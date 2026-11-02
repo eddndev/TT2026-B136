@@ -9,6 +9,7 @@ mod support;
 mod admission;
 mod contract;
 mod contract_negative;
+mod contract_variants;
 mod hostile;
 mod individual;
 mod individual_negative;

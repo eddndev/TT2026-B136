@@ -12,13 +12,16 @@ fixture request in the --state JSON file:
 - "begin" first rebuilds the shared statement vector to prove that this
   encoder still matches it, then writes contrato-solicitud.bin (CTRTREQ1),
   both certificate bindings (DOCBIND1) and the position 1 statement
-  (CTRTSIG1);
+  (CTRTSIG1); for the variant ceremonies --request-id replaces the request
+  identity and --firm-as-client makes the position 2 binding and statement
+  name the Client account;
 - "counter" writes the position 2 statement, which carries the SHA-256 of
   the position 1 signature and of its time-stamp response;
 - "manifest" writes contrato-manifiesto.json over every covered entry;
 - "records" writes contrato-recibo.json and contrato-acuse-parcial.json;
-- "index" writes fixtures.json with the digest and size of every file and
-  the instants the generator recorded.
+- "index" writes fixtures.json with the digest and size of every file,
+  variant files included under their relative paths, and the instants the
+  generator recorded.
 
 The JSON outputs are the RFC 8785 form of the admitted subset: keys sorted,
 no whitespace, ASCII strings and integers only, no trailing newline.
@@ -220,6 +223,8 @@ def command_begin(args):
     root = sha256(read(args.root_der)).hex()
     leaves = [sha256(read(path)).hex() for path in (args.client_der, args.firm_der)]
     values = dict(REQUEST)
+    if args.request_id:
+        values["request_id"] = args.request_id
     values.update({
         "document_sha256": sha256(read(entry(args, "contrato.pdf"))).hex(),
         "client_certificate_sha256": leaves[0],
@@ -231,6 +236,8 @@ def command_begin(args):
     write(entry(args, "contrato-solicitud.bin"), request)
     registered = (args.client_registered_at, args.firm_registered_at)
     parties = [party_values(index, root, leaves[index], registered[index]) for index in (0, 1)]
+    if args.firm_as_client:
+        parties[1]["account_id"] = values["client_account_id"]
     for party in parties:
         name = f"parte-{party['position']}-vinculo.bin"
         write(entry(args, name), prefix(b"DOCBIND1", values["deployment_id"], party))
@@ -316,11 +323,13 @@ def command_records(args):
 
 def command_index(args):
     files = {}
-    for name in sorted(os.listdir(args.dir)):
-        if name in ("fixtures.json", "README.md"):
-            continue
-        data = read(entry(args, name))
-        files[name] = {"sha256": sha256(data).hex(), "size": len(data)}
+    for folder, _, names in os.walk(args.dir):
+        for name in names:
+            path = os.path.relpath(os.path.join(folder, name), args.dir).replace(os.sep, "/")
+            if path in ("fixtures.json", "README.md"):
+                continue
+            data = read(os.path.join(folder, name))
+            files[path] = {"sha256": sha256(data).hex(), "size": len(data)}
     state = load(args)
     index = {
         "generated_at": args.generated_at,
@@ -345,6 +354,8 @@ def main(argv):
         begin.add_argument(f"--{name}", required=True)
     for name in ("created-at", "expires-at", "client-registered-at", "firm-registered-at"):
         begin.add_argument(f"--{name}", required=True, type=int)
+    begin.add_argument("--request-id")
+    begin.add_argument("--firm-as-client", action="store_true")
     commands.add_parser("counter")
     commands.add_parser("manifest")
     records = commands.add_parser("records")

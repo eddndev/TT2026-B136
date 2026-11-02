@@ -27,6 +27,8 @@ runtime-data/
 # The same for scripts/evidence-verify-contract-fixtures.sh.
 !crates/evidence-verify/tests/contract-fixtures/*.tsr
 !crates/evidence-verify/tests/contract-fixtures/*.sig
+!crates/evidence-verify/tests/contract-fixtures/variants/*/*.tsr
+!crates/evidence-verify/tests/contract-fixtures/variants/*/*.sig
 
 # Node / frontend
 node_modules

@@ -4,7 +4,7 @@
 use crate::support::{pin, Package};
 use evidence_verify::json::{self, Limits, Value};
 use evidence_verify::policy::{Policy, Purposes};
-use evidence_verify::{certificate, pem};
+use evidence_verify::{certificate, pem, Outcome, Report};
 
 /// The shared entries of a full package, in the order the server writes.
 pub const FULL_SHARED: [&str; 8] = [
@@ -85,6 +85,47 @@ pub fn partial() -> Package {
     ];
     names.extend(PARTY_1);
     package(&names)
+}
+
+/// `package` with every file of `tests/contract-fixtures/variants/{name}`
+/// set under its entry name. A variant directory holds only the entries
+/// that differ from the base ceremony.
+pub fn with_variant(mut package: Package, name: &str) -> Package {
+    let directory = format!(
+        "{}/tests/contract-fixtures/variants/{name}",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    let listing =
+        std::fs::read_dir(&directory).unwrap_or_else(|error| panic!("{directory}: {error}"));
+    let mut names: Vec<String> = listing
+        .map(|item| item.expect("variant entry").file_name())
+        .map(|file| file.into_string().expect("ASCII entry name"))
+        .collect();
+    names.sort();
+    assert!(!names.is_empty(), "{directory} is empty");
+    for entry in names {
+        package.set(&entry, &variant_file(name, &entry));
+    }
+    package
+}
+
+/// Bytes of one file of the variant `name`.
+pub fn variant_file(name: &str, entry: &str) -> Vec<u8> {
+    contract_fixture(&format!("variants/{name}/{entry}"))
+}
+
+/// Every distinct failed code of `report`, sorted.
+pub fn failed_codes(report: &Report) -> Vec<&'static str> {
+    let mut codes: Vec<&'static str> = report
+        .components
+        .iter()
+        .flat_map(|component| component.findings.iter())
+        .filter(|finding| finding.outcome == Outcome::Failed)
+        .map(|finding| finding.code)
+        .collect();
+    codes.sort_unstable();
+    codes.dedup();
+    codes
 }
 
 /// One integer of `fixtures.json` at `path`.

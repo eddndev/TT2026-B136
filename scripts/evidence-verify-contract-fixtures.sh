@@ -11,7 +11,9 @@
 # configuration as the deployment (pki/openssl.cnf and pki/tsa.cnf). Every
 # file except fixtures.json, README.md and the variant CRL is written under
 # its exact package entry name, so the tests assemble the full and the
-# partial package from the directory.
+# partial package from the directory. The variant ceremonies of
+# scripts/evidence-verify-contract-variants.sh then write, under
+# variants/NAME, only the entries each variant changes.
 #
 # The PDF is larger than 64 KiB. The Client CRL parte-1-crl.pem covers T1;
 # the firm CRL parte-2-crl.pem is a later list whose thisUpdate is after the
@@ -40,13 +42,15 @@ HELPER="$SCRIPT_DIR/evidence_verify_contract_fixtures.py"
 VECTORS="$REPO_DIR/crates/domain/tests/fixtures/contract_statement_vectors.json"
 # shellcheck source=scripts/evidence-verify-fixtures-lib.sh
 . "$SCRIPT_DIR/evidence-verify-fixtures-lib.sh"
+# shellcheck source=scripts/evidence-verify-contract-variants.sh
+. "$SCRIPT_DIR/evidence-verify-contract-variants.sh"
 OUT_DIR="$REPO_DIR/crates/evidence-verify/tests/contract-fixtures"
 
 NOT_BEFORE=20260101000000Z
 NOT_AFTER=20360101000000Z
 SUBJECT_BASE="/C=MX/ST=Ciudad de Mexico/L=Ciudad de Mexico/O=Despacho Juridico Demo"
 
-for tool in openssl python3 date awk sed sha256sum sleep; do
+for tool in openssl python3 date awk sed sha256sum sleep cmp wc; do
     command -v "$tool" >/dev/null 2>&1 || die "$tool not found in PATH"
 done
 for file in "$OPENSSL_CNF" "$TSA_CNF" "$HELPER" "$VECTORS"; do
@@ -59,6 +63,8 @@ KEYS="$WORK/keys"
 STAGE="$WORK/certs"
 PACKAGE="$WORK/package"
 STATE="$WORK/state.json"
+BASE="$PACKAGE"
+BASE_STATE="$STATE"
 FACTS="$WORK/facts.txt"
 LOG="$WORK/command.log"
 mkdir -p "$KEYS" "$STAGE" "$PACKAGE"
@@ -75,10 +81,10 @@ helper() {
 utc_time() { date -u -d "@$1" +%y%m%d%H%M%SZ; }
 general_time() { date -u -d "@$1" +%Y%m%d%H%M%SZ; }
 
-# genTime of the response ENTRY in the package, as Unix seconds.
+# genTime of the time-stamp response at PATH, as Unix seconds.
 gen_time() {
     local text
-    text="$(openssl ts -reply -in "$PACKAGE/$1" -text 2>"$LOG" | sed -n 's/^Time stamp: //p')"
+    text="$(openssl ts -reply -in "$1" -text 2>"$LOG" | sed -n 's/^Time stamp: //p')"
     [ -n "$text" ] || die "no genTime in $1"
     date -u -d "$text" +%s
 }
@@ -103,6 +109,8 @@ stamp_entry() {
 }
 
 NOW="$(date -u +%s)"
+CREATED_AT=$(( NOW - 600 ))
+EXPIRES_AT=$(( NOW + 7 * 86400 ))
 THIS_UPDATE=$(( NOW / 3600 * 3600 - 3600 ))
 NEXT_UPDATE=$(( THIS_UPDATE + 7 * 86400 ))
 THIS_UPDATE_TEXT="$(general_time "$THIS_UPDATE")"
@@ -129,6 +137,7 @@ quiet openssl x509 -inform DER -in "$STAGE/root.der" -out "$PACKAGE/ca.pem"
 cp "$PACKAGE/ca.pem" "$PACKAGE/tsa-chain.pem"
 cp "$PACKAGE/ca.pem" "$PACKAGE/parte-1-tsa-chain.pem"
 gen_crl "$ROOT_CA" before-t1.crl
+large_crl
 for position in 1 2; do
     name="$([ "$position" = 1 ] && echo client || echo firm)"
     quiet openssl x509 -inform DER -in "$STAGE/$name.der" \
@@ -138,19 +147,42 @@ for position in 1 2; do
 done
 cp "$ROOT_CA/crl/before-t1.crl.pem" "$PACKAGE/parte-1-crl.pem"
 
+# begin_ceremony [OPTION...]: the request, both bindings and the Client
+# statement with the fixture values; each OPTION overrides one of them.
+begin_ceremony() {
+    helper begin --vectors "$VECTORS" --root-der "$STAGE/root.der" \
+        --client-der "$STAGE/client.der" --firm-der "$STAGE/firm.der" \
+        --created-at "$CREATED_AT" --expires-at "$EXPIRES_AT" \
+        --client-registered-at "$(( THIS_UPDATE + 60 ))" \
+        --firm-registered-at "$(( THIS_UPDATE + 120 ))" "$@"
+}
+
+# finish_ceremony KEY: the firm statement over S1 and T1 signed with KEY,
+# then Td over the PDF, the manifest, Tf over it and the records.
+finish_ceremony() {
+    local t1 tf
+    helper counter
+    sign_entry "$1" parte-2-declaracion.bin
+    stamp_entry contrato.pdf.tsr contrato.pdf
+    helper manifest
+    stamp_entry contrato-manifiesto.json.tsr contrato-manifiesto.json
+    t1="$(gen_time "$PACKAGE/parte-1-declaracion.sig.tsr")"
+    tf="$(gen_time "$PACKAGE/contrato-manifiesto.json.tsr")"
+    helper records --client-accepted-at "$t1" --firm-accepted-at "$tf" \
+        --completed-at "$tf" --exported-at "$(( tf + 1 ))"
+}
+
 # The request, both bindings and the Client statement, signed by their
-# holders, then T1 over the Client signature.
+# holders, then T1 over the Client signature. A Td over the PDF is
+# requested first for the inverted-tokens variant.
 helper document
-helper begin --vectors "$VECTORS" --root-der "$STAGE/root.der" \
-    --client-der "$STAGE/client.der" --firm-der "$STAGE/firm.der" \
-    --created-at "$(( NOW - 600 ))" --expires-at "$(( NOW + 7 * 86400 ))" \
-    --client-registered-at "$(( THIS_UPDATE + 60 ))" \
-    --firm-registered-at "$(( THIS_UPDATE + 120 ))"
+early_document_token
+begin_ceremony
 sign_entry client parte-1-vinculo.bin
 sign_entry firm parte-2-vinculo.bin
 sign_entry client parte-1-declaracion.bin
 stamp_entry parte-1-declaracion.sig.tsr parte-1-declaracion.sig
-T1="$(gen_time parte-1-declaracion.sig.tsr)"
+T1="$(gen_time "$PACKAGE/parte-1-declaracion.sig.tsr")"
 
 # The renewed list starts after the T1 interval (accuracy one second) and
 # Td must start after it, so wait until four seconds past T1.
@@ -164,17 +196,9 @@ revoke client
 gen_crl "$ROOT_CA" client-revoked.crl "$(general_time "$RENEWED")" \
     "$(general_time $(( RENEWED + 7 * 86400 )))"
 
-# The firm statement over S1 and T1, then Td over the PDF, the manifest
-# and Tf over the manifest.
-helper counter
-sign_entry firm parte-2-declaracion.bin
-stamp_entry contrato.pdf.tsr contrato.pdf
-TD="$(gen_time contrato.pdf.tsr)"
-helper manifest
-stamp_entry contrato-manifiesto.json.tsr contrato-manifiesto.json
-TF="$(gen_time contrato-manifiesto.json.tsr)"
-helper records --client-accepted-at "$T1" --firm-accepted-at "$TF" \
-    --completed-at "$TF" --exported-at "$(( TF + 1 ))"
+finish_ceremony firm
+TD="$(gen_time "$PACKAGE/contrato.pdf.tsr")"
+TF="$(gen_time "$PACKAGE/contrato-manifiesto.json.tsr")"
 [ "$T1" -le "$TD" ] && [ "$TD" -le "$TF" ] || die "tokens out of order: $T1 $TD $TF"
 [ $(( TD - 1 )) -ge "$RENEWED" ] || die "Td starts before the renewed CRL"
 
@@ -191,7 +215,10 @@ quiet openssl verify -x509_strict -crl_check -CAfile "$PACKAGE/ca.pem" \
     -CRLfile "$PACKAGE/parte-2-crl.pem" "$WORK/tsa.pem"
 must_fail openssl verify -x509_strict -crl_check -CAfile "$PACKAGE/ca.pem" \
     -CRLfile "$ROOT_CA/crl/client-revoked.crl.pem" "$PACKAGE/parte-1-certificado.pem"
-cp "$ROOT_CA/crl/client-revoked.crl.pem" "$PACKAGE/parte-2-crl-cliente-revocado.pem"
+cp "$ROOT_CA/crl/client-revoked.crl.pem" "$WORK/parte-2-crl-cliente-revocado.pem"
+
+generate_variants
+cp "$WORK/parte-2-crl-cliente-revocado.pem" "$PACKAGE/"
 
 helper index --generated-at "$NOW" --t1 "$T1" --td "$TD" --tf "$TF" \
     --renewed-this-update "$RENEWED"
@@ -203,5 +230,5 @@ fi
 
 mkdir -p "$OUT_DIR"
 find "$OUT_DIR" -mindepth 1 -maxdepth 1 ! -name README.md -exec rm -rf {} +
-cp "$PACKAGE"/* "$OUT_DIR"/
+cp -R "$PACKAGE"/. "$OUT_DIR"/
 printf 'Wrote %s files to %s\n' "$(find "$PACKAGE" -type f | wc -l)" "$OUT_DIR"
