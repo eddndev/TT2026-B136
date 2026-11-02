@@ -1763,3 +1763,67 @@ que volver atrás después de emitir una invitación `client` requiere restaurar
 el respaldo previo. Las
 [pruebas de invitaciones Cliente](../crates/infrastructure/tests/member_invitation_clients.rs)
 requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+## Contratos bilaterales
+
+Las tres migraciones 0052 forman una sola familia y se aplican en este orden
+después de la familia de invitaciones, cada vez que una conexión administrativa
+prepara el esquema:
+
+- [0052_contracts.sql](../migrations/0052_contracts.sql) crea las seis tablas y
+  las dos funciones puras `contract_request_bytes` y `contract_party_bytes`,
+  que reconstruyen los 240 bytes de `CTRTREQ1` y los 303 de `CTRTSIG1`.
+- [0052_contract_events.sql](../migrations/0052_contract_events.sql) añade el
+  candado, la preservación y el registro de eventos y solicitudes.
+- [0052_contract_signatures.sql](../migrations/0052_contract_signatures.sql)
+  añade el registro de firmas, cierres y avisos, el emparejamiento diferido, la
+  guarda de versión sobre `documents` y todos los disparadores.
+
+El diseño completo está en
+[ADR 0086](adr/0086-bilateral-contract-signing.md), sección «Storage». Las
+tablas `contracts`, `contract_signature_requests`, `contract_events`,
+`contract_party_signatures` y `contract_completions` solo admiten inserciones:
+cualquier `UPDATE`, `DELETE` o `TRUNCATE` falla, también para un rol
+administrativo. `contract_notifications` es la bandeja de avisos y el rol de
+ejecución solo cambia sus columnas de entrega. No hay columna de estado: el
+estado de un contrato se deriva de su último evento y del `expires_at` de su
+última solicitud.
+
+Cada escritura toma, después del candado de auditoría, el candado consultivo
+280603412820 que comparten los vínculos y las firmas individuales, y exige
+READ COMMITTED. Dentro de una transacción la fila de auditoría va primero; la
+raíz precede a su evento `created`, la solicitud a su evento `requested`, el
+evento `client_signed` o `completed` a su firma y la firma de la posición 2 al
+cierre. Al confirmar, `contract_completion_pair` rechaza una raíz, una
+solicitud o un evento firmado sin sus filas pareadas. Una solicitud vencida sin
+cerrar no se cierra sola: el adaptador escribe su evento `expired`, auditado
+por `system:contract-expiry`, antes de la solicitud nueva o del abandono, y la
+base rechaza lo contrario.
+
+La guarda `contract_version_guard` impide escribir `documents.evidence` (sello
+o firma individual) en una versión cuya solicitud esté completada, o abierta
+según el reloj de la base. Una versión con solicitud vencida, rechazada,
+declinada o cancelada vuelve a admitir sello.
+
+Las tablas solo hacen referencia a `audit_events` desde `contract_events`, de
+modo que `audit_events` pasa de 26 a 28 disparadores de llave foránea. La
+apertura valida el catálogo completo de la familia, los permisos del rol de
+ejecución y un inventario que reconstruye los bytes de cada solicitud y
+declaración, verifica cada firma de parte con la revisión de confianza que
+nombra y comprueba T1, Td, Tf y el manifiesto de cada cierre. Un binario
+anterior cuenta 26 disparadores en `audit_events` y se niega a abrir la base
+migrada, de modo que volver atrás requiere restaurar el respaldo previo.
+
+Para actualizar una instalación con la receta habitual: respaldar, ensayar
+`database migrate --runtime-role` sobre una copia del respaldo, migrar la base
+real con el rol administrativo y arrancar el binario nuevo. La migración no
+modifica filas existentes ni necesita datos previos. Antes de restaurar un
+respaldo que contenga contratos, comprobar que la versión del binario incluye
+estas migraciones.
+
+Las [pruebas de almacenamiento](../crates/infrastructure/tests/contract_storage.rs),
+del [ciclo de vida](../crates/infrastructure/tests/contract_storage_lifecycle.rs),
+de las [guardas](../crates/infrastructure/tests/contract_storage_guards.rs),
+de las [partes](../crates/infrastructure/tests/contract_storage_parties.rs) y
+de la [migración](../crates/infrastructure/tests/contract_storage_migration.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
