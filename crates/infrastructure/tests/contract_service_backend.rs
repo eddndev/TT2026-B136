@@ -182,6 +182,44 @@ fn an_unassigned_litigator_cannot_tell_documents_or_contracts_apart() {
 }
 
 #[test]
+fn a_firm_signer_removed_from_the_case_reads_and_signs_nothing() {
+    let Some(live) = Live::new() else { return };
+    let mut live = live.requested();
+    let (client, firm) = (live.client(), live.firm());
+    let first = live.signed(&client, Uuid::new_v4());
+    live.sign(&client, &first).unwrap();
+    let second = live.signed(&firm, Uuid::new_v4());
+    let case = live.test.individual.db.case.as_uuid();
+    live.test
+        .db()
+        .admin
+        .execute(
+            "DELETE FROM case_memberships WHERE case_id=$1 AND user_id=$2",
+            &[&case, &firm.id.as_uuid()],
+        )
+        .unwrap();
+    assert!(live.service(&firm).request(TOKEN, live.request).is_ok());
+    assert_eq!(
+        contract_error(live.service(&firm).content(TOKEN, live.request).map(|_| ())),
+        ContractWorkflowError::NotFound
+    );
+    assert_eq!(
+        contract_error(
+            live.service(&firm)
+                .export(TOKEN, live.request, ContractStage::Partial)
+        ),
+        ContractWorkflowError::NotFound
+    );
+    assert!(matches!(
+        live.sign(&firm, &second),
+        Err(application::ApplicationError::PermissionDenied)
+    ));
+    assert_eq!(audits(&mut live, "contract.content_read"), 0);
+    assert_eq!(audits(&mut live, "contract.evidence_exported"), 0);
+    assert_eq!(live.count("contract_completions"), 0);
+}
+
+#[test]
 fn staff_without_a_designation_cannot_sign_and_strangers_learn_nothing() {
     let Some(live) = Live::new() else { return };
     let mut live = live.requested();

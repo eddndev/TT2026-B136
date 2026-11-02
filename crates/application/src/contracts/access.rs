@@ -21,6 +21,10 @@ pub struct Relation {
     pub owner: bool,
     pub client: bool,
     pub firm: bool,
+    /// The designated firm signer who still has staff scope on the case.
+    /// Every firm signer is an Owner or a Litigator; one who lost the case
+    /// keeps only the request view, like any other former staff.
+    pub firm_scoped: bool,
     pub requester: bool,
 }
 
@@ -39,6 +43,8 @@ impl Relation {
             owner: snapshot.case_scope && principal.role == Role::Owner,
             client: fields.is_some_and(|f| f.client == principal.id),
             firm: fields.is_some_and(|f| f.firm_signer == principal.id),
+            firm_scoped: snapshot.case_scope
+                && fields.is_some_and(|f| f.firm_signer == principal.id),
             requester: fields.is_some_and(|f| f.requester == principal.id),
         }
     }
@@ -65,35 +71,39 @@ impl Relation {
         allow(self.staff_read || self.party())
     }
 
-    /// The exact PDF through the request route: the firm signer while the
-    /// request is open, the Client while it is open or once they signed.
+    /// The exact PDF through the request route: the firm signer with case
+    /// scope while the request is open, the Client while it is open or once
+    /// they signed.
     pub fn read_content(
         &self,
         status: RequestStatus,
         client_signed: bool,
     ) -> Result<(), ApplicationError> {
         allow(
-            (self.firm && status.is_open()) || (self.client && (status.is_open() || client_signed)),
+            (self.firm_scoped && status.is_open())
+                || (self.client && (status.is_open() || client_signed)),
         )
     }
 
-    /// The partial package: staff with export scope, the firm signer, and
-    /// the Client once signed, also after an unsuccessful close.
+    /// The partial package: staff with export scope, which includes a firm
+    /// signer who keeps the case, and the Client once signed, also after an
+    /// unsuccessful close.
     pub fn partial_package(&self, client_signed: bool) -> Result<(), ApplicationError> {
-        allow(self.staff_export || self.firm || (self.client && client_signed))
+        allow(self.staff_export || (self.client && client_signed))
     }
 
-    /// The full package: staff with export scope and both parties.
+    /// The full package: staff with export scope and the Client.
     pub fn final_package(&self) -> Result<(), ApplicationError> {
-        allow(self.staff_export || self.party())
+        allow(self.staff_export || self.client)
     }
 
-    /// Signing position 1 or 2; staff who can read but are not designated
-    /// are refused without the not-found answer.
+    /// Signing position 1 or 2; staff who can read but are not designated,
+    /// and a firm signer who lost the case, are refused without the
+    /// not-found answer.
     pub fn sign(&self, position: u8) -> Result<(), ApplicationError> {
         let designated = match position {
             1 => self.client,
-            2 => self.firm,
+            2 => self.firm_scoped,
             _ => false,
         };
         if designated {
@@ -108,7 +118,7 @@ impl Relation {
         use super::model::EventKind;
         let allowed = match kind {
             EventKind::Rejected => self.client,
-            EventKind::Declined => self.firm,
+            EventKind::Declined => self.firm_scoped,
             EventKind::Cancelled => self.owner || (self.requester && self.staff_manage),
             _ => false,
         };

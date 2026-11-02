@@ -76,7 +76,10 @@ before its `expired` event is written.
 These routes are reached by relation: the designated Client and firm signer
 of the request, and staff with scope on its case. Any other account receives
 `404 contract_not_found`. A related account that is not the actor of an
-action receives `403 permission_denied`.
+action receives `403 permission_denied`. The firm signer is staff: reading
+the exact version or a package, signing and declining need its current case
+scope; a Litigator signer removed from the case keeps routes 7 and 12 only,
+receives `404` for routes 8 and 13 and `403` for routes 9 to 11.
 
 | # | Method | Path | Body | Success |
 | --- | --- | --- | --- | --- |

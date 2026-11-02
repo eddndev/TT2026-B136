@@ -191,7 +191,8 @@ pub(super) fn snapshot<C: GenericClient>(
     }))
 }
 
-/// The exact version a request names, for its parties and staff with scope.
+/// The exact version a request names, for its Client and staff with scope;
+/// the firm signer, always staff, reads it only while it keeps the case.
 pub(super) fn request_document<C: GenericClient>(
     client: &mut C,
     principal: &Principal,
@@ -201,7 +202,7 @@ pub(super) fn request_document<C: GenericClient>(
         || ApplicationError::from(application::contracts::ContractWorkflowError::NotFound);
     let row = client
         .query_opt(
-            "SELECT d.id,d.version,d.name,d.digest,d.vault,d.evidence,r.case_id,r.client_id,r.firm_signer_id
+            "SELECT d.id,d.version,d.name,d.digest,d.vault,d.evidence,r.case_id,r.client_id
             FROM contract_signature_requests r
             JOIN documents d ON d.id=r.document_id AND d.version=r.document_version
             WHERE r.request_id=$1",
@@ -209,11 +210,7 @@ pub(super) fn request_document<C: GenericClient>(
         )
         .map_err(port)?
         .ok_or_else(not_found)?;
-    let party = [
-        get::<Uuid>(&row, "client_id")?,
-        get(&row, "firm_signer_id")?,
-    ]
-    .contains(&principal.id.as_uuid());
+    let party = get::<Uuid>(&row, "client_id")? == principal.id.as_uuid();
     if !party && !staff_scope(client, principal, get(&row, "case_id")?)? {
         return Err(not_found());
     }

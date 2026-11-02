@@ -230,8 +230,8 @@ fn same(existing: &ContractReceipt, command: &ContractCommand) -> bool {
         }
 }
 
-/// Appends the audit of a content read or an evidence export by a party or
-/// by staff with scope on the case.
+/// Appends the audit of a content read or an evidence export by the Client
+/// or by staff with scope on the case, the firm signer included.
 pub(super) fn record_read(
     client: &mut Client,
     principal: &Principal,
@@ -243,12 +243,12 @@ pub(super) fn record_read(
     current_actor(&mut tx, principal)?;
     let row = tx
         .query_opt(
-            "SELECT case_id,client_id,firm_signer_id FROM contract_signature_requests WHERE request_id=$1",
+            "SELECT case_id,client_id FROM contract_signature_requests WHERE request_id=$1",
             &[&request],
         )
         .map_err(port)?
         .ok_or(ContractWorkflowError::NotFound)?;
-    let party = [row.get::<_, Uuid>(1), row.get(2)].contains(&principal.id.as_uuid());
+    let party = row.get::<_, Uuid>(1) == principal.id.as_uuid();
     if !party && !staff_scope(&mut tx, principal, row.get(0))? {
         return Err(ContractWorkflowError::NotFound.into());
     }

@@ -542,8 +542,14 @@ document `authorize` and the case scope checks are not changed.
 | Partial package | Yes | Yes | Yes | Yes | Once signed, also after an unsuccessful close | 404 |
 | Full package | Yes | Yes | Yes | Yes | Yes, their own | 404 |
 
-Staff package reads additionally require `ExportEvidence` and case scope. A
-Litigator signer who loses case membership cannot sign. Nobody signs for
+Staff package reads additionally require `ExportEvidence` and case scope. The
+designated firm signer is always an Owner or a Litigator, so it is staff:
+reading the exact version or a package, signing and declining all require its
+current case scope, and a Litigator signer who loses case membership keeps
+only the view of the request and its events. The service refuses its
+signature or decline with `PermissionDenied` before any decryption or
+time-stamp request; a membership lost after that check is refused by storage
+and answers `signing_account_changed`. Nobody signs for
 another account: the storage trigger compares the signer. An Owner signs only
 with their own `document-signing` certificate, distinct from the `partner`
 access certificate.
@@ -694,8 +700,8 @@ These details are fixed by the service:
   `PermissionDenied`; an account with no relation at all receives
   `contract_not_found`.
 - The designated firm signer may read the exact version through the request
-  route while the request is open, also before the Client signs, so the
-  firm can review what the Client is asked to accept.
+  route while the request is open and it keeps case scope, also before the
+  Client signs, so the firm can review what the Client is asked to accept.
 - A request is created with the application clock: `created_at` is the
   instant of the command in whole seconds and `expires_at` adds the
   validity in days. Party eligibility is resolved inside the command and

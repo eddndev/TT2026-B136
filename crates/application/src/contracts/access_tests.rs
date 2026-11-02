@@ -88,9 +88,27 @@ fn packages_require_export_scope_or_a_designation() {
     assert!(not_found(
         relation(OTHER, Role::Paralegal, false).final_package()
     ));
-    assert!(relation(FIRM, Role::Litigator, false)
+    assert!(relation(FIRM, Role::Litigator, true)
         .final_package()
         .is_ok());
+    assert!(not_found(
+        relation(FIRM, Role::Litigator, false).final_package()
+    ));
+    assert!(not_found(
+        relation(FIRM, Role::Litigator, false).partial_package(true)
+    ));
+}
+
+#[test]
+fn a_firm_signer_without_case_scope_keeps_only_the_request_view() {
+    let firm = relation(FIRM, Role::Litigator, false);
+    assert!(firm.read_request().is_ok());
+    assert!(not_found(
+        firm.read_content(RequestStatus::AwaitingFirm, true)
+    ));
+    assert!(denied(firm.sign(2)));
+    assert!(denied(firm.close(Declined)));
+    assert!(relation(FIRM, Role::Litigator, true).sign(2).is_ok());
 }
 
 #[test]
