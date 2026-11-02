@@ -15,7 +15,7 @@ import {
 const root = fileURLToPath(new URL('../../../../', import.meta.url));
 const engine = join(root, 'crates/evidence-verify/src');
 const app = fileURLToPath(new URL('../', import.meta.url));
-const FILE_EXTENSIONS = new Set(['pem', 'json', 'tsr', 'der', 'sig', 'md', 'zip']);
+const FILE_EXTENSIONS = new Set(['pem', 'json', 'tsr', 'der', 'sig', 'md', 'zip', 'pdf']);
 
 function sources(directory) {
   return readdirSync(directory).flatMap((name) => {
@@ -47,7 +47,13 @@ test('the engine sources yield the finding codes and no entry names', () => {
     'current.no_crl',
   ])
     assert.ok(codes.includes(code), code);
-  for (const name of ['ca.pem', 'crl.pem', 'manifiesto.json', 'manifiesto.json.tsr'])
+  for (const name of [
+    'ca.pem',
+    'crl.pem',
+    'manifiesto.json',
+    'manifiesto.json.tsr',
+    'contrato.pdf',
+  ])
     assert.ok(!codes.includes(name), name);
 });
 

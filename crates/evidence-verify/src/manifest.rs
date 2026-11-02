@@ -11,6 +11,7 @@
 //! "The evidence manifest" of
 //! `docs/adr/0085-in-browser-evidence-validation.md`.
 
+pub mod contract;
 pub(crate) mod schema;
 #[cfg(test)]
 mod tests;
