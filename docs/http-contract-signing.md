@@ -172,7 +172,7 @@ first never distinguishes a missing, ineligible or unbound account.
 | 409 | `contract_version_superseded` | A later document version exists |
 | 409 | `contract_version_frozen` | Seal or individual signature on a contracted version |
 | 409 | `contract_counterparty_revoked` | Client certificate revoked in the current CRL before the counter-signature |
-| 409 | `contract_not_complete` | `final` without completion, or `partial` before the Client signed |
+| 409 | `contract_not_complete` | `final` without completion, or `partial` read by staff or the firm signer before the Client signed; the Client itself receives 403 then |
 | 413 | `contract_body_too_large` | Body over 16 KiB |
 | 422 | `contract_party_ineligible` | With `blockers` |
 | 503 | `contract_timestamp_unavailable` | The authority failed; no state was written |
