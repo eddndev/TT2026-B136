@@ -4,6 +4,7 @@
 //! Rationale: `docs/adr/0086-bilateral-contract-signing.md`.
 
 mod access;
+mod delivery;
 mod error;
 mod expiry;
 mod model;
@@ -16,6 +17,11 @@ mod state;
 mod test_support;
 
 pub use access::Relation;
+pub use delivery::{
+    ContractNoticeClaim, ContractNoticeFinish, ContractNoticeLease, ContractNoticeRun,
+    ContractNoticeState, ContractNoticeStore, ContractNoticeWorker, NOTICE_BATCH,
+    NOTICE_LEASE_SECONDS, NOTICE_PROVIDER_WINDOW_SECONDS,
+};
 pub use error::{ContractBlockers, ContractWorkflowError};
 pub use expiry::{ContractExpiryService, EXPIRY_BATCH};
 pub use model::{

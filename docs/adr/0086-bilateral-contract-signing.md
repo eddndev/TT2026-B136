@@ -725,6 +725,15 @@ These details are fixed by the service:
 - The expiry closer runs with no actor, writes one `expired` event per
   exhausted unclosed request, at most 20 per cycle, and skips a request
   whose revision another writer changed in between.
+- Notice e-mail is a separate leased consumer, like invitation delivery:
+  it claims one notice at a time with a 30-second lease, fixes a provider
+  deadline of 86400 seconds at the first claim, sends the persisted sender,
+  recipient, subject and text through the ready-report e-mail provider port
+  with the notice identifier as the provider key, and records `sent`,
+  `rejected` or `uncertain`. Only an uncertain attempt is retried, 60
+  seconds later and before its deadline; without a retry it stays final.
+  Claims and outcomes use the database clock and change only the delivery
+  columns. A notice of an inactive recipient is not claimed and waits.
 - Creating a second contract for a document series answers 409
   `contract_exists`; the series identifies its contract.
 - Document lists, details and version histories carry the derived
