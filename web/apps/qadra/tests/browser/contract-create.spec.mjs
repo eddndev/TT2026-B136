@@ -124,5 +124,8 @@ for (const [name, role, record] of [
     if (record.contract_state) {
       await expect(page.getByText('En contrato').first()).toBeVisible();
       await expect(page.getByRole('button', { name: 'Sellar documento' })).toHaveCount(0);
+      await page.getByRole('tab', { name: 'Verificaci\u00f3n', exact: true }).click();
+      await expect(page.getByText(/paquete del contrato/)).toBeVisible();
+      await expect(page.getByText(/Primero se necesita el sello/)).toHaveCount(0);
     }
   });

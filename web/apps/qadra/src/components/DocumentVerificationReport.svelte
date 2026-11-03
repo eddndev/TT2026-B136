@@ -1,5 +1,6 @@
 <script>
   import Icon from '@qadra/ui/Icon.svelte';
+  import { verificationPendingText } from '../lib/contract-presentation.mjs';
   export let document;
   export let report;
   export let busy = '';
@@ -90,8 +91,6 @@
     <p>
       {busy === 'verify'
         ? 'Espera mientras se revisan la integridad, la firma y el sello de tiempo.'
-        : document.sealed === false
-          ? 'Primero se necesita el sello. Despu\u00e9s podr\u00e1s comprobar la integridad del archivo.'
-          : 'Usa Verificar integridad para obtener un resultado actualizado de este documento.'}
+        : verificationPendingText(document)}
     </p>
   </div>{/if}

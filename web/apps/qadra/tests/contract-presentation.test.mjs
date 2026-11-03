@@ -12,6 +12,7 @@ import {
   declaredName,
   requestActions,
   underContract,
+  verificationPendingText,
 } from '../src/lib/contract-presentation.mjs';
 import {
   DEFAULT_TTL_DAYS,
@@ -34,6 +35,16 @@ test('a contracted version is never shown as sealed or pending seal', () => {
   assert.equal(documentStatus({ sealed: false, contract_state: 'abandonado' }).key, 'pending');
   assert.equal(documentStatus({ sealed: true, contract_state: 'firmado' }).key, 'sealed');
   assert.equal(contractDocumentStatus({ sealed: false, contract_state: null }), null);
+});
+
+test('the verification tab of a contracted version points to the contract package', () => {
+  for (const state of ['en_firma', 'firmado']) {
+    const text = verificationPendingText({ sealed: false, contract_state: state });
+    assert.match(text, /paquete del contrato/);
+    assert.doesNotMatch(text, /sello/);
+  }
+  assert.match(verificationPendingText({ sealed: false, contract_state: null }), /sello/);
+  assert.match(verificationPendingText({ sealed: true }), /Verificar integridad/);
 });
 
 test('only an unsealed PDF without a contract offers contract creation to Owner and Litigator', () => {

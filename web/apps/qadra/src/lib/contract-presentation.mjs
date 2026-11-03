@@ -61,6 +61,17 @@ export function underContract(document) {
   );
 }
 
+// The Verification tab text of a version without a current report. A
+// version under contract is neither sealed nor pending seal: its evidence is
+// the contract package.
+export function verificationPendingText(document) {
+  if (underContract(document))
+    return 'La evidencia de esta versi\u00f3n es el paquete del contrato; desc\u00e1rgalo desde Contratos.';
+  return document?.sealed === false
+    ? 'Primero se necesita el sello. Despu\u00e9s podr\u00e1s comprobar la integridad del archivo.'
+    : 'Usa Verificar integridad para obtener un resultado actualizado de este documento.';
+}
+
 export function contractDocumentStatus(document) {
   if (!underContract(document)) return null;
   return document.contract_state === 'firmado'
