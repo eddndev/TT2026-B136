@@ -158,6 +158,38 @@ despliegue. La firma individual se activó en `v0.1.3`, sobre
 actual `v0.1.6`.
 
 
+## Firma bilateral de contratos
+
+La firma bilateral está implementada y demostrada localmente; no está
+integrada, instalada ni aceptada en producción. Un contrato es una entidad
+propia ligada a una serie documental PDF, con estado derivado de eventos
+anexables. El Cliente y un firmante del despacho, Owner o Litigante asignado,
+firman en ese orden una declaración `CTRTSIG1` de 303 bytes que contiene la
+huella del PDF y de la solicitud `CTRTREQ1` de 240 bytes; ninguna parte firma
+los bytes crudos del PDF. Tres sellos de la TSA local cubren la firma del
+Cliente, el PDF y el manifiesto. La [decisión de diseño](adr/0086-bilateral-contract-signing.md),
+el [contrato HTTP](http-contract-signing.md) y la
+[operación de base de datos](database-operations.md) delimitan esa
+implementación.
+
+El servidor añade las migraciones `0050_`, `0051_client_invitations`,
+`0051_client_memberships` y las tres `0052_`, catorce rutas bajo `/api/v1`,
+los paquetes parcial y completo, sus perfiles en el validador, el consumidor de
+vencimiento y avisos y [la demostración por API](../scripts/api-contract-demo.sh).
+La clave del Cliente nunca entra al servidor: el Cliente la genera, obtiene su
+certificado de la CA interna desde un CSR y firma la hoja de huella con el
+despacho. Un Cliente no puede asignarse a un expediente y conserva cero
+permisos de rol; su acceso nace de su designación en cada solicitud.
+
+La [verificación](verification-report.md) del 2 de noviembre de 2026 registra
+las pruebas de almacenamiento, servicio, membresías, HTTP y la demostración con
+restauración sobre servicios desechables. Faltan la integración y la campaña
+de navegador con servicios reales para la revisión exacta, el despliegue de las
+migraciones, la ceremonia de alta con un Cliente real y la evaluación con
+personas. La aceptación productiva de este flujo sigue pendiente y la
+[aceptación productiva](production-acceptance.md) no la incluye.
+
+
 ## Estado del informe de actividad
 
 El informe de desempeño queda delimitado a las tres cantidades

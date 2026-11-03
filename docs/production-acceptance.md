@@ -71,5 +71,13 @@ punto académico correspondiente; no se recompila ni se reemplaza el PDF ahora.
 
 Permanecen separados: firma personal con el titular y su clave/CSR; cuenta Owner
 operativa, inactividad, política documental Client y acceso Owner por certificado;
-estudio con participantes reales; conclusiones y presentación. Una confirmación
+estudio con participantes reales; conclusiones y presentación.
+
+La firma bilateral de contratos de [ADR 0086](adr/0086-bilateral-contract-signing.md)
+está implementada y demostrada localmente con servicios desechables
+([verificación](verification-report.md), 2 de noviembre de 2026). No forma
+parte de esta aceptación: sus migraciones no están instaladas, no hay ceremonia
+de alta con un Cliente real ni evaluación con personas, y su aceptación
+productiva sigue pendiente. La excepción de acceso del Cliente a sus propias
+solicitudes no abre la política documental general del Client. Una confirmación
 de uso o prueba automática no completa ese estudio ni produce sus resultados.
