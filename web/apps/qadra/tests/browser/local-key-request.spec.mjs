@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { createPrivateKey, createPublicKey } from 'node:crypto';
+import { createHash, createPrivateKey, createPublicKey } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { login } from './helpers.mjs';
 import {
@@ -8,6 +8,7 @@ import {
 } from './owner-certificate-fixtures.mjs';
 import { openOwnerCertificates, downloadedBytes } from './owner-certificate-ui.mjs';
 import { localFile } from './local-signature-material.mjs';
+import pinned from '../../src/lib/evidence/pinned-roots.json' with { type: 'json' };
 import {
   verifyExistingCaIssuer,
   observeStorage,
@@ -85,6 +86,27 @@ function verifyDownloadedMaterial(encrypted, csr) {
   return createPublicKey(key).export({ type: 'spki', format: 'der' });
 }
 
+const groups = (hex) => hex.match(/.{1,4}/g).join(' ');
+
+// The fingerprint read aloud to the CA is the SHA-256 of the SPKI of the
+// downloaded key and CSR, and the printed sheet names the account and root.
+async function expectFingerprintSheet(page, form, publicSpki, email) {
+  const spki = createHash('sha256').update(publicSpki).digest('hex');
+  const panel = form.getByRole('region', { name: 'Huella de la clave', exact: true });
+  await expect(panel.getByTestId('spki-sha256')).toHaveText(groups(spki));
+  const sheet = panel.locator('.fingerprint-sheet').first();
+  const root = pinned.find((value) => value.purposes.includes('individual-signing'));
+  await expect(sheet).toContainText(email);
+  await expect(sheet).toContainText(groups(spki));
+  await expect(sheet).toContainText(groups(root.fingerprint));
+  await page.evaluate(() => {
+    window.printed = 0;
+    window.print = () => (window.printed += 1);
+  });
+  await panel.getByRole('button', { name: 'Imprimir hoja de huella', exact: true }).click();
+  expect(await page.evaluate(() => window.printed)).toBe(1);
+}
+
 for (const [layout, width, height] of [
   ['desktop', 1440, 1000],
   ['mobile', 390, 844],
@@ -122,6 +144,7 @@ for (const [layout, width, height] of [
     await expect(savedPassword(form)).toHaveValue('');
     const csr = await downloadedBytes(page, csrDownload(form));
     const publicSpki = verifyDownloadedMaterial(encrypted, csr);
+    await expectFingerprintSheet(page, form, publicSpki, state.current.user.email);
     await testInfo.attach(`browser-${layout}-request.csr.pem`, {
       body: csr,
       contentType: 'application/pkcs10',
