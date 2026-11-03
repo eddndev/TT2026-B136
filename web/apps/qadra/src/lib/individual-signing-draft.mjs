@@ -17,10 +17,13 @@ export function createSigningDraft(session, context, kind, capture) {
     baseRevision: kind === 'document' ? context.version : 0,
   };
   const key = descriptorKey(descriptor);
+  // Every contract party may hold a binding; only a Litigator signs a
+  // document individually. Rationale: docs/adr/0086-bilateral-contract-signing.md.
+  const roles = kind === 'document' ? ['litigator'] : ['owner', 'litigator', 'client'];
   const admitted = () =>
     alive &&
     session?.principal()?.id === context.accountId &&
-    session.principal()?.role === 'litigator' &&
+    roles.includes(session.principal()?.role) &&
     session.canAdmit();
   function register() {
     if (!admitted()) throw new Error('La sesion no admite este intento.');

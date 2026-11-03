@@ -89,3 +89,20 @@ test('explicit discard clears exact operation and ordinary unfinished editor is 
   third.close();
   assert.equal(current.registry.pending().length, 0);
 });
+
+test('a binding attempt is admitted for every contract party, a document signature only for litigators', () => {
+  for (const [role, binding, documentSigning] of [
+    ['litigator', true, true],
+    ['owner', true, false],
+    ['client', true, false],
+    ['paralegal', false, false],
+  ]) {
+    const current = { ...session(), principal: () => ({ id: accountId, role }) };
+    assert.equal(
+      createSigningDraft(current, { accountId }, 'binding', () => ({})).admitted(),
+      binding,
+      role,
+    );
+    assert.equal(draft(current).admitted(), documentSigning, role);
+  }
+});
