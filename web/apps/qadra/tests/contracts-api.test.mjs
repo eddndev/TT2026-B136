@@ -208,6 +208,7 @@ test('every contract error code of the HTTP contract has a plain message', () =>
     'signing_conflict',
     'signing_binding_inactive',
     'signing_credential_rejected',
+    'signing_trust_unavailable',
   );
   assert.ok(codes.length >= 20);
   for (const code of codes) assert.equal(typeof messages[code], 'string', code);
