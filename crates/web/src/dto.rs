@@ -155,6 +155,9 @@ pub struct DocumentResponse {
     name: String,
     digest: String,
     sealed: bool,
+    /// The derived state of the series' contract, null without one or on a
+    /// seal result. Rationale: docs/adr/0086-bilateral-contract-signing.md.
+    contract_state: Option<&'static str>,
 }
 
 impl From<CaseDocumentSummary> for DocumentResponse {
@@ -167,6 +170,7 @@ impl From<CaseDocumentSummary> for DocumentResponse {
             name: summary.name,
             digest: summary.digest_hex,
             sealed: summary.sealed,
+            contract_state: scoped.contract_state.map(|state| state.as_str()),
         }
     }
 }

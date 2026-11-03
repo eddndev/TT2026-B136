@@ -39,6 +39,7 @@ async fn document_listing_returns_authorized_metadata_and_pagination() {
     let body = json(response).await;
     assert_eq!(body["documents"][0]["case_id"], CASE_UUID.to_string());
     assert_eq!(body["documents"][0]["id"], DOCUMENT_UUID.to_string());
+    assert_eq!(body["documents"][0]["contract_state"], "en_firma");
     assert_eq!(body["has_more"], false);
     assert!(body["documents"][0].get("vault").is_none());
     assert!(body["documents"][0].get("evidence").is_none());
@@ -58,6 +59,7 @@ async fn document_detail_returns_the_persisted_summary() {
     assert_eq!(body["name"], "acta.txt");
     assert_eq!(body["case_id"], CASE_UUID.to_string());
     assert_eq!(body["version"], 1);
+    assert_eq!(body["contract_state"], "en_firma");
     assert_eq!(body["current_metadata"]["metadata_revision"], 3);
 }
 

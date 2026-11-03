@@ -2,6 +2,7 @@ mod identity;
 mod metadata;
 pub use identity::StubIdentity;
 
+use application::contracts::ContractState;
 use application::documents::{
     CaseDocumentSummary, CaseDocumentWorkflow, CurrentDocumentMetadata, DocumentMetadata,
     DocumentOverview, DocumentPage, DocumentQuery, DocumentSummary, DocumentUploadError,
@@ -40,6 +41,7 @@ impl StubWorkflow {
         }
         Ok(())
     }
+    /// An unsealed stub version belongs to a series in signature.
     fn summary(sealed: bool) -> CaseDocumentSummary {
         CaseDocumentSummary {
             case_id: CaseId::from_uuid(CASE_UUID),
@@ -50,7 +52,7 @@ impl StubWorkflow {
                 digest_hex: "ab".repeat(32),
                 sealed,
             },
-            contract_state: None,
+            contract_state: (!sealed).then_some(ContractState::Signing),
         }
     }
 }
