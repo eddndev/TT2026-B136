@@ -82,6 +82,30 @@ test('a client reviews, confirms and signs in three steps with a local key', asy
   await expect(region.getByRole('button', { name: 'Rechazar contrato' })).toHaveCount(0);
 });
 
+test('a stale statement refused at signing is prepared again and signed', async ({ page }) => {
+  const material = localSignatureMaterial();
+  const state = await contractSetup(page, 'client', material, {
+    refuseSign: { status: 409, code: 'signing_trust_changed' },
+  });
+  await clientLogin(page);
+  const region = await openRequest(page, 'Mis contratos');
+  await region.getByRole('button', { name: 'Cargar y comprobar el PDF' }).click();
+  await region.getByRole('checkbox').check();
+  const local = region.getByRole('region', { name: /^Firma local:/ });
+  await signLocally(local, material);
+  await expect(local.getByText('Firma local preparada')).toBeVisible();
+  await region.getByRole('button', { name: 'Enviar firma' }).click();
+  await expect(region.getByRole('alert')).toContainText('Vuelve a preparar la declaraci');
+  await expect(local).toHaveCount(0);
+  await region.getByRole('button', { name: 'Preparar la firma' }).click();
+  await signLocally(local, material);
+  await expect(local.getByText('Firma local preparada')).toBeVisible();
+  await region.getByRole('button', { name: 'Enviar firma' }).click();
+  await expect(region.getByText('Tu firma qued\u00f3 registrada', { exact: false })).toBeVisible();
+  const paths = state.writes.map((row) => row.path.split('/').at(-1));
+  expect(paths).toEqual(['prepare', 'sign', 'prepare', 'sign']);
+});
+
 test('a client rejects a contract only after a separate confirmation', async ({ page }) => {
   const state = await contractSetup(page, 'client', localSignatureMaterial());
   await clientLogin(page);

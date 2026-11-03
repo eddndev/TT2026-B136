@@ -177,6 +177,7 @@
           position={actions.position}
           disabled={!pdfUrl || !confirmed}
           onsigned={signed}
+          onstale={load}
         />{/key}
     {/if}
     {#if actions.partial && actions.position === 1}<p class="hint">{PARTIAL_NOTICE}</p>{/if}

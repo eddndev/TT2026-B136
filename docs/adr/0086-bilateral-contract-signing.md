@@ -812,7 +812,12 @@ These details are fixed by the service:
   and abandonment each need a separate confirmation. An uncertain signature
   is reconciled through the receipt of its operation while the page stays
   open; unlike individual signing, the attempt is not kept across a
-  navigation, and an identical resubmission remains safe.
+  navigation, and an identical resubmission remains safe. A statement that
+  the server refuses as stale (`signing_account_changed`,
+  `signing_trust_changed`, `contract_revision_conflict`) is discarded with
+  the signature and prepared again; a refusal that wrote nothing
+  (`contract_timestamp_unavailable`, `signing_trust_unavailable`) keeps the
+  signature for a resend.
 - The PDF frame is not sandboxed. In Chromium an empty `sandbox` attribute
   replaced the built-in viewer of the blob URL with "This page has been
   blocked by Chromium", while the same frame without it loaded the viewer

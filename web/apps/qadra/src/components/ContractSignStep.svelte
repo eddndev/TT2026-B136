@@ -3,17 +3,20 @@
   // CTRTSIG1 statement for this operation, the party signs those exact
   // bytes with its key in this browser (or outside Qadra) and sends only the
   // signature. An uncertain answer is reconciled through the receipt of the
-  // same operation; nothing is resent automatically.
+  // same operation; nothing is resent automatically. A statement the server
+  // calls stale is discarded so the party prepares a fresh one.
   // Rationale: docs/adr/0086-bilateral-contract-signing.md.
   import { onDestroy } from 'svelte';
   import { ownerBase64 } from '../lib/owner-certificate-binary.mjs';
   import { download } from '../lib/documents.mjs';
+  import { signRefusal } from '../lib/contract-signing-gate.mjs';
   import LocalSignature from './LocalSignature.svelte';
   import SigningExternalInstructions from './SigningExternalInstructions.svelte';
   import SigningPublicFile from './SigningPublicFile.svelte';
   export let requests, detail, user, binding, position;
   export let disabled = false,
-    onsigned;
+    onsigned,
+    onstale = () => {};
   const operationId = crypto.randomUUID();
   let prepared = null,
     signature = '',
@@ -70,10 +73,11 @@
         mode = 'done';
         onsigned(receipt);
       } catch (failure) {
-        if (failure.status && failure.status < 500) mode = 'editing';
-        if (failure.code === 'contract_timestamp_unavailable') mode = 'editing';
-        if (failure.status && failure.status < 500 && failure.code !== 'signing_conflict')
-          signature = '';
+        const outcome = signRefusal(failure);
+        mode = outcome.mode;
+        if (!outcome.keepSignature) signature = '';
+        if (outcome.stale) prepared = null;
+        if (outcome.reload) onstale();
         throw failure;
       }
     });

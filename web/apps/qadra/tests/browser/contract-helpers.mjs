@@ -53,6 +53,7 @@ export async function contractSetup(page, role, material, options = {}) {
         : { firmFingerprint: material.fingerprint }),
     }),
     prepared: null,
+    refuseSign: options.refuseSign ?? null,
     binding: options.binding === null ? null : bindingFor(user, material),
   };
   if (options.caseRequester) state.detail.requester_id = user.id;
@@ -95,6 +96,11 @@ async function contractRequests(route, state) {
     const position = state.user.id === detail.client_id ? 1 : 2;
     state.prepared = preparedStatement(position, detail, request.postDataJSON().operation_id);
     return route.fulfill({ json: state.prepared });
+  }
+  if (path.endsWith('/sign') && state.refuseSign) {
+    const { status, code } = state.refuseSign;
+    state.refuseSign = null;
+    return route.fulfill({ status, json: { error: { code, message: code } } });
   }
   if (path.endsWith('/sign')) {
     const body = request.postDataJSON();

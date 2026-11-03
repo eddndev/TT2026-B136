@@ -83,6 +83,8 @@ export const messages = {
     'Falta preparar a una de las partes o el documento. Revisa la lista de preparaci\u00f3n.',
   contract_timestamp_unavailable:
     'La autoridad de sellado de tiempo no respondi\u00f3 y no se registr\u00f3 nada. Puedes volver a enviar la misma firma.',
+  signing_trust_unavailable:
+    'La configuraci\u00f3n de confianza no est\u00e1 disponible y no se registr\u00f3 nada. Int\u00e9ntalo m\u00e1s tarde con la misma firma.',
   invalid_json: 'La solicitud no tiene el formato esperado.',
   signing_account_changed:
     'Tu cuenta cambi\u00f3 durante la firma. Vuelve a preparar la declaraci\u00f3n.',
