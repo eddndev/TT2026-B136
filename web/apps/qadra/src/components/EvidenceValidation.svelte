@@ -10,7 +10,10 @@
   import { MAX_EVIDENCE_FILE_BYTES, STAGE_LABELS } from '../lib/evidence/presentation.mjs';
   import EvidenceValidationResult from './EvidenceValidationResult.svelte';
   export let api;
-  export let document;
+  // Without a document the panel validates any package, such as the partial
+  // acknowledgement of a contract. Rationale:
+  // docs/adr/0086-bilateral-contract-signing.md.
+  export let document = null;
   const STAGES = ['read', 'trust', 'module', 'validate'];
   const TOO_LARGE =
     'El archivo supera el l\u00edmite de 26 MiB. Elige el ZIP de evidencia que descargaste de Qadra.';
@@ -22,7 +25,7 @@
   let error = '';
   let message = '';
   let result = null;
-  $: context = `${document.id}:${document.version}`;
+  $: context = document ? `${document.id}:${document.version}` : 'package';
   $: running = !!stage;
 
   function clear() {
@@ -70,7 +73,7 @@
         report: answer.report,
         policy,
         route,
-        document: { id: document.id, version: document.version },
+        document: document ? { id: document.id, version: document.version } : null,
         file: { name: chosen.name, size: chosen.size, sha256: digest },
       };
     } catch (failure) {

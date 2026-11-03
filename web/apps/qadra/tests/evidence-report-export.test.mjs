@@ -92,3 +92,8 @@ test('the download name carries the document and its version', () => {
     'validacion-evidencia-78ac67b1-ab36-49ea-9b08-f951f341f081-v3.json',
   );
 });
+
+test('a package validated outside a document names no document', () => {
+  assert.equal(exportReport({ ...input, document: null }).document, null);
+  assert.equal(reportFilename(null), 'validacion-evidencia-paquete.json');
+});

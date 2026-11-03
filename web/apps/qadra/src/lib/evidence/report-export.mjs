@@ -29,7 +29,7 @@ export function exportReport({
       version: engine?.version ?? null,
       source_digest: engine?.source_digest ?? null,
     },
-    document: { id: document.id, version: document.version },
+    document: document ? { id: document.id, version: document.version } : null,
     file: { name: file.name, size: file.size, sha256: file.sha256 },
     profile: report.profile ?? null,
     overall: report.overall,
@@ -48,7 +48,9 @@ export function exportReport({
   };
 }
 
-/** The download name of the exported report of a document version. */
+/** The download name of the exported report of a document version, or of
+ * a package validated outside a document. */
 export function reportFilename(document) {
+  if (!document) return 'validacion-evidencia-paquete.json';
   return `validacion-evidencia-${document.id}-v${document.version}.json`;
 }
