@@ -1,6 +1,6 @@
 \subsection{Invitaciones y enrolamiento recuperable}\label{sec:impl-invitaciones}
 
-La invitación realiza el alta de integrantes de CU-02 y RF-03 (\cref{tab:cu-02,tab:rf-acceso}; diseño y estados en las \cref{fig:cu-seq-alta,fig:impl-invitacion-estados}): el destinatario elige contraseña y MFA sin entregar esos secretos al Owner, que indica solo correo y perfil Litigante o Paralegal. Una cuenta existente, activa o inactiva, no se invita.
+La invitación realiza el alta de integrantes de CU-02 y RF-03 (\cref{tab:cu-02,tab:rf-acceso}; diseño y estados en las \cref{fig:cu-seq-alta,fig:impl-invitacion-estados}): el destinatario elige contraseña y MFA sin entregar esos secretos al Owner, que indica solo correo y perfil Litigante, Paralegal o Cliente. Solo una cuenta de Cliente creada por una invitación aceptada puede designarse en una solicitud de firma de contrato (\cref{sec:impl-firma-bilateral}), y una invitación nunca crea un Owner. Una cuenta existente, activa o inactiva, no se invita.
 
 \begin{figure}[!htb]
   \centering
