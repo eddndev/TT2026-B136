@@ -393,14 +393,19 @@ vencido, o si la solicitud usa otro certificado, también envía a **Mi firma**.
 **Contrafirmar (despacho).** El firmante designado abre **Por firmar**, revisa
 el mismo PDF, descarga el acuse parcial y lo valida en el panel **Validar un
 paquete de evidencia** de la propia solicitud: un acuse parcial se presenta
-como **Parcial** y "Acuse parcial: no acredita contrato". Después confirma y
-firma como el Cliente, o usa **Declinar firma** con su confirmación. Al
+como **Parcial** y "Acuse parcial: no acredita contrato". La firma del
+despacho no se habilita hasta que el panel valida, sin fallas, el acuse parcial
+de esa misma solicitud; el de otra solicitud no la habilita. Después confirma y
+firma como el Cliente, o usa **Declinar firma** con su confirmación, que no
+exige validar. Al
 completarse, las partes descargan **Descargar contrato firmado**. Cualquiera
 puede comprobar un paquete en **Validar evidencia** (Cliente) o en la ficha
 documental, o sin Qadra con OpenSSL siguiendo su `INSTRUCCIONES.md`.
 
-Si no llega una respuesta, pulsa **Consultar recibo de firma** antes de
-repetir; mientras la pantalla siga abierta, reenviar la misma firma devuelve el
+Si el servidor responde que la cuenta, la configuración de confianza o el
+contrato cambiaron, Qadra descarta la declaración y muestra **Preparar la
+firma** para firmar una nueva. Si no llega una respuesta, pulsa **Consultar
+recibo de firma** antes de repetir; mientras la pantalla siga abierta, reenviar la misma firma devuelve el
 recibo original y nunca crea una segunda. Una solicitud vence sola al agotar su
 vigencia, y una versión nueva del documento obliga a cancelar y solicitar de
 nuevo. Mientras una solicitud está abierta o completada, esa versión se
