@@ -2,6 +2,7 @@ import { individualSigningApi } from './individual-signing-api.mjs';
 import { signingCertificatesApi } from './signing-certificates-api.mjs';
 import { contentReference, contentValue } from './document-content.mjs';
 import { fetchEvidenceTrust } from './evidence/trust-api.mjs';
+import { contractsApi } from './contracts-api.mjs';
 
 export function versionApi(scoped, caseId, accountRequest) {
   const base = (id) => `/${encodeURIComponent(id)}/versions`;
@@ -38,6 +39,7 @@ export function versionApi(scoped, caseId, accountRequest) {
         signingIdentity: () => account('/auth/me'),
         evidenceTrust: () => fetchEvidenceTrust(account),
         signingCertificate: (accountId) => signingCertificatesApi(account, accountId),
+        contracts: () => contractsApi(account),
         individualSigning: (accountId, digest) =>
           individualSigningApi(request, {
             accountId,

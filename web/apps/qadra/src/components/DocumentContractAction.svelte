@@ -10,7 +10,6 @@
   export let api, user, document;
   export let disabled = false,
     onupdate = () => {};
-  const available = typeof api.contracts === 'function';
   let open = false,
     title = '',
     busy = false,
@@ -80,7 +79,7 @@
   }
 </script>
 
-{#if available && contractable(document, user.role) && !open}
+{#if contractable(document, user.role) && !open}
   <button class="secondary" {disabled} onclick={start}>Crear contrato</button>
 {/if}
 {#if notice}<p class="notice success" role="status">{notice}</p>{/if}

@@ -232,3 +232,20 @@ test('a refused request keeps the readiness blockers of the error envelope', asy
     return true;
   });
 });
+
+test('the document version view reaches the contract routes through the account request', async () => {
+  const { versionApi } = await import('../src/lib/version-api.mjs');
+  const paths = [];
+  const version = versionApi(
+    async () => assert.fail('the document scope must not carry contract routes'),
+    inputs.case_id,
+    async (path) => {
+      paths.push(path);
+      return { contracts: [], firm_signers: [] };
+    },
+  ).version(inputs.document_id, 1);
+  await version.contracts().caseContracts(inputs.case_id).list();
+  assert.deepEqual(paths, [`/cases/${inputs.case_id}/contracts`]);
+  version.dispose();
+  await assert.rejects(version.contracts().caseContracts(inputs.case_id).list());
+});
