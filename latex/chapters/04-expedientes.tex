@@ -17,7 +17,7 @@ Esta sección implementa el registro y la administración del expediente penal (
 
 Las asignaciones deciden quién ve un expediente y están separadas de fichas de participantes, audiencias y plazos: una ficha no crea cuenta ni asignación. La referencia es una etiqueta libre, no un identificador único, y no sustituye al NUC ni a la carpeta judicial.
 
-Los permisos siguen la \cref{tab:permisos-implementados}: Litigante crea, queda asignado y pierde el acceso si se le retira; Cliente solo recibe la proyección básica (UUID, título, referencia y creador), sin perfil penal ni procedencia; toda lectura revalida al actor (\cref{sec:impl-http-transacciones}). El listado (\cref{tab:impl-http-expedientes}) filtra por pertenencia antes de paginar y ordena por UUID sin instantánea común; la paginación admite de 1 a 100 elementos (50 por omisión). Un expediente ajeno responde como uno inexistente (404).
+Los permisos siguen la \cref{tab:permisos-implementados}: Litigante crea, queda asignado y pierde el acceso si se le retira; una cuenta Cliente no puede asignarse, porque el servicio, un disparador de la base (\cref{sec:impl-firma-bilateral}) y los selectores de miembros la rechazan u omiten, de modo que nunca recibe la proyección básica (UUID, título, referencia y creador) que el adaptador conserva para ese rol; toda lectura revalida al actor (\cref{sec:impl-http-transacciones}). El listado (\cref{tab:impl-http-expedientes}) filtra por pertenencia antes de paginar y ordena por UUID sin instantánea común; la paginación admite de 1 a 100 elementos (50 por omisión). Un expediente ajeno responde como uno inexistente (404).
 
 \begin{table}[!t]
   \centering

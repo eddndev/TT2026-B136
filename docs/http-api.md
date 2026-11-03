@@ -763,7 +763,12 @@ la sesión vigente; `X-Actor` no forma parte del contrato.
 | `GET /api/v1/audit/verify` | Verificar auditoría | Verifica la cadena PostgreSQL completa y reporta el primer índice roto. |
 
 Carga, sellado y detalle devuelven `case_id`, `id`, `version`, `name`, `digest`
-hexadecimal y `sealed` en el mismo objeto JSON. Listado, detalle actual y ambas
+hexadecimal, `sealed` y `contract_state` en el mismo objeto JSON.
+`contract_state` es el estado derivado del contrato de la serie (`borrador`,
+`en_firma`, `firmado` o `abandonado`) en listado, detalles, historial y anexo, y
+`null` sin contrato; carga y sellado no lo derivan y responden `null`. Es un estado de la
+serie, no de cada versión: una versión sin sello de una serie `en_firma` o
+`firmado` no debe presentarse como pendiente de sello. Listado, detalle actual y ambas
 cargas añaden `current_metadata` con `metadata_revision`, `document_type`,
 `classification` y `tags`. Anexar una versión también devuelve esta proyección
 desde su propia transacción. Listado y detalle actual muestran la versión máxima.

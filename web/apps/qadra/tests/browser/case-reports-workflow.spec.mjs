@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { navigate, login } from './helpers.mjs';
+import { navigate, login, expectLanding } from './helpers.mjs';
 import {
   artifactBytes,
   captureDigest,
@@ -74,10 +74,7 @@ for (const role of ['client', 'paralegal']) {
     await page.evaluate(() => {
       location.hash = 'reports';
     });
-    await expect(page).toHaveURL(/#overview$/);
-    await expect(
-      page.getByRole('navigation').getByRole('button', { name: 'Inicio', exact: true }),
-    ).toHaveAttribute('aria-current', 'page');
+    await expectLanding(page, role);
     await expect(reports(page)).toHaveCount(0);
     expect(state.calls).toHaveLength(0);
   });

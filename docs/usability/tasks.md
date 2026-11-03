@@ -52,6 +52,26 @@ porque exista un menú: comprueba la revisión y una aceptación real de su reco
 La lectura de auditoría no debe prepararse insertando un historial ficticio:
 crea los eventos con acciones autorizadas sobre datos de práctica.
 
+## Firma bilateral de contratos: comprobar versión antes de habilitar
+
+| Tarea | Condición y preparación | Resultado observable | Límite sugerido |
+| --- | --- | --- | --- |
+| T11 · Alta y clave | Cliente; cuenta creada por invitación aceptada y sin vínculo; CA de práctica con operador presente. Entregar correo y contraseña de práctica de forma privada. | En **Mi firma** genera la clave, la guarda, comprueba la copia y descarga el CSR; lee al operador la huella mostrada y imprime la hoja de huella. Explica que Qadra no recupera la clave ni la contraseña. Vincula el certificado que recibe. | 15 min |
+| T12 · Revisa y firma | Cliente con vínculo vigente; solicitud abierta sobre un PDF de práctica, creada por el moderador con la cuenta de despacho. Entregar la clave de T11 o una preparada equivalente, registrando cuál. | Abre **Mis contratos**, carga y comprueba el PDF, reconoce contraparte, huella y vencimiento, marca la casilla y firma con clave y contraseña. Explica con sus palabras que "firma registrada" no es contrato formalizado y descarga el acuse parcial. | 10 min |
+| T13 · Rechazo | Cliente; otra solicitud abierta de práctica que no firmó. | Encuentra **Rechazar contrato**, confirma por separado y reconoce el estado final. No confunde rechazar con cancelar ni con no responder. | 4 min |
+| T14 · Contrafirma | Litigante designado como firmante, con vínculo vigente; solicitud ya firmada por el Cliente. | Abre **Por firmar**, descarga y valida el acuse parcial, interpreta "Parcial" como ausencia de contrato, contrafirma y descarga el contrato firmado. Si decide no firmar, usa **Declinar firma** y lo explica. | 10 min |
+| T15 · Validar paquete | Cliente o Litigante; un acuse parcial y un paquete final de práctica descargados en el equipo. | En **Validar evidencia** o en la solicitud valida ambos ZIP, distingue "Completo" de "Parcial" y reconoce que el archivo no se envía al servidor ni sustituye la comprobación con OpenSSL. | 6 min |
+
+Habilita T11 a T15 sólo con la revisión evaluada desplegada y una solicitud de
+práctica preparada por acciones autorizadas; no insertes contratos ni firmas en
+la base. Incluye al menos a una persona ajena al despacho o declara ese perfil
+como no representado. Mide también la doble ceremonia de clave y contraseña
+(T11 y T12) y la comprensión de la copia y la pérdida de la clave. Estas
+tarjetas todavía no tienen resultados; no se registra ningún dato que no se
+haya observado. Referencias: [manual de uso](../user-guide.md),
+[API de contratos](../http-contract-signing.md) y
+[ADR 0086](../adr/0086-bilateral-contract-signing.md).
+
 ## Selección y orden
 
 - Secuencia base para Administrador/Litigante: T01, T02, T03, T04-S, T05, T08.

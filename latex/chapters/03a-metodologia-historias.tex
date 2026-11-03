@@ -15,7 +15,7 @@ El plan abarca diez semanas, con una iteración por semana, en dos fases de cinc
 
 \section{Historias de usuario}\label{sec:historias-usuario}
 
-Las historias de usuario son el instrumento de captura de requerimientos de XP. Cada una se redacta desde la perspectiva de un actor y en lenguaje del dominio jurídico, e indica quién la plantea, qué necesita y para qué. El socio del despacho corresponde al perfil Owner del sistema, nombre que se usa desde los casos de uso en adelante. Las cuarenta historias se agrupan en siete módulos funcionales, desde la gestión de identidad hasta la operación del despacho (\cref{tab:historias-usuario}). Forman el primer eslabón de una cadena de trazabilidad: cada historia se formaliza en un caso de uso (\cref{sec:casos-uso}), que fija actores, flujos, precondiciones y postcondiciones, y cada caso de uso se traduce a su vez en requerimientos funcionales y no funcionales verificables (\cref{sec:requerimientos}). La última columna de la tabla indica el caso de uso que formaliza cada historia.
+Las historias de usuario son el instrumento de captura de requerimientos de XP. Cada una se redacta desde la perspectiva de un actor y en lenguaje del dominio jurídico, e indica quién la plantea, qué necesita y para qué. El socio del despacho corresponde al perfil Owner del sistema, nombre que se usa desde los casos de uso en adelante. Las cuarenta historias se agrupan en siete módulos funcionales, desde la gestión de identidad hasta la operación del despacho (\cref{tab:historias-usuario}); la HU-34 se refina además en cuatro historias derivadas, de la HU-34a a la HU-34d, que separan la solicitud, la firma del Cliente, su alta con clave propia y la contrafirma del despacho. Forman el primer eslabón de una cadena de trazabilidad: cada historia se formaliza en un caso de uso (\cref{sec:casos-uso}), que fija actores, flujos, precondiciones y postcondiciones, y cada caso de uso se traduce a su vez en requerimientos funcionales y no funcionales verificables (\cref{sec:requerimientos}). La última columna de la tabla indica el caso de uso que formaliza cada historia.
 
 {\small
 \setlength{\tabcolsep}{4pt}
@@ -42,7 +42,7 @@ Las historias de usuario son el instrumento de captura de requerimientos de XP. 
   HU-04 & Colaborador invitado & Aceptar la invitación y completar su registro, para incorporarse con el perfil asignado. & CU-02 \\
   HU-05 & Usuario & Autenticarse con correo y contraseña, para usar las funciones de su perfil. & CU-03 \\
   HU-06 & Socio & Iniciar sesión presentando su certificado digital, como alternativa a la contraseña, seguida siempre del segundo factor. & CU-03 \\
-  HU-07 & Cliente & Confirmar su identidad con un código temporal tras la contraseña, para proteger su expediente ante el robo de la contraseña. & CU-03 \\
+  HU-07 & Cliente & Confirmar su identidad con un código temporal tras la contraseña, para proteger su cuenta y sus contratos ante el robo de la contraseña. & CU-03 \\
   HU-08 & Usuario & Recuperar su contraseña por correo, para restablecer el acceso sin acudir al administrador. & CU-03 \\
   HU-09 & Usuario & Que la sesión se cierre tras un periodo de inactividad, para evitar accesos si deja el equipo abierto. & CU-03 \\
   HU-10 & Socio & Que cada miembro acceda solo a los módulos y operaciones de su perfil, para reservar las operaciones sensibles a personas autorizadas. & CU-04 \\
@@ -79,13 +79,17 @@ Las historias de usuario son el instrumento de captura de requerimientos de XP. 
   HU-33 & Litigante & Que una manipulación directa de los archivos del servidor se detecte y se rechace su entrega, para que todo intento de alteración quede en evidencia. & CU-12 \\
   \addlinespace
   \multicolumn{4}{@{}l}{\bfseries\color{ESCOMAzulOscuro}Firma de contratos y constancia de fecha}\\
-  HU-34 & Litigante & Firmar un contrato vinculando su identidad con el contenido, para que ninguna parte pueda negar haberlo suscrito. & CU-13 \\
+  HU-34 & Litigante & Firmar un contrato vinculando su clave con el contenido exacto, para que exista evidencia verificable de qué versión aceptó cada firmante y en qué orden. & CU-13, CU-13a \\
+  HU-34a & Litigante & Solicitar la firma de un contrato al Cliente y a un firmante del despacho sobre una versión exacta y con fecha límite, para formalizarlo sin depender del papel. & CU-13 \\
+  HU-34b & Cliente & Revisar el contrato y firmarlo desde su equipo con su propia clave, para aceptarlo y conservar un acuse que pueda comprobar sin el sistema. & CU-13 \\
+  HU-34c & Cliente & Darse de alta con una cuenta y una clave que solo él controla, para que nadie pueda firmar en su nombre. & CU-18 \\
+  HU-34d & Socio o Litigante & Contrafirmar después de comprobar la firma del Cliente, para formalizar el contrato con evidencia de ambas partes y de su orden. & CU-13 \\
   HU-35 & Litigante & Obtener al firmar una constancia de fecha y hora emitida por una autoridad de sellado, para dar valor probatorio a la fecha de firma. & CU-13 \\
   HU-36 & Usuario autorizado & Verificar si la firma es válida, el certificado está vigente y la constancia de fecha es auténtica, sin depender de un tercero. & CU-14 \\
   HU-37 & Usuario autorizado & Que la verificación indique con claridad que un contrato alterado tras la firma ya no es válido y por qué. & CU-14 \\
   \addlinespace
   \multicolumn{4}{@{}l}{\bfseries\color{ESCOMAzulOscuro}Operación y monitoreo}\\
-  HU-38 & Socio & Consultar un tablero con casos activos, plazos por vencer, contratos aún sin sellar y carga por abogado, para ver el estado de la operación. & CU-15 \\
+  HU-38 & Socio & Consultar un tablero con casos activos, plazos por vencer, contratos pendientes de firma y carga por abogado, para ver el estado de la operación. & CU-15 \\
   HU-39 & Socio & Generar informes descargables filtrados por periodo, abogado o estado, para analizar el desempeño del despacho. & CU-16 \\
   HU-40 & Socio & Consultar un registro inalterable de quién hizo qué, sobre qué recurso y cuándo, para responder a auditorías o requerimientos judiciales. & CU-17 \\
 \end{longtable}
@@ -98,6 +102,6 @@ Las historias expresan la necesidad del usuario; el caso de uso correspondiente 
   \item \mbox{HU-08} y \mbox{HU-09}: la recuperación de contraseña está activa, pero aún no se ha comprobado un restablecimiento real en producción. El cierre por inactividad depende de una configuración que la instalación todavía no activa.
   \item \mbox{HU-20}: la activación automática de plazos a partir del resultado de una audiencia sigue pendiente.
   \item \mbox{HU-23}: que el proveedor de correo acepte una alerta no acredita que haya llegado al destinatario.
-  \item \mbox{HU-34} y \mbox{HU-35}: la firma de contratos produce una firma electrónica simple. El sello de tiempo lo emite una TSA local, que aporta evidencia técnica pero no sustituye a un prestador de servicios de certificación (PSC) autorizado ni a la constancia que este emite.
+  \item \mbox{HU-34}, sus historias derivadas y \mbox{HU-35}: la firma de contratos produce una firma electrónica simple. Prueba que el poseedor de cada clave vinculada aceptó esa versión frente a esa contraparte y en ese orden; su fuerza frente a terceros depende de la ceremonia de alta y de lo que cada parte conserve fuera del sistema. La identidad del Cliente es declarada y la clave la genera y custodia él mismo. El sello de tiempo lo emite una TSA local, que aporta evidencia técnica pero no sustituye a un prestador de servicios de certificación (PSC) autorizado ni a la constancia que este emite.
   \item \mbox{HU-39}: los informes se descargan y generan avisos internos; el aviso por correo de un informe concreto aún no se ha ejercitado en producción.
 \end{itemize}

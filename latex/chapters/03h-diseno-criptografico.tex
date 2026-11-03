@@ -15,10 +15,10 @@ El prototipo adopta un nivel de fortaleza de 128 bits conforme a NIST SP 800-57 
     \toprule
     \textbf{Primitiva} & \textbf{Uso en el sistema} & \textbf{Parámetros} & \textbf{Fuerza (bits)} & \textbf{Norma} \\
     \midrule
-    SHA-256 & Huella de cada versión, de las firmas y de los consentimientos; digest que sella la TSA & Salida de 32 B & 128 (colisión) & FIPS 180-4 \cite{nist2015fips1804} \\
-    RSA-3072, PKCS\#1 v1.5 con SHA-256 & Firma del PDF y del consentimiento, certificados, CRL, tokens de la TSA y acceso del Owner por certificado & Clave de 3072 bits; firma de 384 B & 128 & SP 800-57 \cite{barker2020} \\
+    SHA-256 & Huella de cada versión, de las firmas, de los consentimientos y de las declaraciones de contrato; digest que sella la TSA & Salida de 32 B & 128 (colisión) & FIPS 180-4 \cite{nist2015fips1804} \\
+    RSA-3072, PKCS\#1 v1.5 con SHA-256 & Firma del PDF y del consentimiento, declaraciones de contrato, certificados, CRL, tokens de la TSA y acceso del Owner por certificado & Clave de 3072 bits; firma de 384 B & 128 & SP 800-57 \cite{barker2020} \\
     X.509 v3 y CRL & Certificados de la CA interna y su revocación & Raíz de 5 años, finales de 1 año, CRL obligatoria & 128 & RFC 5280 \cite{cooper2008} \\
-    Sello RFC 3161 & Existencia del digest del PDF en un instante & SHA-256; firma RSA-3072 de la TSA & 128 & RFC 3161 \cite{adams2001} \\
+    Sello RFC 3161 & Existencia del digest del PDF, de la firma del Cliente o de un manifiesto en un instante & SHA-256; firma RSA-3072 de la TSA & 128 & RFC 3161 \cite{adams2001} \\
     AES-256-GCM & Cifrado de cada versión documental, envoltura de las DEK y secretos TOTP & Clave de 32 B, nonce aleatorio de 12 B, etiqueta de 16 B & 256 & SP 800-38D \cite{dworkin2007} \\
     Envoltura KEK/DEK & Separar la clave de cada versión de la clave maestra; rotar sin recifrar & Una DEK de 32 B por versión & 256 & SP 800-38F \cite{dworkin2012} \\
     Argon2id & Contraseñas y códigos de recuperación & $m = 256$ MiB, $t = 3$, $p = 1$; sal de 16 B; salida de 32 B; resistente a memoria & Depende de la contraseña & RFC 9106 \cite{biryukov2021} \\
@@ -45,8 +45,8 @@ Las zonas y sus cruces se describen en la \cref{fig:zonas-confianza}; aquí se p
     PostgreSQL & Documentos cifrados y DEK envueltas; hashes Argon2id; secretos TOTP cifrados; certificados, firmas, consentimientos, tokens RFC 3161, revisiones de confianza y cadena de auditoría & KEK, documentos en claro, contraseñas y claves privadas de los titulares \\
     Redis & Sesiones opacas y revocables, desafíos MFA, contadores de intentos y huellas de códigos TOTP aceptados & El código TOTP en claro; solo su huella \\
     CA interna & CSR público con nombre, organización y país declarados; certificados emitidos; revocaciones y CRL & Clave privada del titular y su contraseña \\
-    TSA local & Digest SHA-256 del documento & El documento y el consentimiento \\
-    Proveedor de correo & Dirección del destinatario y un mensaje genérico; en invitaciones y recuperación de contraseña, además, el enlace con su token & Datos del expediente, documentos y adjuntos \\
+    TSA local & Digest SHA-256 del documento, de una firma o de un manifiesto & El documento, el consentimiento y las declaraciones \\
+    Proveedor de correo & Dirección del destinatario y un mensaje genérico, que en los avisos de contrato nombra título, solicitud y vencimiento; en invitaciones y recuperación de contraseña, además, el enlace con su token & Datos del expediente, documentos y adjuntos \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -55,7 +55,7 @@ Las zonas y sus cruces se describen en la \cref{fig:zonas-confianza}; aquí se p
 
 El esquema de firma emplea RSA-3072 con SHA-256 y relleno PKCS\#1 v1.5. Se descartó ECDSA P-256 porque la Política de Certificados de la ACR2-SE \cite{economia_acr2se} exige claves RSA con ese algoritmo en la jerarquía PKI mexicana; ECDSA no está contemplado para certificados legalmente reconocidos bajo un PSC mexicano. Por la misma razón se prefirió PKCS\#1 v1.5 sobre PSS: coincide con la ACR2-SE y la e.firma, lo que permitiría migrar a certificados de un PSC sin rediseñar el verificador.
 
-La autoridad certificadora interna usa OpenSSL y una jerarquía sin CA intermedia: la raíz emite directamente los certificados finales (\cref{fig:cripto-pki}). Para la firma individual, el titular genera su clave RSA-3072 y la solicitud pública de certificado (CSR) en su equipo, con OpenSSL o con el ayudante local del navegador. La CA comprueba la solicitud y emite un certificado exclusivamente de firma, sin generar ni recibir la clave privada. El portal administrativo separado (\cref{sec:impl-portal-ca}) exige además la revisión y confirmación del operador.
+La autoridad certificadora interna usa OpenSSL y una jerarquía sin CA intermedia: la raíz emite directamente los certificados finales (\cref{fig:cripto-pki}). Para la firma individual y para cada parte de un contrato bilateral, el titular genera su clave RSA-3072 y la solicitud pública de certificado (CSR) en su equipo, con OpenSSL o con el ayudante local del navegador. La CA comprueba la solicitud y emite un certificado exclusivamente de firma, sin generar ni recibir la clave privada. El portal administrativo separado (\cref{sec:impl-portal-ca}) exige además la revisión y confirmación del operador.
 
 Los certificados tienen perfiles separados: uno de firma documental y otro con el que el Owner puede acceder al sistema, y el verificador de firmas solo admite el primero. Cambiar de emisor requiere adaptar y validar la política de confianza. Al vencer un certificado se emite otro y, cuando corresponde, se registra un nuevo vínculo, sin modificar la evidencia histórica.
 
@@ -124,11 +124,11 @@ El motor de verificación está escrito en Rust y se compila a WebAssembly \cite
   \label{fig:cripto-validador-raices}
 \end{figure}
 
-\paragraph{Tres tipos de paquete.} El validador reconoce los dos paquetes que Qadra ya exportaba y uno nuevo: el sello del servidor, la firma individual en su versión 1 y la firma individual en su versión 2, que añade un manifiesto sellado (\cref{fig:cripto-manifiesto}). El tipo se decide por el conjunto de archivos que contiene, no por su orden. Un archivo desconocido, uno obligatorio ausente o un documento ambiguo hacen que el paquete se informe como no compatible: el validador no adivina qué quiso exportarse.
+\paragraph{Tipos de paquete.} El validador reconoce los dos paquetes que Qadra ya exportaba y uno nuevo: el sello del servidor, la firma individual en su versión 1 y la firma individual en su versión 2, que añade un manifiesto sellado (\cref{fig:cripto-manifiesto}). Reconoce además los dos paquetes del contrato bilateral, el completo y el acuse parcial (\cref{sec:diseno-firma-bilateral}). El tipo se decide por el conjunto de archivos que contiene, no por su orden. Un archivo desconocido, uno obligatorio ausente o un documento ambiguo hacen que el paquete se informe como no compatible: el validador no adivina qué quiso exportarse.
 
 \paragraph{Manifiesto sellado de la versión 2.} El sello de tiempo del documento cubre solo la huella del PDF; no demuestra que la firma separada, el consentimiento o el material de confianza ya existieran en ese instante. El manifiesto cierra esa brecha. Es un archivo JSON que enumera las catorce piezas de evidencia del paquete, cada una con su función, su huella SHA-256 y su tamaño, y que identifica el caso, el documento, su versión, la operación de aceptación y al firmante. Inmediatamente después de verificar la firma y obtener el sello del PDF, dentro de la misma operación de aceptación, el servidor construye el manifiesto con los bytes finales y pide a la TSA un segundo sello sobre su huella. Así, un solo sello ata todas las piezas a un instante emitido por la TSA.
 
-El manifiesto se escribe en la forma canónica de JSON definida por RFC 8785 \cite{rundgren2020}. JSON admite muchas escrituras equivalentes del mismo contenido (orden de claves, espacios, escapes); la forma canónica fija una sola, de modo que cualquiera puede recalcular la huella sobre los mismos bytes y el validador rechaza un manifiesto que no esté exactamente en esa forma. El paquete agrega además la lista de revocación del emisor de la TSA, capturada al sellar, para comprobar que la TSA no estaba revocada, y un recibo de aceptación que repite la huella del manifiesto y el instante registrado. El manifiesto no se incluye a sí mismo, ni a su sello, ni al recibo, ni al instructivo, ni al registro de tiempos de Qadra, cuyo instante de aceptación se fija al confirmar la operación. Ese instante sigue siendo un registro de la aplicación, pero en la versión 2 queda acotado: el sello del documento no puede ser posterior al del manifiesto, ni este a la aceptación. El perfil admite un solo firmante; varios firmantes quedan fuera de esta entrega.
+El manifiesto se escribe en la forma canónica de JSON definida por RFC 8785 \cite{rundgren2020}. JSON admite muchas escrituras equivalentes del mismo contenido (orden de claves, espacios, escapes); la forma canónica fija una sola, de modo que cualquiera puede recalcular la huella sobre los mismos bytes y el validador rechaza un manifiesto que no esté exactamente en esa forma. El paquete agrega además la lista de revocación del emisor de la TSA, capturada al sellar, para comprobar que la TSA no estaba revocada, y un recibo de aceptación que repite la huella del manifiesto y el instante registrado. El manifiesto no se incluye a sí mismo, ni a su sello, ni al recibo, ni al instructivo, ni al registro de tiempos de Qadra, cuyo instante de aceptación se fija al confirmar la operación. Ese instante sigue siendo un registro de la aplicación, pero en la versión 2 queda acotado: el sello del documento no puede ser posterior al del manifiesto, ni este a la aceptación. El perfil admite un solo firmante; el contrato bilateral tiene un manifiesto y unos perfiles propios con exactamente dos partes (\cref{sec:diseno-firma-bilateral}).
 
 \begin{figure}[!htbp]
   \centering
@@ -137,7 +137,7 @@ El manifiesto se escribe en la forma canónica de JSON definida por RFC 8785 \ci
   \label{fig:cripto-manifiesto}
 \end{figure}
 
-\paragraph{Cómo se expresa el resultado.} El informe se divide en ocho componentes, desde la forma del paquete hasta las fechas y registros, y cada uno obtiene uno de cinco resultados: correcto, fallido, falta evidencia para decidirlo, no compatible o no aplica (\cref{fig:cripto-validador-resultados}). Todos los componentes son obligatorios, salvo dos que se muestran como \emph{No aplica}: la vinculación y el consentimiento en el sello del servidor, y el manifiesto fuera de la versión 2. El resultado global toma el primero que aplica: \emph{Fallido} si algún componente obligatorio falló; \emph{No compatible} si alguno no es compatible; \emph{Parcial} si falta evidencia en alguno; y \emph{Completo} en otro caso. Un estado actual, con la vigencia y la revocación al día de hoy según el reloj del equipo, se presenta aparte como informativo y nunca cambia el resultado.
+\paragraph{Cómo se expresa el resultado.} El informe se divide en ocho componentes, desde la forma del paquete hasta las fechas y registros, y cada uno obtiene uno de cinco resultados: correcto, fallido, falta evidencia para decidirlo, no compatible o no aplica (\cref{fig:cripto-validador-resultados}). Todos los componentes son obligatorios, salvo tres que se muestran como \emph{No aplica}: la vinculación y el consentimiento en el sello del servidor, el manifiesto fuera de la versión 2 y del contrato completo, y el sello del documento en el acuse parcial del contrato. El resultado global toma el primero que aplica: \emph{Fallido} si algún componente obligatorio falló; \emph{No compatible} si alguno no es compatible; \emph{Parcial} si falta evidencia en alguno; y \emph{Completo} en otro caso. Un estado actual, con la vigencia y la revocación al día de hoy según el reloj del equipo, se presenta aparte como informativo y nunca cambia el resultado.
 
 \begin{figure}[!htbp]
   \centering
@@ -147,6 +147,238 @@ El manifiesto se escribe en la forma canónica de JSON definida por RFC 8785 \ci
 \end{figure}
 
 El informe separa tres preguntas que una sola palabra confundiría: si la firma corresponde a los bytes exactos del documento, si los certificados cumplen el perfil estricto y encadenan a una raíz fija, y si falta evidencia para decidir. Por eso, un certificado que no cumple el perfil estricto produce un resultado que no es completo, pero no significa que el PDF se haya alterado; el panel lo aclara cuando la firma es correcta. Cada comprobación se evalúa en su propio instante: el certificado de la TSA, en la fecha de cada sello; el vínculo, al registrarse; la firma y el consentimiento del titular, al aceptarse. Así, una revocación posterior no borra la validez histórica y se muestra solo en el estado actual. Los paquetes históricos se leen sin reescribirse: si no traen la lista de revocación del emisor de la TSA y la lista general no cubre la fecha del sello, quedan en \emph{Parcial}. Como el validador aplica perfiles estrictos a todos los certificados y revisa la TSA en la fecha de cada sello, a diferencia del verificador del servidor, su veredicto sobre un paquete histórico puede diferir del que mostró el servidor. Las decisiones constan en el ADR~0085 y la implementación, en la \cref{sec:impl-validador}.
+
+\subsection{Firma bilateral de contratos}\label{sec:diseno-firma-bilateral}
+
+En un contrato bilateral, el Cliente y un firmante del despacho (un Owner o un
+Litigante asignado) firman la misma versión exacta de un PDF en orden fijo: el
+Cliente primero y el despacho después, ambos antes de una fecha límite que
+forma parte de lo firmado. Cada parte firma \emph{una sola declaración
+binaria} que contiene la huella SHA-256 del PDF, y ninguna firma los bytes
+crudos del documento. Una firma suelta del Cliente sobre el PDF no llevaría
+solicitud, contraparte ni vigencia: sobreviviría a un rechazo, una cancelación
+o una expiración, y una verificación con OpenSSL la leería como la aceptación
+incondicional de ese PDF, anulando justo la fecha límite firmada. Es la misma
+estructura de los atributos firmados de CMS: se firma una estructura que
+contiene el resumen del contenido. El costo es que la comprobación con OpenSSL
+tiene dos pasos, verificar la firma de la declaración y comparar la huella que
+contiene con la del PDF; la cobertura criptográfica directa del documento se
+conserva con un sello RFC~3161 sobre su huella. Las decisiones constan en el
+ADR~0086 y la implementación, en la \cref{sec:impl-firma-bilateral}.
+
+\paragraph{Solicitud \texttt{CTRTREQ1}.} El servidor construye la solicitud al
+crearla y nadie la firma directamente: cada declaración lleva su huella. Es
+binario de longitud fija, sin texto libre ni nombres, para que la base de
+datos pueda reconstruirlo y no exista superficie de canonización
+(\cref{tab:cripto-ctrtreq}). El nombre de la contraparte se muestra desde su
+certificado y se rotula como declarado.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Estructura de la solicitud \texttt{CTRTREQ1}, de 240 bytes. Los enteros van en orden de bytes mayor primero.}
+  \label{tab:cripto-ctrtreq}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}r r X@{}}
+    \toprule
+    \textbf{Desplazamiento} & \textbf{Longitud} & \textbf{Campo} \\
+    \midrule
+    0 & 8 & Texto ASCII \texttt{CTRTREQ1} \\
+    8 & 2 & Propósito 1 y versión de formato 1 \\
+    10 & 16 & Despliegue \\
+    26 & 16 & Solicitud \\
+    42 & 16 & Expediente \\
+    58 & 16 & Serie documental \\
+    74 & 4 & Versión del documento \\
+    78 & 32 & SHA-256 del PDF \\
+    110 & 16 & Cuenta del Cliente \\
+    126 & 16 & Cuenta del firmante del despacho \\
+    142 & 16 & Cuenta solicitante \\
+    158 & 32 & SHA-256 del certificado del Cliente \\
+    190 & 32 & SHA-256 del certificado del firmante del despacho \\
+    222 & 8 & Creación, en segundos Unix con signo \\
+    230 & 8 & Fecha límite, en segundos Unix con signo \\
+    238 & 1 & Número de partes: 2 \\
+    239 & 1 & Regla de compleción 1: todas las partes antes de la fecha límite según su sello \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Declaración \texttt{CTRTSIG1}.} Cada parte firma 303 bytes con
+RSA-3072, PKCS\#1 v1.5 y SHA-256, y obtiene una firma de 384 bytes
+(\cref{tab:cripto-ctrtsig}). Los primeros 142 bytes repiten el prefijo común de
+las declaraciones de firma documental (despliegue, raíz, revisión de
+confianza, cuenta y sus contadores, vínculo y hoja del certificado). La
+palabra inicial y la longitud separan ambos formatos de las demás
+declaraciones firmadas del sistema, de 142, 150, 182 y 258 bytes. Los
+códecs del dominio, el decodificador del validador, la reconstrucción SQL y el
+módulo del navegador se contrastan contra un único vector compartido.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Estructura de la declaración de cada parte \texttt{CTRTSIG1}, de 303 bytes.}
+  \label{tab:cripto-ctrtsig}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}r r X@{}}
+    \toprule
+    \textbf{Desplazamiento} & \textbf{Longitud} & \textbf{Campo} \\
+    \midrule
+    0 & 142 & Prefijo común con \texttt{CTRTSIG1}: despliegue, raíz, revisión de confianza, cuenta, revisión de la cuenta, generación de autenticación, vínculo y hoja del certificado \\
+    142 & 16 & Operación \\
+    158 & 16 & Solicitud \\
+    174 & 32 & SHA-256 de los 240 bytes de \texttt{CTRTREQ1} \\
+    206 & 32 & SHA-256 del PDF \\
+    238 & 1 & Posición: 1 Cliente, 2 despacho \\
+    239 & 32 & SHA-256 de la firma de la posición 1; ceros en la posición 1 \\
+    271 & 32 & SHA-256 del sello T1 de la posición 1; ceros en la posición 1 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Cadena y sellos.} La declaración del despacho incluye las huellas
+de la firma del Cliente y de su sello, de modo que el orden real lo prueba el
+encadenamiento de huellas y no la TSA: la segunda parte declara con su clave
+qué firma y qué sello vio. Tres sellos RFC~3161 completan la evidencia
+(\cref{tab:cripto-sellos-contrato}); deben cumplir \texttt{T1 <= Td <= Tf}, la
+creación de la solicitud no puede ser posterior a T1 y, para T1 y para Tf, el
+instante del sello más su exactitud no puede pasar la fecha límite. Restar la
+exactitud daría al despacho un margen adicional. La TSA se consulta fuera de
+toda transacción, una vez por envío y sin reintento automático: una falla no
+deja estado y la persona reenvía los mismos bytes por acción explícita.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Sellos de tiempo del contrato bilateral.}
+  \label{tab:cripto-sellos-contrato}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}l L{3.4cm} X L{3.0cm}@{}}
+    \toprule
+    \textbf{Sello} & \textbf{Huella sellada} & \textbf{Qué dice} & \textbf{Qué no dice} \\
+    \midrule
+    T1 & Firma del Cliente & La firma del Cliente existía a esa hora & Nada sobre la posición 2 \\
+    Td & \texttt{contrato.pdf} & El PDF existía a esa hora; \texttt{openssl ts -verify -data} sigue funcionando & Nada bilateral \\
+    Tf & Manifiesto del contrato & Ambas declaraciones y firmas, T1, Td, certificados y CRL existían a esa hora & Que alguien leyera el contrato \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Qué prueba y qué no.} La \cref{tab:cripto-prueba-contrato} delimita
+el alcance de la evidencia. Rechazo, declinación, cancelación y expiración son
+registros de la aplicación: ningún paquete los refuta. La formulación que el
+prototipo sostiene es condicionada: el paquete prueba que el poseedor de cada
+clave vinculada aceptó esa versión frente a esa contraparte y en ese orden; su
+fuerza frente a un tercero depende de la ceremonia de alta y de lo que cada
+parte conserve fuera del sistema.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Alcance de la evidencia del contrato bilateral.}
+  \label{tab:cripto-prueba-contrato}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}X X@{}}
+    \toprule
+    \textbf{Prueba} & \textbf{No prueba} \\
+    \midrule
+    El poseedor de cada clave vinculada aceptó esa versión exacta, frente a esa contraparte y esa solicitud & Identidad civil, capacidad, representación ni lectura real \\
+    La posición 2 firmó sobre lo que firmó la posición 1, en ese orden & Qué instante es verdadero: la TSA pertenece al despacho \\
+    Nadie cambió contenido, contraparte, certificado o vigencia sin romper firmas & Que el nombre declarado sea verdadero \\
+    Según T1 y Tf, ambas firmas ocurrieron antes de la fecha límite, con la reserva de que la TSA pertenece al despacho & Un rechazo, una cancelación o una expiración \\
+    Sin la segunda firma no hay contrato completo & Validez jurídica del contrato ni constancia NOM-151 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Contrafirma y vínculo del Cliente.} El Cliente no puede retirarse
+después de firmar: sería un evento de sesión sin firma, fuera del paquete, un
+estado que promete algo que la evidencia no muestra. Por eso la contrafirma no
+depende de que el vínculo del Cliente siga vivo; el Cliente puede retirarlo,
+lo que solo impide firmas futuras con él. Lo único que bloquea la contrafirma
+es una revocación del certificado del Cliente ya publicada en la CRL vigente,
+que pasa por el operador de la CA y queda en el paquete. El límite que el
+Cliente sí controla es la fecha límite que firmó. Antes de su firma, cualquier
+cambio de certificado de una parte exige una solicitud nueva; después, solo el
+del firmante del despacho.
+
+\paragraph{Custodia de la clave del Cliente.} Una alternativa de diseño hacía
+que el sistema generara la clave del Cliente y firmara con la clave de cada
+parte; se descartó. El no repudio de origen supone que solo el titular de la
+clave privada pudo generar la firma: si el servidor genera o usa la clave, el
+despacho puede firmar por su contraparte y el Cliente puede negar con razón
+cualquier firma, lo que destruye justo la evidencia que el flujo busca
+producir. El Cliente genera y conserva su clave, como ya lo hacen los
+Litigantes en la firma individual (\cref{sec:firma-digital}), y entrega por un
+canal externo una solicitud de certificado pública. Los costos aceptados son
+una clave en archivo, ese canal externo y una pérdida irrecuperable. El alta
+termina con una hoja de huella que Cliente y despacho firman a mano: folio,
+correo de la cuenta, huella SHA-256 de la clave pública leída en el equipo del
+Cliente, huella de la raíz y fecha. Se ancla en la clave pública porque existe
+antes de emitir el certificado y sobrevive a una reemisión con la misma clave.
+Es la única medida que ata persona y clave fuera del control técnico del
+despacho y no acredita identidad civil; sin ella, el Cliente puede alegar
+fabricación. El certificado lleva el país y la organización de la raíz por
+política de la CA, lo que no significa afiliación.
+
+\paragraph{Excepción de acceso del Cliente.} El rol Cliente conserva cero
+permisos de rol. Su acceso nace de una relación, la designación en una
+solicitud concreta, que el servicio de contratos comprueba en cada operación:
+el Cliente designado ve su propia solicitud y sus eventos, lee la versión
+exacta mientras la solicitud está abierta o una vez que la firmó, firma en la
+posición 1, rechaza antes de firmar y descarga sus paquetes. Un Cliente nunca
+es miembro de un expediente; cualquier otra lectura responde como si el
+recurso no existiera. El control de acceso es, así, RBAC más una relación, y
+la autorización consta como decisión expresa de los autores en el ADR~0086.
+
+\paragraph{Paquetes.} El paquete completo, perfil \texttt{BilateralContractV1},
+tiene 26 entradas obligatorias con nombres fijos: ocho comunes (PDF, Td,
+solicitud, manifiesto, Tf, recibo, raíz y cadena de la TSA), ocho por cada
+parte (declaración y su firma, certificado, CRL, vínculo y su firma, y raíz y
+CRL del vínculo) y dos de T1. El manifiesto, en JSON canónico RFC~8785
+\cite{rundgren2020}, cubre todas las entradas salvo él mismo, su sello, el
+recibo y las instrucciones. El acuse parcial, perfil
+\texttt{BilateralContractPartialV1}, tiene 14 entradas: PDF, solicitud, un acuse
+de la aplicación, raíz, las ocho de la parte 1 y las dos de T1. No tiene
+manifiesto, porque la declaración del Cliente ya liga solicitud, PDF y ambas
+hojas; el vínculo del Cliente se juzga en T1. Se ofrece al Cliente desde su
+firma y lo conserva aunque la solicitud se cierre sin éxito, pero siempre
+informa evidencia faltante y nunca resulta completo. Tres partes excederían el
+tope de 32 entradas del validador y el orden fijo no se generaliza, por lo que
+no se admiten contratos de más de dos partes.
+
+\paragraph{Límites inherentes.} Los nueve límites siguientes se declaran
+igual en el ADR~0086:
+\begin{enumerate}[label=(\alph*)]
+  \item \textbf{Una raíz para todo.} La CA, el sello y la autoridad de sellado
+  pertenecen al despacho. El instante es una declaración del despacho, que
+  puede retrofechar Tf dentro de la vigencia. Retener la firma del Cliente como
+  un cheque en blanco está, por tanto, mitigado solo frente a un servidor
+  honesto: la fecha límite firmada y comprobada contra Tf no detiene a un
+  despacho que controla la autoridad y fecha Tf antes de esa fecha límite.
+  \item \textbf{Fabricar una persona.} La identidad es declarada y el nombre
+  común es informativo. Un despacho puede crear un Cliente con un buzón propio.
+  La hoja de huella y un operador de la CA separado lo detectan; no lo impiden.
+  \item \textbf{Intercambio justo.} Sin un tercero es imposible: entre T1 y Tf
+  el despacho tiene una opción hasta la fecha límite.
+  \item \textbf{Cierres no comprobables.} Rechazo, cancelación y expiración no
+  constan en el paquete.
+  \item \textbf{Revocación no publicada.} Una revocación no es visible hasta la
+  siguiente CRL.
+  \item \textbf{La página la sirve el despacho.} La página podría capturar la
+  clave y la contraseña mientras se usan. No es custodia, pero es la vía real;
+  OpenSSL la reduce.
+  \item \textbf{Lo visto depende del visor.} La admisión es estructural y no
+  filtra contenido activo.
+  \item \textbf{Alegato de robo.} El Cliente puede alegar el robo de su clave y
+  su contraseña.
+  \item \textbf{Acceso perdido.} Un Cliente que no descargó su paquete y es
+  desactivado pierde el acceso. Un paquete descargado no depende de Qadra.
+\end{enumerate}
+
+La dirección más fuerte es contra el despacho: un Cliente que conserva el
+paquete puede exhibir la firma del despacho bajo la propia raíz de este.
+Contra el Cliente, la evidencia la produjo la otra parte, con su propia CA, su
+autoridad de sellado, su base de datos y su JavaScript; su peso depende de la
+ceremonia de alta y de lo que cada parte conserve fuera del sistema. Se
+comprueba que las cuentas, las hojas y las claves públicas sean distintas, pero
+eso no detiene a quien genere dos claves.
 
 \subsection{Cifrado en reposo}\label{sec:cifrado-reposo}
 
@@ -197,10 +429,10 @@ El alta inicial crea al primer Owner solo mientras no existan usuarios; las alta
   \end{tabularx}
 
   \smallskip
-  \parbox{\linewidth}{\footnotesize Cliente no tiene ninguna de estas operaciones; solo consulta un resumen de sus expedientes.}
+  \parbox{\linewidth}{\footnotesize Cliente no tiene ninguna de estas operaciones ni pertenece a expedientes; solo opera sus propias solicitudes de contrato, por relación (\cref{sec:diseno-firma-bilateral}).}
 \end{table}
 
-La autorización usa el rol y el estado vigentes de cada cuenta. Owner ve todos los expedientes; Litigante y Paralegal, solo los asignados; Cliente, solo un resumen básico de los suyos. Owner y Litigante administran perfiles y estado; las asignaciones quedan reservadas a Owner. En documentos, Litigante y Paralegal necesitan asignación vigente además del permiso de la \cref{tab:permisos-implementados}; Cliente queda denegado aunque esté asignado, y la asociación exacta entre documento y expediente se comprueba también para Owner. Una revocación surte efecto en la siguiente operación documental que aún no se haya confirmado.
+La autorización usa el rol y el estado vigentes de cada cuenta. Owner ve todos los expedientes; Litigante y Paralegal, solo los asignados. Una cuenta Cliente no puede asignarse a un expediente: el servicio, un disparador de la base y los selectores de miembros la rechazan u omiten. Owner y Litigante administran perfiles y estado; las asignaciones quedan reservadas a Owner. En documentos, Litigante y Paralegal necesitan asignación vigente además del permiso de la \cref{tab:permisos-implementados}; Cliente queda denegado salvo la versión exacta de sus propias solicitudes de contrato, y la asociación exacta entre documento y expediente se comprueba también para Owner. Una revocación surte efecto en la siguiente operación documental que aún no se haya confirmado.
 
 Estos permisos se combinan con pertenencia vigente, recurso exacto y estado administrativo. Un expediente cerrado conserva las lecturas y la evidencia, pero rechaza nuevas cargas, versiones, clasificaciones, sellos, ediciones del perfil, cambios del directorio y registros de etapa. Reactivarlo no modifica etapas ni reactiva participantes archivados.
 

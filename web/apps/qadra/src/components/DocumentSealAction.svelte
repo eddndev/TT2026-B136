@@ -1,6 +1,7 @@
 <script>
   import { onDestroy } from 'svelte';
   import { caseState } from '../lib/case-state.mjs';
+  import { underContract } from '../lib/contract-presentation.mjs';
   const administration = caseState();
   export let api, document, onupdate;
   export let disabled = false,
@@ -21,7 +22,8 @@
     value.id === expected.id &&
     value.version === expected.version;
   export function open() {
-    if (!busy && !disabled && !uncertain && !$administration.closed) confirmation = true;
+    if (!busy && !disabled && !uncertain && !$administration.closed && !underContract(document))
+      confirmation = true;
   }
   function fail(failure) {
     error = failure.message;

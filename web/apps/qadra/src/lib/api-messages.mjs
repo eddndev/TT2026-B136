@@ -59,4 +59,41 @@ export const messages = {
   document_metadata_revision_exhausted:
     'Este documento ha alcanzado el l\u00edmite de cambios de clasificaci\u00f3n. No se pueden registrar m\u00e1s cambios.',
   invalid_document_name: 'El nombre del documento no es v\u00e1lido.',
+  invalid_contract_request:
+    'La solicitud del contrato no tiene el formato esperado. Revisa los datos y vuelve a intentarlo.',
+  contract_not_found: 'El contrato no est\u00e1 disponible o ya no tienes acceso.',
+  contract_revision_conflict:
+    'El contrato cambi\u00f3 mientras lo revisabas. Consulta su estado actual antes de continuar.',
+  contract_exists: 'Este documento ya tiene un contrato. Abre el existente en Contratos.',
+  contract_request_open:
+    'Ya hay una solicitud de firma abierta. Canc\u00e9lala o espera a que venza antes de pedir otra.',
+  contract_request_closed: 'La solicitud ya est\u00e1 cerrada y no admite m\u00e1s acciones.',
+  contract_out_of_turn:
+    'No es tu turno de firmar. Primero firma el Cliente y despu\u00e9s el despacho.',
+  contract_expired: 'La vigencia de la solicitud termin\u00f3. El despacho debe pedir una nueva.',
+  contract_version_superseded:
+    'Existe una versi\u00f3n posterior del documento. La solicitud ya no puede firmarse.',
+  contract_version_frozen:
+    'Esta versi\u00f3n est\u00e1 bajo contrato: no admite sello ni firma individual.',
+  contract_counterparty_revoked:
+    'El certificado del Cliente fue revocado antes de la firma del despacho. El contrato no puede completarse.',
+  contract_not_complete: 'El paquete solicitado todav\u00eda no est\u00e1 disponible.',
+  contract_body_too_large: 'Los datos del contrato superan el l\u00edmite permitido.',
+  contract_party_ineligible:
+    'Falta preparar a una de las partes o el documento. Revisa la lista de preparaci\u00f3n.',
+  contract_timestamp_unavailable:
+    'La autoridad de sellado de tiempo no respondi\u00f3 y no se registr\u00f3 nada. Puedes volver a enviar la misma firma.',
+  signing_trust_unavailable:
+    'La configuraci\u00f3n de confianza no est\u00e1 disponible y no se registr\u00f3 nada. Int\u00e9ntalo m\u00e1s tarde con la misma firma.',
+  invalid_json: 'La solicitud no tiene el formato esperado.',
+  signing_account_changed:
+    'Tu cuenta cambi\u00f3 durante la firma. Vuelve a preparar la declaraci\u00f3n.',
+  signing_trust_changed:
+    'La configuraci\u00f3n de confianza cambi\u00f3. Vuelve a preparar la declaraci\u00f3n.',
+  signing_conflict:
+    'Esta operaci\u00f3n ya se envi\u00f3 con otros datos. Consulta su recibo antes de continuar.',
+  signing_binding_inactive:
+    'Tu firma documental no est\u00e1 vinculada o fue retirada. Rev\u00edsala en Mi firma.',
+  signing_credential_rejected:
+    'El certificado no es aceptado por la autoridad del despacho. Rev\u00edsalo en Mi firma.',
 };

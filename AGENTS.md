@@ -620,9 +620,16 @@ The remaining work and decisions are bounded:
 2. Resolve how a participant who is not the capturing user operates their key before
    adding local participant signing. The three conditional items in
    `docs/browser-local-cryptography.md` are not authorization for a new portal,
-   account, remote link or server key custody.
-3. Preserve the existing inactivity and Client document-access policies until the
-   human decisions are supplied. Do not infer new access rights from internal roles.
+   account, remote link or server key custody. The Client of a bilateral contract
+   generates and operates its own key under
+   `docs/adr/0086-bilateral-contract-signing.md`; that decision covers only
+   contract signing and does not resolve participant signing.
+3. Preserve the existing inactivity and general Client document-access policies
+   until the human decisions are supplied. The only recorded exception, authorized
+   by the authors on 2026-11-02 in `docs/adr/0086-bilateral-contract-signing.md`,
+   lets a designated Client read and sign its own contract signature requests
+   without becoming a case member. Do not infer new access rights from internal
+   roles.
 4. Run the prepared evaluation with real participants, record results and finish
    conclusions and presentation. Keep implementation, criteria, diagrams and manuals
    aligned with actual evidence. OE-2 wording was authorized on 2026-10-17 to

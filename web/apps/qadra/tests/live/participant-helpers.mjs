@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { fixture, loginAs } from './helpers.mjs';
+import { fixture, loginAs, expectClientWorkspace } from './helpers.mjs';
 export const accounts = fixture.participants;
 export const directory = (page) =>
   page.getByRole('region', { name: 'Directorio del expediente', exact: true });
@@ -85,28 +85,21 @@ export async function exercisePermissions(browser, testInfo, name, errors) {
       });
       await page.goto('/');
       await loginAs(page, accounts[role], 0);
-      await page
-        .getByRole('navigation', { name: 'Navegaci\u00f3n principal' })
-        .getByRole('button', { name: 'Expedientes', exact: true })
-        .click();
-      await expect(
-        page.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
-      ).toHaveCount(0);
       const listed = page.getByRole('button', { name: new RegExp(accounts.case.title) });
       if (role === 'client') {
-        // A Client account is never a case member, so the case is not listed.
-        await expect(listed).toHaveCount(0);
-        await expect(page.getByRole('link', { name: 'Participantes', exact: true })).toHaveCount(0);
-        await page.evaluate(() => {
-          location.hash = 'participants';
-        });
-        await expect(
-          page.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
-        ).toBeVisible();
+        // A Client account is never a case member and has no case navigation.
+        await expectClientWorkspace(page, ['participants']);
         expect(
           paths.filter((path) => /^\/api\/v1\/cases\/[^/]+\/participants(?:\/|$)/.test(path)),
         ).toEqual([]);
       } else {
+        await page
+          .getByRole('navigation', { name: 'Navegaci\u00f3n principal' })
+          .getByRole('button', { name: 'Expedientes', exact: true })
+          .click();
+        await expect(
+          page.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
+        ).toHaveCount(0);
         await listed.click();
         await page.getByRole('link', { name: 'Participantes', exact: true }).click();
         await openPerson(page, name);

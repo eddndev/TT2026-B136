@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { keyRequestValues } from '../src/lib/key-request-values.mjs';
+import {
+  keyRequestValues,
+  generatedKeyRequest,
+  fingerprintGroups,
+} from '../src/lib/key-request-values.mjs';
 
 const password = 'Local example passphrase';
 const draft = (patch = {}) => ({
@@ -94,4 +98,22 @@ test('invalid input does not coerce secrets or echo them in validation errors', 
     () => keyRequestValues(draft({ password: secret, passwordConfirmation: 'different' })),
     (error) => error instanceof Error && !error.message.includes(secret),
   );
+});
+
+test('a generated key carries the SHA-256 of its public key to read aloud', () => {
+  const value = {
+    encryptedKeyPem: '-----BEGIN ENCRYPTED PRIVATE KEY-----\nAA\n',
+    csrPem: '-----BEGIN CERTIFICATE REQUEST-----\nAA\n',
+    spkiSha256: 'ab'.repeat(32),
+  };
+  assert.deepEqual(generatedKeyRequest(value), value);
+  for (const changed of [
+    { spkiSha256: undefined },
+    { spkiSha256: 'AB'.repeat(32) },
+    { spkiSha256: 'ab'.repeat(31) },
+    { encryptedKeyPem: '-----BEGIN PRIVATE KEY-----' },
+    { csrPem: 'x'.repeat(16385) },
+  ])
+    assert.throws(() => generatedKeyRequest({ ...value, ...changed }));
+  assert.equal(fingerprintGroups('0123456789abcdef'), '0123 4567 89ab cdef');
 });

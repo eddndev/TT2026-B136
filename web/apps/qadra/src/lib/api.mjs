@@ -9,6 +9,7 @@ import { invitationsApi } from './invitations-api.mjs';
 import { judicialCalendarsApi } from './judicial-calendars-api.mjs';
 import { signingCertificatesApi } from './signing-certificates-api.mjs';
 import { ownerCertificatesApi } from './owner-certificates-api.mjs';
+import { contractsApi } from './contracts-api.mjs';
 import { ownerBase64 } from './owner-certificate-binary.mjs';
 import {
   ownerLoginAvailability,
@@ -111,6 +112,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       const error = new Error(messages[payload.error?.code] || fallback);
       error.status = response.status;
       error.code = payload.error?.code;
+      if (Array.isArray(payload.error?.blockers)) error.blockers = [...payload.error.blockers];
       throw error;
     }
     const result = binary
@@ -299,6 +301,15 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
           throw new Error('La cuenta del certificado no corresponde a la sesion.');
         return request(path, options);
       }, ownerId);
+    },
+    contracts() {
+      const version = sessionVersion;
+      return contractsApi(async (path, options) => {
+        assertSession(version);
+        const value = await request(path, options);
+        assertSession(version);
+        return value;
+      });
     },
     alerts: (actorId) => alertsApi(request, actorId),
     integrityIncidents: () => integrityIncidentsApi(request),

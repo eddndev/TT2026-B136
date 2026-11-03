@@ -5,20 +5,14 @@ import {
   calendarPanel,
   calendarDetail,
 } from './judicial-calendar-helpers.mjs';
-import { login, navigate, selectCase } from './helpers.mjs';
+import { login, navigate, selectCase, expectClientWorkspace } from './helpers.mjs';
 import { calendarId, calendarRecord } from '../fixtures/judicial-calendars.mjs';
-test('Client direct calendar location resolves to overview without catalog requests', async ({
+test('Client direct calendar location resolves to its contracts without catalog requests', async ({
   page,
 }) => {
   const { state } = await setupCalendars(page, { role: 'client' });
   await login(page, false, false);
-  await page.evaluate(() => {
-    location.hash = 'judicial-calendars';
-  });
-  await expect(
-    page.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
-  ).toBeVisible();
-  await expect(page).toHaveURL(/#overview$/);
+  await expectClientWorkspace(page, ['judicial-calendars']);
   expect(state.calls).toEqual([]);
   await expect(
     page.getByRole('button', { name: 'Calendarios jurisdiccionales', exact: true }),

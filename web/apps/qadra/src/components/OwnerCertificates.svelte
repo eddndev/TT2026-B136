@@ -137,7 +137,12 @@
     {#if !busy}<button class="secondary" onclick={load}>Volver a consultar</button>{/if}
   </section>
 {:else}
-  <KeyRequest contextKey={principalId} purpose="partner" disabled={busy} />
+  <KeyRequest
+    contextKey={principalId}
+    purpose="partner"
+    disabled={busy}
+    accountEmail={user.email}
+  />
   {#if !editor && !withdrawal}
     {#each pending as saved (saved.key)}<section class="card retained">
         <h2>Intento pendiente</h2>

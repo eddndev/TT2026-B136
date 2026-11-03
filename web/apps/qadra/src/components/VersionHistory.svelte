@@ -1,5 +1,6 @@
 <script>
   import Icon from '@qadra/ui/Icon.svelte';
+  import { contractDocumentStatus } from '../lib/contract-presentation.mjs';
   export let versions = [];
   export let currentVersion;
   export let selectedVersion;
@@ -35,7 +36,8 @@
       >
         <span class="file-icon"><Icon name="file" size={22} /></span><span class="version-text"
           ><strong>Versi&#243;n {version.version} / {version.name}</strong><small
-            >{version.sealed ? 'Sellada' : 'Pendiente de sello'}</small
+            >{contractDocumentStatus(version)?.label ??
+              (version.sealed ? 'Sellada' : 'Pendiente de sello')}</small
           ></span
         ><span class="badge" class:info={version.version === currentVersion}
           >{version.version === currentVersion ? 'Actual' : 'Hist\u00f3rica'}</span

@@ -12,7 +12,11 @@
   import SigningCertificateForm from './SigningCertificateForm.svelte';
   import SigningBindingDetails from './SigningBindingDetails.svelte';
   import KeyRequest from './KeyRequest.svelte';
+  import { certificateExpired, certificateRenewalDue } from '../lib/contract-presentation.mjs';
   export let api, user;
+  // Every party of a contract may hold a document-signing binding.
+  // Rationale: docs/adr/0086-bilateral-contract-signing.md.
+  const parties = ['owner', 'litigator', 'client'];
   const session = getContext('session-drafts'),
     accountId = user.id;
   const scoped = api.signingCertificates(accountId);
@@ -73,7 +77,7 @@
   async function fresh() {
     const principal = await api.me();
     if (!admitted()) return false;
-    if (principal.id !== accountId || principal.role !== 'litigator')
+    if (principal.id !== accountId || !parties.includes(principal.role))
       throw Object.assign(new Error('La cuenta cambio.'), { status: 403 });
     const value = await scoped.current();
     if (!admitted()) return false;
@@ -223,8 +227,12 @@
 <div class="page-heading">
   <div>
     <span class="eyebrow">MI CUENTA</span>
-    <h1>Mi firma documental</h1>
-    <p>Vincula tu certificado publico y firma documentos con la clave en tu equipo.</p>
+    <h1>{user.role === 'client' ? 'Mi firma' : 'Mi firma documental'}</h1>
+    <p>
+      {user.role === 'client'
+        ? 'Genera tu clave, vincula tu certificado publico y firma tus contratos con la clave en tu equipo.'
+        : 'Vincula tu certificado publico y firma documentos con la clave en tu equipo.'}
+    </p>
   </div>
 </div>
 <p class="notice">
@@ -236,7 +244,26 @@
     <button class="secondary" disabled={busy} onclick={load}>Volver a consultar</button>
   </section>
 {:else}
-  <KeyRequest contextKey={accountId} purpose="document-signing" disabled={busy} />
+  {#if current && !current.withdrawn_at && certificateExpired(current)}<p
+      class="notice error"
+      role="alert"
+    >
+      Tu certificado vencio. Genera una clave nueva o renueva el certificado y vuelve a vincularlo.
+    </p>
+  {:else if current && !current.withdrawn_at && certificateRenewalDue(current)}<p
+      class="notice"
+      role="status"
+    >
+      Tu certificado vence en menos de 30 dias. Renuevalo y vuelve a vincularlo; una solicitud
+      abierta con el certificado anterior debe rehacerse.
+    </p>{/if}
+  <KeyRequest
+    contextKey={accountId}
+    purpose="document-signing"
+    disabled={busy}
+    organizationLocked={user.role === 'client'}
+    accountEmail={user.email}
+  />
   {#if saved}<section class="card stack">
       <h2>Intento pendiente del vinculo</h2>
       <p>Recuperarlo comprueba tu cuenta y conserva su identificador. No lo envia.</p>

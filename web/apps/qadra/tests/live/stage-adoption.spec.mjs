@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, expectClientWorkspace } from './helpers.mjs';
 import { navigate, openCase } from '../case-administration-workflow.mjs';
 import { capture } from './case-administration-helpers.mjs';
 import {
@@ -58,13 +58,12 @@ test('legacy adoption keeps its own origin and current staff permissions', async
       });
       await other.goto('/');
       await loginAs(other, accounts[role], 0);
-      await navigate(other, 'Expedientes');
-      await expect(
-        other.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
-      ).toHaveCount(0);
-      const legacy = other.getByRole('button', { name: new RegExp(accounts.legacyCase.title) });
       if (role === 'paralegal') {
-        await legacy.click();
+        await navigate(other, 'Expedientes');
+        await expect(
+          other.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
+        ).toHaveCount(0);
+        await other.getByRole('button', { name: new RegExp(accounts.legacyCase.title) }).click();
         await expect(
           other.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
         ).toBeVisible();
@@ -75,13 +74,8 @@ test('legacy adoption keeps its own origin and current staff permissions', async
         await expect(other.locator('.stage-history .stage-entry')).toHaveCount(1);
         await expect(other.locator('.stage-history')).toHaveAttribute('aria-busy', 'false');
       } else {
-        // A Client account is never a case member, so the case is not listed.
-        await expect(legacy).toHaveCount(0);
-        await expect(other.getByRole('link', { name: 'Etapas', exact: true })).toHaveCount(0);
-        await other.evaluate(() => {
-          location.hash = 'stages';
-        });
-        await expect(other.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
+        // A Client account is never a case member and has no case navigation.
+        await expectClientWorkspace(other, ['stages']);
         expect(paths.filter((path) => /\/cases\/[^/]+\/stage(?:\/|$)/.test(path))).toEqual([]);
       }
     } finally {

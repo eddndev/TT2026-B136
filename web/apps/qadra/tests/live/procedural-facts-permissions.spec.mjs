@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
-import { navigate } from '../case-administration-workflow.mjs';
+import { loginAs, expectClientWorkspace } from './helpers.mjs';
 import {
   accounts,
   openFacts,
@@ -72,14 +71,8 @@ test('real fact permissions retain closed history and clear private data on revo
             .click();
           await expect(factDetail(other)).toContainText(accounts.policyResolution.values.summary);
         } else {
-          await navigate(other, 'Expedientes');
-          // A Client account is never a case member, so the case is not listed.
-          await expect(
-            other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }),
-          ).toHaveCount(0);
-          await expect(other.getByRole('link', { name: 'Resoluciones', exact: true })).toHaveCount(
-            0,
-          );
+          // A Client account is never a case member and has no case navigation.
+          await expectClientWorkspace(other, ['resolutions']);
           expect(requests.filter((path) => path.includes('/resolutions'))).toEqual([]);
           await accountAction(accounts.client, 1, async (clientCall) => {
             const denied = await clientCall(

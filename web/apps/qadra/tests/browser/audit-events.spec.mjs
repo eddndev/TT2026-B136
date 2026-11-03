@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login } from './helpers.mjs';
+import { login, expectLanding } from './helpers.mjs';
 import { panel, auditPage, setupAudit, enterAudit, consult } from './audit-events-helpers.mjs';
 
 for (const width of [1440, 390]) {
@@ -145,8 +145,7 @@ for (const role of ['litigator', 'paralegal', 'client']) {
     await page.evaluate(() => {
       location.hash = '#audit';
     });
-    await expect(page).toHaveURL(/#overview$/);
-    await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
+    await expectLanding(page, role);
     await expect(panel(page)).toHaveCount(0);
     expect(state.calls).toHaveLength(0);
   });

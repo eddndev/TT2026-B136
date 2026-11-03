@@ -182,7 +182,8 @@ first never distinguishes a missing, ineligible or unbound account.
 | 503 | `contract_timestamp_unavailable` | The authority failed; no state was written |
 
 `signing_account_changed`, `signing_trust_changed`, `signing_conflict`,
-`signing_binding_inactive` and `signing_credential_rejected` keep their
+`signing_binding_inactive`, `signing_credential_rejected` and
+`signing_trust_unavailable` (503, no state was written) keep their
 [individual signing](http-individual-signing.md) meaning. Authentication,
 permission and closed-case errors keep their existing codes.
 

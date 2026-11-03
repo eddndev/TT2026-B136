@@ -7,7 +7,7 @@ import {
   browserResource,
 } from './procedural-resources-helpers.mjs';
 import { resourceCommandFixture } from '../fixtures/procedural-resource-unit.mjs';
-import { login, navigate, caseId } from './helpers.mjs';
+import { login, navigate, caseId, expectClientWorkspace } from './helpers.mjs';
 
 const mutationNames = [
   'Registrar recurso',
@@ -77,13 +77,7 @@ test('client has no resources navigation or API access through a protected hash'
     resources: [browserResource()],
   });
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(page.getByRole('link', { name: 'Recursos', exact: true })).toHaveCount(0);
-  await page.evaluate(async () => {
-    location.hash = 'resources';
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-  });
+  await expectClientWorkspace(page, ['resources']);
   await expect(page.getByRole('heading', { name: 'Recursos procesales', exact: true })).toHaveCount(
     0,
   );

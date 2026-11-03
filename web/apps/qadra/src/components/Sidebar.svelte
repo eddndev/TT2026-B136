@@ -17,18 +17,28 @@
     drawer.close();
     onnavigate(destination);
   }
-  const work = [
-    { id: 'overview', label: 'Inicio', icon: 'home' },
-    { id: 'cases', label: 'Expedientes', icon: 'briefcase' },
-    { id: 'documents', label: 'Documentos', icon: 'folder' },
-    ...(['owner', 'litigator'].includes(user.role)
-      ? [{ id: 'reports', label: 'Informes', icon: 'folder' }]
-      : []),
-    ...(canHearings(user.role, 'read')
-      ? [{ id: 'agenda', label: 'Agenda', icon: 'calendar' }]
-      : []),
-    ...(canAlerts(user.role) ? [{ id: 'alerts', label: 'Alertas', icon: 'clock' }] : []),
-  ];
+  const client = user.role === 'client';
+  const work = client
+    ? [
+        { id: 'contracts', label: 'Mis contratos', icon: 'file' },
+        { id: 'signing-certificates', label: 'Mi firma', icon: 'shield' },
+        { id: 'evidence-validation', label: 'Validar evidencia', icon: 'check' },
+      ]
+    : [
+        { id: 'overview', label: 'Inicio', icon: 'home' },
+        { id: 'cases', label: 'Expedientes', icon: 'briefcase' },
+        { id: 'documents', label: 'Documentos', icon: 'folder' },
+        ...(['owner', 'litigator'].includes(user.role)
+          ? [
+              { id: 'contracts', label: 'Por firmar', icon: 'file' },
+              { id: 'reports', label: 'Informes', icon: 'folder' },
+            ]
+          : []),
+        ...(canHearings(user.role, 'read')
+          ? [{ id: 'agenda', label: 'Agenda', icon: 'calendar' }]
+          : []),
+        ...(canAlerts(user.role) ? [{ id: 'alerts', label: 'Alertas', icon: 'clock' }] : []),
+      ];
   const admin = [
     { id: 'integrity-incidents', label: 'Incidentes de integridad', icon: 'shield' },
     { id: 'team', label: 'Equipo', icon: 'users' },
@@ -38,12 +48,18 @@
 </script>
 
 {#snippet content()}
-  <button class="brand" onclick={() => go('overview')} aria-label="Qadra, ir al inicio"
-    ><Brand /></button
+  <button
+    class="brand"
+    onclick={() => go(client ? 'contracts' : 'overview')}
+    aria-label="Qadra, ir al inicio"><Brand /></button
   >
   <div class="workspace-label">
     <span class="workspace-monogram"><Icon name="briefcase" size={18} /></span>
-    <div><strong>Mi despacho</strong><small>Espacio de trabajo</small></div>
+    <div>
+      <strong>{client ? 'Mi espacio' : 'Mi despacho'}</strong><small
+        >{client ? 'Contratos y firma' : 'Espacio de trabajo'}</small
+      >
+    </div>
   </div>
   <nav aria-label="Navegaci&#243;n principal">
     <span class="eyebrow nav-label">ESPACIO DE TRABAJO</span>
@@ -60,6 +76,7 @@
               'resolutions',
               'resources',
               'deadlines',
+              'case-contracts',
             ].includes(view))}
         aria-current={view === item.id ||
         (item.id === 'cases' &&
@@ -73,6 +90,7 @@
             'resolutions',
             'resources',
             'deadlines',
+            'case-contracts',
           ].includes(view))
           ? 'page'
           : undefined}
@@ -93,16 +111,19 @@
         onclick={() => go('owner-certificates')}
         ><Icon name="shield" size={19} />Mi certificado</button
       >{/if}
-    {#if user.role === 'litigator'}<button
+    {#if ['owner', 'litigator'].includes(user.role)}<button
         class="guide-link"
         class:active={view === 'signing-certificates'}
         aria-current={view === 'signing-certificates' ? 'page' : undefined}
         onclick={() => go('signing-certificates')}
         ><Icon name="shield" size={19} />Mi firma documental</button
       >{/if}
-    <button class="guide-link" class:active={view === 'guide'} onclick={() => go('guide')}
-      ><Icon name="help" size={19} />Gu&#237;a de uso<Icon name="arrow" size={15} /></button
-    >
+    {#if !client}<button
+        class="guide-link"
+        class:active={view === 'guide'}
+        onclick={() => go('guide')}
+        ><Icon name="help" size={19} />Gu&#237;a de uso<Icon name="arrow" size={15} /></button
+      >{/if}
     <div class="profile">
       <span class="avatar">{user.email.slice(0, 2).toUpperCase()}</span>
       <div>

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, expectClientWorkspace } from './helpers.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 import {
   accounts,
@@ -152,12 +152,8 @@ test('real association access preserves read-only history and clears revoked mem
     client.on('request', (request) => calls.push(new URL(request.url()).pathname));
     await client.goto('/');
     await loginAs(client, accounts.client, 0);
-    await navigate(client, 'Expedientes');
-    // A Client account is never a case member, so the case is not listed.
-    await expect(client.getByRole('button', { name: new RegExp(scenario.case.title) })).toHaveCount(
-      0,
-    );
-    await expect(client.getByRole('link', { name: 'Recursos', exact: true })).toHaveCount(0);
+    // A Client account is never a case member and has no case navigation.
+    await expectClientWorkspace(client, ['resources']);
     expect(
       calls.filter(
         (path) => path.startsWith('/api/v1/cases/') && path.includes('/procedural-resources'),

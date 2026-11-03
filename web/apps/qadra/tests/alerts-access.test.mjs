@@ -11,6 +11,6 @@ test('personal alerts are available to staff without granting Client access', ()
 test('alerts navigation normalizes by current role and has its own title', () => {
   for (const role of ['owner', 'litigator', 'paralegal'])
     assert.equal(normalizeView('#alerts', role), 'alerts');
-  assert.equal(normalizeView('#alerts', 'client'), 'overview');
+  assert.equal(normalizeView('#alerts', 'client'), 'contracts');
   assert.equal(viewLabels.alerts, 'Mis alertas');
 });

@@ -159,7 +159,7 @@ la política de inactividad pendiente de selección.
 | **Administrador** (Owner) | Todos los expedientes; gestión de cuentas y asignaciones, registro procesal, documentos y sellado. Accede a Equipo, Auditoría, Incidentes de integridad y Calendarios jurisdiccionales. |
 | **Litigante** | Expedientes con asignación vigente; registro procesal, documentos, clasificación y sellado. Consulta el tablero de sus expedientes. |
 | **Asistente legal** | Expedientes asignados; carga, clasificación, consulta, verificación y descarga documental. Consulta participantes, actividades y agenda; no sella ni gestiona los registros procesales. |
-| **Cliente** | Nunca se asigna a un expediente. Vincula su certificado de firma y consulta, lee y firma sólo sus propias solicitudes de contrato. El acceso documental y los módulos de participantes, agenda, alertas e informes permanecen restringidos. |
+| **Cliente** | Nunca se asigna a un expediente. Su menú muestra sólo **Mis contratos**, **Mi firma** y **Validar evidencia**: vincula su certificado de firma y consulta, lee y firma sólo sus propias solicitudes de contrato. Expedientes, documentos, participantes, agenda, alertas, informes y la guía de uso no aparecen; cualquier otra dirección vuelve a **Mis contratos**. |
 
 Las asignaciones se aplican a cuentas de acceso. Una ficha de participante
 procesal no crea una cuenta ni concede permisos. Tampoco la existencia de una
@@ -306,7 +306,9 @@ usadas en determinadas fichas de participantes son un flujo distinto.
 
 ### Firmar personalmente una versión PDF
 
-La cuenta Litigante dispone de **Mi firma documental**. El titular puede generar
+Las cuentas Litigante y Administrador disponen de **Mi firma documental**, y la
+cuenta Cliente de **Mi firma**; sólo el Litigante firma personalmente una
+versión. El titular puede generar
 la clave cifrada y el CSR con **Generar clave y solicitud**, comprobar la copia
 guardada y entregar solamente el CSR a la CA. También puede generarlos con
 OpenSSL. Conserva su clave y contraseña; la CA entrega el certificado público.
@@ -341,37 +343,79 @@ Antes de la primera solicitud se prepara al Cliente:
 1. El administrador invita una cuenta con rol Cliente en **Equipo**. Sólo una
    cuenta creada al aceptar esa invitación puede firmar como Cliente; un alta
    directa no es elegible.
-2. El Cliente genera su clave y su solicitud de certificado, entrega sólo la
-   solicitud a la CA y lee en persona o por teléfono la huella SHA-256 de su
-   clave pública. La CA la coteja antes de emitir el certificado.
-3. El Cliente vincula su certificado con la prueba de posesión de su clave.
-   En esta versión **Mi firma documental** sólo aparece para litigantes; el
-   Cliente y el administrador usan las
-   [rutas de vinculación](http-individual-signing.md).
-4. Cliente y despacho firman a mano dos ejemplares de la hoja de huella: folio,
-   correo de la cuenta, huella de la clave, huella de la raíz y fecha. El folio
-   se captura en cada solicitud; la hoja no acredita identidad civil.
+2. El Cliente entra y abre **Mi firma**. En **Generar clave y solicitud**
+   escribe su nombre; la organización queda fija con el valor que exige la CA
+   y no indica que pertenezca al despacho. Tras generar, Qadra muestra la
+   **Huella de tu clave pública** (SHA-256 del SPKI, calculada en su equipo).
+   Descarga la clave cifrada, comprueba la copia y descarga el CSR.
+3. Entrega sólo el CSR a la CA y le lee la huella en persona o por teléfono;
+   la CA la coteja antes de emitir el certificado.
+4. Con **Imprimir hoja de huella** imprime dos ejemplares con correo de la
+   cuenta, huella de la clave, huella de la raíz y fecha; Cliente y despacho
+   los firman a mano y escriben el folio. La hoja no acredita identidad civil.
+5. Vincula su certificado público en **Mi firma** firmando la declaración de
+   vínculo con su clave. **Mi firma** avisa cuando faltan 30 días para que el
+   certificado venza.
 
-Las pantallas de contratos de Qadra todavía no forman parte de esta versión;
-hoy el flujo se opera mediante la [API de contratos](http-contract-signing.md).
-Un administrador o litigante asignado crea el contrato sobre la versión PDF y
-solicita la firma indicando el correo exacto del Cliente, el firmante del
-despacho, la vigencia de 1 a 30 días y el folio de la hoja. El Cliente consulta
-sus solicitudes, descarga el PDF exacto, firma su declaración y conserva el
-paquete parcial; también puede rechazar antes de firmar. El firmante del
-despacho firma después o declina. Quien solicitó, o un administrador, puede
-cancelar con un motivo. Al completarse, ambas partes descargan el paquete
-final, que se comprueba sin Qadra con OpenSSL siguiendo su `INSTRUCCIONES.md`
-o con el validador de evidencia.
+**Crear y solicitar (Administrador o Litigante asignado).** En el detalle de
+la versión actual de un PDF sin sello aparece **Crear contrato**. Escribe el
+título y confirma; después completa **Solicitar firmas** con el correo exacto
+de la cuenta del Cliente, quién firma por el despacho, la vigencia (7 días por
+omisión, de 1 a 30) y el folio de la hoja de huella. Si falta preparar a una
+parte o el documento, la lista **Antes de solicitar las firmas** lo explica y
+no se crea nada, así que la vigencia no empieza. La pestaña **Contratos** del
+expediente lista cada contrato con su estado, sus solicitudes, la línea de
+tiempo, **Cancelar solicitud** (con motivo, para quien la pidió o un
+administrador), **Abandonar contrato** en borrador y un aviso si existe una
+versión posterior del documento. El Asistente legal sólo consulta.
 
-Si no llega una respuesta, consulta el recibo de la operación antes de repetir:
-reenviar los mismos datos devuelve el recibo original y nunca crea una segunda
-firma. Una solicitud vence sola al agotar su vigencia, y una versión nueva del
-documento obliga a cancelar y solicitar de nuevo. Mientras una solicitud está
-abierta o completada, esa versión no admite sello ni firma individual. Los
-avisos de cada paso se envían por correo sólo si el despacho lo habilitó. La
-TSA, la CA y el servidor pertenecen al despacho: la evidencia es una
-declaración técnica del despacho, no una constancia de un tercero acreditado.
+**Revisar y firmar (Cliente).** En **Mis contratos** abre la solicitud. Firma
+en tres pasos:
+
+1. **Revisa**: pulsa **Cargar y comprobar el PDF**. Qadra recalcula la huella
+   SHA-256 del PDF en el navegador y sólo lo muestra si coincide con la
+   solicitud. Junto a él ves el nombre declarado y la huella del certificado de
+   quien firma por el despacho, el vencimiento, el folio y **Descargar PDF**.
+2. **Confirma**: marca la casilla "Tu firma solo formaliza el contrato si el
+   despacho firma antes de la fecha indicada. Una vez firmada no podrás
+   retirarla. Solo la revocación de tu certificado, publicada por la autoridad
+   certificadora antes de que el despacho firme, impide que se complete".
+3. **Firma**: selecciona el archivo de tu clave cifrada, escribe su contraseña
+   una sola vez, pulsa **Firmar localmente** y después **Enviar firma**.
+
+La firma no se habilita hasta comprobar el PDF y marcar la casilla. Al
+terminar se lee "Tu firma quedó registrada; el contrato aún no está
+formalizado" y **Descargar acuse parcial** en la misma pantalla. **Rechazar
+contrato** es una acción aparte que pide **Confirmar rechazo**. Sin vínculo,
+Qadra muestra los pasos de preparación y **Ir a Mi firma**; con el certificado
+vencido, o si la solicitud usa otro certificado, también envía a **Mi firma**.
+
+**Contrafirmar (despacho).** El firmante designado abre **Por firmar**, revisa
+el mismo PDF, descarga el acuse parcial y lo valida en el panel **Validar un
+paquete de evidencia** de la propia solicitud: un acuse parcial se presenta
+como **Parcial** y "Acuse parcial: no acredita contrato". La firma del
+despacho no se habilita hasta que el panel valida, sin fallas, el acuse parcial
+de esa misma solicitud; el de otra solicitud no la habilita. Después confirma y
+firma como el Cliente, o usa **Declinar firma** con su confirmación, que no
+exige validar. Al
+completarse, las partes descargan **Descargar contrato firmado**. Cualquiera
+puede comprobar un paquete en **Validar evidencia** (Cliente) o en la ficha
+documental, o sin Qadra con OpenSSL siguiendo su `INSTRUCCIONES.md`.
+
+Si el servidor responde que la cuenta, la configuración de confianza o el
+contrato cambiaron, Qadra descarta la declaración y muestra **Preparar la
+firma** para firmar una nueva. Si no llega una respuesta, pulsa **Consultar
+recibo de firma** antes de repetir; mientras la pantalla siga abierta, reenviar la misma firma devuelve el
+recibo original y nunca crea una segunda. Una solicitud vence sola al agotar su
+vigencia, y una versión nueva del documento obliga a cancelar y solicitar de
+nuevo. Mientras una solicitud está abierta o completada, esa versión se
+muestra como **En contrato** o **Contrato firmado** en lugar de "Pendiente de
+sello" y no admite sello ni firma individual. Los avisos de cada paso se envían
+por correo sólo si el despacho lo habilitó. La TSA, la CA y el servidor
+pertenecen al despacho: la evidencia es una declaración técnica del despacho,
+no una constancia de un tercero acreditado. Las reglas completas están en la
+[API de contratos](http-contract-signing.md) y el
+[ADR 0086](adr/0086-bilateral-contract-signing.md).
 
 ## 6. Participantes, etapas y actuaciones declaradas
 

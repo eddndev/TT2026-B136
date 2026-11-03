@@ -81,6 +81,25 @@ async fn history_passes_a_descending_cursor_and_returns_version_metadata() {
     assert!(body["versions"][0].get("vault").is_none());
     assert!(body["versions"][0].get("evidence").is_none());
     assert!(body["versions"][0].get("current_metadata").is_none());
+    assert!(body["versions"][0]["contract_state"].is_null());
+}
+
+#[tokio::test]
+async fn history_names_the_contract_state_of_an_unsealed_version() {
+    let workflow = Arc::new(StubWorkflow::default());
+    let response = request(
+        &workflow,
+        Method::GET,
+        &format!("{}?limit=1", base()),
+        Some("owner-token"),
+        Body::empty(),
+    )
+    .await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = json(response).await;
+    assert_eq!(body["versions"][0]["version"], 3);
+    assert_eq!(body["versions"][0]["sealed"], false);
+    assert_eq!(body["versions"][0]["contract_state"], "en_firma");
 }
 
 #[tokio::test]

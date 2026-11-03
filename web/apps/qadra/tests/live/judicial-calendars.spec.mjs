@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, expectClientWorkspace } from './helpers.mjs';
 import {
   calendars,
   panel,
@@ -136,13 +136,7 @@ test('real calendar catalogue is global staff read only and Client is denied', a
       await page.goto('/');
       await loginAs(page, calendars[role], 0);
       if (role === 'client') {
-        await page.evaluate(() => {
-          location.hash = 'judicial-calendars';
-        });
-        await expect(
-          page.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
-        ).toBeVisible();
-        await expect(page).toHaveURL(/#overview$/);
+        await expectClientWorkspace(page, ['judicial-calendars']);
         await expect(panel(page)).toHaveCount(0);
       } else {
         await openCalendars(page, calendars.read.id);

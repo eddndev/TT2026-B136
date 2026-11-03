@@ -1,5 +1,36 @@
 # Informe de verificación local
 
+## Interfaz de contratos bilaterales: cadena, acuse parcial y declaraciones obsoletas: 2 de noviembre de 2026
+
+Ejecución local fresca sobre la rama `feat/bilateral-ui`, con `TMPDIR` en disco
+dentro del checkout (`output/tmp`) y `CARGO_BUILD_JOBS=4`, una campaña focal a
+la vez. Cubre la comprobación en el navegador de la cadena de la contrafirma,
+el bloqueo de la contrafirma hasta validar el acuse parcial de la misma
+solicitud, la nueva preparación tras una declaración rechazada por cambio de
+cuenta, confianza o revisión, el texto de verificación de una versión bajo
+contrato, el correo en la hoja de huella del Owner y las especificaciones con
+servicios reales del Cliente de
+[ADR 0086](adr/0086-bilateral-contract-signing.md). No cambió código Rust. No
+hay integración, CI ni despliegue de este cambio.
+
+- `npm test` en `web/apps/qadra`: 1014 aprobadas, ninguna fallida. Antes de cada
+  corrección fallaron, como se esperaba, las pruebas nuevas de
+  `contract-chain.test.mjs`, `contract-signing-gate.test.mjs` y
+  `contract-presentation.test.mjs`.
+- `npm run format:check` y `npm run build` en `web`: correctos.
+- Playwright con HTTP controlado y `--workers=2`:
+  `contract-client.spec.mjs`, `contract-create.spec.mjs`,
+  `contract-firm.spec.mjs` y `local-key-request.spec.mjs`, 16 escenarios
+  aprobados. La comprobación de la hoja de huella falló antes de pasar el
+  correo de la cuenta a la solicitud de clave del Owner.
+- `cargo test -p evidence-verify` (339 unitarias y 122 de validación) y
+  `cargo test -p domain --test contract_statements` (10), con Rust 1.94.0 y
+  OpenSSL 3.5.9: aprobadas.
+- No se ejecutaron las cuatro especificaciones con servicios reales
+  corregidas (`hearing-permissions`, `stage-adoption`,
+  `procedural-facts-permissions` y `typed-participant-permissions`); solo se
+  comprobó su sintaxis con `node --check`. Quedan para la campaña de CI.
+
 ## Almacenamiento, membresías y correcciones de contratos bilaterales: 2 de noviembre de 2026
 
 Ejecución local fresca sobre la rama `feat/bilateral-contracts` en `b6797f61`,

@@ -8,7 +8,7 @@
   \foreach \n/\x/\t/\d in {own/3.95/Owner/administra el despacho,
                           lit/6.62/Litigante/gestiona sus asuntos,
                           par/9.32/Paralegal/apoya y consulta,
-                          cli/12.0/Cliente/consulta lo autorizado} {
+                          cli/12.0/Cliente/firma sus contratos} {
     \node[humano] (\n) at (\x,0) {\textbf{\t}\\[-1pt]{\diag \d}};
     \draw[flecha] (\n.south) -- (\x,-1.25);
   }
@@ -32,16 +32,17 @@
   \node[grupo] (docs) at (10.775,-5.0) {{\scriptsize\bfseries Documentos y custodia}\\[1pt]
     CU-11 Carga y clasificación\\ CU-12 Consulta con verificación\\[1pt]
     \textcolor{ESCOMGris}{Owner, Litigante y Paralegal asignado}};
-  \node[grupo] (firma) at (5.225,-7.25) {{\scriptsize\bfseries Firma}\\[1pt]
-    CU-13 Firma con sello de tiempo\\ CU-14 Verificación de firma\\[1pt]
-    \textcolor{ESCOMGris}{Litigante firma; usuario con acceso verifica}};
+  \node[grupo] (firma) at (5.225,-7.25) {{\scriptsize\bfseries Contratos y firma}\\[1pt]
+    CU-13 Firma bilateral (y CU-13a)\\ CU-14 Verificación de firma\\
+    CU-18 Alta de Cliente\\[1pt]
+    \textcolor{ESCOMGris}{Partes firman; acceso verifica}};
   \node[grupo] (oper) at (10.775,-7.25) {{\scriptsize\bfseries Operación y monitoreo}\\[1pt]
     CU-15 Tablero de control\\ CU-16 Informes\\ CU-17 Bitácora de actividad\\[1pt]
     \textcolor{ESCOMGris}{Owner; Litigante en tablero e informes propios}};
 
   % ==== Actores externos ====
   % El sistema envía los correos: la flecha sale de la zona.
-  \node[externo] (mail) at (1.2,-3.875) {\textbf{Servicio de correo}\\ invitaciones, recuperación, alertas y aviso de informe};
+  \node[externo] (mail) at (1.2,-3.875) {\textbf{Servicio de correo}\\ invitaciones, recuperación, alertas y avisos};
   \draw[flecha] (2.75,-3.875) -- (mail.east);
 
   \node[externo] (tsa) at (1.2,-7.25) {\textbf{TSA local}\\ sello de tiempo RFC~3161};

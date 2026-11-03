@@ -6,6 +6,7 @@ import {
   detail,
   openParticipant,
 } from './participant-helpers.mjs';
+import { expectClientWorkspace } from './helpers.mjs';
 
 test('case-local directory creates, edits and archives without changing account access', async ({
   page,
@@ -76,11 +77,6 @@ test('directory permissions keep paralegal read-only and client outside particip
   await page.unrouteAll({ behavior: 'wait' });
   const state = await participantSetup(page, 'client');
   await expect(page.getByRole('link', { name: 'Participantes', exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    location.hash = 'participants';
-  });
-  await expect(
-    page.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
-  ).toBeVisible();
+  await expectClientWorkspace(page, ['participants']);
   expect(state.calls).toEqual([]);
 });

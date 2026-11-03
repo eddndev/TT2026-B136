@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { setupFacts } from './procedural-facts-helpers.mjs';
 import { factCaseId } from '../fixtures/procedural-facts.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, expectClientWorkspace } from './helpers.mjs';
 
 test.setTimeout(15000);
 for (const role of ['owner', 'litigator', 'paralegal'])
@@ -38,18 +38,6 @@ test('Client cannot open deadlines by navigation or forced hash and sends no pri
     return route.fulfill({ status: 403, json: { error: { code: 'permission_denied' } } });
   });
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-  ).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Plazos', exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    location.hash = 'deadlines';
-  });
-  await expect(page.getByRole('button', { name: 'Inicio', exact: true }).first()).toHaveAttribute(
-    'aria-current',
-    'page',
-  );
+  await expectClientWorkspace(page, ['deadlines']);
   expect(calls).toHaveLength(0);
 });

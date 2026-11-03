@@ -7,7 +7,7 @@ import {
 } from './deadline-editor-helpers.mjs';
 import { id } from '../fixtures/deadline-unit.mjs';
 import { v2Record as detail } from '../fixtures/deadline-v2-unit.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, expectClientWorkspace } from './helpers.mjs';
 import { overview, otherAdministration } from './case-administration-helpers.mjs';
 const panel = (page) => page.getByRole('region', { name: 'Detalle de plazo', exact: true });
 const open = (page, row) =>
@@ -62,12 +62,7 @@ test('client does not request deadlines through navigation or a protected hash',
 }) => {
   const state = await setupDeadlines(page, { role: 'client' });
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(page.getByRole('link', { name: 'Plazos', exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    location.hash = 'deadlines';
-  });
+  await expectClientWorkspace(page, ['deadlines']);
   await expect(
     page.getByRole('heading', { name: 'Plazos del expediente', exact: true }),
   ).toHaveCount(0);

@@ -3,12 +3,18 @@
   import { readable } from 'svelte/store';
   import { watchLocalVisibility } from '../lib/local-crypto-visibility.mjs';
   import { download } from '../lib/documents.mjs';
-  import { keyRequestValues } from '../lib/key-request-values.mjs';
+  import { keyRequestValues, generatedKeyRequest } from '../lib/key-request-values.mjs';
   import { createLocalCrypto } from '../lib/local-crypto-client.mjs';
+  import KeyFingerprintSheet from './KeyFingerprintSheet.svelte';
 
   export let contextKey;
   export let purpose;
   export let disabled = false;
+  // A Client certificate carries the organization of the issuing CA by
+  // policy, so the field is fixed. Rationale:
+  // docs/adr/0086-bilateral-contract-signing.md.
+  export let organizationLocked = false;
+  export let accountEmail = '';
   const admission = getContext('crypto-admission') ?? readable(false);
   let visible = true,
     previousAllowed;
@@ -100,16 +106,7 @@
       password = passwordConfirmation = '';
       const result = await pending;
       if (!active(ticket)) return;
-      if (
-        typeof result?.encryptedKeyPem !== 'string' ||
-        !result.encryptedKeyPem.startsWith('-----BEGIN ENCRYPTED PRIVATE KEY-----') ||
-        new TextEncoder().encode(result.encryptedKeyPem).byteLength > 65536 ||
-        typeof result.csrPem !== 'string' ||
-        !result.csrPem.startsWith('-----BEGIN CERTIFICATE REQUEST-----') ||
-        new TextEncoder().encode(result.csrPem).byteLength > 16384
-      )
-        throw new Error('La criptografia local devolvio un resultado no valido.');
-      generated = result;
+      generated = generatedKeyRequest(result);
     } catch (failure) {
       if (active(ticket)) error = failure.message;
     } finally {
@@ -234,9 +231,14 @@
             required
             maxlength="128"
             bind:value={organization}
+            readonly={organizationLocked}
             autocomplete="off"
           /></label
         >
+        {#if organizationLocked}<p class="hint">
+            La organizaci&#243;n es la de la CA emisora por pol&#237;tica; no indica que pertenezcas
+            al despacho.
+          </p>{/if}
         <label
           >Pa&#237;s (C)<input
             required
@@ -286,6 +288,13 @@
       Solicitud preparada para <strong>{commonName}</strong>. Guarda primero tu clave cifrada y
       comprueba la copia.
     </p>
+    <KeyFingerprintSheet
+      spkiSha256={generated.spkiSha256}
+      {commonName}
+      {organization}
+      {country}
+      email={accountEmail}
+    />
     <button class="primary" type="button" disabled={!allowed || busy} onclick={saveKey}
       >Descargar clave cifrada</button
     >

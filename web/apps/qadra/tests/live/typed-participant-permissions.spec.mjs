@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
-import { openCase, navigate } from '../case-administration-workflow.mjs';
+import { loginAs, expectClientWorkspace } from './helpers.mjs';
+import { openCase } from '../case-administration-workflow.mjs';
 import { createPenal } from './case-administration-helpers.mjs';
 import {
   accounts,
@@ -111,16 +111,8 @@ test('institutional participants retain staff read policy, closed-case gates and
       await reader.goto('/');
       await loginAs(reader, accounts[role], 0);
       if (role === 'client') {
-        await navigate(reader, 'Expedientes');
-        await expect(
-          reader.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
-        ).toHaveCount(0);
-        // A Client account is never a case member, so the case is not listed.
-        await expect(reader.getByRole('button', { name: new RegExp(record.title) })).toHaveCount(0);
-        await reader.evaluate(() => (location.hash = '#participants'));
-        await expect(reader.getByRole('link', { name: 'Participantes', exact: true })).toHaveCount(
-          0,
-        );
+        // A Client account is never a case member and has no case navigation.
+        await expectClientWorkspace(reader, ['participants']);
         expect(paths.filter((path) => /\/(participants|subjects)(\/|$)/.test(path))).toEqual([]);
       } else {
         await openCase(reader, record);

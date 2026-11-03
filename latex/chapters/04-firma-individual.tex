@@ -1,7 +1,7 @@
 \subsection{Firma individual con custodia del titular}
 \label{sec:impl-firma-individual}
 
-La firma y la verificación de CU-13 y CU-14 (\cref{fig:cu-13,fig:cu-14}) y
+La firma y la verificación de CU-13a y CU-14 (\cref{fig:cu-13a,fig:cu-14}) y
 RF-15 (\cref{tab:rf-cripto}) dejan la clave privada fuera del servidor: el
 titular la genera y la usa con el ayudante local
 (\cref{sec:impl-criptografia-local}) o con OpenSSL, y tras el CSR y el
@@ -16,9 +16,14 @@ certificado de la CA la API recibe solo material público
   \label{fig:impl-firmaind-estados}
 \end{figure}
 
-\paragraph{Quién firma.} Solo firma el Litigante; Owner y Paralegal conservan
-consulta, verificación y exportación sin firmar como otro usuario, y Cliente
-queda denegado. Un certificado no sustituye la sesión con MFA ni concede
+\paragraph{Quién firma.} Solo el Litigante produce una firma individual; Owner
+y Paralegal conservan consulta, verificación y exportación sin firmar como otro
+usuario. Owner y Cliente pueden registrar un vínculo propio para la firma
+bilateral (\cref{sec:impl-firma-bilateral}), pero la firma individual sigue
+exigiendo, en su servicio y en su guarda de almacenamiento, un Litigante
+miembro del expediente, de modo que esos vínculos nunca producen una firma
+individual. Una versión con una solicitud de contrato abierta o completada no
+admite firma individual (\texttt{contract\_version\_frozen}). Un certificado no sustituye la sesión con MFA ni concede
 pertenencia, y su sujeto o correo no se usa para inferir la cuenta. El titular
 firma la declaración \texttt{DOCBIND1} de 142 bytes, con identidad de
 despliegue y cuenta, contadores de la cuenta, identificador del vínculo,

@@ -2,7 +2,16 @@ import { canCalendars } from './judicial-calendar-labels.mjs';
 import { canHearings } from './hearings.mjs';
 import { canParticipants } from './participants.mjs';
 import { canAlerts } from './alerts-presentation.mjs';
+import { contractDocumentStatus } from './contract-presentation.mjs';
+
+// A client account reaches only its own contracts, its signing binding and
+// the local evidence validator. Rationale:
+// docs/adr/0086-bilateral-contract-signing.md.
+export const clientViews = ['contracts', 'signing-certificates', 'evidence-validation'];
+
 export function documentStatus(document) {
+  const contract = contractDocumentStatus(document);
+  if (contract) return contract;
   if (document.report?.verdict === 'not_valid')
     return { label: 'Revisar evidencia', tone: 'danger', key: 'failed' };
   if (document.report?.verdict === 'valid')
@@ -15,7 +24,10 @@ export function documentStatus(document) {
 
 export function normalizeView(hash, role) {
   const view = hash.replace(/^#/, '');
-  if (view === 'signing-certificates' && role === 'litigator') return view;
+  if (role === 'client') return clientViews.includes(view) ? view : 'contracts';
+  if (['signing-certificates', 'contracts'].includes(view) && ['owner', 'litigator'].includes(role))
+    return view;
+  if (view === 'case-contracts' && ['owner', 'litigator', 'paralegal'].includes(role)) return view;
   if (view === 'reports' && ['owner', 'litigator'].includes(role)) return view;
   if (view === 'alerts' && canAlerts(role)) return view;
   if (view === 'judicial-calendars' && canCalendars(role)) return view;
@@ -62,6 +74,9 @@ export const viewLabels = {
   resolutions: 'Expedientes / Resoluciones',
   resources: 'Expedientes / Recursos',
   deadlines: 'Expedientes / Plazos',
+  'case-contracts': 'Expedientes / Contratos',
+  contracts: 'Contratos',
+  'evidence-validation': 'Validar evidencia',
   agenda: 'Agenda',
   alerts: 'Mis alertas',
   'integrity-incidents': 'Incidentes de integridad',

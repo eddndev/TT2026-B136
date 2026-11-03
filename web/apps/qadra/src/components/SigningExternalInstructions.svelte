@@ -1,6 +1,11 @@
 <script>
   export let kind;
-  const files = { binding: 'certificate-binding', consent: 'document-consent', pdf: 'document' };
+  const files = {
+    binding: 'certificate-binding',
+    consent: 'document-consent',
+    pdf: 'document',
+    contract: 'contract-statement',
+  };
   $: name = files[kind];
   $: input = name + (kind === 'pdf' ? '.pdf' : '.bin');
 </script>

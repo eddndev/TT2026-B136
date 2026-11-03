@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, expectClientWorkspace } from './helpers.mjs';
 import { navigate, openCase } from '../case-administration-workflow.mjs';
 import {
   accounts,
@@ -105,24 +105,8 @@ test('real agenda honors assignments roles closure and revocation without a brow
           await expect(other.locator('.hearing-revision')).toHaveCount(2);
         } else {
           await expect(other.getByRole('button', { name: 'Alertas', exact: true })).toHaveCount(0);
-          await navigate(other, 'Expedientes');
-          // A Client account is never a case member, so the case is not listed.
-          await expect(
-            other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }),
-          ).toHaveCount(0);
-          await expect(other.getByRole('link', { name: 'Audiencias', exact: true })).toHaveCount(0);
-          await other.evaluate(() => {
-            location.hash = 'agenda';
-          });
-          await expect(
-            other.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
-          ).toBeVisible();
-          await other.evaluate(() => {
-            location.hash = 'alerts';
-          });
-          await expect(
-            other.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
-          ).toBeVisible();
+          // A Client account is never a case member and has no case navigation.
+          await expectClientWorkspace(other, ['agenda', 'alerts']);
           expect(
             reads.filter(
               (path) =>

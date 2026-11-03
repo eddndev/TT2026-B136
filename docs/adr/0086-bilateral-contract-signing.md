@@ -779,6 +779,57 @@ These details are fixed by the service:
   mutation lock and the contract lock, before rechecking the author and the
   expected revision, and maps each trigger refusal to its contract error.
 
+### Interface
+
+- A Client account sees only "Mis contratos", "Mi firma" and "Validar
+  evidencia"; every other location, including a forced hash, resolves to its
+  contracts, and the usage guide, which describes cases and documents, is not
+  offered to it. "Mi firma" (the document-signing binding) is available to
+  Owner, Litigator and Client; an Owner keeps its separate access
+  certificate. Key generation shows the SHA-256 of the SPKI computed in the
+  browser and offers a fingerprint sheet printed by the browser itself, in
+  two copies, with an empty sheet reference to be filled by hand. The
+  organization of a Client request is fixed to the value of the CA policy.
+- Document list, detail and history carry the derived contract state of the
+  series. Qadra reads an unsealed version of a series in `en_firma` as "En
+  contrato" and in `firmado` as "Contrato firmado", never as sealed or
+  pending seal, and hides the seal and individual signature actions for it;
+  `contract_version_frozen` explains a refusal that still happens. The state
+  belongs to the series, not to the version: an older unsealed version of
+  such a series reads the same way although only the requested version is
+  frozen. This is accepted because a request always names the current
+  version and a later version supersedes it.
+- The Client signs in three steps: review (the exact PDF, whose SHA-256 the
+  browser recomputes and compares with the signed request before showing
+  it, the counterparty with its declared name and certificate fingerprint,
+  the expiry and a download), confirm (the plain-language consequences) and
+  sign (key file and password once, over the prepared `CTRTSIG1` bytes). The
+  firm signer reviews the same PDF and validates the partial acknowledgement
+  in the browser before counter-signing: the signing step stays disabled
+  until the local report of a package is `bilateral-contract-partial-v1`,
+  did not fail, and lists `contrato-solicitud.bin` with the SHA-256 of the
+  240 request bytes, so the package of another request does not unlock it.
+  Declining remains available without it. Before it signs a prepared position
+  2 statement, the browser requires its chain digests to equal the SHA-256 of
+  the position 1 signature and T1 served in the request detail, and its
+  deployment and root to equal those of the position 1 statement.
+  Rejection, decline, cancellation and abandonment each need a separate
+  confirmation. An uncertain signature
+  is reconciled through the receipt of its operation while the page stays
+  open; unlike individual signing, the attempt is not kept across a
+  navigation, and an identical resubmission remains safe. A statement that
+  the server refuses as stale (`signing_account_changed`,
+  `signing_trust_changed`, `contract_revision_conflict`) is discarded with
+  the signature and prepared again; a refusal that wrote nothing
+  (`contract_timestamp_unavailable`, `signing_trust_unavailable`) keeps the
+  signature for a resend.
+- The PDF frame is not sandboxed. In Chromium an empty `sandbox` attribute
+  replaced the built-in viewer of the blob URL with "This page has been
+  blocked by Chromium", while the same frame without it loaded the viewer
+  (observed in the real-browser test of the Client signature). The frame
+  therefore shows only bytes whose digest was already checked, from a
+  `blob:` URL of the page; limit (g) below still applies.
+
 ## Consequences
 
 What the evidence proves: the holder of each bound key accepted that exact

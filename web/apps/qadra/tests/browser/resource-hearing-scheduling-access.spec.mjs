@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate, caseId } from './helpers.mjs';
+import { login, navigate, caseId, expectClientWorkspace } from './helpers.mjs';
 import { openResourceActivities } from './resource-activities-helpers.mjs';
 import { failFact } from './procedural-facts-helpers.mjs';
 import { resourceCommandFixture } from '../fixtures/procedural-resource-unit.mjs';
@@ -52,15 +52,7 @@ test('client cannot navigate or load own resource hearings', async ({ page }) =>
   const state = await setupResourceHearing(page, { role: 'client' });
   state.seed();
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-  ).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Recursos', exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    location.hash = 'resources';
-  });
+  await expectClientWorkspace(page, ['resources']);
   await expect(hearingPanel(page)).toHaveCount(0);
   await expect(hearingEditor(page)).toHaveCount(0);
   expect(state.calls).toHaveLength(0);

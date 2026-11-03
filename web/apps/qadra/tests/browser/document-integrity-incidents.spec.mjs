@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { requestCompletion } from './request-completion.mjs';
-import { login, navigate, caseId, id } from './helpers.mjs';
+import { login, navigate, caseId, id, expectLanding } from './helpers.mjs';
 import { incidentPage } from '../fixtures/document-integrity-incidents.mjs';
 import {
   setupIncidents,
@@ -132,7 +132,7 @@ for (const role of ['litigator', 'paralegal', 'client']) {
     await page.evaluate(() => {
       location.hash = '#integrity-incidents';
     });
-    await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
+    await expectLanding(page, role);
     await expect(inbox(page)).toHaveCount(0);
     expect(state.calls).toHaveLength(0);
   });

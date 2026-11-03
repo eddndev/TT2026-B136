@@ -9,7 +9,7 @@ import {
   document,
   entry,
 } from './stage-helpers.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, expectClientWorkspace } from './helpers.mjs';
 const command = {
   expected_revision: 1,
   target: 'intermediate',
@@ -140,16 +140,7 @@ test('confirmed upload remains selected when stage validation rejects its format
 test('Client neither navigates nor requests staff stages', async ({ page }) => {
   const { state } = await setupStages(page, { role: 'client' });
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-  ).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Etapas', exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    location.hash = 'stages';
-  });
-  await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
+  await expectClientWorkspace(page, ['stages']);
   expect(state.requests).toHaveLength(0);
 });
 test('denied exact support clears all protected stage data', async ({ page }) => {

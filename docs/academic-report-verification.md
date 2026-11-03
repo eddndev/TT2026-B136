@@ -1,5 +1,82 @@
 # Verificación de la actualización académica
 
+## Interfaz de contratos y correcciones del reporte: 2 de noviembre de 2026
+
+`latex/chapters/04-firma-bilateral.tex` sustituye el párrafo que solo nombraba
+la interfaz por una descripción por rol de lo construido: creación y detalle
+del contrato para Owner y Litigante, lectura para el Paralegal asignado,
+estados *En contrato* y *Contrato firmado* en las vistas documentales, firma
+del Cliente en tres pasos dentro de su espacio restringido, contrafirma
+bloqueada hasta validar el acuse parcial de la misma solicitud, comprobación de
+la cadena y hoja de huella en *Mi firma*; sin capturas. `05-firma-bilateral.tex`
+registra las pruebas de esa interfaz. Se corrigieron textos que contradecían la
+firma bilateral: perfiles invitables (`04-invitaciones.tex`), acceso del
+Cliente (`04-decisiones.tex`, `04-interfaz-qadra.tex` y
+`fig-03f-contexto.tex`), el anexo de migraciones hasta 0052 y el catálogo
+canónico con `CTRTREQ1` y `CTRTSIG1` (`anexos.tex`), el número de códigos
+nuevos del validador (`04-validador-evidencia.tex`) y el alcance de varios
+firmantes (`05-validador-evidencia.tex`). Las cifras del motor y del dominio
+que cita `05-firma-bilateral.tex` (339 unitarias, 122 de validación y 10 de
+declaraciones) se repitieron este día con Rust 1.94.0 y OpenSSL 3.5.9, como
+registra [el informe de verificación](verification-report.md).
+
+Se compiló con `make` en `latex/` (LuaHBTeX 1.17.0, biber 2.22, latexmk 4.88):
+**400 páginas**, 2173520 bytes, SHA-256
+`ba1095371423736d55becc4d9c97a0809e973cd513538654f0ef3b35c467fac2`, sin
+referencias ni citas sin resolver ni etiquetas duplicadas. Persisten los tres
+avisos `Overfull hbox` menores de la rama base, fuera de los apartados
+modificados, y los dos avisos de versalitas de la fuente.
+
+El texto protegido no se modificó y conserva los desacuerdos ya registrados:
+el objetivo de `latex/chapters/01-introduccion.tex` cuenta 17 casos de uso
+frente a dieciocho, su criterio de autenticación describe RBAC con cuatro
+roles mientras el Cliente opera por relación, y `latex/frontmatter/resumen.tex`
+afirma que el no repudio impide que las partes nieguen su participación y que
+el núcleo está concluido y demostrado. El PDF generado no se versiona.
+
+## Contratos y firma bilateral en el reporte: 2 de noviembre de 2026
+
+El reporte incorpora la firma bilateral de contratos de
+[ADR 0086](adr/0086-bilateral-contract-signing.md) con el estado
+*implementado y demostrado localmente*, sin afirmar aceptación. En el capítulo
+3, la historia de firma de contratos se refina en cuatro historias derivadas y
+la del tablero nombra los contratos pendientes de firma; el catálogo pasa a
+dieciocho casos de uso, con la firma bilateral, la firma individual como
+variante, la verificación con resultado por parte, el tablero con contratos
+pendientes de firma y el nuevo caso de alta de Cliente con clave propia. Los
+requerimientos de firma, sellado, verificación y tablero describen ambas
+variantes sin añadir requerimientos. El diseño criptográfico añade
+`CTRTREQ1`, `CTRTSIG1`, la cadena de huellas, los tres sellos, la tabla de lo
+que la evidencia prueba y no prueba, la custodia de la clave del Cliente, su
+excepción de acceso y los límites (a) a (i) del ADR. El modelo de datos
+describe las seis tablas de la familia de contratos. Los capítulos 4 y 5
+añaden `latex/chapters/04-firma-bilateral.tex` y
+`latex/chapters/05-firma-bilateral.tex`, incluidos desde las secciones
+documentales, y el criterio de no repudio sobre contratos firmados pasa a
+Parcial. La interfaz de Qadra se nombra solo como interfaz por rol, sin
+capturas. Las figuras nuevas o actualizadas son `fig-03c-firma-bilateral`,
+`fig-03b-panorama`, `fig-03d-trazabilidad` y `fig-03f-componentes`.
+
+Se compiló con `make` en `latex/` (LuaHBTeX 1.17.0, biber 2.22, latexmk 4.88):
+**398 páginas**, 2168714 bytes, SHA-256
+`5e2d8d1c43fdbcebc00ede96c920b291fc54aedffb193300cf0e2673856dd8f8`, sin referencias ni citas sin resolver ni etiquetas duplicadas. Persisten
+los tres avisos `Overfull hbox` menores que ya tenía la compilación de la rama
+base, fuera de los apartados modificados, y los dos avisos de versalitas de la
+fuente. Se inspeccionaron las páginas de las figuras de panorama, trazabilidad,
+componentes y secuencia bilateral, las fichas de firma bilateral y de alta de Cliente, las tablas de
+`CTRTREQ1` y de límites y la tabla de pruebas bilaterales; se corrigieron un
+salto en la figura de trazabilidad y dos desbordes en la tabla de datos y en el
+apartado de implementación.
+
+Quedan en desacuerdo con el texto protegido, que no se modificó: el objetivo
+de análisis y diseño de `latex/chapters/01-introduccion.tex` cuenta 17 casos
+de uso frente a los dieciocho del capítulo 3; su criterio de autenticación
+describe RBAC con cuatro roles, mientras el Cliente opera por relación sin
+permisos de rol; y `latex/frontmatter/resumen.tex` afirma que el no repudio
+impide que las partes nieguen su participación y que el núcleo está concluido
+y demostrado, frente a la formulación condicionada y el estado parcial del
+criterio de contratos. El PDF generado no se versiona.
+
 ## Rediseño del capítulo de implementación: 22 de octubre de 2026
 
 El capítulo 4 se reescribió para que los diagramas sustituyan a la prosa
