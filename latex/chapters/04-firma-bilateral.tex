@@ -95,11 +95,40 @@ consumidor arrendado aparte que solo actúa con
 correo de informes; deshabilitado, los avisos quedan guardados y las partes
 ven sus solicitudes en Qadra. Nada del flujo de firma espera al correo.
 
-\paragraph{Interfaz.} Qadra recibe una interfaz por rol para crear contratos,
-solicitar firma, revisar y firmar como Cliente o como firmante del despacho,
-descargar los paquetes y validarlos en el navegador; esta subsección no la
-detalla. El recorrido completo se reproduce además por API con
-\rutarepo{scripts/api-contract-demo.sh} (\cref{sec:pruebas-firma-bilateral}).
+\paragraph{Interfaz por rol.} En Qadra, el Owner y el Litigante ven la acción
+\emph{Crear contrato} en la ficha de un documento PDF sin sellar y sin
+contrato, y la vista \emph{Contratos} de cada expediente; un asistente sobre
+la versión vigente fija el Cliente por su correo, el firmante del despacho, la
+vigencia de siete días por omisión y el folio de la hoja de huella, y muestra
+la lista de preparación que devuelve el servidor antes de solicitar firmas. El detalle del contrato
+presenta su estado, la línea de tiempo, las solicitudes con sus descargas y el
+aviso de una versión posterior; el solicitante o un Owner cancelan con motivo
+obligatorio y confirmación aparte. Un Paralegal asignado solo lee ese detalle.
+La lista, la ficha y el historial documentales leen una versión sin sellar de
+una serie en firma como \emph{En contrato} o \emph{Contrato firmado}, nunca como
+sellada o pendiente de sello, y ocultan el sello y la firma individual. El
+Cliente solo dispone de \emph{Mis contratos}, \emph{Mi firma} y
+\emph{Validar evidencia}; cualquier otra ubicación lo devuelve a sus contratos.
+Firma en tres pasos: revisa el PDF, cuya huella el navegador recalcula y
+compara con la solicitud firmada antes de mostrarlo, junto con la contraparte,
+su huella de certificado y el vencimiento; confirma una casilla en lenguaje
+llano, y firma con su archivo de clave y contraseña sobre los 303 bytes
+preparados, sin que la clave salga del navegador. Rechazar es una acción
+separada con confirmación. El firmante del despacho encuentra la solicitud en
+\emph{Por firmar}, revisa el mismo PDF, descarga el acuse parcial y lo valida
+en el navegador; la contrafirma permanece deshabilitada hasta que el informe
+local corresponde al perfil parcial, no presenta fallas y cubre los bytes
+exactos de la solicitud. Antes de firmar, el navegador comprueba además que la
+declaración preparada encadena con la firma del Cliente y con T1 tal como el
+servidor los entrega, bajo el mismo despliegue y la misma raíz. Declinar sigue
+disponible sin validar. En \emph{Mi firma}, la generación de clave muestra la
+huella SHA-256 de la clave pública calculada en el navegador y ofrece una hoja
+de huella para imprimir con el correo de la cuenta y la huella de la raíz. Una
+respuesta incierta se concilia con el recibo de su operación mientras la
+página sigue abierta, y una declaración rechazada por cambio de cuenta, de
+confianza o de revisión se prepara de nuevo. El recorrido completo se
+reproduce además por API con \rutarepo{scripts/api-contract-demo.sh}
+(\cref{sec:pruebas-firma-bilateral}).
 
 \paragraph{Límites.} La firma es electrónica simple con TSA local RFC~3161; no
 hay NOM-151, PSC, anclaje externo, FIREL ni PAdES. Un contrato admite
