@@ -1,6 +1,6 @@
 \section{Modelado de base de datos híbrida}\label{sec:bd-hibrida}
 
-El sistema guarda su información en dos almacenes con funciones separadas. PostgreSQL, una base de datos relacional con transacciones, conserva todo lo que tiene valor probatorio: expedientes, documentos cifrados, directorio, actividad procesal, alertas y bitácora. Redis, un almacén clave-valor en memoria, conserva solo el estado breve de la autenticación. La división responde a RF-20 (bitácora de actividad), a RNF-04 (inmutabilidad de registros críticos) y a la necesidad de un estado de sesión efímero y revocable. Cada instalación atiende a un solo despacho: RNF-01 y RNF-05 expresan el aislamiento y la privacidad de su información dentro de su propia instancia, lo que evita la complejidad de separar varios clientes en una misma base.
+El sistema guarda su información en dos almacenes con funciones separadas. PostgreSQL, una base de datos relacional con transacciones, conserva todo lo que tiene valor probatorio: expedientes, documentos cifrados, directorio, actividad procesal, contratos, alertas y bitácora. Redis, un almacén clave-valor en memoria, conserva solo el estado breve de la autenticación. La división responde a RF-20 (bitácora de actividad), a RNF-04 (inmutabilidad de registros críticos) y a la necesidad de un estado de sesión efímero y revocable. Cada instalación atiende a un solo despacho: RNF-01 y RNF-05 expresan el aislamiento y la privacidad de su información dentro de su propia instancia, lo que evita la complejidad de separar varios clientes en una misma base.
 
 \subsection{Almacenes y transacción auditada}\label{sec:diagrama-datos}
 
@@ -13,7 +13,7 @@ La \cref{fig:modelo-datos} muestra qué guarda cada almacén, agrupado por famil
   \label{fig:modelo-datos}
 \end{figure}
 
-Cada documento pertenece a su expediente y cada asignación a una cuenta. Los permisos se derivan del rol de la cuenta y de su asignación al expediente, sin tablas de permisos ni caché de autorización. Una asignación solo concede acceso: no crea fichas del directorio, y el directorio no vincula a una persona representada con una cuenta ni la deduce de nombres coincidentes. Las relaciones entre familias se muestran en la \cref{fig:modelo-expediente}; su forma física se describe en el \cref{cap:implementacion}.
+Cada documento pertenece a su expediente y cada asignación a una cuenta. Los permisos se derivan del rol de la cuenta y de su asignación al expediente, sin tablas de permisos ni caché de autorización. Una asignación solo concede acceso y nunca se concede a una cuenta Cliente: no crea fichas del directorio, y el directorio no vincula a una persona representada con una cuenta ni la deduce de nombres coincidentes. Las relaciones entre familias se muestran en la \cref{fig:modelo-expediente}; su forma física se describe en el \cref{cap:implementacion}.
 
 \subsection{PostgreSQL: datos persistentes con valor probatorio}\label{sec:postgresql}
 
@@ -79,6 +79,49 @@ En materia cautelar se registran por separado la convocatoria, la decisión decl
 
 Estos registros ordenan la captura, pero no certifican hechos jurídicos. Los estados programada y cancelada son organizativos: una fecha pasada no demuestra que la audiencia se celebró, ninguna selección de fichas demuestra asistencia, cancelar no declara la nulidad de un acto procesal y la agenda no es un calendario judicial de días hábiles. La compatibilidad entre tipo y etapa no certifica la procedencia jurídica de la audiencia. Clasificar una medida no la recomienda ni decide su procedencia; ni el reloj, ni el cierre administrativo, ni el cambio de etapa declaran su cese, revocación o vencimiento, y el registro cautelar no extrae obligaciones del texto ni genera plazos, porque los resultados de audiencia y sus plazos derivados tienen un flujo propio. El catálogo es finito y no pretende cobertura jurídica universal.
 
+\subsection{Contratos y firma bilateral}\label{sec:diseno-contratos-datos}
+
+Un contrato es una raíz inmutable ligada a una sola serie documental de un
+expediente, con título y autor capturados. No tiene columna de estado: su
+estado se deriva del último de sus eventos y de la fecha límite de su última
+solicitud. Está en \emph{borrador} al crearse o cuando su última solicitud se
+cerró sin éxito o agotó su vigencia; \emph{en firma} mientras hay una
+solicitud abierta; \emph{firmado} tras la compleción, y \emph{abandonado} si
+se abandona desde borrador. Los dos últimos son terminales: una adenda es otro
+contrato. Una solicitud está abierta si su último evento es la solicitud o la
+firma del Cliente y aún no llega su fecha límite, de modo que un contrato
+nunca queda congelado por falta del proceso que registra las expiraciones. La
+\cref{tab:datos-contratos} resume las seis tablas de la familia.
+
+\begin{table}[!htbp]
+  \centering
+  \caption{Tablas de la familia de contratos. Las cinco primeras son de solo inserción.}
+  \label{tab:datos-contratos}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}L{4.9cm} X@{}}
+    \toprule
+    \textbf{Tabla} & \textbf{Contenido y restricciones} \\
+    \midrule
+    \texttt{contracts} & Raíz: expediente, serie documental única, título de 1 a 160 caracteres y autor capturado \\
+    \texttt{contract\_events} & Eventos con clave (contrato, revisión): la revisión anterior más uno es el bloqueo por revisión esperada; operación y evento de auditoría únicos, motivo de hasta 500 caracteres \\
+    \texttt{contract\_signature\_requests} & Campos y bytes de \texttt{CTRTREQ1} con su huella, versión exacta, ambos vínculos, folio de la hoja de huella de 1 a 80 caracteres, revisión opcional del directorio del mismo expediente y vigencia de 1 a 30 días \\
+    \texttt{contract\_party\_signatures} & Clave (solicitud, posición 1 o 2): los 303 bytes de la declaración, la firma de 384 bytes, el vínculo y la revisión de confianza usados y, solo en la posición 1, T1 con su cadena \\
+    \texttt{contract\_completions} & Td, el manifiesto de hasta 64~KiB con su huella, Tf y la cadena de la TSA \\
+    \texttt{contract\_notifications} & Avisos por evento y destinatario; solo cambian sus columnas de entrega \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Cada escritura confirma su evento de auditoría en la misma transacción, y los
+disparadores reconstruyen los bytes firmados, exigen el grafo de eventos y el
+actor designado y rechazan cualquier modificación o borrado de las tablas de
+solo inserción. La evidencia bilateral vive solo en estas tablas: la versión
+contratada no recibe sello del servidor ni firma individual, para que un
+contrato de dos firmas nunca se lea como un sello. El vínculo opcional con el
+directorio del expediente se guarda en la solicitud, no acredita identidad y
+no entra en los bytes firmados. La implementación se describe en la
+\cref{sec:impl-firma-bilateral}.
+
 \section{Vista de despliegue}\label{sec:despliegue}
 
 La \cref{fig:despliegue} muestra cómo se instala el sistema. El navegador descarga la interfaz Qadra y consulta la API mediante HTTPS a través de un proxy nginx. Los servicios de la aplicación se ejecutan con una cuenta sin privilegios y solo aceptan conexiones desde el propio servidor; la publicación HTTPS del despacho se configura aparte (\cref{sec:anexo-despliegue}).
@@ -90,7 +133,7 @@ La \cref{fig:despliegue} muestra cómo se instala el sistema. El navegador desca
   \label{fig:despliegue}
 \end{figure}
 
-Un solo programa ejecuta la API y las tareas de fondo (alertas, informes, correo y reevaluación de plazos) y, al detenerse, espera a que terminen las operaciones en curso; su composición se describe en la \cref{sec:workspace-cargo}. El servidor no acepta peticiones si qpdf o FFmpeg no superan su comprobación inicial. El recorrido de una petición se resume en la \cref{fig:peticion}; el control de orígenes para la interfaz de navegador permanece propuesto.
+Un solo programa ejecuta la API y las tareas de fondo (alertas, informes, correo, reevaluación de plazos y vencimiento y avisos de contratos) y, al detenerse, espera a que terminen las operaciones en curso; su composición se describe en la \cref{sec:workspace-cargo}. El servidor no acepta peticiones si qpdf o FFmpeg no superan su comprobación inicial. El recorrido de una petición se resume en la \cref{fig:peticion}; el control de orígenes para la interfaz de navegador permanece propuesto.
 
 Para los sellos de tiempo, el servidor usa una autoridad de sellado local basada en OpenSSL que emite tokens RFC 3161. Esa TSA local no es un Prestador de Servicios de Certificación ni produce la constancia de la NOM-151. Existe además un adaptador para un PSC remoto, disponible solo desde la línea de comandos: su prueba contra el sandbox de Cincel se conserva como referencia ignorada (\cref{sec:riesgo-psc-materializado}) y las pruebas deterministas usan un simulador local. Conectarlo a un PSC exige configurar su acceso, establecer sus anclas de confianza y verificar sus respuestas.
 

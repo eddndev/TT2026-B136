@@ -76,7 +76,7 @@ La arquitectura hexagonal de Cockburn \cite{cockburn2005}, refinada por Vernon \
   \label{fig:hexagonal}
 \end{figure}
 
-El \textbf{dominio} define las reglas del despacho: cuentas y permisos, expedientes, etapas y participantes, audiencias y sus resultados, recursos y medidas cautelares, calendarios y plazos, documentos y sus versiones, firmas individuales, evidencia criptográfica, alertas y auditoría. Los valores procesales son declaraciones del despacho y no acreditan identidad jurídica ni la validez de un acto. El dominio no importa ninguna otra capa; solo usa bibliotecas básicas para tipos, serialización, fechas, errores y borrado de secretos en memoria.
+El \textbf{dominio} define las reglas del despacho: cuentas y permisos, expedientes, etapas y participantes, audiencias y sus resultados, recursos y medidas cautelares, calendarios y plazos, documentos y sus versiones, firmas individuales, contratos y sus firmas bilaterales, evidencia criptográfica, alertas y auditoría. Los valores procesales son declaraciones del despacho y no acreditan identidad jurídica ni la validez de un acto. El dominio no importa ninguna otra capa; solo usa bibliotecas básicas para tipos, serialización, fechas, errores y borrado de secretos en memoria.
 
 La \textbf{aplicación} implementa los casos de uso y declara en sus puertos las dependencias externas y las fronteras transaccionales. Las operaciones con soportes documentales y las audiencias se preparan primero y se confirman después en una transacción auditada; un recibo permite conciliar una respuesta incierta sin reenvío automático.
 
@@ -93,7 +93,7 @@ Un contexto delimitado (bounded context) es una zona del modelo donde cada térm
   \label{fig:componentes}
 \end{figure}
 
-Cada contexto reparte sus tipos, casos de uso y adaptadores entre las capas hexagonales; los resultados de audiencia, las medidas cautelares, las actuaciones, los recursos procesales y el seguimiento técnico de los plazos tienen módulos propios. Identidad, expedientes, documentos y criptografía son la base del calendario procesal, la firma individual y la supervisión.
+Cada contexto reparte sus tipos, casos de uso y adaptadores entre las capas hexagonales; los resultados de audiencia, las medidas cautelares, las actuaciones, los recursos procesales y el seguimiento técnico de los plazos tienen módulos propios. Identidad, expedientes, documentos y criptografía son la base del calendario procesal, de los contratos con sus firmas individual y bilateral y de la supervisión.
 
 \subsection{Estructura del workspace de Cargo}\label{sec:workspace-cargo}
 
@@ -151,7 +151,7 @@ El transporte HTTP se atiende de forma asíncrona, mientras los casos de uso, Po
 
 \subsubsection{Inyección de dependencias por composición}\label{sec:inyeccion-dependencias}
 
-La inyección de dependencias se hace de forma explícita en el crate \texttt{bin} (\cref{sec:workspace-cargo}), sin contenedor especializado. Los servicios de firma individual reciben puertos de verificación pública, de confianza y de persistencia. La clave del titular nunca llega al servidor: la sesión solo lo autoriza a presentar sus pruebas y consultar su recibo. El material privado del servidor se usa para el sellado interno y no para construir firmas personales.
+La inyección de dependencias se hace de forma explícita en el crate \texttt{bin} (\cref{sec:workspace-cargo}), sin contenedor especializado. Los servicios de firma individual y de contratos reciben puertos de verificación pública, de confianza, de sellado y de persistencia. La clave de ningún firmante, incluido el Cliente, llega al servidor: la sesión solo lo autoriza a presentar sus pruebas y consultar su recibo. El material privado del servidor se usa para el sellado interno y no para construir firmas personales.
 
 \subsubsection{Observabilidad estructurada}\label{sec:observabilidad}
 
@@ -174,7 +174,7 @@ Los servicios de Z5 tienen autoridad propia y el sistema los invoca de forma exp
 
 \subsection{Decisiones arquitectónicas significativas}\label{sec:adrs}
 
-Las decisiones cuya reversión implicaría una refactorización amplia se registran como ADR en el formato de Nygard \cite{nygard2011}: contexto, alternativas, decisión y consecuencias. La \cref{tab:adrs} resume las cinco principales.
+Las decisiones cuya reversión implicaría una refactorización amplia se registran como ADR en el formato de Nygard \cite{nygard2011}: contexto, alternativas, decisión y consecuencias. La \cref{tab:adrs} resume las seis principales.
 
 \begin{table}[htbp]
   \centering
@@ -191,13 +191,14 @@ Las decisiones cuya reversión implicaría una refactorización amplia se regist
     03 & Axum como marco HTTP & actix-web, rocket, warp & Marco ligero que no impone estructura; componentes intermedios reutilizables. Documentación todavía en evolución. \\
     04 & Astro y Svelte en la interfaz & Next.js con React, SvelteKit, Remix & Archivos estáticos sin servidor de renderizado; Qadra y portal de la CA separados con diseño común. Exige mantener dos aplicaciones de interfaz. \\
     05 & PostgreSQL y Redis & Solo PostgreSQL o solo Redis & Integridad transaccional para datos con valor probatorio (\cref{sec:postgresql}) y baja latencia para el estado efímero (\cref{sec:redis}). Dos motores que operar y sin transacción común: la auditoría se confirma en PostgreSQL y el estado de Redis se retira o expira aparte. \\
+    86 & Firma bilateral con una declaración por parte y clave en manos de cada firmante & Clave del Cliente generada y usada por el sistema; firma del Cliente sobre los bytes crudos del PDF & El despacho no puede firmar por su contraparte y una firma del Cliente no sobrevive a un rechazo ni a la fecha límite (\cref{sec:diseno-firma-bilateral}). Clave en archivo, solicitud de certificado por canal externo, pérdida irrecuperable y verificación con OpenSSL en dos pasos. \\
     \bottomrule
   \end{tabularx}
 \end{table}
 
 \subsection{Trazabilidad entre arquitectura y requerimientos}\label{sec:trazabilidad}
 
-La \cref{tab:trazabilidad} completa, del lado del diseño, la cadena de la \cref{fig:req-trazabilidad}: relaciona cada componente con los requerimientos funcionales (RF) y no funcionales (RNF) que atiende, de modo que cada componente responde a un requerimiento o a un atributo de calidad. La matriz completa, con los diecisiete casos de uso y los catorce requerimientos no funcionales, se entrega como anexo electrónico.
+La \cref{tab:trazabilidad} completa, del lado del diseño, la cadena de la \cref{fig:req-trazabilidad}: relaciona cada componente con los requerimientos funcionales (RF) y no funcionales (RNF) que atiende, de modo que cada componente responde a un requerimiento o a un atributo de calidad. La matriz completa, con los dieciocho casos de uso y los catorce requerimientos no funcionales, se entrega como anexo electrónico.
 
 \begin{table}[!htbp]
   \centering
@@ -213,7 +214,7 @@ La \cref{tab:trazabilidad} completa, del lado del diseño, la cadena de la \cref
     Calendario, plazos y alertas & RF-07 a RF-10; RNF-06, RNF-10 & Admisión HTTP e identidad & RF-01 (sesiones opacas), RF-02 \\
     Documentos y custodia & RF-11, RF-12; RNF-03, RNF-04 & Fronteras de confianza & RNF-01, RNF-02, RNF-03 \\
     Servicios criptográficos & RF-13 a RF-17; RNF-03, RNF-04, RNF-11 & Bitácora encadenada & RF-20, RNF-04 \\
-    Firma & RF-15 a RF-17; RNF-11 & Trazas estructuradas & Atributo de calidad 6 (\cref{tab:atributos-calidad}) \\
+    Contratos y firma & RF-15 a RF-17; RNF-11 & Trazas estructuradas & Atributo de calidad 6 (\cref{tab:atributos-calidad}) \\
     \bottomrule
   \end{tabularx}
 \end{table}
