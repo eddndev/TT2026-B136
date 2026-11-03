@@ -55,9 +55,32 @@ export async function login(page, recoveryCode, account = fixture) {
       expect(response.status()).toBe(200);
       expect(await response.finished()).toBeNull();
     }
-    await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
+    await expect(
+      page.getByRole('heading', {
+        name: role === 'client' ? 'Mis contratos' : 'Tu mesa de trabajo',
+      }),
+    ).toBeVisible();
   } finally {
     page.off('response', observe);
+  }
+}
+
+// A client account lands on its contracts, has no case navigation and every
+// forced hash resolves back to its contracts.
+export async function expectClientWorkspace(page, hashes = []) {
+  const heading = page.getByRole('heading', { name: 'Mis contratos', exact: true });
+  await expect(heading).toBeVisible();
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Navegaci\u00f3n principal' })
+      .getByRole('button', { name: 'Expedientes', exact: true }),
+  ).toHaveCount(0);
+  for (const hash of hashes) {
+    await page.evaluate((value) => {
+      location.hash = value;
+    }, hash);
+    await expect(page).toHaveURL(/#contracts$/);
+    await expect(heading).toBeVisible();
   }
 }
 

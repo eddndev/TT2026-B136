@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, expectClientWorkspace } from './helpers.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 import {
   accounts,
@@ -117,12 +117,8 @@ test('real content permits assigned staff, denies Client and clears revoked hist
     });
     await client.goto('/');
     await loginAs(client, accounts.client, 0);
-    await navigate(client, 'Expedientes');
-    await expect(client.locator('.case-list')).toHaveAttribute('aria-busy', 'false');
-    // A Client account is never a case member, so the case is not listed.
-    await expect(client.getByRole('button', { name: new RegExp(scenario.case.title) })).toHaveCount(
-      0,
-    );
+    // A Client account is never a case member and has no case navigation.
+    await expectClientWorkspace(client, ['cases', 'documents']);
     await expect(downloadButton(client)).toHaveCount(0);
     await expect(
       client.getByRole('region', { name: 'Avisos de integridad', exact: true }),

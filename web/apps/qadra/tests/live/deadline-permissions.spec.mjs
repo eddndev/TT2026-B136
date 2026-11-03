@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, expectClientWorkspace } from './helpers.mjs';
 import { observeFrontendEntry } from '../frontend-entry-diagnostics.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 import {
@@ -97,12 +97,8 @@ test('real deadline roles retain closed history and clear private state after me
             .click();
           await expect(detail(other)).toContainText(accounts.policyCaseDeadline.definition.title);
         } else {
-          await navigate(other, 'Expedientes');
-          // A Client account is never a case member, so the case is not listed.
-          await expect(
-            other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }),
-          ).toHaveCount(0);
-          await expect(other.getByRole('link', { name: 'Plazos', exact: true })).toHaveCount(0);
+          // A Client account is never a case member and has no case navigation.
+          await expectClientWorkspace(other, ['deadlines']);
           expect(
             requests.filter((path) => /\/(deadlines|deadline-profiles)(\/|$)/.test(path)),
           ).toEqual([]);

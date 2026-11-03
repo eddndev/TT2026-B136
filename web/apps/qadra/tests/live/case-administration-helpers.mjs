@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { fixture, loginAs } from './helpers.mjs';
+import { fixture, loginAs, expectClientWorkspace } from './helpers.mjs';
 import { navigate, openCase as openStaffCase } from '../case-administration-workflow.mjs';
 export { navigate };
 export const accounts = fixture.caseAdministration;
@@ -99,21 +99,19 @@ export async function permissions(browser, testInfo, errors) {
       });
       await page.goto('/');
       await loginAs(page, accounts[role], 0);
-      await navigate(page, 'Expedientes');
-      await expect(
-        page.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
-      ).toHaveCount(0);
       if (role === 'client') {
-        // A Client account is never a case member, so no case is listed.
-        await expect(
-          page.getByRole('button', { name: new RegExp(accounts.basicCase.title) }),
-        ).toHaveCount(0);
+        // A Client account is never a case member and has no case navigation.
+        await expectClientWorkspace(page, ['cases', 'case-summary']);
         expect(
           paths.filter((path) => /case-administrations|\/administration(?:\/|$)/.test(path)),
         ).toEqual([]);
         await expect(page.getByText('Ficha penal completa', { exact: true })).toHaveCount(0);
         continue;
       }
+      await navigate(page, 'Expedientes');
+      await expect(
+        page.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
+      ).toHaveCount(0);
       await page.getByRole('button', { name: new RegExp(accounts.basicCase.title) }).click();
       await expect(
         page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
