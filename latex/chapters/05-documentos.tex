@@ -29,7 +29,7 @@ Las consultas de metadatos incorporan controles de entrada, autorización, proye
   \end{tabularx}
 \end{table}
 
-Las pruebas del navegador Qadra se conservan bajo \rutarepo{web/apps/qadra/tests/}. Las pruebas con respuestas HTTP simuladas permiten aislar formularios, navegación, permisos visibles, estados de error y solicitudes. El 14 de septiembre, \rutarepo{scripts/web-demo.sh} aprobó un escenario de navegador contra la API, PostgreSQL, Redis y OpenSSL reales, definido en \rutarepo{web/apps/qadra/tests/live/document-workflow.spec.mjs}. El recorrido inició sesión con contraseña y recuperación de segundo factor, creó un expediente desde la interfaz, cargó un documento, obtuvo sus metadatos, confirmó su sello, verificó su integridad y descargó un ZIP cuyos bytes se contrastaron con el archivo original. Tras cerrar sesión, recargar y autenticar de nuevo, recuperó el expediente y su documento desde el repositorio persistido. El escenario también comprobó ausencia de errores de JavaScript y de desbordamiento horizontal a 390 píxeles de ancho. Esta ejecución demuestra ese recorrido concreto; no sustituye los escenarios restantes de los 17 casos de uso ni la evaluación de usabilidad con usuarios del despacho.
+Las pruebas del navegador Qadra se conservan bajo \rutarepo{web/apps/qadra/tests/}. Las pruebas con respuestas HTTP simuladas permiten aislar formularios, navegación, permisos visibles, estados de error y solicitudes. El 14 de septiembre, \rutarepo{scripts/web-demo.sh} aprobó un escenario de navegador contra la API, PostgreSQL, Redis y OpenSSL reales, definido en \rutarepo{web/apps/qadra/tests/live/document-workflow.spec.mjs}. El recorrido inició sesión con contraseña y recuperación de segundo factor, creó un expediente desde la interfaz, cargó un documento, obtuvo sus metadatos, confirmó su sello, verificó su integridad y descargó un ZIP cuyos bytes se contrastaron con el archivo original. Tras cerrar sesión, recargar y autenticar de nuevo, recuperó el expediente y su documento desde el repositorio persistido. El escenario también comprobó ausencia de errores de JavaScript y de desbordamiento horizontal a 390 píxeles de ancho. Esta ejecución demuestra ese recorrido concreto; no sustituye los escenarios restantes de los 18 casos de uso ni la evaluación de usabilidad con usuarios del despacho.
 
 \subsection{Versiones documentales inmutables}\label{sec:pruebas-versiones}
 
@@ -91,3 +91,5 @@ La validación final de la interfaz para clasificación aprobó 34 pruebas unita
 \input{chapters/05-contenido-documental}
 
 \input{chapters/05-firma-individual}
+
+\input{chapters/05-firma-bilateral}

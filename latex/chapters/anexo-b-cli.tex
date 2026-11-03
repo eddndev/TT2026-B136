@@ -96,8 +96,8 @@ asignaciones. Las operaciones documentales se ubican bajo
 \texttt{/api/v1/cases/<case>/documents}; \texttt{<case>} es el UUID del expediente.
 El actor procede del bearer vigente. Owner accede a todos los expedientes;
 Litigante y Paralegal necesitan asignación y este último no puede sellar.
-Cliente solo consulta metadatos asignados y mantiene denegado el acceso
-documental. Las rutas globales anteriores bajo \texttt{/api/v1/documents}
+Cliente no puede asignarse a un expediente y mantiene denegado el acceso
+documental, salvo sus propias solicitudes de contrato. Las rutas globales anteriores bajo \texttt{/api/v1/documents}
 responden \texttt{404}. El contrato se presenta en las
 \cref{tab:impl-http-identidad,tab:impl-http-expedientes,tab:impl-http-rutas}.
 

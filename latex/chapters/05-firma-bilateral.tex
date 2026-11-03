@@ -1,0 +1,81 @@
+\subsection{Contratos y firma bilateral}
+\label{sec:pruebas-firma-bilateral}
+
+Las comprobaciones de la firma bilateral de la \cref{sec:impl-firma-bilateral}
+se ejecutaron localmente el 2 de noviembre de 2026 sobre la rama de
+desarrollo, con servicios desechables y una sola campaña a la vez. Demuestran
+el flujo en un entorno local; no constituyen integración, aceptación
+productiva ni evaluación con personas, y no amplían los cortes globales de
+cobertura de este capítulo. La \cref{tab:pruebas-firma-bilateral} resume las
+fronteras ejercitadas.
+
+\begin{table}[H]
+  \centering
+  \caption{Comprobaciones locales de la firma bilateral, 2 de noviembre de 2026.}
+  \label{tab:pruebas-firma-bilateral}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{@{}L{3.0cm} X L{2.4cm}@{}}
+    \toprule
+    \textbf{Frontera} & \textbf{Qué se comprobó} & \textbf{Resultado} \\
+    \midrule
+    Códecs del dominio & Vector único compartido de \texttt{CTRTREQ1} y \texttt{CTRTSIG1}, reconstrucción estricta y rechazos de longitud, propósito, identificadores nulos, partes iguales, vigencia invertida y cadena mal formada & 10 aprobadas \\
+    Validador & Decodificador independiente, perfiles parcial y completo, manifiesto, recibos, cadena, orden de sellos, vigencia, contraparte revocada y fixtures adversarios & 461 aprobadas; 62 de contrato \\
+    PostgreSQL & Almacenamiento, guardas, ciclo de vida, migración, partes, estado documental, entrega de avisos y servicio con revocación y fallas & 43 aprobadas \\
+    Membresías y vínculos & Vínculos de las tres partes, invitaciones de Cliente, guarda de membresía y tablero & 31 aprobadas \\
+    Aplicación y HTTP & Servicio de aplicación completo, catálogo de acceso con 237 pares y rechazos \texttt{HEAD} & 2476 y 696 aprobadas \\
+    Demostración API & Recorrido completo con invitación, vínculos, firmas en orden, paquetes, cierres y restauración & Aprobada \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\paragraph{Protocolo y validador.} Para este apartado se repitieron, con Rust
+1.94.0 y OpenSSL 3.5.9, las diez pruebas de
+\rutarepo{crates/domain/tests/contract_statements.rs} y la suite de
+\texttt{evidence-verify}: 339 pruebas unitarias y 122 de validación de
+paquetes, sin fallos. De ellas, 32 unitarias y 30 de validación corresponden
+al contrato. Los fixtures de \rutarepo{crates/evidence-verify/tests/contract-fixtures}
+provienen de una PKI desechable con la configuración del despliegue. El paquete
+completo resulta correcto también con una CRL grande y con la renovación de la
+CRL entre T1 y Tf; el parcial nunca resulta completo y siempre informa
+\texttt{contract.partial}. Una declaración de otra solicitud, una solicitud
+creada después de T1, una vigencia agotada antes de Tf, la misma clave o la
+misma cuenta en ambas partes, un T1 de otra raíz y sellos invertidos producen
+el código previsto. Una revocación posterior a la compleción conserva el
+resultado histórico y aparece solo en el estado actual. Los veredictos de los
+paquetes de sello del servidor y de firma individual no cambiaron.
+
+\paragraph{Almacenamiento y servicio.} Con
+\rutarepo{scripts/test-backends.sh}, que levantó PostgreSQL y Redis desechables
+y exportó las variables de bases de identidad, expedientes y documentos, de
+Redis y de operaciones de la CA, aprobaron 43 pruebas de las diez familias de
+contratos de infraestructura. Antes de cada corrección fallaron, como se
+esperaba, la creación por un Litigante no asignado y la firma sobre una
+versión con evidencia. También aprobaron los vínculos de las tres partes
+(4), las invitaciones de Cliente (2), la suite de miembros con la guarda de
+membresía (17) y el tablero (8). La aplicación aprobó 2476 pruebas y la capa
+HTTP 696 en 76 binarios, incluidas las del catálogo de acceso. Formato,
+Clippy 1.99 y la compilación con la versión mínima 1.88 de los paquetes
+afectados terminaron sin observaciones.
+
+\paragraph{Demostración reproducible.} \rutarepo{scripts/api-contract-demo.sh}
+aprobó en 69 segundos. PostgreSQL y Redis escuchan solo en sockets Unix, y el
+servidor y el cliente HTTP corren en un espacio de red privado con solo
+\emph{loopback}, de modo que invitaciones y avisos quedan habilitados sin salir
+de la máquina. El guion invita al Cliente, vincula claves generadas con
+OpenSSL, firma en orden, valida el paquete parcial (sin hallazgos fallidos y
+sin resultado completo) y el final (completo) con el validador y con la
+comprobación OpenSSL en dos pasos, cierra solicitudes por rechazo, por
+declinación tras la firma del Cliente y por cancelación, abandona un contrato
+y deja 15 avisos sin enviar. Tras \texttt{pg\_dump} y \texttt{pg\_restore}
+vuelve a leer la misma solicitud, el mismo recibo y el mismo paquete final,
+byte por byte. La campaña API completa, con restauración, aprobó en 1210
+segundos.
+
+\paragraph{Límites de la evidencia.} El vencimiento no se alcanza en la
+demostración, porque la vigencia mínima es de un día; el cierre de vencidas se
+comprueba con pruebas de aplicación y de ejecución con reloj y almacén
+simulados. No se ejecutaron la suite completa del espacio de trabajo, la
+campaña de navegador con servicios reales ni un envío real de correo, y la
+interfaz por rol se prueba aparte. Estos resultados describen un estado
+demostrado localmente; la integración, la instalación productiva, la ceremonia
+con un Cliente real y la evaluación de usabilidad del flujo siguen pendientes.

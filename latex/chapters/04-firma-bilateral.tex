@@ -1,0 +1,114 @@
+\subsection{Contratos y firma bilateral}
+\label{sec:impl-firma-bilateral}
+
+Esta subsección implementa el diseño de la \cref{sec:diseno-firma-bilateral}
+para CU-13, CU-14 y CU-18 (\cref{tab:cu-13,tab:cu-14,tab:cu-18}) y para los
+criterios bilaterales de RF-15 a RF-17 (\cref{tab:rf-cripto}). El estado que
+describe es \emph{implementado y demostrado localmente}: el servidor, el
+protocolo, la evidencia, el validador, las migraciones, los avisos y la
+demostración reproducible existen y se ejecutaron sobre servicios desechables;
+ningún paso se ha instalado en producción ni se ha ensayado con un Cliente
+real, por lo que no se presenta como aceptado.
+
+\paragraph{Partes y alta del Cliente.} La migración 0050 sustituye las dos
+funciones de vínculo de firma documental para que un Owner, un Litigante o un
+Cliente activos puedan registrar su certificado; Paralegal sigue excluido y no
+cambia ninguna tabla ni fila. La firma individual conserva su exigencia de un
+Litigante miembro del expediente, de modo que un vínculo de Owner o de Cliente
+nunca produce una firma individual. La migración
+\texttt{0051\_client\_invitations} amplía la restricción de rol de las
+invitaciones para admitir \texttt{client}, solo emitidas por un Owner, y el
+arranque exige la restricción ampliada. Solo una cuenta creada por una
+invitación \texttt{client} aceptada es elegible como Cliente de una solicitud:
+una cuenta de alta directa no lo es, porque el Owner fijó su contraseña
+inicial y su secreto TOTP se generó en el servidor. La migración
+\texttt{0051\_client\_memberships} añade el disparador que impide asignar una
+cuenta Cliente a un expediente; el servicio de expedientes responde
+\texttt{422 invalid\_input}, los selectores de miembros omiten esas cuentas y
+el cambio de rol de una cuenta asignada hacia Cliente se rechaza. La migración
+se detiene si encuentra una membresía de Cliente y nunca la borra.
+
+\paragraph{Almacenamiento.} La familia de contratos se divide en tres archivos
+solo para respetar el límite de 400 líneas: \texttt{0052\_contracts} (tablas y
+constructores de las declaraciones), \texttt{0052\_contract\_events} (bloqueo,
+preservación, eventos y solicitudes) y \texttt{0052\_contract\_signatures}
+(firmas, compleción, emparejamiento, avisos, guarda de versión y disparadores).
+Las seis tablas de la \cref{sec:diseno-contratos-datos} no tienen columna de
+estado; los disparadores reconstruyen en SQL los 240 bytes de
+\texttt{CTRTREQ1} y los 303 de \texttt{CTRTSIG1}, exigen el turno, la vigencia,
+la cuenta y el vínculo designados y la misma raíz en ambas posiciones, y
+toman el bloqueo consultivo de los vínculos después del bloqueo auditado.
+La guarda de versión rechaza el sello y la firma individual sobre una versión
+con solicitud abierta o completada, y la firma rechaza una versión que ya tenga
+evidencia, de modo que \texttt{documents.evidence} permanece nulo en toda
+versión contratada. Las referencias nuevas a la auditoría elevan sus
+disparadores de clave foránea de 26 a 28. Al arrancar, el inventario comprueba
+en SQL cada predicado, revisión, evento y byte reconstruido; después decodifica
+cada declaración con los códecs del dominio, verifica cada firma con la
+revisión de confianza que nombra y los tres sellos sobre sus huellas, y
+compara cada manifiesto con lo almacenado.
+
+\paragraph{Servicio y rutas.} El módulo de aplicación de contratos deriva el
+estado y decide cada acceso a partir de los hechos que entrega el almacén, con
+la definición única de solicitud abierta. La API expone catorce rutas bajo
+\texttt{/api/v1}: seis por expediente para listar, crear, consultar, solicitar,
+abandonar y recuperar el recibo de creación o abandono, y ocho por solicitud
+para la bandeja propia, el detalle, el PDF exacto, la preparación sin
+escritura, la firma, el cierre por rechazo, declinación o cancelación, el
+recibo de una operación y los paquetes parcial y completo. El total de rutas
+pasa de 223 a 237 y la matriz de acceso registra cada par. Una cuenta sin
+relación recibe \texttt{404 contract\_not\_found}; una cuenta relacionada que
+no es la actora de la acción, \texttt{403}. Toda mutación lleva
+\texttt{operation\_id} y revisión esperada, devuelve un recibo exacto y no se
+reintenta de forma automática; la repetición idéntica devuelve el recibo
+original. La TSA se consulta fuera de la transacción, una vez por envío: T1
+sobre la firma del Cliente y, en la contrafirma, Td sobre el PDF y Tf sobre el
+manifiesto, con \texttt{T1 <= Td <= Tf} y la vigencia comprobada con
+\texttt{genTime} más su exactitud. Una falla de la TSA responde
+\texttt{503 contract\_timestamp\_unavailable} sin escribir estado. El
+certificado del Cliente revocado en la CRL vigente bloquea la contrafirma
+(\texttt{contract\_counterparty\_revoked}); el retiro posterior de su vínculo,
+no. Las listas, detalles e historiales documentales devuelven el estado de
+contrato derivado, el filtro de pendientes de sello omite las versiones
+congeladas y el indicador del tablero cuenta contratos en borrador o en firma.
+
+{\emergencystretch=3em \paragraph{Evidencia.} La exportación arma el paquete parcial
+\texttt{BilateralContractPartialV1}, de 14 entradas, disponible para el
+Cliente desde T1 y también tras un cierre sin éxito, y el completo
+\texttt{BilateralContractV1}, de 26 entradas, ambos con
+\texttt{INSTRUCCIONES.md}. El manifiesto de la contrafirma se codifica con los
+bytes exactos que escribe la exportación, y esta se niega a entregar un
+paquete cuyos artefactos difieran del manifiesto guardado; exportar dos veces
+produce los mismos bytes. El servidor usa los códecs de
+\texttt{evidence-verify}, el mismo motor del validador
+(\cref{sec:impl-validador}), y las instrucciones reproducen con OpenSSL cada
+firma, huella y sello, incluida la lectura de la huella del PDF en el
+desplazamiento 206 de cada declaración.\par}
+
+\paragraph{Vencimiento y avisos.} El servidor compone siempre un consumidor
+supervisado de contratos. Cada cinco segundos escribe, con el actor técnico
+\texttt{system:contract-expiry}, el evento de vencimiento de hasta 20
+solicitudes agotadas y sus avisos. Los avisos nombran el título, la solicitud y
+el vencimiento, sin token, firma ni certificado. Su envío por correo es un
+consumidor arrendado aparte que solo actúa con
+\texttt{TT\_CONTRACT\_EMAIL\_ENABLED=true} y reutiliza la configuración del
+correo de informes; deshabilitado, los avisos quedan guardados y las partes
+ven sus solicitudes en Qadra. Nada del flujo de firma espera al correo.
+
+\paragraph{Interfaz.} Qadra recibe una interfaz por rol para crear contratos,
+solicitar firma, revisar y firmar como Cliente o como firmante del despacho,
+descargar los paquetes y validarlos en el navegador; esta subsección no la
+detalla. El recorrido completo se reproduce además por API con
+\rutarepo{scripts/api-contract-demo.sh} (\cref{sec:pruebas-firma-bilateral}).
+
+\paragraph{Límites.} La firma es electrónica simple con TSA local RFC~3161; no
+hay NOM-151, PSC, anclaje externo, FIREL ni PAdES. Un contrato admite
+exactamente dos partes en orden fijo. El servidor nunca recibe la clave privada
+de ninguna parte. Los límites (a) a (i) de la \cref{sec:diseno-firma-bilateral}
+se aplican sin excepción, y la producción, la ceremonia con un Cliente real y
+la evaluación con personas siguen pendientes.
+
+\Fuentes{ADR 0086, \rutarepo{docs/http-contract-signing.md},
+\rutarepo{crates/application/src/contracts/},
+\rutarepo{crates/infrastructure/src/contract_schema/} y
+\rutarepo{migrations/0052_contracts.sql}.}
