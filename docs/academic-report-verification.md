@@ -25,7 +25,7 @@ capturas. Las figuras nuevas o actualizadas son `fig-03c-firma-bilateral`,
 
 Se compiló con `make` en `latex/` (LuaHBTeX 1.17.0, biber 2.22, latexmk 4.88):
 **398 páginas**, 2168714 bytes, SHA-256
-`464ab827fc6e0da3cd7a09950037b74fb95206ca92942ed5a5b5cad19c20cc07`, sin referencias ni citas sin resolver ni etiquetas duplicadas. Persisten
+`5e2d8d1c43fdbcebc00ede96c920b291fc54aedffb193300cf0e2673856dd8f8`, sin referencias ni citas sin resolver ni etiquetas duplicadas. Persisten
 los tres avisos `Overfull hbox` menores que ya tenía la compilación de la rama
 base, fuera de los apartados modificados, y los dos avisos de versalitas de la
 fuente. Se inspeccionaron las páginas de las figuras de panorama, trazabilidad,
