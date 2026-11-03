@@ -88,7 +88,13 @@ verificados desde la instalación fijada en `/opt/tt-media`, acompañan cada rel
 en `bin/`; `--ffmpeg-path` y `--ffprobe-path` seleccionan esas copias exactas.
 No se sustituye esta dependencia por la versión multimedia de Ubuntu. Node y Cargo
 no son necesarios para ejecutar la aplicación; sí para construirla en el runner.
-El correo opcional no se habilita por defecto.
+El correo opcional no se habilita por defecto: `TT_REPORT_EMAIL_ENABLED` y
+`TT_CONTRACT_EMAIL_ENABLED` quedan ausentes o en `false`, y el lanzador solo
+los hereda del entorno del servicio, donde el operador los fija junto con
+`REPORT_EMAIL_FROM`, `REPORT_PUBLIC_URL` y `RESEND_API_KEY`
+([operación de base de datos](database-operations.md)). Con el correo de
+contratos deshabilitado, el vencimiento de solicitudes sigue activo y los
+avisos quedan guardados y visibles en Qadra.
 
 La primera activación prepara migraciones, CA, certificado firmante, TSA, CRL y
 confianza interna. No crea automáticamente un Owner de aplicación. Las siguientes
