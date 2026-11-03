@@ -805,7 +805,10 @@ These details are fixed by the service:
   the expiry and a download), confirm (the plain-language consequences) and
   sign (key file and password once, over the prepared `CTRTSIG1` bytes). The
   firm signer reviews the same PDF and validates the partial acknowledgement
-  in the browser before counter-signing. Rejection, decline, cancellation
+  in the browser before counter-signing. Before it signs a prepared position
+  2 statement, the browser requires its chain digests to equal the SHA-256 of
+  the position 1 signature and T1 served in the request detail, and its
+  deployment and root to equal those of the position 1 statement. Rejection, decline, cancellation
   and abandonment each need a separate confirmation. An uncertain signature
   is reconciled through the receipt of its operation while the page stays
   open; unlike individual signing, the attempt is not kept across a

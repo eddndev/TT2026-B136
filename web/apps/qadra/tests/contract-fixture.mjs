@@ -84,7 +84,27 @@ export function requestDetail(overrides = {}) {
     contract_state: overrides.contractState ?? 'en_firma',
     client_certificate: certificate(clientFingerprint, 'CN=Cliente Demo,O=Despacho,C=MX'),
     firm_certificate: certificate(firmFingerprint, 'CN=Litigante Demo,O=Despacho,C=MX'),
-    signatures: [],
+    signatures: overrides.clientSignedAt ? [clientSignatureRow(request)] : [],
+  };
+}
+
+// The stored position 1 signature that the firm statement of the vectors
+// chains to: its prior digests are the SHA-256 of these signature and token
+// bytes.
+export function clientSignatureRow(request) {
+  const party = vectors.client_party;
+  const data = statementBytes(1, request, { operationId: party.operation_id });
+  return {
+    position: 1,
+    account_id: party.account_id,
+    deployment_id: inputs.deployment_id,
+    root_fingerprint: party.root_sha256,
+    operation_id: party.operation_id,
+    request_id: inputs.request_id,
+    statement_base64: data.toString('base64'),
+    signature_base64: Buffer.from(vectors.firm_party.prior_signature_hex, 'hex').toString('base64'),
+    timestamp_base64: Buffer.from(vectors.firm_party.prior_token_hex, 'hex').toString('base64'),
+    accepted_at: '2026-11-02T01:00:00Z',
   };
 }
 

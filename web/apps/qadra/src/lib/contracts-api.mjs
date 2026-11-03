@@ -1,7 +1,8 @@
 // Client of the bilateral contract routes. Every response that a party
 // signs over is checked against the exact CTRTREQ1 and CTRTSIG1 bytes before
 // the interface shows or signs it: parties, version, digest, expiry,
-// position, account, certificate and operation must match. No private key,
+// position, account, certificate and operation must match, and a firm
+// statement must chain to the stored Client signature and its token. No private key,
 // password or certificate container ever passes through this module.
 // Rationale: docs/adr/0086-bilateral-contract-signing.md.
 
@@ -13,6 +14,7 @@ import { contractReason } from './contract-request-draft.mjs';
 
 const OUTCOMES = ['reject', 'decline', 'cancel'];
 const STAGES = ['partial', 'final'];
+const TOKEN_LIMIT = 65536;
 
 function revision(value) {
   if (!Number.isSafeInteger(value) || value < 1) invalid();
@@ -41,6 +43,27 @@ export function checkedRequestDetail(value) {
   return { ...value, request };
 }
 
+// The firm statement must chain to the Client signature and T1 that the
+// request detail serves, under the deployment and root of that signature.
+async function checkedChain(statement, detail) {
+  if (statement.position !== 2) return;
+  const rows = Array.isArray(detail.signatures) ? detail.signatures : [];
+  const client = rows.find((row) => row?.position === 1);
+  if (!client) invalid();
+  const signed = decodeContractStatement(client.statement_base64);
+  const signature = await signingHash(ownerBase64(client.signature_base64, 384));
+  const token = await signingHash(ownerBase64(client.timestamp_base64, 1, TOKEN_LIMIT));
+  if (
+    signed.position !== 1 ||
+    signed.requestId !== statement.requestId ||
+    signed.deploymentId !== statement.deploymentId ||
+    signed.rootFingerprint !== statement.rootFingerprint ||
+    statement.priorSignatureDigest !== signature ||
+    statement.priorTokenDigest !== token
+  )
+    invalid();
+}
+
 async function checkedPrepared(value, operationId, expected) {
   const statement = decodeContractStatement(value?.statement_base64);
   const requestDigest = await signingHash(ownerBase64(expected.detail.statement_base64, 240));
@@ -55,6 +78,7 @@ async function checkedPrepared(value, operationId, expected) {
     value.operation_id !== operationId
   )
     invalid();
+  await checkedChain(statement, expected.detail);
   revision(value.revision);
   return { ...value, statement };
 }
