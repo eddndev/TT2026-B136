@@ -17,13 +17,16 @@ criptografica local no envia esos secretos.
 
 ## Generar una clave y solicitar un certificado
 
-En **Mi certificado**, para el Owner, o **Mi firma documental**, para el
-Litigante, el componente **Generar clave y solicitud** ofrece este recorrido:
+En **Mi certificado** (acceso Owner), en **Mi firma documental** (Owner y
+Litigante) o en **Mi firma** (Cliente), el componente **Generar clave y
+solicitud** ofrece este recorrido:
 
 1. Introducir nombre comun, organizacion y pais. El nombre es declarado, no
    una acreditacion de identidad. Organizacion y pais deben corresponder a la
    CA que revisara el CSR; los valores iniciales son `Despacho Juridico Demo`
-   y `MX` y pueden corregirse antes de generar.
+   y `MX` y pueden corregirse antes de generar. Para una cuenta Cliente la
+   organizacion queda fija, porque la politica de la CA copia la de la raiz;
+   no indica afiliacion al despacho.
 2. Elegir una contrasena de al menos 12 caracteres, con un maximo de 1024 bytes
    UTF-8, y repetirla exactamente. Los espacios no se recortan.
 3. Pulsar **Generar clave y solicitud**. El navegador obtiene la aleatoriedad
@@ -49,8 +52,16 @@ openssl req -in solicitud.csr -noout -pubkey \
   | openssl pkey -pubin -outform DER | openssl dgst -sha256
 ```
 
-El componente **Generar clave y solicitud** todavia no muestra este valor; por
-ahora solo lo devuelve el modulo.
+Tras generar, el componente muestra el valor en grupos de cuatro caracteres
+bajo **Huella de tu clave publica**, para leerlo al operador de la CA. El boton
+**Imprimir hoja de huella** usa solo la impresion del navegador: una hoja de
+estilo de impresion oculta el resto de la pagina y deja dos ejemplares con
+folio en blanco, correo de la cuenta, titular declarado, SHA-256 del SPKI,
+huella de la raiz fijada en esta compilacion, fecha y lineas para las firmas
+autografas del Cliente y del despacho. No se envia nada a ningun servicio. La
+hoja ata a la persona con su clave fuera del sistema y no acredita identidad
+civil. Si el titular limpia los datos locales o sale de la pagina antes de
+imprimir, puede recalcular el valor desde el CSR con el comando anterior.
 
 La [CA existente](ca/operations.md) revisa el CSR y emite `partner` para acceso
 Owner o `document-signing` para firma documental. Su politica de C/O sigue
