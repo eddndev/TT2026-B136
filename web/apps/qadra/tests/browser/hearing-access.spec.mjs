@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { setupHearings, openHearings, hearingEditor, fillHearing } from './hearing-helpers.mjs';
 import { hearingRecord } from '../fixtures/hearings.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, expectClientWorkspace } from './helpers.mjs';
 for (const role of ['paralegal', 'litigator']) {
   test(`${role} has the intended hearing actions`, async ({ page }) => {
     const record = hearingRecord();
@@ -28,9 +28,7 @@ for (const role of ['paralegal', 'litigator']) {
 test('client has no hearing or agenda routes', async ({ page }) => {
   const { state } = await setupHearings(page, { role: 'client' });
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(page.getByRole('link', { name: 'Audiencias', exact: true })).toHaveCount(0);
+  await expectClientWorkspace(page, ['hearings', 'agenda']);
   await expect(
     page.getByRole('navigation').getByRole('button', { name: 'Agenda', exact: true }),
   ).toHaveCount(0);

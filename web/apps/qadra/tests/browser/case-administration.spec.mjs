@@ -1,15 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { setup, login, navigate, caseRecord } from './helpers.mjs';
+import { setup, login, navigate, caseRecord, expectClientWorkspace } from './helpers.mjs';
 import { administration, overview, fillPenal, profile } from './case-administration-helpers.mjs';
 
-test('staff uses its compact index and Client only basic case APIs', async ({ page }) => {
+test('a Client requests no case index or administration', async ({ page }) => {
   const requests = await setup(page, 'client');
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-  ).toBeVisible();
+  await expectClientWorkspace(page, ['cases', 'case-summary']);
   expect(requests.some((r) => /case-administrations|\/administration/.test(r.path))).toBe(false);
   await expect(page.getByText('Ficha penal pendiente')).toHaveCount(0);
 });

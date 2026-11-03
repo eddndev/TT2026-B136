@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate, caseId } from './helpers.mjs';
+import { login, navigate, caseId, expectClientWorkspace } from './helpers.mjs';
 import { clone, alertCursor } from '../fixtures/alerts.mjs';
 import {
   setupAlerts,
@@ -200,13 +200,6 @@ test('Client has no alert navigation or private preference and inbox requests', 
   const state = await setupAlerts(page, { role: 'client' });
   await login(page, false, false);
   await expect(page.getByRole('button', { name: 'Alertas', exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    location.hash = '#alerts';
-  });
-  await expect(
-    page.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
-  ).toBeVisible();
-  expect(state.calls).toHaveLength(0);
-  await navigate(page, 'Expedientes');
+  await expectClientWorkspace(page, ['#alerts']);
   expect(state.calls).toHaveLength(0);
 });

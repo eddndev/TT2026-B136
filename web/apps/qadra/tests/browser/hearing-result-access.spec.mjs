@@ -9,7 +9,7 @@ import {
   confirmResult,
 } from './hearing-result-helpers.mjs';
 import { resultRecord } from '../fixtures/hearing-results.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, expectClientWorkspace } from './helpers.mjs';
 
 for (const role of ['owner', 'litigator'])
   test(`${role} registers declared results without requiring the current scheduling stage`, async ({
@@ -90,12 +90,7 @@ test('revocation on refresh removes protected results and the selected case cont
 test('client navigation never queries protected result endpoints', async ({ page }) => {
   const state = await setupResults(page, { role: 'client' });
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(page.getByRole('link', { name: 'Audiencias', exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    location.hash = 'hearings';
-  });
+  await expectClientWorkspace(page, ['hearings']);
   await expect(resultPanel(page)).toHaveCount(0);
   expect(state.calls).toHaveLength(0);
 });

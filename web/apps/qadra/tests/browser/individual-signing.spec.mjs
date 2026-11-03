@@ -109,9 +109,11 @@ for (const role of ['owner', 'paralegal'])
     await expect(
       page.getByRole('button', { name: 'Firmar personalmente', exact: true }),
     ).toHaveCount(0);
+    // An Owner may bind a document-signing certificate to sign contracts,
+    // but never signs a document individually.
     await expect(
       page.getByRole('button', { name: 'Mi firma documental', exact: true }),
-    ).toHaveCount(0);
+    ).toHaveCount(role === 'owner' ? 1 : 0);
   });
 
 test('mobile certificate withdrawal requires its own confirmation and keeps its receipt', async ({

@@ -1,5 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { setup, login, navigate, selectCase, caseId, id, document } from './helpers.mjs';
+import {
+  setup,
+  login,
+  navigate,
+  selectCase,
+  caseId,
+  id,
+  document,
+  expectClientWorkspace,
+} from './helpers.mjs';
 
 test('persistent case selection lists metadata and GET detail without verifying', async ({
   page,
@@ -46,13 +55,13 @@ test('document pagination and filters query server and clear old rows', async ({
   await expect.poll(() => calls.some((q) => q.get('sealed') === 'true')).toBe(true);
 });
 
-test('client can select assigned case metadata but never requests documents or staff data', async ({
-  page,
-}) => {
+test('client never reaches cases, documents or staff data', async ({ page }) => {
   const requests = await setup(page, 'client');
   await login(page, false, false);
-  await selectCase(page);
-  await expect(page.getByText('Acceso documental pendiente')).toBeVisible();
+  await expectClientWorkspace(page, ['cases', 'documents', 'case-summary']);
+  expect(requests.some((r) => /^\/api\/v1\/cases(\/|$)|case-administrations/.test(r.path))).toBe(
+    false,
+  );
   expect(
     requests.some((r) => /\/documents|case-administrations|\/administration/.test(r.path)),
   ).toBe(false);

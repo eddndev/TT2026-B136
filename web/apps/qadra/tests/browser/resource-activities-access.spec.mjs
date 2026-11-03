@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, expectClientWorkspace } from './helpers.mjs';
 import {
   setupResourceActivities,
   openResourceActivities,
@@ -67,12 +67,7 @@ test('client never loads resource associations through navigation or a protected
   const state = await setupResourceActivities(page, { role: 'client' });
   state.seed();
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(page.getByRole('link', { name: 'Recursos', exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    location.hash = 'resources';
-  });
+  await expectClientWorkspace(page, ['resources']);
   await expect(activityPanel(page)).toHaveCount(0);
   await expect(activityEditor(page)).toHaveCount(0);
   expect(state.calls).toHaveLength(0);

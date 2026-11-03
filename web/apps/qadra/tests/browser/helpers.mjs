@@ -244,8 +244,40 @@ export async function login(page, recovery = false, openDocuments = true) {
     })
     .fill(recovery ? 'recovery-one' : '123456');
   await page.getByRole('button', { name: 'Verificar y entrar' }).click();
-  await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: /^(Tu mesa de trabajo|Mis contratos)$/ }),
+  ).toBeVisible();
   if (openDocuments) await selectCase(page);
+}
+
+// The location a role returns to from a forbidden one: the overview for
+// staff, the contracts of a client.
+export async function expectLanding(page, role) {
+  const client = role === 'client';
+  await expect(page).toHaveURL(client ? /#contracts$/ : /#overview$/);
+  await expect(
+    page.getByRole('heading', {
+      name: client ? 'Mis contratos' : 'Tu mesa de trabajo',
+      exact: true,
+    }),
+  ).toBeVisible();
+}
+
+// A client account lands on its contracts and every other location,
+// including a forced hash, resolves back to them.
+export async function expectClientWorkspace(page, hashes = []) {
+  const heading = page.getByRole('heading', { name: 'Mis contratos', exact: true });
+  await expect(heading).toBeVisible();
+  await expect(
+    page.getByRole('navigation').getByRole('button', { name: 'Expedientes', exact: true }),
+  ).toHaveCount(0);
+  for (const hash of hashes) {
+    await page.evaluate((value) => {
+      location.hash = value;
+    }, hash);
+    await expect(page).toHaveURL(/#contracts$/);
+    await expect(heading).toBeVisible();
+  }
 }
 
 export async function openDocument(page) {

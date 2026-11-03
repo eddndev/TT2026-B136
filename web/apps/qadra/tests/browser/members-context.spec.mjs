@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate, caseId, otherCaseId } from './helpers.mjs';
+import {
+  login,
+  navigate,
+  caseId,
+  otherCaseId,
+  expectClientWorkspace,
+  expectLanding,
+} from './helpers.mjs';
 import { memberRecord, memberPage, assignedMember, caseMemberPage } from '../fixtures/members.mjs';
 import { requestCompletion } from './request-completion.mjs';
 import {
@@ -93,13 +100,16 @@ test('non-Owner roles cannot open account administration or case assignments', a
       await page.evaluate(() => {
         location.hash = '#team';
       });
-      await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
-      await navigate(page, 'Expedientes');
-      await page.getByRole('button', { name: /Defensa inicial/ }).click();
-      await expect(page.getByRole('link', { name: 'Asignaciones', exact: true })).toHaveCount(0);
-      await page.evaluate(() => {
-        location.hash = '#case-members';
-      });
+      await expectLanding(page, role);
+      if (role === 'client') await expectClientWorkspace(page, ['#case-members']);
+      else {
+        await navigate(page, 'Expedientes');
+        await page.getByRole('button', { name: /Defensa inicial/ }).click();
+        await expect(page.getByRole('link', { name: 'Asignaciones', exact: true })).toHaveCount(0);
+        await page.evaluate(() => {
+          location.hash = '#case-members';
+        });
+      }
       await expect(assignments(page)).toHaveCount(0);
       expect(state.calls).toEqual([]);
     } finally {

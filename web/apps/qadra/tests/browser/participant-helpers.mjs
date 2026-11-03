@@ -101,7 +101,7 @@ export async function participantSetup(page, role = 'owner', initial = [particip
     }
     return route.fulfill({ json: current });
   });
-  await login(page);
+  await login(page, false, role !== 'client');
   if (role !== 'client')
     await page.getByRole('link', { name: 'Participantes', exact: true }).click();
   return state;

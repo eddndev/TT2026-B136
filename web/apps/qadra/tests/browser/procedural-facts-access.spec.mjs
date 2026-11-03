@@ -8,7 +8,7 @@ import {
   confirmFact,
 } from './procedural-facts-helpers.mjs';
 import { factRecord } from '../fixtures/procedural-facts.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, expectClientWorkspace } from './helpers.mjs';
 
 test('assigned litigator records without requiring a complete penal profile or stage', async ({
   page,
@@ -76,12 +76,7 @@ test('closed case retains exact history with no enabled writes', async ({ page }
 test('client never queries either family even through a protected hash', async ({ page }) => {
   const state = await setupFacts(page, { role: 'client' });
   await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(page.getByRole('link', { name: 'Resoluciones', exact: true })).toHaveCount(0);
-  await page.evaluate(() => {
-    location.hash = 'resolutions';
-  });
+  await expectClientWorkspace(page, ['resolutions']);
   await expect(
     page.getByRole('heading', { name: 'Resoluciones y notificaciones', exact: true }),
   ).toHaveCount(0);
