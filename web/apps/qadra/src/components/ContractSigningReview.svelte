@@ -43,7 +43,10 @@
       PDF comprobado: su huella SHA-256 recalculada en este navegador coincide con la solicitud.
     </p>
     <code class="fingerprint">{detail.document_digest}</code>
-    <iframe src={pdfUrl} title="PDF exacto del contrato" sandbox=""></iframe>
+    <!-- A sandboxed frame blocks the browser PDF viewer, so the frame shows
+      only bytes whose digest was checked. See
+      docs/adr/0086-bilateral-contract-signing.md. -->
+    <iframe src={pdfUrl} title="PDF exacto del contrato"></iframe>
     <button class="secondary" disabled={busy} onclick={ondownload}>Descargar PDF</button>
   {/if}
 </section>
