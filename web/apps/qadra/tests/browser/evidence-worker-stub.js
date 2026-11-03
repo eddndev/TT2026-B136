@@ -1,5 +1,6 @@
 // Replaces the evidence validation Web Worker in browser tests. The bytes of
-// the chosen file are JSON naming the scenario: {"overall", "delay"}. The
+// the chosen file are JSON naming the scenario: {"overall", "delay"} and an
+// optional "profile". The
 // stub follows the worker protocol of src/lib/evidence-verify-worker.mjs and
 // never reads the network.
 const finding = (outcome, code, detail = '') => ({ outcome, code, detail });
@@ -34,7 +35,7 @@ function report(scenario, policy) {
   const unsupported = scenario.overall === 'not-supported';
   return {
     engine: { name: 'evidence-verify', version: 'stub', source_digest: 'stub-digest' },
-    profile: unsupported ? null : 'server-seal-v1',
+    profile: unsupported ? null : (scenario.profile ?? 'server-seal-v1'),
     overall: scenario.overall,
     components: unsupported
       ? [component('package', 'not-supported', [finding('not-supported', 'zip.method', 'a')])]
