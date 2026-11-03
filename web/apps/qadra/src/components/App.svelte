@@ -18,6 +18,8 @@
   import DocumentIntegrityIncidents from './DocumentIntegrityIncidents.svelte';
   import JudicialCalendars from './JudicialCalendars.svelte';
   import AccountCertificates from './AccountCertificates.svelte';
+  import ContractsView from './ContractsView.svelte';
+  import EvidenceValidationView from './EvidenceValidationView.svelte';
   import '../styles/judicial-calendars.css';
   import '../styles/alerts.css';
   import { createApi } from '../lib/api.mjs';
@@ -271,6 +273,8 @@
             }}
           />
         {:else if view === 'reports'}<CaseReports {api} {user} />
+        {:else if view === 'contracts'}<ContractsView {api} {user} onnavigate={go} />
+        {:else if view === 'evidence-validation'}<EvidenceValidationView {api} />
         {:else if view === 'judicial-calendars'}<JudicialCalendars {api} {user} />
         {:else if view === 'alerts'}<Alerts
             {api}
@@ -308,7 +312,7 @@
               go(documentIntent ? 'documents' : 'case-summary');
             }}
           />
-        {:else if ['case-summary', 'case-members', 'documents', 'participants', 'stages', 'hearings', 'case-measures', 'resolutions', 'resources', 'deadlines'].includes(view)}
+        {:else if ['case-summary', 'case-members', 'documents', 'participants', 'stages', 'hearings', 'case-measures', 'resolutions', 'resources', 'deadlines', 'case-contracts'].includes(view)}
           {#if incidentReturn}<button
               class="text-button alerts-return"
               onclick={() => go('integrity-incidents')}>Volver a incidentes</button
@@ -355,6 +359,7 @@
         {:else if ['owner-certificates', 'signing-certificates'].includes(view)}<AccountCertificates
             {api}
             {user}
+            {view}
           />
         {:else if view === 'guide'}<Guide onnavigate={go} />
         {:else if user.role === 'owner'}{#key view}<Admin

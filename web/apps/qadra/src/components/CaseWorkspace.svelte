@@ -12,6 +12,7 @@
   import CaseMembers from './CaseMembers.svelte';
   import Documents from './Documents.svelte';
   import Participants from './Participants.svelte';
+  import CaseContracts from './CaseContracts.svelte';
   import { staffCase, basicCase } from '../lib/case-administration.mjs';
   export let api, user, record, view, onnavigate, onchange, onupdate;
   export let resourceIntent = null,
@@ -174,6 +175,12 @@
       intent={deadlineIntent}
       onintent={ondeadlineintent}
       {onresource}
+    />
+  {:else if view === 'case-contracts' && staff}<CaseContracts
+      {api}
+      {user}
+      record={current}
+      ondenied={deny}
     />
   {:else if view === 'participants'}<Participants {api} {user} caseRecord={current} />
   {:else}<Documents {api} {user} caseRecord={current} {intent} {onintent} />{/if}

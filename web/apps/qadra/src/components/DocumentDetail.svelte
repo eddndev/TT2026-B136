@@ -8,7 +8,9 @@
   import DocumentSealAction from './DocumentSealAction.svelte';
   import DocumentVerificationReport from './DocumentVerificationReport.svelte';
   import EvidenceValidation from './EvidenceValidation.svelte';
+  import DocumentContractAction from './DocumentContractAction.svelte';
   import { can, download } from '../lib/documents.mjs';
+  import { contractDocumentStatus } from '../lib/contract-presentation.mjs';
   export let api;
   export let user;
   export let document;
@@ -30,6 +32,9 @@
   let sealUncertain = false,
     personalActive = false;
   $: report = document.report || null;
+  // A version under contract never reads as sealed or pending seal.
+  // Rationale: docs/adr/0086-bilateral-contract-signing.md.
+  $: contract = contractDocumentStatus(document);
   const tabs = [
     { id: 'summary', label: 'Resumen', icon: 'file' },
     { id: 'verification', label: 'Verificaci\u00f3n', icon: 'shield' },
@@ -100,12 +105,15 @@
     <span
       class="badge"
       class:success={document.sealed === true}
-      class:warning={document.sealed === false}
-      >{document.sealed === true
-        ? 'Sellado'
-        : document.sealed === false
-          ? 'Pendiente de sello'
-          : 'Estado por consultar'}</span
+      class:warning={document.sealed === false && !contract}
+      class:info={!!contract}
+      >{contract
+        ? contract.label
+        : document.sealed === true
+          ? 'Sellado'
+          : document.sealed === false
+            ? 'Pendiente de sello'
+            : 'Estado por consultar'}</span
     >
   </div>
   <div class="detail-title">
@@ -129,7 +137,7 @@
       bind:error
       bind:message
     />
-    {#if can(user.role, 'seal') && document.sealed !== true}<button
+    {#if can(user.role, 'seal') && document.sealed !== true && !contract}<button
         class="primary"
         disabled={disabled || !!busy || sealUncertain || personalActive || $administration.closed}
         onclick={() => sealAction.open()}><Icon name="lock" size={17} />Sellar documento</button
@@ -154,7 +162,13 @@
   {#if disabled && !busy}<p class="hint" role="status">
       Actualizando los datos del documento...
     </p>{/if}
-  {#if document.sealed === false}<p class="detail-next-step">
+  {#if contract}<p class="detail-next-step">
+      <Icon name="info" size={16} /><span
+        >Esta versi&#243;n est&#225; bajo contrato: no admite sello ni firma individual. Consulta su
+        estado y su evidencia en Contratos del expediente.</span
+      >
+    </p>
+  {:else if document.sealed === false}<p class="detail-next-step">
       <Icon name="info" size={16} /><span
         >{can(user.role, 'seal')
           ? 'Sella el documento para habilitar su verificaci\u00f3n y descarga de evidencia.'
@@ -183,6 +197,7 @@
     bind:busy
     bind:active={personalActive}
   />
+  <DocumentContractAction {api} {user} {document} {disabled} {onupdate} />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if message}<p class="notice success" role="status">{message}</p>{/if}
   <div class="detail-tabs" role="tablist" aria-label="Informaci&#243;n del documento">
@@ -223,9 +238,11 @@
             <strong>Sellado</strong><small
               >{document.sealed === true
                 ? 'Sello registrado'
-                : document.sealed === false
-                  ? 'Pendiente'
-                  : 'Por consultar'}</small
+                : contract
+                  ? 'Bajo contrato'
+                  : document.sealed === false
+                    ? 'Pendiente'
+                    : 'Por consultar'}</small
             >
           </div>
         </li>
@@ -287,9 +304,11 @@
         </li>
       </ul>
       <p class="evidence-guidance">
-        {document.sealed === false
-          ? 'La descarga estar\u00e1 disponible despu\u00e9s de sellar el documento.'
-          : 'Usa Descargar evidencia en las acciones de esta ficha. Conserva el ZIP completo para su verificaci\u00f3n.'}
+        {contract
+          ? 'La evidencia de esta versi\u00f3n es el paquete del contrato; desc\u00e1rgalo desde Contratos.'
+          : document.sealed === false
+            ? 'La descarga estar\u00e1 disponible despu\u00e9s de sellar el documento.'
+            : 'Usa Descargar evidencia en las acciones de esta ficha. Conserva el ZIP completo para su verificaci\u00f3n.'}
       </p>
       <EvidenceValidation {api} {document} />
     {/if}

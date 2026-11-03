@@ -1,6 +1,7 @@
 <script>
   import IndividualDocumentSigningAction from './IndividualDocumentSigningAction.svelte';
   import IndividualSigningStatus from './IndividualSigningStatus.svelte';
+  import { underContract } from '../lib/contract-presentation.mjs';
   export let api, user, document, onupdate, ondenied;
   export let disabled = false,
     busy = '',
@@ -8,7 +9,7 @@
 </script>
 
 {#if typeof api.individualSigning === 'function'}
-  {#if user.role === 'litigator'}
+  {#if user.role === 'litigator' && !underContract(document)}
     {#key `${user.id}:${document.case_id}:${document.id}:${document.version}:${document.digest}`}
       <IndividualDocumentSigningAction
         {api}
