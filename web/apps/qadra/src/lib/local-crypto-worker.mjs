@@ -40,7 +40,11 @@ self.onmessage = async ({ data: { type, payload } }) => {
       const value = JSON.parse(
         generate_key(payload.password, payload.commonName, payload.organization, payload.country),
       );
-      result = { encryptedKeyPem: value.encrypted_key_pem, csrPem: value.csr_pem };
+      result = {
+        encryptedKeyPem: value.encrypted_key_pem,
+        csrPem: value.csr_pem,
+        spkiSha256: value.spki_sha256,
+      };
     } else if (type === 'check_key') {
       result = check_key_backup(payload.encryptedKeyPem, payload.password, payload.csrPem);
     } else if (type === 'sign') {

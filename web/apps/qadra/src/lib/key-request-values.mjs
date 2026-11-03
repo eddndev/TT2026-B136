@@ -30,3 +30,25 @@ export function keyRequestValues(draft) {
     throw new Error('La confirmaci\u00f3n de la contrase\u00f1a no coincide.');
   return { commonName, organization, country, password };
 }
+
+// The result of local key generation, with the SHA-256 of the public key
+// (SPKI) that the holder reads to the CA operator and writes on the
+// fingerprint sheet. Rationale: docs/adr/0086-bilateral-contract-signing.md.
+export function generatedKeyRequest(result) {
+  if (
+    typeof result?.encryptedKeyPem !== 'string' ||
+    !result.encryptedKeyPem.startsWith('-----BEGIN ENCRYPTED PRIVATE KEY-----') ||
+    encoder.encode(result.encryptedKeyPem).byteLength > 65536 ||
+    typeof result.csrPem !== 'string' ||
+    !result.csrPem.startsWith('-----BEGIN CERTIFICATE REQUEST-----') ||
+    encoder.encode(result.csrPem).byteLength > 16384 ||
+    typeof result.spkiSha256 !== 'string' ||
+    !/^[0-9a-f]{64}$/.test(result.spkiSha256)
+  )
+    throw new Error('La criptografia local devolvio un resultado no valido.');
+  return result;
+}
+
+export function fingerprintGroups(hex) {
+  return (hex.match(/.{1,4}/g) ?? []).join(' ');
+}
