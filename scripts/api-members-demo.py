@@ -76,7 +76,8 @@ def capture():
     request('PUT', route + '/members/' + ids['litigator'], expected=204)
     assigned = pages(route + '/members', selection='assigned')
     assert [row['id'] for row in assigned] == [ids['litigator']] and assigned[0]['assigned_at']
-    assert {row['id'] for row in pages(route + '/members', selection='available')} == set(ids.values()) - {ids['litigator']}
+    available = {row['id'] for row in pages(route + '/members', selection='available')}
+    assert available == set(ids.values()) - {ids['litigator'], ids['client']}
     before = user(ids['litigator'])
     disabled = access(before, 'litigator', False)
     assert pages(route + '/members', selection='assigned')[0]['active'] is False

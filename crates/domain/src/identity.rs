@@ -111,6 +111,8 @@ impl Role {
                     | Permission::SealDocument
                     | Permission::VerifyDocument
                     | Permission::ExportEvidence
+                    | Permission::ReadContract
+                    | Permission::ManageContract
             ),
             Self::Paralegal => matches!(
                 permission,
@@ -130,6 +132,7 @@ impl Role {
                     | Permission::AppendDocument
                     | Permission::VerifyDocument
                     | Permission::ExportEvidence
+                    | Permission::ReadContract
             ),
             Self::Client => false,
         }
@@ -181,6 +184,10 @@ pub enum Permission {
     ExportEvidence,
     VerifyAudit,
     CreateUser,
+    /// Reads contracts of a case; docs/adr/0086-bilateral-contract-signing.md.
+    ReadContract,
+    /// Creates, abandons and requests signatures on contracts of a case.
+    ManageContract,
 }
 
 #[cfg(test)]

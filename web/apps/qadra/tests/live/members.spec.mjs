@@ -136,8 +136,6 @@ test('real self-demotion confirms before logout and Client remains outside accou
     });
     await client.goto('/');
     await loginAs(client, accounts.client, 0);
-    await openCase(client, accounts.desktop.case, false);
-    await expect(client.getByRole('link', { name: 'Asignaciones', exact: true })).toHaveCount(0);
     await expect(
       client.getByRole('navigation').getByRole('button', { name: 'Equipo', exact: true }),
     ).toHaveCount(0);
@@ -149,6 +147,9 @@ test('real self-demotion confirms before logout and Client remains outside accou
         `/cases/${accounts.desktop.case.id}/members`,
       ])
         expect((await call('GET', path, undefined, 403)).error.code).toBe('permission_denied');
+      // A Client account is never a case member and cannot learn the case.
+      const hidden = await call('GET', `/cases/${accounts.desktop.case.id}`, undefined, 404);
+      expect(hidden.error.code).toBe('case_not_found');
     });
   } finally {
     await context.close();

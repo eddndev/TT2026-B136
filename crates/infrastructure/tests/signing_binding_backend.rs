@@ -11,7 +11,7 @@ use support::*;
 use uuid::Uuid;
 
 #[test]
-fn binding_is_account_scoped_and_rejects_other_roles_without_case_membership() {
+fn binding_is_account_scoped_and_rejects_paralegals_without_case_membership() {
     let Some((mut db, clock, actor)) = fixture() else {
         return;
     };
@@ -26,16 +26,19 @@ fn binding_is_account_scoped_and_rejects_other_roles_without_case_membership() {
             .unwrap(),
         None
     );
-    for role in ["owner", "paralegal", "client"] {
+    let paralegal = db.user("paralegal", false);
+    assert!(matches!(
+        store.load_context(paralegal),
+        Err(ApplicationError::PermissionDenied)
+    ));
+    assert!(matches!(
+        store.find_current(paralegal),
+        Err(ApplicationError::PermissionDenied)
+    ));
+    for role in ["owner", "client"] {
         let user = db.user(role, false);
-        assert!(matches!(
-            store.load_context(user),
-            Err(ApplicationError::PermissionDenied)
-        ));
-        assert!(matches!(
-            store.find_current(user),
-            Err(ApplicationError::PermissionDenied)
-        ));
+        assert_eq!(store.load_context(user).unwrap().account.id(), user);
+        assert_eq!(store.find_current(user).unwrap(), None);
     }
     db.admin.execute("UPDATE users SET active=false,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1", &[&actor.id.as_uuid()]).unwrap();
     assert!(matches!(

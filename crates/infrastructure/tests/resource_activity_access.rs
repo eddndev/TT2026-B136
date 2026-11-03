@@ -16,7 +16,7 @@ fn permissions_precede_scoped_reads_and_revocation_prevents_every_protected_quer
     );
     let adapter = store(&db);
     let paralegal = db.user("paralegal", true);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let outsider = db.user("litigator", false);
     assert_eq!(
         adapter

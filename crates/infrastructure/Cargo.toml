@@ -410,6 +410,10 @@ name = "signing_binding_backend"
 path = "tests/signing_binding_backend.rs"
 
 [[test]]
+name = "signing_binding_parties"
+path = "tests/signing_binding_parties.rs"
+
+[[test]]
 name = "individual_document_backend"
 path = "tests/individual_document_backend.rs"
 
@@ -435,12 +439,56 @@ name = "member_invitation_boundaries"
 path = "tests/member_invitation_boundaries.rs"
 
 [[test]]
+name = "member_invitation_clients"
+path = "tests/member_invitation_clients.rs"
+
+[[test]]
 name = "invitation_limiter"
 path = "tests/invitation_limiter.rs"
 
 [[test]]
 name = "member_invitation_restore"
 path = "tests/member_invitation_restore.rs"
+
+[[test]]
+name = "contract_storage"
+path = "tests/contract_storage.rs"
+
+[[test]]
+name = "contract_storage_lifecycle"
+path = "tests/contract_storage_lifecycle.rs"
+
+[[test]]
+name = "contract_storage_guards"
+path = "tests/contract_storage_guards.rs"
+
+[[test]]
+name = "contract_storage_parties"
+path = "tests/contract_storage_parties.rs"
+
+[[test]]
+name = "contract_storage_migration"
+path = "tests/contract_storage_migration.rs"
+
+[[test]]
+name = "contract_service_backend"
+path = "tests/contract_service_backend.rs"
+
+[[test]]
+name = "contract_service_failures"
+path = "tests/contract_service_failures.rs"
+
+[[test]]
+name = "contract_service_revocation"
+path = "tests/contract_service_revocation.rs"
+
+[[test]]
+name = "contract_document_state"
+path = "tests/contract_document_state.rs"
+
+[[test]]
+name = "contract_notice_delivery"
+path = "tests/contract_notice_delivery.rs"
 
 [[test]]
 name = "evidence_statement_parity"

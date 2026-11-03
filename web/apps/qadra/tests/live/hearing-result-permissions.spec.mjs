@@ -79,10 +79,10 @@ test('real result permissions retain closed-case history and discard data after 
           await expect(detail(other)).toContainText('Sesion declarada de fixture');
         } else {
           await navigate(other, 'Expedientes');
-          await other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }).click();
+          // A Client account is never a case member, so the case is not listed.
           await expect(
-            other.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-          ).toBeVisible();
+            other.getByRole('button', { name: new RegExp(accounts.policyCase.title) }),
+          ).toHaveCount(0);
           await expect(other.getByRole('link', { name: 'Audiencias', exact: true })).toHaveCount(0);
           expect(paths.filter((path) => path.includes('/results'))).toEqual([]);
           await accountAction(accounts.client, 1, async (clientCall) => {

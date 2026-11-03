@@ -42,8 +42,8 @@ export async function provisionDocumentContent(call) {
     const scenario = { case: { id: record.id, title: administration.title,
       reference: administration.reference }, closed: key === 'mobile' };
     if (key === 'policy') {
-      for (const name of ['paralegal', 'client'])
-        await call('PUT', `${base}/members/${fixture[name].id}`, undefined, 204);
+      // A Client account is never a case member.
+      await call('PUT', `${base}/members/${fixture.paralegal.id}`, undefined, 204);
     }
     const media = new URL('../crates/infrastructure/tests/fixtures/media-admission/', import.meta.url);
     const original = readFileSync(new URL('tiny.png', media));

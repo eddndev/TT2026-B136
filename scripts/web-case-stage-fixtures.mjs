@@ -61,7 +61,8 @@ try {
     }
     stages[key] = { id: record.id, title, reference };
   }
-  for (const role of ['owner', 'litigator', 'paralegal', 'client']) {
+  // A Client account is never a case member.
+  for (const role of ['owner', 'litigator', 'paralegal']) {
     await request('PUT', `/cases/${stages.legacyCase.id}/members/${stages[role].id}`, undefined, 204);
   }
   fixture.caseStages = stages;

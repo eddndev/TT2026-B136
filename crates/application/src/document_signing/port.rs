@@ -42,7 +42,8 @@ pub trait DocumentSigningVerifier: Send + Sync {
     ) -> Result<CredentialCheck, SigningWorkflowError>;
 }
 
-/// All operations require the current active Litigator and expose only their binding.
+/// All operations require the current active Owner, Litigator or Client and expose
+/// only that account's binding; individual signing separately requires a Litigator.
 ///
 /// Commits reauthorize the complete principal and counters under audit/account locks,
 /// compare the complete current trust, then read time after every lock wait. One live

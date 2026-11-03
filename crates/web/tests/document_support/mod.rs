@@ -50,6 +50,7 @@ impl StubWorkflow {
                 digest_hex: "ab".repeat(32),
                 sealed,
             },
+            contract_state: None,
         }
     }
 }

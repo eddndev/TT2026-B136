@@ -161,6 +161,7 @@ pub fn server(
         password_reset: Some(PasswordResetRuntime { owner, consumer }),
         invitations: None,
         report_email: None,
+        contracts: crate::serve_contract_runtime::ContractConsumer::idle(),
     };
     (server, admission)
 }

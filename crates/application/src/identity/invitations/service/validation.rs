@@ -24,10 +24,12 @@ pub(super) fn revision(value: u64) -> bool {
     (1..=i64::MAX as u64).contains(&value)
 }
 
+/// An invitation never creates an Owner. A Client is invited as the
+/// counterparty of a contract: docs/adr/0086-bilateral-contract-signing.md.
 pub(super) fn role(value: Role) -> Result<(), ApplicationError> {
-    if !matches!(value, Role::Litigator | Role::Paralegal) {
+    if !matches!(value, Role::Litigator | Role::Paralegal | Role::Client) {
         return Err(ApplicationError::InvalidInput(
-            "invitation role must be litigator or paralegal".into(),
+            "invitation role must be litigator, paralegal or client".into(),
         ));
     }
     Ok(())

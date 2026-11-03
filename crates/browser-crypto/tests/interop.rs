@@ -121,6 +121,47 @@ fn certificate_inspection_returns_public_exact_fingerprints() {
     assert!(info.subject.contains("Example Office"));
 }
 
+/// The fingerprint read aloud before issuance is the one the issued
+/// certificate reports, and OpenSSL derives it from the request alone.
+#[test]
+fn generated_spki_fingerprint_matches_the_issued_certificate_and_openssl() {
+    let material = fixture();
+    assert_eq!(material.spki_sha256.len(), 64);
+    assert_eq!(
+        material.spki_sha256,
+        inspect(&material.cert).unwrap().spki_sha256
+    );
+    let scratch = tempfile::tempdir().unwrap();
+    write_private(scratch.path(), "request.pem", material.csr.as_bytes());
+    openssl(
+        scratch.path(),
+        &[
+            "req",
+            "-in",
+            "request.pem",
+            "-noout",
+            "-pubkey",
+            "-out",
+            "public.pem",
+        ],
+    );
+    openssl(
+        scratch.path(),
+        &[
+            "pkey",
+            "-pubin",
+            "-in",
+            "public.pem",
+            "-outform",
+            "DER",
+            "-out",
+            "public.der",
+        ],
+    );
+    let spki = std::fs::read(scratch.path().join("public.der")).unwrap();
+    assert_eq!(material.spki_sha256, format!("{:x}", Sha256::digest(spki)));
+}
+
 #[test]
 fn wrong_password_malformed_inputs_and_tampered_csr_are_rejected() {
     let material = fixture();

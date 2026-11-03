@@ -6,17 +6,38 @@ use application::{
     ApplicationError,
 };
 use domain::{
-    document_signing::SignerAccount,
+    document_signing::{SignerAccount, SigningError},
     identity::{Role, UserId},
 };
 use postgres::GenericClient;
 use std::str::FromStr;
 
+type Admit = fn(UserId, Role, bool, u64, u64) -> Result<SignerAccount, SigningError>;
+
+/// Loads an account that may sign a document individually: an active Litigator.
 /// Requires the common audit lock before acquiring the account row lock.
 /// The returned trust is absent until the caller selects the required snapshot.
 pub(crate) fn account<C: GenericClient>(
     client: &mut C,
     actor: UserId,
+) -> Result<SigningAccountContext, ApplicationError> {
+    load(client, actor, SignerAccount::new)
+}
+
+/// Loads an account that may hold a document-signing binding: any party of a
+/// bilateral contract (an active Owner, Litigator or Client), as
+/// docs/adr/0086-bilateral-contract-signing.md fixes. The same lock rules apply.
+pub(crate) fn binding_account<C: GenericClient>(
+    client: &mut C,
+    actor: UserId,
+) -> Result<SigningAccountContext, ApplicationError> {
+    load(client, actor, SignerAccount::for_contract)
+}
+
+fn load<C: GenericClient>(
+    client: &mut C,
+    actor: UserId,
+    admit: Admit,
 ) -> Result<SigningAccountContext, ApplicationError> {
     let row = client
         .query_opt(
@@ -28,14 +49,16 @@ pub(crate) fn account<C: GenericClient>(
         .ok_or(ApplicationError::PermissionDenied)?;
     let role = Role::from_str(value::<&str>(&row, "role")?).map_err(|_| inconsistent())?;
     let active: bool = value(&row, "active")?;
-    if role != Role::Litigator || !active {
-        return Err(ApplicationError::PermissionDenied);
-    }
     let revision = counter(value(&row, "revision")?)?;
     let generation = counter(value(&row, "auth_generation")?)?;
+    let account =
+        admit(actor, role, active, revision, generation).map_err(|error| match error {
+            SigningError::LitigatorRequired | SigningError::ContractSignerRequired => {
+                ApplicationError::PermissionDenied
+            }
+            _ => inconsistent(),
+        })?;
     let email: String = value(&row, "email")?;
-    let account = SignerAccount::new(actor, role, active, revision, generation)
-        .map_err(|_| inconsistent())?;
     validate_user_summary(&UserSummary {
         id: actor,
         email: email.clone(),

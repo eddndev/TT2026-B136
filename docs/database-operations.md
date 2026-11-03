@@ -1700,3 +1700,160 @@ La restauración repone primero los datos y después los disparadores, como hace
 Las [pruebas del manifiesto](../crates/infrastructure/tests/individual_document_backend_manifest.rs)
 y la [prueba extremo a extremo](../crates/infrastructure/tests/individual_signing_manifest_end_to_end.rs)
 requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+### Vínculos de las partes de un contrato
+
+La [migración 0050](../migrations/0050_signing_binding_parties.sql) reemplaza
+con `CREATE OR REPLACE` las funciones `document_signing_register` y
+`document_signing_withdraw` de la migración 0044 para admitir vínculos de
+cuentas activas con rol `owner`, `litigator` o `client`, las partes de un
+contrato bilateral descritas en
+[ADR 0086](adr/0086-bilateral-contract-signing.md). No crea tablas ni
+disparadores, no cambia columnas ni filas y conserva cada vínculo existente.
+La apertura compara el cuerpo de cada función con la última definición
+registrada, de modo que un binario anterior se niega a abrir una base migrada y
+un binario nuevo se niega a abrir una base cuyas funciones conservan la versión
+de 0044. Volver atrás requiere restaurar el respaldo previo, no reescribir las
+funciones. La firma individual no cambia: `0045` sigue exigiendo un Litigante
+activo y miembro del expediente, por lo que un vínculo de Owner o Client nunca
+produce un recibo individual. Las
+[pruebas de las partes](../crates/infrastructure/tests/signing_binding_parties.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+### Cuentas Cliente fuera de las asignaciones
+
+La [migración 0051 de asignaciones](../migrations/0051_client_memberships.sql)
+añade la función `guard_client_membership` y el disparador
+`member_client_guard` sobre `case_memberships`, antes de insertar o actualizar.
+Rechaza asignar una cuenta `client`: una cuenta Cliente nunca es miembro de un
+expediente ([ADR 0086](adr/0086-bilateral-contract-signing.md)). El servicio de
+miembros rechaza además cambiar a `client` el rol de una cuenta con
+asignaciones. La familia de miembros pasa de tres a cuatro funciones y
+`case_memberships` de uno a dos disparadores; la apertura valida cada uno y
+además rechaza cualquier asignación de una cuenta `client`, también la que
+deje un cambio de rol hecho directamente en SQL.
+
+Antes de migrar, comprobar sobre el respaldo si existen asignaciones de cuentas
+Cliente:
+
+```sql
+SELECT m.case_id, m.user_id FROM case_memberships m
+JOIN users u ON u.id = m.user_id WHERE u.role = 'client';
+```
+
+Si la consulta devuelve filas, la migración se detiene sin borrar nada y sin
+aplicar ningún cambio. Quién conserva o retira esas asignaciones es una
+decisión del despacho; después de retirarlas con el flujo auditado de miembros,
+repetir `database migrate --runtime-role`. Un binario anterior cuenta los
+disparadores y se niega a abrir la base migrada, de modo que volver atrás
+requiere restaurar el respaldo previo. Las
+[pruebas de la guarda](../crates/infrastructure/tests/member_client_guard.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+### Invitaciones de cuentas Cliente
+
+La [migración 0051 de invitaciones](../migrations/0051_client_invitations.sql)
+reemplaza la restricción `member_invitations_role_check` de la migración 0046
+para admitir `client` además de `litigator` y `paralegal`. Solo actúa cuando la
+restricción conserva su forma original, de modo que repetir
+`database migrate --runtime-role` no la toca, y no modifica invitaciones
+almacenadas. La apertura exige la restricción ampliada y acepta invitaciones
+`client` guardadas; un binario anterior rechaza esas filas al arrancar, por lo
+que volver atrás después de emitir una invitación `client` requiere restaurar
+el respaldo previo. Las
+[pruebas de invitaciones Cliente](../crates/infrastructure/tests/member_invitation_clients.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+## Contratos bilaterales
+
+Las tres migraciones 0052 forman una sola familia y se aplican en este orden
+después de la familia de invitaciones, cada vez que una conexión administrativa
+prepara el esquema:
+
+- [0052_contracts.sql](../migrations/0052_contracts.sql) crea las seis tablas y
+  las dos funciones puras `contract_request_bytes` y `contract_party_bytes`,
+  que reconstruyen los 240 bytes de `CTRTREQ1` y los 303 de `CTRTSIG1`.
+- [0052_contract_events.sql](../migrations/0052_contract_events.sql) añade el
+  candado, la preservación y el registro de eventos y solicitudes.
+- [0052_contract_signatures.sql](../migrations/0052_contract_signatures.sql)
+  añade el registro de firmas, cierres y avisos, el emparejamiento diferido, la
+  guarda de versión sobre `documents` y todos los disparadores.
+
+El diseño completo está en
+[ADR 0086](adr/0086-bilateral-contract-signing.md), sección «Storage». Las
+tablas `contracts`, `contract_signature_requests`, `contract_events`,
+`contract_party_signatures` y `contract_completions` solo admiten inserciones:
+cualquier `UPDATE`, `DELETE` o `TRUNCATE` falla, también para un rol
+administrativo. `contract_notifications` es la bandeja de avisos y el rol de
+ejecución solo cambia sus columnas de entrega. No hay columna de estado: el
+estado de un contrato se deriva de su último evento y del `expires_at` de su
+última solicitud.
+
+Cada escritura toma, después del candado de auditoría, el candado consultivo
+280603412820 que comparten los vínculos y las firmas individuales, y exige
+READ COMMITTED. Dentro de una transacción la fila de auditoría va primero; la
+raíz precede a su evento `created`, la solicitud a su evento `requested`, el
+evento `client_signed` o `completed` a su firma y la firma de la posición 2 al
+cierre. Al confirmar, `contract_completion_pair` rechaza una raíz, una
+solicitud o un evento firmado sin sus filas pareadas. Una solicitud vencida sin
+cerrar no se cierra sola: el adaptador escribe su evento `expired`, auditado
+por `system:contract-expiry`, antes de la solicitud nueva o del abandono, y la
+base rechaza lo contrario.
+
+La guarda `contract_version_guard` impide escribir `documents.evidence` (sello
+o firma individual) en una versión cuya solicitud esté completada, o abierta
+según el reloj de la base. Una versión con solicitud vencida, rechazada,
+declinada o cancelada vuelve a admitir sello.
+
+Las tablas solo hacen referencia a `audit_events` desde `contract_events`, de
+modo que `audit_events` pasa de 26 a 28 disparadores de llave foránea. La
+apertura valida el catálogo completo de la familia, los permisos del rol de
+ejecución y un inventario que reconstruye los bytes de cada solicitud y
+declaración, verifica cada firma de parte con la revisión de confianza que
+nombra y comprueba T1, Td, Tf y el manifiesto de cada cierre. Un binario
+anterior cuenta 26 disparadores en `audit_events` y se niega a abrir la base
+migrada, de modo que volver atrás requiere restaurar el respaldo previo.
+
+Para actualizar una instalación con la receta habitual: respaldar, ensayar
+`database migrate --runtime-role` sobre una copia del respaldo, migrar la base
+real con el rol administrativo y arrancar el binario nuevo. La migración no
+modifica filas existentes ni necesita datos previos. Antes de restaurar un
+respaldo que contenga contratos, comprobar que la versión del binario incluye
+estas migraciones.
+
+Las [pruebas de almacenamiento](../crates/infrastructure/tests/contract_storage.rs),
+del [ciclo de vida](../crates/infrastructure/tests/contract_storage_lifecycle.rs),
+de las [guardas](../crates/infrastructure/tests/contract_storage_guards.rs),
+de las [partes](../crates/infrastructure/tests/contract_storage_parties.rs) y
+de la [migración](../crates/infrastructure/tests/contract_storage_migration.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
+### Cierre de vencidas y correo de avisos
+
+`serve` siempre ejecuta un consumidor de contratos supervisado junto con los
+demás. Cada cinco segundos escribe el evento `expired` de hasta 20 solicitudes
+agotadas y sin cerrar, con sus avisos. No depende del correo ni de ninguna
+variable. Si falla de forma no transitoria, el supervisor detiene el servidor
+como con cualquier otro consumidor.
+
+El correo de avisos de contrato se habilita solo con
+`TT_CONTRACT_EMAIL_ENABLED=true`. Ausencia o `false` lo deshabilita sin leer
+secretos; otro valor impide arrancar. Al habilitarlo reutiliza
+`REPORT_EMAIL_FROM`, `REPORT_PUBLIC_URL` y `RESEND_API_KEY` con las mismas
+reglas del correo de informes, que puede seguir deshabilitado. El enlace es
+`REPORT_PUBLIC_URL#contracts`, sin token ni adjuntos. Cada aviso se reclama con
+una concesión de 30 segundos y una ventana de 24 horas fijada en su primer
+reclamo; una respuesta incierta admite reintento a los 60 segundos y el
+proveedor recibe el identificador del aviso como clave. Un aviso de una cuenta
+inactiva espera sin enviarse. Con el correo deshabilitado los avisos se guardan
+con el remitente fijo `notificaciones@qadra.invalid` y sin enlace, y las partes
+ven sus solicitudes en Qadra; habilitarlo después intenta enviarlos con ese
+remitente y el proveedor los rechaza.
+
+Antes de restaurar, detener `serve` para que el consumidor no escriba eventos ni
+estados de entrega. Las filas de avisos y sus estados se conservan con el
+respaldo. La [demostración](../scripts/api-contract-demo.sh) recorre el flujo
+completo y una restauración sobre servicios desechables; las
+[pruebas de entrega](../crates/infrastructure/tests/contract_notice_delivery.rs)
+y del [servicio](../crates/infrastructure/tests/contract_service_backend.rs)
+requieren `CASE_TEST_DATABASE_URL`.

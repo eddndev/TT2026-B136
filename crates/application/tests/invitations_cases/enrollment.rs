@@ -80,6 +80,21 @@ fn invitation_limiter_stops_before_candidate_lookup_and_password_hashing() {
 }
 
 #[test]
+fn a_stored_client_invitation_prepares_a_client_enrollment() {
+    let harness = Harness::new();
+    harness
+        .state
+        .lock()
+        .unwrap()
+        .candidate
+        .as_mut()
+        .unwrap()
+        .role = Role::Client;
+    let service = harness.service();
+    assert_eq!(prepare(&service).role, Role::Client);
+}
+
+#[test]
 fn preparation_saves_encrypted_pending_material_without_creating_a_usable_user() {
     let harness = Harness::new();
     let state = harness.state.clone();

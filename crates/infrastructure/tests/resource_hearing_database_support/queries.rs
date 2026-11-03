@@ -77,7 +77,7 @@ fn queries_authorize_before_scope_lookup_and_respect_revocation() {
     let (captures, command) = setup(&mut db);
     let expected = submit(&db, command);
     let para = db.user("paralegal", true);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let outsider = db.user("litigator", false);
     let store = store(&db);
     let query = ResourceHearingReadQuery::new(10, None).unwrap();

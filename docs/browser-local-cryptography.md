@@ -36,6 +36,22 @@ Litigante, el componente **Generar clave y solicitud** ofrece este recorrido:
 6. Solo despues se habilita **Descargar solicitud CSR**. Compartir ese archivo
    publico con el responsable de la CA; no compartir la clave ni su contrasena.
 
+Al generar, el modulo WASM devuelve tambien `spki_sha256`: el SHA-256 en
+hexadecimal minusculo del `SubjectPublicKeyInfo` DER contenido en el CSR. Es el
+mismo valor que la inspeccion local reporta despues para el certificado emitido
+y el que la vista previa de la CA muestra antes de emitir, porque la CA copia
+el SPKI sin cambios. El titular puede leerlo al operador de la CA para anclar
+la hoja de huella de [ADR 0086](adr/0086-bilateral-contract-signing.md). Con
+OpenSSL se obtiene el mismo valor desde el CSR:
+
+```bash
+openssl req -in solicitud.csr -noout -pubkey \
+  | openssl pkey -pubin -outform DER | openssl dgst -sha256
+```
+
+El componente **Generar clave y solicitud** todavia no muestra este valor; por
+ahora solo lo devuelve el modulo.
+
 La [CA existente](ca/operations.md) revisa el CSR y emite `partner` para acceso
 Owner o `document-signing` para firma documental. Su politica de C/O sigue
 vigente. Emitir el certificado no registra un vinculo en el despacho: el titular

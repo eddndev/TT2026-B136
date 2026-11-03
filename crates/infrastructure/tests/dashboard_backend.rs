@@ -21,7 +21,7 @@ use application::{cases::*, dashboard::*, deadlines::*, documents::*, Applicatio
 use case_administration_support::Fixture;
 use case_stage_database_support::FixedClock;
 use deadline_backend_support as dl;
-use domain::{crypto::DocumentVersion, identity::Role};
+use domain::identity::Role;
 use infrastructure::{PostgresCaseDocumentStore, PostgresDashboardStore, RingSha256Hasher};
 use std::sync::Arc;
 use time::{Duration, OffsetDateTime};
@@ -67,7 +67,7 @@ fn office_and_assigned_scope_never_leak_unrelated_members_or_cases() {
     let colleague = db.user("litigator", true);
     let unassigned = db.user("litigator", false);
     let paralegal = db.user("paralegal", true);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     hearing_database_support::complete(&mut db);
     let unrelated = db.user("litigator", true);
     let store = store(&db, db.at);
@@ -123,66 +123,77 @@ fn office_and_assigned_scope_never_leak_unrelated_members_or_cases() {
         .iter()
         .any(|v| v.user_id == colleague));
 }
+/// Pending contracts are contracts in `borrador` or `en_firma`; a document
+/// classified as a contract without a contract record does not count:
+/// docs/adr/0086-bilateral-contract-signing.md.
 #[test]
-fn contract_totals_use_latest_version_and_classification_without_name_inference() {
+fn contract_totals_count_contract_records_in_draft_or_signing_only() {
+    use application::contracts::{ContractCommand, ContractStore, ContractWrite};
     let Some(mut db) = fixture() else { return };
     let litigator = db.user("litigator", true);
+    let outsider = db.user("litigator", false);
     let docs = PostgresCaseDocumentStore::open(&db.runtime_url).unwrap();
-    let mut contract = document_store_support::document();
-    contract.name = "unrelated-name.txt".into();
-    docs.insert_with_metadata(
-        db.owner,
-        db.case,
-        contract.clone(),
-        DocumentMetadata::new(Some("  CoNtRaTo  "), None, &[]).unwrap(),
-        db.at,
-    )
-    .unwrap();
-    let mut decoy = document_store_support::document();
-    decoy.name = "contract.txt".into();
-    docs.insert(db.owner, db.case, decoy, db.at).unwrap();
-    let dashboard = store(&db, db.at);
-    assert_eq!(dashboard.read(litigator).unwrap().pending_contracts, 1);
-    let mut sealed = contract.clone();
-    sealed.seal(document_store_support::evidence()).unwrap();
-    docs.seal(db.owner, db.case, sealed, db.at).unwrap();
-    assert_eq!(dashboard.read(litigator).unwrap().pending_contracts, 0);
-    let mut next = contract.clone();
-    next.version = DocumentVersion::new(2).unwrap();
-    docs.append(db.owner, db.case, contract.version, next, db.at)
-        .unwrap();
-    assert_eq!(dashboard.read(litigator).unwrap().pending_contracts, 1);
-    docs.replace_metadata(
-        db.owner,
-        db.case,
-        contract.id,
-        MetadataRevision::new(1),
-        DocumentMetadata::new(Some("Other"), None, &[]).unwrap(),
-        db.at,
-    )
-    .unwrap();
-    assert_eq!(dashboard.read(litigator).unwrap().pending_contracts, 0);
-    docs.replace_metadata(
-        db.owner,
-        db.case,
-        contract.id,
-        MetadataRevision::new(2),
-        DocumentMetadata::new(Some("CONTRACT"), None, &[]).unwrap(),
-        db.at,
-    )
-    .unwrap();
-    assert_eq!(dashboard.read(litigator).unwrap().pending_contracts, 1);
-    hearing_database_support::complete(&mut db);
     docs.insert_with_metadata(
         db.owner,
         db.case,
         document_store_support::document(),
-        DocumentMetadata::new(Some("contract"), None, &[]).unwrap(),
+        DocumentMetadata::new(Some("  CoNtRaTo  "), None, &[]).unwrap(),
         db.at,
     )
     .unwrap();
+    let dashboard = store(&db, db.at);
+    assert_eq!(dashboard.read(litigator).unwrap().pending_contracts, 0);
+    let contracted = document_store_support::document();
+    docs.insert(db.owner, db.case, contracted.clone(), db.at)
+        .unwrap();
+    let email: String = db
+        .admin
+        .query_one(
+            "SELECT email FROM users WHERE id=$1",
+            &[&db.owner.as_uuid()],
+        )
+        .unwrap()
+        .get(0);
+    let owner = application::identity::Principal {
+        id: db.owner,
+        email,
+        role: Role::Owner,
+    };
+    let contracts = infrastructure::PostgresContractStore::open(&db.runtime_url).unwrap();
+    let contract = uuid::Uuid::new_v4();
+    let command = |revision, write| ContractCommand {
+        actor: Some(owner.clone()),
+        operation: uuid::Uuid::new_v4(),
+        revision,
+        at: db.at,
+        write,
+        notices: Vec::new(),
+    };
+    contracts
+        .commit(command(
+            1,
+            ContractWrite::Create {
+                contract,
+                case: db.case,
+                document: contracted.id,
+                title: "Servicios".into(),
+            },
+        ))
+        .unwrap();
     assert_eq!(dashboard.read(litigator).unwrap().pending_contracts, 1);
-    assert_eq!(dashboard.read(db.owner).unwrap().pending_contracts, 2);
+    assert_eq!(dashboard.read(db.owner).unwrap().pending_contracts, 1);
+    assert_eq!(dashboard.read(outsider).unwrap().pending_contracts, 0);
+    contracts
+        .commit(command(
+            2,
+            ContractWrite::Abandon {
+                contract,
+                reason: "Otro instrumento".into(),
+                expire_first: None,
+            },
+        ))
+        .unwrap();
+    assert_eq!(dashboard.read(litigator).unwrap().pending_contracts, 0);
 }
 #[test]
 fn case_capacity_failure_is_explicit_and_does_not_return_a_partial_count() {

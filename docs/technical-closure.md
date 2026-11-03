@@ -238,8 +238,13 @@ constituye un pendiente de esta continuación.
 Una evaluación con participantes reales también
 requiere personas y resultados reales; las pruebas automáticas no la sustituyen.
 
-El acceso documental Client requiere resolver su política explícita. No se abre
-por analogía con los roles internos. La instancia atiende un solo despacho sin límite de usuarios; no se aplica
+El acceso documental general del Client requiere resolver su política explícita
+y no se abre por analogía con los roles internos. La única excepción es la
+decisión de los autores del 2 de noviembre de 2026: un Cliente designado lee y
+firma sus propias solicitudes de contrato bilateral, sin pertenecer al
+expediente ([ADR 0086](adr/0086-bilateral-contract-signing.md),
+[contrato HTTP](http-contract-signing.md)). Esa ampliación tiene implementación
+y demostración local; su integración y despliegue no constan aún. La instancia atiende un solo despacho sin límite de usuarios; no se aplica
 un cupo por plan comercial. No se añade
 multitenencia, facturación, PSC externo ni anclaje externo como consecuencia de una
 propuesta técnica. La renovación programada de la CRL se incorporó por indicación

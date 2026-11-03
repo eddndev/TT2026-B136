@@ -38,12 +38,15 @@ pub fn account(db: &mut Fixture, role: &str, active: bool) -> UserId {
          VALUES($1,$2,'original-hash',$3,$4,$5,$6)",
         &[&id.as_uuid(), &email(id), &role, &active, &vec![3u8; 48], &recovery],
     ).unwrap();
-    db.admin
-        .execute(
-            "INSERT INTO case_memberships(case_id,user_id) VALUES($1,$2)",
-            &[&db.case.as_uuid(), &id.as_uuid()],
-        )
-        .unwrap();
+    // A Client account is never a case member: docs/adr/0086-bilateral-contract-signing.md.
+    if role != "client" {
+        db.admin
+            .execute(
+                "INSERT INTO case_memberships(case_id,user_id) VALUES($1,$2)",
+                &[&db.case.as_uuid(), &id.as_uuid()],
+            )
+            .unwrap();
+    }
     id
 }
 

@@ -2,6 +2,7 @@
 
 mod authorization;
 mod content;
+pub(crate) mod contract_state;
 mod integrity;
 mod integrity_codec;
 mod manifest;
@@ -77,7 +78,7 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         let mut client = self.client()?;
         let mut transaction = begin_audited(&mut client)?;
         let principal = authorize(&mut transaction, actor, case, DocumentAction::List)?;
-        let page = query::list(&mut transaction, case, query)?;
+        let page = query::list(&mut transaction, case, query, at.unix_timestamp())?;
         append_transaction(
             &mut transaction,
             &principal.email,
@@ -101,7 +102,7 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         let mut transaction = begin_audited(&mut client)?;
         let principal =
             authorize_document(&mut transaction, actor, case, id, DocumentAction::Read)?;
-        let summary = query::get(&mut transaction, case, id, selection)?;
+        let summary = query::get(&mut transaction, case, id, selection, at.unix_timestamp())?;
         append_transaction(
             &mut transaction,
             &principal.email,
@@ -130,7 +131,7 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         let mut transaction = begin_audited(&mut client)?;
         let principal =
             authorize_document(&mut transaction, actor, case, id, DocumentAction::History)?;
-        let page = query::history(&mut transaction, case, id, query)?;
+        let page = query::history(&mut transaction, case, id, query, at.unix_timestamp())?;
         append_transaction(
             &mut transaction,
             &principal.email,
@@ -259,7 +260,8 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
         let mut transaction = begin_audited(&mut client)?;
         let principal =
             authorize_document(&mut transaction, actor, case, id, DocumentAction::Read)?;
-        let content = query::get(&mut transaction, case, id, VersionSelection::Current)?;
+        let now = at.unix_timestamp();
+        let content = query::get(&mut transaction, case, id, VersionSelection::Current, now)?;
         let current_metadata = metadata_storage::current(&mut transaction, id)?;
         append_transaction(
             &mut transaction,
@@ -309,6 +311,7 @@ impl CaseDocumentStore for PostgresCaseDocumentStore {
             ));
         }
         storage::unchanged_document(&current, &record)?;
+        contract_state::require_unfrozen(&mut transaction, record.id, record.version)?;
         let evidence = record.evidence.as_ref().ok_or_else(|| {
             ApplicationError::InvalidInput("seal requires captured evidence".into())
         })?;
@@ -370,11 +373,4 @@ fn resource(case: CaseId, id: DocumentId, version: DocumentVersion, digest: &str
         "case:{case}:document:{id}:version:{}:sha256:{digest}",
         version.get()
     )
-}
-
-/// Validate current metadata without exposing document ciphertext to aggregates.
-pub(crate) fn current_metadata_row(
-    row: &postgres::Row,
-) -> Result<CurrentDocumentMetadata, ApplicationError> {
-    metadata_storage::current_row(row)
 }

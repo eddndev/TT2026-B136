@@ -15,7 +15,7 @@ fn assigned_litigator_writes_paralegal_reads_and_client_has_no_fact_access() {
     let first = persist(&service(&db, litigator, Role::Litigator), db.case, record());
     assert_eq!(first.snapshot.metadata().recorded_by.id, litigator);
     let paralegal = db.user("paralegal", true);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let read = service(&db, paralegal, Role::Paralegal);
     assert_eq!(
         read.get("session", db.case, first.snapshot.target(), None)

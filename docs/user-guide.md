@@ -159,7 +159,7 @@ la política de inactividad pendiente de selección.
 | **Administrador** (Owner) | Todos los expedientes; gestión de cuentas y asignaciones, registro procesal, documentos y sellado. Accede a Equipo, Auditoría, Incidentes de integridad y Calendarios jurisdiccionales. |
 | **Litigante** | Expedientes con asignación vigente; registro procesal, documentos, clasificación y sellado. Consulta el tablero de sus expedientes. |
 | **Asistente legal** | Expedientes asignados; carga, clasificación, consulta, verificación y descarga documental. Consulta participantes, actividades y agenda; no sella ni gestiona los registros procesales. |
-| **Cliente** | Consulta básica de expedientes asignados. El acceso documental y los módulos de participantes, agenda, alertas e informes permanecen restringidos. |
+| **Cliente** | Nunca se asigna a un expediente. Vincula su certificado de firma y consulta, lee y firma sólo sus propias solicitudes de contrato. El acceso documental y los módulos de participantes, agenda, alertas e informes permanecen restringidos. |
 
 Las asignaciones se aplican a cuentas de acceso. Una ficha de participante
 procesal no crea una cuenta ni concede permisos. Tampoco la existencia de una
@@ -172,7 +172,8 @@ o usar **Invitaciones al despacho**. El alta directa conserva la entrega privada
 de la configuración inicial del segundo factor.
 
 Para invitar, completa **Correo de la invitacion**, elige **Rol de la invitacion**
-(Asistente o Litigante) y pulsa **Enviar invitacion**. El enlace vence en 24 horas.
+(Asistente, Litigante o Cliente) y pulsa **Enviar invitacion**. Una cuenta
+Cliente es la contraparte de un contrato y nunca se asigna a un expediente. El enlace vence en 24 horas.
 **Reenviar a…** seguido de **Confirmar reenvio** invalida el enlace y la preparación
 MFA anteriores. Si no llega una respuesta, usa **Comprobar invitacion** antes de
 **Reintentar el mismo envio**; **Retomar invitacion** conserva la intención
@@ -215,8 +216,9 @@ contexto de navegación; comprueba siempre su título y referencia antes de escr
 
 Administrador y Litigante disponen de **Indicadores operativos**. Usa **Actualizar
 indicadores** para consultar una nueva observación. La pantalla distingue
-expedientes activos, contratos pendientes de sello y plazos vencidos, próximos o
-por revisar, además de la carga por litigante.
+expedientes activos, contratos en borrador o en firma (registrados y aún no
+completados ni abandonados) y plazos vencidos, próximos o por revisar, además de
+la carga por litigante.
 
 - El administrador observa todo el despacho; el litigante, sus expedientes asignados.
 - Los plazos de menos de 48 horas están incluidos en los de menos de siete días;
@@ -324,6 +326,52 @@ otra operación. **Consultar estado de la firma** distingue evidencia histórica
 y estado actual del certificado. Los comandos y pasos completos están en la
 [guía de firma individual](individual-signing-guide.md). Esta función no convierte
 el sello del servidor en firma personal ni la TSA local en PSC autorizado.
+
+### Firmar un contrato con el Cliente
+
+Un contrato liga una serie documental PDF del expediente con una firma en dos
+posiciones: primero firma el Cliente y después el firmante del despacho, un
+administrador o un litigante asignado. Cada parte usa su propia clave, generada
+en su equipo y nunca enviada al servidor, y su certificado vinculado. Las
+reglas completas están en el
+[ADR 0086](adr/0086-bilateral-contract-signing.md).
+
+Antes de la primera solicitud se prepara al Cliente:
+
+1. El administrador invita una cuenta con rol Cliente en **Equipo**. Sólo una
+   cuenta creada al aceptar esa invitación puede firmar como Cliente; un alta
+   directa no es elegible.
+2. El Cliente genera su clave y su solicitud de certificado, entrega sólo la
+   solicitud a la CA y lee en persona o por teléfono la huella SHA-256 de su
+   clave pública. La CA la coteja antes de emitir el certificado.
+3. El Cliente vincula su certificado con la prueba de posesión de su clave.
+   En esta versión **Mi firma documental** sólo aparece para litigantes; el
+   Cliente y el administrador usan las
+   [rutas de vinculación](http-individual-signing.md).
+4. Cliente y despacho firman a mano dos ejemplares de la hoja de huella: folio,
+   correo de la cuenta, huella de la clave, huella de la raíz y fecha. El folio
+   se captura en cada solicitud; la hoja no acredita identidad civil.
+
+Las pantallas de contratos de Qadra todavía no forman parte de esta versión;
+hoy el flujo se opera mediante la [API de contratos](http-contract-signing.md).
+Un administrador o litigante asignado crea el contrato sobre la versión PDF y
+solicita la firma indicando el correo exacto del Cliente, el firmante del
+despacho, la vigencia de 1 a 30 días y el folio de la hoja. El Cliente consulta
+sus solicitudes, descarga el PDF exacto, firma su declaración y conserva el
+paquete parcial; también puede rechazar antes de firmar. El firmante del
+despacho firma después o declina. Quien solicitó, o un administrador, puede
+cancelar con un motivo. Al completarse, ambas partes descargan el paquete
+final, que se comprueba sin Qadra con OpenSSL siguiendo su `INSTRUCCIONES.md`
+o con el validador de evidencia.
+
+Si no llega una respuesta, consulta el recibo de la operación antes de repetir:
+reenviar los mismos datos devuelve el recibo original y nunca crea una segunda
+firma. Una solicitud vence sola al agotar su vigencia, y una versión nueva del
+documento obliga a cancelar y solicitar de nuevo. Mientras una solicitud está
+abierta o completada, esa versión no admite sello ni firma individual. Los
+avisos de cada paso se envían por correo sólo si el despacho lo habilitó. La
+TSA, la CA y el servidor pertenecen al despacho: la evidencia es una
+declaración técnica del despacho, no una constancia de un tercero acreditado.
 
 ## 6. Participantes, etapas y actuaciones declaradas
 

@@ -54,7 +54,9 @@ def enroll(role, route):
     session = request('POST', '/api/v1/auth/mfa/recovery', {
         'challenge_token': challenge['challenge_token'], 'code': user['recovery_codes'][0],
     })
-    request('PUT', route + '/members/' + user['user']['id'], expected=204)
+    # A Client account is never a case member.
+    assigned = (422, 'invalid_input') if role == 'client' else (204, None)
+    request('PUT', route + '/members/' + user['user']['id'], expected=assigned[0], code=assigned[1])
     return user['user']['id'], session['access_token']
 
 

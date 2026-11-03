@@ -1,4 +1,4 @@
-use super::{account, decode, inconsistent, port, PostgresSigningBindingStore};
+use super::{binding_account as account, decode, inconsistent, port, PostgresSigningBindingStore};
 use application::{
     document_signing::{SigningAccountContext, SigningBindingReceipt},
     ApplicationError,

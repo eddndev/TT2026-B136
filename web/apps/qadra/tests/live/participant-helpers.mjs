@@ -92,11 +92,10 @@ export async function exercisePermissions(browser, testInfo, name, errors) {
       await expect(
         page.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
       ).toHaveCount(0);
-      await page.getByRole('button', { name: new RegExp(accounts.case.title) }).click();
+      const listed = page.getByRole('button', { name: new RegExp(accounts.case.title) });
       if (role === 'client') {
-        await expect(
-          page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-        ).toBeVisible();
+        // A Client account is never a case member, so the case is not listed.
+        await expect(listed).toHaveCount(0);
         await expect(page.getByRole('link', { name: 'Participantes', exact: true })).toHaveCount(0);
         await page.evaluate(() => {
           location.hash = 'participants';
@@ -108,6 +107,7 @@ export async function exercisePermissions(browser, testInfo, name, errors) {
           paths.filter((path) => /^\/api\/v1\/cases\/[^/]+\/participants(?:\/|$)/.test(path)),
         ).toEqual([]);
       } else {
+        await listed.click();
         await page.getByRole('link', { name: 'Participantes', exact: true }).click();
         await openPerson(page, name);
         expect(

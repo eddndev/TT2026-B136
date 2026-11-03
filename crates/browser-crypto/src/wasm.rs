@@ -6,6 +6,8 @@ fn error(value: crate::CryptoError) -> JsValue {
     JsValue::from_str(value.0)
 }
 
+/// Returns JSON with `encrypted_key_pem`, `csr_pem` and `spki_sha256`, the
+/// public fingerprint the holder reads to the CA operator before issuance.
 #[wasm_bindgen]
 pub fn generate_key(
     password: String,

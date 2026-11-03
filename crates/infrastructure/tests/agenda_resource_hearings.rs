@@ -184,7 +184,7 @@ fn resource_agenda_enforces_membership_revocation_and_client_denial() {
     own::submit(&db, command);
     let assigned = db.user("paralegal", true);
     let foreign = db.user("litigator", false);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let store = agenda::store(&db);
     let q = query(
         time,

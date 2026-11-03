@@ -1,5 +1,5 @@
 import { memberUuid, memberRevision, memberInstant } from './members-values.mjs';
-const roles = new Set(['litigator', 'paralegal']);
+const roles = new Set(['litigator', 'paralegal', 'client']);
 const statuses = new Set(['pending', 'pending_mfa', 'accepted', 'expired']);
 const deliveries = new Set(['pending', 'sent', 'uncertain', 'rejected']);
 function invalid() {

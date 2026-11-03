@@ -5,7 +5,10 @@ Este contrato describe las rutas locales de invitacion y su configuracion en
 separado en [el informe de verificacion](verification-report.md). La decision
 de diseno esta en [el ADR de invitaciones](adr/0075-recoverable-member-invitations.md).
 
-Un Owner activo invita a un Litigator o Paralegal mediante correo y rol. El
+Un Owner activo invita a un Litigator, Paralegal o Client mediante correo y
+rol. Client es la contraparte de un contrato bilateral
+([ADR 0086](adr/0086-bilateral-contract-signing.md)), que reserva esa parte a
+cuentas creadas al aceptar una invitacion `client`. El
 destinatario elige su contrasena y confirma TOTP antes de que se cree una cuenta
 utilizable. El flujo no tiene cuota de cuentas, planes comerciales ni campos
 personales adicionales. Las cuentas existentes, incluidas las inactivas, se
@@ -60,7 +63,10 @@ Ejemplo de solicitud inicial:
 }
 ```
 
-`role` solo admite `litigator` o `paralegal`. El correo se normaliza. El UUID de
+`role` solo admite `litigator`, `paralegal` o `client`; otro valor responde
+`400 invalid_invitation_request`. Ninguna invitacion crea un Owner. Una cuenta
+`client` nunca se asigna a un expediente (vease [miembros](members-api.md)).
+El correo se normaliza. El UUID de
 la primera operacion tambien identifica la invitacion, lo que permite consultar
 su resultado despues de perder la respuesta. El resumen tiene esta forma:
 

@@ -62,7 +62,8 @@ export async function provisionProceduralFacts(call) {
       201,
     );
     result[key] = { id: row.id, title, reference };
-    for (const role of ["litigator", "paralegal", "client"])
+    // A Client account is never a case member.
+    for (const role of ["litigator", "paralegal"])
       await call(
         "PUT",
         `/cases/${row.id}/members/${result[role].id}`,

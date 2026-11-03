@@ -436,6 +436,7 @@ is allowed to the requester or an Owner.
 |---|---|---|
 | 404 | `contract_not_found` | Missing, or no relation to the caller, without distinction |
 | 409 | `contract_revision_conflict` | `expected_revision` differs |
+| 409 | `contract_exists` | The document series already has a contract |
 | 409 | `contract_request_open` | An open request already exists |
 | 409 | `contract_request_closed` | The request is closed |
 | 409 | `contract_out_of_turn` | Signature out of order |
@@ -446,6 +447,14 @@ is allowed to the requester or an Owner.
 | 409 | `contract_not_complete` | Final package requested without completion |
 | 422 | `contract_party_ineligible` | With `blockers` among `client_not_ready`, `firm_signer_not_ready`, `document_not_ready`; the first never distinguishes a missing, ineligible or unbound account |
 | 503 | `contract_timestamp_unavailable` | The authority failed; no state was written |
+| 400 | `invalid_contract_request` | A path value, body member, base64 value or outcome is malformed |
+
+The `contract_party_ineligible` envelope carries the blocker codes as an
+array member `blockers` of its `error` object, next to `code` and `message`.
+The exact content route answers an explicit HEAD with 405, like the document
+content route, so a HEAD request never decrypts the version or records a
+`contract.content_read` event. The evidence route does the same, so a HEAD
+request never builds a package or records `contract.evidence_exported`.
 
 The individual signing codes `signing_account_changed`,
 `signing_trust_changed`, `signing_conflict`, `signing_binding_inactive` and
@@ -461,7 +470,13 @@ The Client private key never reaches the server.
 
 1. Only an Owner invites an account with role `client`, through the existing
    invitation workflow (24-hour validity, resend). The Client chooses their
-   password and confirms TOTP.
+   password and confirms TOTP. `migrations/0051_client_invitations.sql`
+   widens the invitation role constraint of
+   `migrations/0046_member_invitations.sql` when it still has its original
+   form, without touching stored invitations, and startup requires the
+   widened constraint. It is registered with the invitation family and is a
+   separate file from the membership guard, because the two families migrate
+   at different points. An invitation never creates an Owner.
 2. The Client generates an encrypted key and a CSR locally in "Mi firma", or
    uses OpenSSL, and sees the SHA-256 of the SPKI computed locally.
 3. The Client hands over the public CSR through an external channel and reads
@@ -477,6 +492,18 @@ The Client private key never reaches the server.
    key. It is the only measure that ties person and key outside the firm's
    technical control; it does not establish civil identity. The sheet
    reference is required to create a request.
+
+A document-signing binding (ADR 0074) may therefore be held by every party of
+a contract: the binding service, the signing account lookup and the storage
+guard admit an active Owner, Litigator or Client, and still reject a
+Paralegal. `migrations/0050_signing_binding_parties.sql` replaces the two
+binding functions of `migrations/0044_document_signing_bindings.sql` with
+`CREATE OR REPLACE` and changes no table, column, trigger or row; the startup
+inventory compares each function with its last registered definition.
+Individual signing keeps requiring an active Litigator who is a case member,
+in its service and in the receipt guard of
+`migrations/0045_individual_document_signatures.sql`, so an Owner or Client
+binding never produces an individual signature.
 
 Only an account created by an accepted `client` invitation is eligible. An
 account created directly by an Owner is not, because the Owner chose its
@@ -516,17 +543,241 @@ document `authorize` and the case scope checks are not changed.
 | Partial package | Yes | Yes | Yes | Yes | Once signed, also after an unsuccessful close | 404 |
 | Full package | Yes | Yes | Yes | Yes | Yes, their own | 404 |
 
-Staff package reads additionally require `ExportEvidence` and case scope. A
-Litigator signer who loses case membership cannot sign. Nobody signs for
+Staff package reads additionally require `ExportEvidence` and case scope. The
+designated firm signer is always an Owner or a Litigator, so it is staff:
+reading the exact version or a package, signing and declining all require its
+current case scope, and a Litigator signer who loses case membership keeps
+only the view of the request and its events. The service refuses its
+signature or decline with `PermissionDenied` before any decryption or
+time-stamp request; a membership lost after that check is refused by storage
+and answers `signing_account_changed`. Nobody signs for
 another account: the storage trigger compares the signer. An Owner signs only
 with their own `document-signing` certificate, distinct from the `partner`
 access certificate.
 
 A Client account is never a case member. The case service, a storage trigger
 on case memberships and the member selectors all reject or omit accounts with
-role `client`. Client access is limited to a restricted Qadra space for the
+role `client`. Assigning a Client answers `422 invalid_input` and writes
+nothing. Because a role change would otherwise turn an existing member into a
+Client member, the member service rejects changing the role of an account that
+holds an assignment to `client` with `400 invalid_input`. The trigger guards
+only writes to case memberships: every runtime path that could create a Client
+member is closed by these checks, and a direct SQL role change is tampering
+that the startup inventory and the migration detect. The guard lives in
+`migrations/0051_client_memberships.sql`, registered with the member schema
+family so that its startup inventory checks the function, the trigger and the
+absence of any Client membership. The migration
+refuses to run while a Client membership exists and never deletes one:
+whether to keep or remove such an assignment is a decision for the firm, taken
+through the audited member workflow before migrating. Client access is limited to a restricted Qadra space for the
 Client's own contracts: no messaging, no case browsing and no general document
 access. Any other read answers 404.
+
+### Storage
+
+Contract storage is one schema family, `crates/infrastructure/src/contract_schema`,
+registered after the invitation family because the request trigger reads
+accepted Client invitations. Its three migrations are split only to keep each
+file under the 400-line limit and run in this order on every administrative
+connection, idempotently: `migrations/0052_contracts.sql` (tables and the two
+statement builders), `migrations/0052_contract_events.sql` (lock, preservation,
+event and request registration) and `migrations/0052_contract_signatures.sql`
+(signatures, completion, pairing, notifications, version guard and every
+trigger). No table holds a state column.
+
+- `contracts`: the root, one per document series (`document_id` unique), with a
+  foreign key to `document_series(id,case_id)` and the captured creator.
+- `contract_signature_requests`: every `CTRTREQ1` field, both binding
+  identities (foreign keys to `document_signing_binding_identity`), the
+  optional Client subject revision (which must belong to the same case), the
+  `ceremony_reference` of 1 to 80 characters, the 240 bytes and their digest,
+  `created_at_seconds`, `created_at_nanoseconds` and `expires_at_seconds`,
+  with a validity of 1 to 30 days.
+- `contract_events`: primary key `(contract_id, revision)`, unique
+  `operation_id` and `audit_sequence`, the only foreign key to `audit_events`.
+  An `expired` event has no actor account and the actor label
+  `system:contract-expiry`; every other event names an account whose e-mail is
+  its label. Abandoning and cancelling require a reason of 1 to 500
+  characters; rejecting and declining admit one.
+- `contract_party_signatures`: primary key `(request_id, position)`, the 303
+  bytes, the 384-byte signature, the binding and trust revision used, and, in
+  position 1 only, T1 with its time-stamping chain. Its `operation_id` is a
+  foreign key to the event that the signature completes.
+- `contract_completions`: Td, the manifest of at most 64 KiB with its digest,
+  Tf and the time-stamping chain. Each party CRL is the CRL of the trust
+  revision its signature names, so no CRL is stored twice.
+- `contract_notifications`: the only mutable table. Each row names its request
+  and its exact event, a recipient, the event kind, sender, recipient address,
+  `subject` (1 to 200 characters) and `message_text` (1 to 4096 characters),
+  and delivery columns as invitation deliveries have. A `requested` notice goes
+  to the Client; `client_signed`, `completed` and `expired` notices to the
+  Client, the firm signer and the requester; `rejected` to the requester and
+  the firm signer; `declined` to the Client and the requester; `cancelled` to
+  both parties. Only the delivery columns change, never downward in generation.
+
+Every write takes the advisory lock 280603412820 under READ COMMITTED, after
+the audited mutation lock. Within one transaction the audit row comes first;
+the root precedes its `created` event and a request its `requested` event; a
+`client_signed` or `completed` event precedes its signature; the completion
+follows the position 2 signature. The deferred trigger function
+`contract_completion_pair` refuses at commit a root without revision 1, a
+request without its `requested` event, a `client_signed` event without the
+position 1 signature, and a `completed` event without the position 2 signature
+and the completion.
+
+`contract_event_register` requires the previous revision plus one
+(SQLSTATE 40001, `contract revision conflict`), a non-decreasing instant and
+audit sequence, the exact audit row, the event graph of the state table above,
+and the designated actor of each event. The audit chain digest is computed by
+the application, so no trigger can write an event. The expired-closing rule is
+therefore enforced, not performed, by storage: while the previous request is
+nominally open, a new request or an `abandoned` event is refused with
+`contract request is open` before `expires_at` and with
+`contract request must expire first` after it, and the adapter writes the
+audited `expired` event of the exhausted request first. Abandoning follows the
+same rule, so no `expired` event can ever follow a terminal one.
+
+`contract_request_register` checks the open case, the latest version of the
+series with `documents.evidence IS NULL` read `FOR SHARE`, the subject's case,
+an active Client with role `client` created by an accepted `client`
+invitation, an active Owner or member Litigator as firm signer and as
+requester, both bindings unwithdrawn, registered no later than the request and
+under the current root, and rebuilds the 240 bytes with `contract_request_bytes`.
+`contract_signature_register` rebuilds the 303 bytes with `contract_party_bytes`
+(the position 1 chain digests are zeros; position 2 digests the stored position
+1 signature and T1) and requires the designated signer, binding and leaf, the
+event of its turn, `accepted_at < expires_at`, the active account with
+unchanged counters and role, membership for a Litigator in position 2, the
+open case, the latest version, a version with `documents.evidence IS NULL`
+read `FOR SHARE` (`contract version is frozen`), the signer's binding
+unwithdrawn, the current trust revision and the same root as position 1. It
+does not consult the Client binding in position 2.
+
+The registration triggers compare the record's own instants, which come from
+the application clock. `contract_version_guard`, `BEFORE UPDATE OF evidence ON
+documents`, has no such instant and reads the database clock: it refuses
+evidence (`contract version is frozen`) for a version whose request is
+completed, or has no closing event and has not reached `expires_at`. An
+exhausted request therefore frees its version before its `expired` event is
+written. A request waiting on an uncommitted seal, or a seal waiting on an
+uncommitted request, re-reads the committed row and is refused. Because the
+two clocks differ, a seal can commit after `expires_at` while a signature
+whose accepted instant precedes `expires_at` still waits for the locks; the
+signature trigger and the store's sign transaction therefore refuse any
+signature on a version that already holds evidence, so a completed or
+Client-signed request never names a sealed or individually signed version.
+
+Authorization failures use SQLSTATE 42501, revision conflicts 40001 and every
+other refusal 23514; each message is stable so the adapters, which check the
+same conditions before writing, can map a lost race to the HTTP codes above.
+The runtime role may read and insert the five append-only tables, read,
+insert and update only the delivery columns of notifications, and execute the
+two statement builders; it cannot execute any trigger function. The only new
+reference to audit rows raises the audit foreign-key triggers from 26 to 28.
+
+The startup inventory checks, in SQL, every CHECK predicate, the created event
+of each root, contiguous revisions, the event graph, each event's audit row,
+each request's `requested` event and rebuilt bytes, each signature's event,
+designation and rebuilt bytes, the pairs above, and that a completed version
+holds no evidence. It then decodes every statement with the domain codecs,
+verifies each party signature with the trust revision it names at its
+`checked_at`, verifies T1, Td and Tf over their imprints under the admitted
+policy, and parses each manifest to compare its identities, signers and every
+artifact whose bytes are stored. Token instants against `created_at` and
+`expires_at` are judged by the signing service and the validator, and the
+certificates and CRLs encoded for a package are checked by the exporter.
+
+### Application service
+
+`crates/application/src/contracts` holds the use cases, their ports and the
+pure rules above, so the store only supplies facts and rechecks them under
+its locks. A store read returns the whole stored contract (root, events,
+requests with both live-at-request binding receipts, signatures with the
+root and CRL of the trust revision they name, and the completion) plus
+whether the caller has staff scope on the case, the latest version of the
+series and whether the case is closed. The service derives every state and
+decides every access from those facts; the derivation is the single
+definition of an open request given above.
+
+These details are fixed by the service:
+
+- An account that can read a contract but is not the actor of an action
+  (a Paralegal who tries to manage, a staff member who is not the designated
+  signer, a party who tries the other party's action) receives
+  `PermissionDenied`; an account with no relation at all receives
+  `contract_not_found`.
+- The designated firm signer may read the exact version through the request
+  route while the request is open and it keeps case scope, also before the
+  Client signs, so the firm can review what the Client is asked to accept.
+- A request is created with the application clock: `created_at` is the
+  instant of the command in whole seconds and `expires_at` adds the
+  validity in days. Party eligibility is resolved inside the command and
+  reported only as the three blockers.
+- Signing builds the expected statement from the current account counters,
+  the current trust revision and the request's designated binding, which
+  must still be the caller's live binding. A submitted statement whose
+  account counters differ answers `signing_account_changed`, whose
+  deployment, root or trust revision differ `signing_trust_changed`, and
+  any other difference `signing_conflict`.
+- The position 2 manifest is encoded from the exact bytes the export
+  writes: certificates and CRLs as canonical PEM of their stored DER, `ca.pem`
+  from the root of the position 2 trust revision, `tsa-chain.pem` from the
+  anchor of Td and Tf, and `contrato.pdf` from the decrypted, digest-checked
+  content. Td and Tf must use the same anchor. The export rebuilds the
+  covered entries and refuses to write a package whose artifacts differ from
+  the stored manifest.
+- Every T1, Td and Tf failure that is not a configuration error answers
+  `contract_timestamp_unavailable`, including a token whose `genTime`
+  precedes `created_at` or, for Td and Tf, its predecessor token. A token
+  whose `genTime` plus accuracy passes `expires_at` answers
+  `contract_expired`.
+- Notices carry a plain ASCII subject and text that name the contract
+  title, the request and its expiry, and link to `public_url#contracts`
+  when a public address is configured; they never carry a token, signature
+  or certificate.
+- The expiry closer runs with no actor, writes one `expired` event per
+  exhausted unclosed request, at most 20 per cycle, and skips a request
+  whose revision another writer changed in between.
+- Notice e-mail is a separate leased consumer, like invitation delivery:
+  it claims one notice at a time with a 30-second lease, fixes a provider
+  deadline of 86400 seconds at the first claim, sends the persisted sender,
+  recipient, subject and text through the ready-report e-mail provider port
+  with the notice identifier as the provider key, and records `sent`,
+  `rejected` or `uncertain`. Only an uncertain attempt is retried, 60
+  seconds later and before its deadline; without a retry it stays final.
+  Claims and outcomes use the database clock and change only the delivery
+  columns. A notice of an inactive recipient is not claimed and waits.
+- The server always composes one supervised contract consumer. Every five
+  seconds it runs one expiry cycle and, only when
+  `TT_CONTRACT_EMAIL_ENABLED=true`, up to 20 notice attempts until none is
+  claimable. Enabling contract e-mail requires `REPORT_EMAIL_FROM`,
+  `REPORT_PUBLIC_URL` and `RESEND_API_KEY`, validated as for ready-report
+  e-mail, and its notices link to `REPORT_PUBLIC_URL#contracts`. While it
+  is disabled, notices are written with the fixed sender
+  `notificaciones@qadra.invalid` and no link, and the parties see their
+  requests in Qadra. A transient storage or provider failure waits for the
+  next cycle; any other failure ends the consumer, which stops the server
+  like every other supervised consumer.
+- Creating a second contract for a document series answers 409
+  `contract_exists`; the series identifies its contract. The store checks
+  the creator's staff scope on the case under its locks before it looks up
+  the document, so a creator without scope receives `contract_not_found`
+  whether the document is missing, exists or already has a contract.
+- Document lists, details and version histories carry the derived
+  `contract_state` of the series (`None` without a contract), computed in SQL
+  with the instant of the read. The `sealed=false` filter omits a current
+  version that a completed request names or that an unclosed request names
+  before its `expires_at`, because no seal can be written for it. The seal
+  and individual signing adapters check the same freeze with the database
+  clock, the instant the storage guard reads, and answer
+  `contract_version_frozen` before writing.
+- `PostgresContractStore` returns a contract to a party without staff scope
+  with only the requests that designate it, and blanks the actor and reason
+  of every event of another request, while keeping every revision so the
+  party can send the right `expected_revision`. The store finds the exact
+  replay of an operation inside the write transaction, after the audited
+  mutation lock and the contract lock, before rechecking the author and the
+  expected revision, and maps each trigger refusal to its contract error.
 
 ## Consequences
 
@@ -582,7 +833,8 @@ generalize. Verification with OpenSSL is a two-step procedure documented in
 Qadra.
 
 The individual signing tables, their storage functions and their inventories
-are not changed, and every v1 and v2 package keeps its verdict. New storage
+are not changed, apart from the two binding functions that admit every
+contract party, and every v1 and v2 package keeps its verdict. New storage
 adds append-only contract tables, two audit references and a version guard
 that blocks seals and individual signatures on contracted versions. The
 dashboard pending-contract indicator is redefined over contracts in

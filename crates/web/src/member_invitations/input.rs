@@ -24,6 +24,7 @@ impl Issue {
         let role = match self.role.as_str() {
             "litigator" => Role::Litigator,
             "paralegal" => Role::Paralegal,
+            "client" => Role::Client,
             _ => return Err(InvitationError::Invalid),
         };
         Ok(InvitationIssueRequest {

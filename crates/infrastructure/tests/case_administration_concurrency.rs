@@ -112,7 +112,7 @@ fn concurrent_complete_registrations_cannot_claim_the_same_current_identifiers()
 fn waiting_basic_reads_observe_committed_revocation_or_disabled_actor_before_returning_data() {
     for revoke in [true, false] {
         let Some(mut f) = Fixture::new() else { return };
-        let actor = f.user("client", true);
+        let actor = f.user("paralegal", true);
         f.admin
             .batch_execute(&format!(
                 "ALTER ROLE {} SET default_transaction_isolation='repeatable read'",

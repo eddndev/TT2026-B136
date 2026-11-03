@@ -112,7 +112,7 @@ fn denied_roles_and_other_owners_cannot_create_read_or_download_private_reports(
     let store = store(&db, clock(at));
     let report = request(&store, &owner, command(at), at).unwrap();
     for role in ["client", "paralegal"] {
-        let id = db.user(role, true);
+        let id = db.user(role, role != "client");
         let actor = principal(&mut db, id);
         assert!(matches!(
             store.request(

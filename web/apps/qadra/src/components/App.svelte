@@ -4,6 +4,7 @@
   import Auth from './Auth.svelte';
   import SessionNotice from './SessionNotice.svelte';
   import Sidebar from './Sidebar.svelte';
+  import Topbar from './Topbar.svelte';
   import Overview from './Overview.svelte';
   import CaseReports from './CaseReports.svelte';
   import Guide from './Guide.svelte';
@@ -26,8 +27,7 @@
   import { createDraftRegistry } from '../lib/draft-registry.mjs';
   import { createSessionLifecycle } from '../lib/session-lifecycle.mjs';
   import { createSessionDialogs } from '../lib/session-dialogs.mjs';
-  import { roles } from '../lib/documents.mjs';
-  import { normalizeView, viewLabels } from '../lib/workspace.mjs';
+  import { alertReturnViews, normalizeView } from '../lib/workspace.mjs';
   let user = null;
   let pendingUser = null;
   let selectedCase = null;
@@ -143,20 +143,7 @@
     if (view !== 'hearings') hearingIntent = null;
     if (view !== 'deadlines') deadlineIntent = null;
     if (view !== 'documents') incidentReturn = false;
-    if (
-      ![
-        'case-summary',
-        'documents',
-        'participants',
-        'stages',
-        'hearings',
-        'case-measures',
-        'resolutions',
-        'resources',
-        'deadlines',
-      ].includes(view)
-    )
-      alertReturn = false;
+    if (!alertReturnViews.includes(view)) alertReturn = false;
     if (location.hash !== `#${view}`) location.hash = view;
     await tick();
     main?.focus({ preventScroll: true });
@@ -254,20 +241,7 @@
       onlogout={logout}
     />
     <div class="app-content">
-      <header class="topbar">
-        <div class="topbar-location">
-          <button
-            class="icon-button menu-toggle"
-            aria-label="Abrir men&#250;"
-            onclick={() => sidebar.open()}><Icon name="menu" /></button
-          ><span>Mi despacho<span class="breadcrumb">/ {viewLabels[view]}</span></span>
-        </div>
-        <div class="topbar-identity">
-          <span class="badge info"><Icon name="shield" size={13} />Acceso con MFA</span><span
-            class="role-label">{roles[user.role] || user.role}</span
-          ><span class="avatar" title={user.email}>{user.email.slice(0, 2).toUpperCase()}</span>
-        </div>
-      </header>
+      <Topbar {user} {view} onmenu={() => sidebar.open()} />
       <main id="main-content" tabindex="-1" bind:this={main}>
         {#if user.role === 'owner'}<DocumentIntegrityNotice
             bind:this={integrityNotice}

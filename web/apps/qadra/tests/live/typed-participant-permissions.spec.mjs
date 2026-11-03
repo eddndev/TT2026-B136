@@ -56,7 +56,7 @@ test('institutional participants retain staff read policy, closed-case gates and
   );
   const record = { id: createdCase.id, title: createdCase.administration.title };
   await withOwner(3, async (call) => {
-    for (const role of ['litigator', 'paralegal', 'client'])
+    for (const role of ['litigator', 'paralegal'])
       await call('PUT', `/cases/${record.id}/members/${accounts[role].id}`);
   });
   await participants(page);
@@ -115,10 +115,8 @@ test('institutional participants retain staff read policy, closed-case gates and
         await expect(
           reader.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
         ).toHaveCount(0);
-        await reader.getByRole('button', { name: new RegExp(record.title) }).click();
-        await expect(
-          reader.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-        ).toBeVisible();
+        // A Client account is never a case member, so the case is not listed.
+        await expect(reader.getByRole('button', { name: new RegExp(record.title) })).toHaveCount(0);
         await reader.evaluate(() => (location.hash = '#participants'));
         await expect(reader.getByRole('link', { name: 'Participantes', exact: true })).toHaveCount(
           0,

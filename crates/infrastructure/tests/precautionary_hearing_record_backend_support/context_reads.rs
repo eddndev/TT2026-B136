@@ -165,7 +165,7 @@ fn context_reads_revalidate_full_staff_identity_and_current_case_membership() {
         assert!(reader.get("session", db.case).is_err());
         assert_eq!(snapshot(&mut db), before);
     }
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let client = principal(&mut db, client);
     let before = snapshot(&mut db);
     assert!(PrecautionaryContextReadStore::get(storage.as_ref(), &client, db.case).is_err());

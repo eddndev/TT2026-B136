@@ -21,7 +21,8 @@ export async function seedTypedParticipants(request, token, certificatePath) {
     const row = await request('POST', '/api/v1/cases', { title, reference }, token, 201);
     participants[key] = { id: row.id, title: row.title, reference: row.reference };
   }
-  for (const role of ['litigator', 'paralegal', 'client']) {
+  // A Client account is never a case member.
+  for (const role of ['litigator', 'paralegal']) {
     await request('PUT', `/api/v1/cases/${participants.case.id}/members/${participants[role].id}`,
       undefined, token, 204);
   }

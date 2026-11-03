@@ -21,6 +21,8 @@ pub enum ApplicationError {
     #[error(transparent)]
     DocumentSigning(#[from] crate::document_signing::SigningWorkflowError),
     #[error(transparent)]
+    Contract(#[from] crate::contracts::ContractWorkflowError),
+    #[error(transparent)]
     MeasureAdministrative(#[from] crate::measure_corrections::MeasureAdministrativeError),
     #[error(transparent)]
     MeasureRecordRead(#[from] crate::measure_corrections::MeasureRecordReadError),

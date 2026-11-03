@@ -85,7 +85,7 @@ fn global_staff_reads_require_no_case_membership_but_client_and_nonowners_cannot
             .unwrap();
         assert_eq!(listed.calendars.len(), 1);
     }
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let before = snapshot(&mut db);
     assert!(matches!(
         store(&db).get(client, record.id, None, db.at),

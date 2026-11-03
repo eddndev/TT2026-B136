@@ -1,5 +1,106 @@
 # Informe de verificación local
 
+## Almacenamiento, membresías y correcciones de contratos bilaterales: 2 de noviembre de 2026
+
+Ejecución local fresca sobre la rama `feat/bilateral-contracts` en `b6797f61`,
+con `TMPDIR` en disco dentro del checkout (`output/tmp`), `CARGO_BUILD_JOBS=1`
+y `RUST_TEST_THREADS=1`, una sola campaña a la vez. Cubre las migraciones
+`0050`, `0051` y `0052`, que cada prueba de PostgreSQL aplica sobre una base
+desechable, y las correcciones de acceso, sellado de tiempo, congelamiento de
+versión, `HEAD` de evidencia, instrucciones del paquete y demostraciones de
+[ADR 0086](adr/0086-bilateral-contract-signing.md). No hay integración, CI ni
+despliegue de este cambio.
+
+- Con `scripts/test-backends.sh`, que levantó PostgreSQL y Redis desechables y
+  exportó `IDENTITY_TEST_DATABASE_URL`, `CASE_TEST_DATABASE_URL`,
+  `DOCUMENT_TEST_DATABASE_URL`, `IDENTITY_TEST_REDIS_URL` y
+  `CA_OPERATIONS_TEST_ADMIN_URL`, `cargo test -p infrastructure` de:
+  `contract_document_state` (1), `contract_notice_delivery` (2),
+  `contract_service_backend` (5), `contract_service_failures` (6),
+  `contract_service_revocation` (1), `contract_storage` (8),
+  `contract_storage_guards` (7), `contract_storage_lifecycle` (6),
+  `contract_storage_migration` (2) y `contract_storage_parties` (5), 43
+  aprobadas tras el cambio del disparador de firmas; `signing_binding_parties`
+  (4), `member_invitation_clients` (2), `member_suite_1` (17, incluye
+  `member_client_guard`) y `dashboard_backend` (8), aprobadas; y la prueba
+  `commit_rechecks_current_actor_assignment_and_responsible_eligibility` de
+  `deadline_suite_1`, aprobada. Antes de cada corrección fallaron, como se
+  esperaba, la creación por un Litigante no asignado en
+  `contract_service_backend` y la firma sobre una versión con evidencia en
+  `contract_storage_guards`.
+- `cargo test -p application`: 2476 aprobadas, ninguna fallida; incluye
+  `contract_service_access` (4) y las pruebas unitarias de acceso e
+  instrucciones. `cargo test -p web`: 76 binarios, 696 aprobadas, incluido el
+  catálogo de acceso con 237 pares y cuatro rechazos `HEAD`.
+- `cargo fmt --all --check`, `cargo +1.99 clippy -p domain -p application
+  -p infrastructure -p web -p despacho-cli -p browser-crypto --all-targets --
+  -D warnings` y `cargo +1.88 check` de los mismos paquetes: correctos.
+- `scripts/api-demo.sh`, con el decodificador multimedia fijado 9.0.2 indicado
+  por `TT_FFPROBE_PATH` y `TT_FFMPEG_PATH`: aprobada en 1210 segundos, con
+  restauración incluida. Una primera ejecución se detuvo en la inscripción de
+  `api-resource-activities-demo.sh`, que aún asignaba al Cliente; se corrigió y
+  la campaña completa se repitió.
+- Las órdenes OpenSSL nuevas de `INSTRUCCIONES.md` se ejecutaron sobre
+  `crates/evidence-verify/tests/contract-fixtures`: vínculos `Verified OK`,
+  certificados `OK` contra `ca.pem` y su CRL, raíz igual y desplazamientos
+  239 y 271 iguales a las huellas de la firma y del sello del Cliente.
+- `npx playwright test tests/browser/dashboard.spec.mjs --workers=1`: 8
+  aprobadas; con la etiqueta anterior falla el caso de 1440 píxeles.
+
+Límites: no se ejecutaron la campaña de navegador con servicios reales
+(`scripts/web-demo.sh` con `playwright.live.config.mjs`), cuyos fixtures y
+especificaciones se actualizaron para no asignar Clientes y para crear
+contratos en el tablero, ni la suite completa del espacio de trabajo, ni las
+pruebas de `domain`, `browser-crypto` y `evidence-verify`, que este cambio no
+modifica; para `domain` y `browser-crypto` sólo se ejecutaron clippy y check.
+
+## Rutas, consumidor y demostración de contratos bilaterales: 2 de noviembre de 2026
+
+Ejecución local fresca sobre la rama `feat/bilateral-contracts` en `0391d216`,
+con `TMPDIR` en disco dentro del checkout, `CARGO_BUILD_JOBS=1` y
+`RUST_TEST_THREADS=1`, una sola campaña a la vez. Cubre las catorce rutas de
+[ADR 0086](adr/0086-bilateral-contract-signing.md), el consumidor supervisado
+de vencimiento y avisos y la matriz de acceso. No hay integración, CI ni
+despliegue de este cambio.
+
+- `cargo fmt --all --check`, `cargo +1.99 clippy -p web -p application
+  -p infrastructure -p despacho-cli --all-targets -- -D warnings` y
+  `cargo +1.88 check` de los mismos paquetes: correctos.
+- `cargo test -p web`: 76 binarios de prueba, 696 pruebas aprobadas y ninguna
+  fallida, incluidas las seis de `contract_http.rs` y el catálogo de acceso con
+  237 pares y tres rechazos HEAD.
+- `scripts/test-backends.sh cargo test -p despacho-cli --no-fail-fast`, con
+  PostgreSQL y Redis desechables (`IDENTITY_TEST_DATABASE_URL`,
+  `CASE_TEST_DATABASE_URL`, `DOCUMENT_TEST_DATABASE_URL`,
+  `IDENTITY_TEST_REDIS_URL`) y el decodificador multimedia fijado 9.0.2 indicado
+  por `TT_FFPROBE_PATH` y `TT_FFMPEG_PATH`: 34 binarios, 243 aprobadas, una
+  ignorada y ninguna fallida. Sin el decodificador, las cinco pruebas de
+  admisión de carga fallan al no encontrarlo; no es un efecto de este cambio.
+- `scripts/test-backends.sh cargo test -p infrastructure` de
+  `contract_notice_delivery` (2), `contract_service_backend` (3) y
+  `contract_service_failures` (6): aprobadas con `CASE_TEST_DATABASE_URL`.
+- `cargo test -p application --lib contracts::` (16) y `--test contract_service`
+  (9), `cargo test -p web --lib access_audit::` (12) y
+  `python3 -m unittest` de `scripts/tests/test_api_access_audit.py` (16):
+  aprobadas.
+- `scripts/api-contract-demo.sh`, 69 segundos, con el mismo decodificador:
+  aprobada. PostgreSQL y Redis sólo escuchan en sockets Unix; el servidor y el
+  cliente HTTP corren en un espacio de red privado con sólo loopback y el host
+  del proveedor de correo fijado a loopback, de modo que invitaciones y avisos
+  quedan habilitados sin salir de la máquina. La demostración invita al Cliente,
+  vincula claves generadas con OpenSSL, firma en orden, valida el paquete
+  parcial (`partial`, sin hallazgos fallidos) y el final (`complete`) con el
+  ejemplo `validate` de `evidence-verify` y la comprobación OpenSSL en dos pasos,
+  cierra por rechazo, declinación tras la firma del Cliente y cancelación,
+  abandona un contrato, deja 15 avisos sin estado `sent` y, tras `pg_dump` y
+  `pg_restore`, relee la misma solicitud, el mismo recibo y el mismo paquete
+  final byte por byte.
+
+Límites: el vencimiento no se alcanza en la demostración porque la vigencia
+mínima es de un día; el cierre de vencidas se cubre con pruebas de aplicación y
+de ejecución con reloj y almacén simulados. No se ejecutaron la suite completa
+del espacio de trabajo, las suites de navegador ni el envío real de correo.
+
 ## Despliegue de v0.1.15: 29 de octubre de 2026 UTC
 
 `v0.1.15` (`be80b909`) corrige la verificación de versiones selladas: el

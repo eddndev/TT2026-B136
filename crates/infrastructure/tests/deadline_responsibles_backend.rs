@@ -19,7 +19,7 @@ fn responsible_candidates_are_active_case_staff_and_global_owners_without_duplic
     let litigator = db.user("litigator", true);
     let paralegal = db.user("paralegal", true);
     let excluded = [
-        db.user("client", true),
+        db.user("client", false),
         db.user("litigator", false),
         db.user("paralegal", false),
         db.user("owner", false),

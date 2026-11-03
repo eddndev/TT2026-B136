@@ -9,16 +9,20 @@ use domain::cases::CaseId;
 use domain::crypto::{DocumentId, DocumentVersion, Sha256Digest};
 use postgres::{Row, Transaction};
 
-use super::storage::port_error;
+use super::{contract_state, storage::port_error};
 
+/// Lists the current version of each series. A version a completed or open
+/// contract request names is not offered as unsealed, because it can no
+/// longer receive a seal.
 pub(super) fn list(
     transaction: &mut Transaction<'_>,
     case: CaseId,
     query: DocumentQuery,
+    now: i64,
 ) -> Result<DocumentPage, ApplicationError> {
-    let rows = transaction
-        .query(
-            "SELECT d.id,d.version,d.name,d.digest,d.sealed,m.metadata_revision,m.document_type,
+    let sql = format!(
+        "SELECT d.id,d.version,d.name,d.digest,d.sealed,{state} AS contract_state,
+             m.metadata_revision,m.document_type,
              m.classification,m.tags,m.metadata_digest,m.changed_at,m.changed_by,m.changed_by_email FROM (
              SELECT DISTINCT ON (id) id,version,name,digest,(evidence IS NOT NULL) AS sealed
              FROM documents WHERE case_id=$1 ORDER BY id,version DESC
@@ -27,11 +31,17 @@ pub(super) fn list(
              FROM document_metadata_revisions WHERE document_id=d.id ORDER BY metadata_revision DESC LIMIT 1
          ) m ON TRUE
          WHERE ($2::text IS NULL OR strpos(lower(d.name), lower($2::text)) > 0)
-         AND ($3::boolean IS NULL OR d.sealed=$3)
+         AND ($3::boolean IS NULL OR (d.sealed=$3 AND ($3 OR NOT {frozen})))
          AND ($6::text IS NULL OR m.document_type COLLATE \"C\"=$6::text COLLATE \"C\")
          AND ($7::text IS NULL OR m.classification COLLATE \"C\"=$7::text COLLATE \"C\")
          AND ($8::text IS NULL OR $8::text COLLATE \"C\"=ANY(m.tags))
          ORDER BY d.id LIMIT $4 OFFSET $5",
+        state = contract_state::state_column("d.id", "$9::bigint"),
+        frozen = contract_state::frozen_predicate("d.id", "d.version", "$9::bigint"),
+    );
+    let rows = transaction
+        .query(
+            &sql,
             &[
                 &case.as_uuid(),
                 &query.name(),
@@ -41,6 +51,7 @@ pub(super) fn list(
                 &query.metadata_filter().document_type(),
                 &query.metadata_filter().classification(),
                 &query.metadata_filter().tag(),
+                &now,
             ],
         )
         .map_err(port_error)?;
@@ -66,13 +77,22 @@ pub(super) fn get(
     case: CaseId,
     id: DocumentId,
     selection: VersionSelection,
+    now: i64,
 ) -> Result<CaseDocumentSummary, ApplicationError> {
     let version = super::storage::resolve_version(transaction, case, id, selection)?;
     let row = transaction
         .query_opt(
-            "SELECT id,version,name,digest,(evidence IS NOT NULL) AS sealed
-         FROM documents WHERE id=$1 AND case_id=$2 AND version=$3",
-            &[&id.as_uuid(), &case.as_uuid(), &i64::from(version.get())],
+            &format!(
+                "SELECT id,version,name,digest,(evidence IS NOT NULL) AS sealed,{} AS contract_state
+                FROM documents WHERE id=$1 AND case_id=$2 AND version=$3",
+                contract_state::state_column("$1", "$4::bigint")
+            ),
+            &[
+                &id.as_uuid(),
+                &case.as_uuid(),
+                &i64::from(version.get()),
+                &now,
+            ],
         )
         .map_err(port_error)?
         .ok_or_else(|| ApplicationError::DocumentNotFound(id.to_string()))?;
@@ -84,6 +104,7 @@ pub(super) fn history(
     case: CaseId,
     id: DocumentId,
     query: VersionQuery,
+    now: i64,
 ) -> Result<VersionPage, ApplicationError> {
     let root = transaction
         .query_opt(
@@ -98,14 +119,18 @@ pub(super) fn history(
         .map(|version| i64::from(version.get()));
     let rows = transaction
         .query(
-            "SELECT id,version,name,digest,(evidence IS NOT NULL) AS sealed FROM documents
-         WHERE id=$1 AND case_id=$2 AND ($3::bigint IS NULL OR version<$3)
-         ORDER BY version DESC LIMIT $4",
+            &format!(
+                "SELECT id,version,name,digest,(evidence IS NOT NULL) AS sealed,{} AS contract_state
+                FROM documents WHERE id=$1 AND case_id=$2 AND ($3::bigint IS NULL OR version<$3)
+                ORDER BY version DESC LIMIT $4",
+                contract_state::state_column("$1", "$5::bigint")
+            ),
             &[
                 &id.as_uuid(),
                 &case.as_uuid(),
                 &before,
                 &(i64::from(query.limit()) + 1),
+                &now,
             ],
         )
         .map_err(port_error)?;
@@ -145,5 +170,6 @@ fn summary(case: CaseId, row: &Row) -> Result<CaseDocumentSummary, ApplicationEr
             digest_hex: Sha256Digest::from_array(digest).to_hex(),
             sealed: row.get("sealed"),
         },
+        contract_state: contract_state::state(row)?,
     })
 }

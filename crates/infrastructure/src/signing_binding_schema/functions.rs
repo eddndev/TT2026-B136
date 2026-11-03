@@ -92,3 +92,23 @@ fn expected_body(name: &str, schema: &str) -> Option<String> {
     }
     effective
 }
+
+#[cfg(test)]
+mod tests {
+    use super::expected_body;
+
+    const ROLES: &str = "actor.role NOT IN ('litigator','owner','client')";
+
+    #[test]
+    fn startup_expects_the_last_registered_definition_of_each_party_function() {
+        for name in ["document_signing_register", "document_signing_withdraw"] {
+            let body = expected_body(name, "tenant").unwrap();
+            assert!(body.contains(ROLES), "{name}");
+            assert!(!body.contains("actor.role IS DISTINCT FROM 'litigator'"));
+            assert!(body.contains("FROM tenant.users") && !body.contains("%1$I"));
+        }
+        let lock = expected_body("document_signing_lock", "tenant").unwrap();
+        assert!(lock.contains("pg_advisory_xact_lock(280603412820)"));
+        assert_eq!(expected_body("document_signing_absent", "tenant"), None);
+    }
+}

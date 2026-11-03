@@ -165,6 +165,37 @@ pub fn api_router_with_invitations_budget(
     individual_signing: Option<crate::IndividualSigningHttp>,
     invitations: Option<crate::InvitationHttp>,
 ) -> Result<Router, ApplicationError> {
+    api_router_with_contracts_budget(
+        documents,
+        identity,
+        workflows,
+        calendars,
+        profiles,
+        limits,
+        authentication,
+        budget,
+        individual_signing,
+        invitations,
+        None,
+    )
+}
+
+/// Adds bilateral contract signing before the shared HTTP protection; see
+/// docs/adr/0086-bilateral-contract-signing.md.
+#[allow(clippy::too_many_arguments)]
+pub fn api_router_with_contracts_budget(
+    documents: Arc<dyn CaseDocumentWorkflow>,
+    identity: Arc<dyn IdentityWorkflow>,
+    workflows: CaseWorkflows,
+    calendars: Arc<dyn application::judicial_calendars::JudicialCalendarWorkflow>,
+    profiles: Arc<dyn application::deadline_profiles::DeadlineProfileWorkflow>,
+    limits: HttpLimits,
+    authentication: AuthenticationHttp,
+    budget: HttpWorkBudget,
+    individual_signing: Option<crate::IndividualSigningHttp>,
+    invitations: Option<crate::InvitationHttp>,
+    contracts: Option<crate::ContractHttp>,
+) -> Result<Router, ApplicationError> {
     let AuthenticationHttp {
         password_reset,
         certificate_login,
@@ -274,6 +305,10 @@ pub fn api_router_with_invitations_budget(
             components,
             runtime.clone(),
         )),
+        None => routes,
+    };
+    let routes = match contracts {
+        Some(components) => routes.merge(crate::contracts::router(components, runtime.clone())),
         None => routes,
     };
     Ok(protect(routes, runtime).route("/healthz", get(health)))

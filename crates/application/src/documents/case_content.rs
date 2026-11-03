@@ -60,6 +60,7 @@ impl CaseDocumentService {
         Ok(CaseDocumentSummary {
             case_id: case,
             document: DocumentSummary::from(&sealed),
+            contract_state: None,
         })
     }
 

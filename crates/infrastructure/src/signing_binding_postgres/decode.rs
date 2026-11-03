@@ -8,7 +8,7 @@ use domain::{
     clock::OffsetDateTime,
     crypto::{CertificateSummary, CredentialCertificate, CredentialCheck, Sha256Digest, Signature},
     document_signing::{SignerAccount, SigningBindingMaterial, SigningBindingStatement},
-    identity::{Role, UserId},
+    identity::UserId,
 };
 use postgres::{types::FromSql, GenericClient, Row};
 
@@ -32,10 +32,8 @@ pub(super) fn registration<C: GenericClient>(
     row: &Row,
 ) -> Result<SigningBindingReceipt, ApplicationError> {
     let signer = UserId::from_uuid(value(row, "signer_id")?);
-    let account = SignerAccount::new(
+    let account = SignerAccount::from_signed_counters(
         signer,
-        Role::Litigator,
-        true,
         account::counter(value(row, "account_revision")?)?,
         account::counter(value(row, "auth_generation")?)?,
     )
@@ -104,7 +102,7 @@ pub(super) fn withdrawal(
     let original = receipt.statement.account();
     let revision = account::counter(value(row, "account_revision")?)?;
     let generation = account::counter(value(row, "auth_generation")?)?;
-    SignerAccount::new(original.id(), Role::Litigator, true, revision, generation)
+    SignerAccount::from_signed_counters(original.id(), revision, generation)
         .map_err(|_| inconsistent())?;
     if revision < original.revision()
         || generation < original.generation()

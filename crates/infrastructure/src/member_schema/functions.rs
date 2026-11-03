@@ -1,8 +1,9 @@
 use super::{incomplete, port, MIGRATIONS, TABLES};
-pub(super) const TRIGGERS: [&str; 3] = [
+pub(super) const TRIGGERS: [&str; 4] = [
     "lock_member_writes()",
     "guard_member_access()",
     "preserve_member_accounts()",
+    "guard_client_membership()",
 ];
 use crate::postgres::CatalogClient;
 use application::ApplicationError;

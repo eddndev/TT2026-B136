@@ -81,7 +81,7 @@ fn membership_filters_both_families_before_limit_and_revocation_is_rechecked() {
     );
     let litigator = db.user("litigator", true);
     let paralegal = db.user("paralegal", true);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let store = store(&db);
     for actor in [litigator, paralegal] {
         let page = store.list(actor, query(1, AgendaKind::All, None)).unwrap();

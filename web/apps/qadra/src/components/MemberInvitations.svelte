@@ -24,6 +24,7 @@
     accepted: 'Cuenta creada',
     expired: 'Enlace vencido o retirado',
   };
+  const roles = { litigator: 'Litigante', paralegal: 'Asistente', client: 'Cliente' };
   const delivery = {
     pending: 'Correo pendiente',
     sent: 'Correo aceptado por el proveedor',
@@ -202,7 +203,7 @@
       <label
         >Rol de la invitacion<select bind:value={role} disabled={busy}
           ><option value="paralegal">Asistente</option><option value="litigator">Litigante</option
-          ></select
+          ><option value="client">Cliente</option></select
         ></label
       >
       <button class="primary" disabled={busy}>Enviar invitacion</button>
@@ -214,7 +215,7 @@
   <ul>
     {#each items as row (row.id)}
       <li>
-        <strong>{row.email}</strong> - {row.role === 'litigator' ? 'Litigante' : 'Asistente'}<br />
+        <strong>{row.email}</strong> - {roles[row.role]}<br />
         {statuses[row.status]}. {delivery[row.delivery]}.
         <p>Vence: {new Date(row.expires_at).toLocaleString()}.</p>
         {#if row.status !== 'accepted'}<button

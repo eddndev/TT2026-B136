@@ -26,7 +26,9 @@ def enroll(role, route):
         'challenge_token': challenge['challenge_token'], 'code': enrollment['recovery_codes'][0],
     })
     user = enrollment['user']['id']
-    request('PUT', route + '/members/' + user, expected=204)
+    # A Client account is never a case member.
+    assigned = (422, 'invalid_input') if role == 'client' else (204, None)
+    request('PUT', route + '/members/' + user, expected=assigned[0], code=assigned[1])
     return user, session['access_token']
 
 

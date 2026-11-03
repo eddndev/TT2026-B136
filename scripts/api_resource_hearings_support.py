@@ -41,7 +41,11 @@ def enroll(label, role, case_id, member=True):
     result = request('POST', '/api/v1/users', account, expected=201)
     account.update(id=result['user']['id'], recovery_codes=result['recovery_codes'])
     account['token'] = login(account, 0)
-    if member:
+    if member and role == 'client':
+        # A Client account is never a case member.
+        request('PUT', route(case_id) + '/members/' + account['id'], expected=422,
+                code='invalid_input')
+    elif member:
         request('PUT', route(case_id) + '/members/' + account['id'], expected=204)
     return account
 

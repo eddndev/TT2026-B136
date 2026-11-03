@@ -108,15 +108,27 @@ impl PostgresMemberStore {
             .ok_or(ApplicationError::CaseNotFound)?;
         let after = query.after_id().map(UserId::as_uuid);
         let role = query.role().map(|role| role.as_str());
-        let rows = tx.query("SELECT u.id,u.email,u.role,u.active,u.revision,
+        let rows = tx
+            .query(
+                "SELECT u.id,u.email,u.role,u.active,u.revision,
             (extract(epoch FROM m.assigned_at)*1000000000)::numeric(30,0)::text AS assigned_at
             FROM users u LEFT JOIN case_memberships m ON m.user_id=u.id AND m.case_id=$1
             WHERE ($2::uuid IS NULL OR u.id>$2)
-            AND (($3='assigned' AND m.user_id IS NOT NULL) OR ($3='available' AND m.user_id IS NULL AND u.active))
+            AND (($3='assigned' AND m.user_id IS NOT NULL)
+                OR ($3='available' AND m.user_id IS NULL AND u.active AND u.role<>'client'))
             AND ($4::text IS NULL OR u.role=$4)
             AND ($5::text IS NULL OR left(u.email,length($5))=$5)
-            ORDER BY u.id LIMIT $6", &[&case.as_uuid(), &after, &query.selection().as_str(),
-                &role, &query.email_prefix(), &(i64::from(query.limit())+1)]).map_err(port)?;
+            ORDER BY u.id LIMIT $6",
+                &[
+                    &case.as_uuid(),
+                    &after,
+                    &query.selection().as_str(),
+                    &role,
+                    &query.email_prefix(),
+                    &(i64::from(query.limit()) + 1),
+                ],
+            )
+            .map_err(port)?;
         let mut items = Vec::with_capacity(rows.len());
         for row in rows {
             let assigned_at = row

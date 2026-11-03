@@ -11,7 +11,16 @@ pub(super) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), Applicati
             "lock_member_writes()",
             62,
         )?;
-        let expected: i64 = if table == "users" { 3 } else { 1 };
+        if table == "case_memberships" {
+            ordinary(
+                client,
+                table,
+                "member_client_guard",
+                "guard_client_membership()",
+                23,
+            )?;
+        }
+        let expected: i64 = if table == "users" { 3 } else { 2 };
         let altered: bool = client.query_one(
             "SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid=$1::text::regclass AND tgenabled NOT IN ('O','A'))
             OR (SELECT count(*) FROM pg_trigger WHERE tgrelid=$1::text::regclass AND NOT tgisinternal)<>$2",

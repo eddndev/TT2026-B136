@@ -20,7 +20,7 @@ fn staff_permissions_membership_and_client_basic_projection_are_rechecked() {
     let Some(mut f) = Fixture::new() else { return };
     let litigator = f.user("litigator", true);
     let paralegal = f.user("paralegal", true);
-    let client = f.user("client", true);
+    let client = f.user("client", false);
     let foreign = f.user("litigator", false);
     let store = f.store();
     for actor in [f.owner, litigator, paralegal] {
@@ -42,10 +42,10 @@ fn staff_permissions_membership_and_client_basic_projection_are_rechecked() {
         store.get_administration(client, f.case, f.at),
         Err(ApplicationError::PermissionDenied)
     ));
-    assert_eq!(
-        store.get_basic(client, f.case, f.at).unwrap().title,
-        "Baseline"
-    );
+    assert!(matches!(
+        store.get_basic(client, f.case, f.at),
+        Err(ApplicationError::CaseNotFound)
+    ));
     assert!(matches!(
         store.get_administration(foreign, f.case, f.at),
         Err(ApplicationError::CaseNotFound)

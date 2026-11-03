@@ -50,8 +50,18 @@ An empty terminal page uses `has_more:false,next_cursor:null`. No total is impli
 `limit` defaults to 50 and accepts 1 through 100. Directory `status` defaults to
 `active` and accepts `active`, `inactive` or `all`. Case `selection` defaults to
 `assigned` and accepts `assigned` or `available`. Assigned pages include inactive
-accounts; available pages include active accounts that are not assigned. Owner
+accounts; available pages include active accounts that are not assigned, except
+accounts with role `client`, which are never offered. Owner
 access is global regardless of whether an assignment row exists.
+
+A Client account is never a case member
+([ADR 0086](adr/0086-bilateral-contract-signing.md)). Assigning one through
+`PUT /cases/{case}/members/{user}` answers `422 invalid_input` and writes
+nothing; changing the role of an account that holds an assignment to `client`
+answers `400 invalid_input` and leaves the account unchanged. A storage trigger
+on `case_memberships` also rejects a Client assignment, and startup refuses a
+database that holds a Client membership. A Client reaches only its own contract
+requests, never a case.
 
 Optional `role` uses the four role values. Optional `email_prefix` is ASCII,
 trimmed and lowercased, at most 254 bytes and without controls. Empty prefixes
@@ -114,6 +124,8 @@ projection is returned after commit, including for an authorized self-change.
 | Authenticated non-Owner | 403, `permission_denied` |
 | Missing account or case visible to Owner | 404, `user_not_found` or `case_not_found` |
 | Invalid query or access body | 400, `invalid_input` |
+| Role change to `client` for an account with an assignment | 400, `invalid_input` |
+| Assignment of a `client` account to a case | 422, `invalid_input` |
 | Stale revision | 409, `user_revision_conflict` |
 | Last active Owner would be removed | 409, `last_active_owner` |
 | A real change would overflow revision or generation | 409, `user_access_version_exhausted` |

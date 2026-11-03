@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 
 export async function provisionDashboard(call) {
   assert.ok(process.env.IDENTITY_TEST_DATABASE_URL);
@@ -56,6 +57,18 @@ export async function provisionDashboard(call) {
       classification: "Demostracion",
       tags: ["tablero"],
     });
+    // The metric counts contract records in draft or signing, not documents
+    // classified as contracts.
+    await call(
+      "POST",
+      `${base}/contracts`,
+      {
+        operation_id: randomUUID(),
+        document_id: document.id,
+        title: `Contrato del tablero ${name}`,
+      },
+      201,
+    );
     if (name === "visible")
       await call(
         "PUT",

@@ -28,7 +28,7 @@ fn litigator_picker_includes_closed_only_colleague_and_loses_revoked_membership(
     let colleague_id = db.user("litigator", true);
     let inactive = db.user("litigator", true);
     db.user("paralegal", true);
-    db.user("client", true);
+    db.user("client", false);
     let foreign = db.user("litigator", false);
     db.admin.execute("UPDATE users SET active=false,revision=revision+1,auth_generation=auth_generation+1 WHERE id=$1", &[&inactive.as_uuid()]).unwrap();
     let actor = principal(&mut db, actor_id);

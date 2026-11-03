@@ -8,7 +8,7 @@ fn personal_preferences_preserve_exact_replay_and_reject_stale_changes() {
     let Some(mut db) = fixture() else { return };
     let actor = db.user("litigator", true);
     let other = db.user("owner", false);
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let clock = Arc::new(MutableClock::new(db.at));
     let store = store(&db, clock);
     let initial = store.preferences(actor).unwrap();

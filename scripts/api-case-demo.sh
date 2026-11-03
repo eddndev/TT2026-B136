@@ -179,8 +179,8 @@ case_demo() {
   jq -e 'length == 0' "$case_response" >/dev/null
   case_demo_denied_documents "$PARALEGAL_TOKEN" "$owner_case" "$DOCUMENT_ID" 404 403
 
-  case_demo_request PUT 204 "/api/v1/cases/$owner_case/members/$client_id" "$OWNER_TOKEN"
-  case_demo_request GET 200 "/api/v1/cases/$owner_case" "$client_token"
+  case_demo_request PUT 422 "/api/v1/cases/$owner_case/members/$client_id" "$OWNER_TOKEN"
+  case_demo_request GET 404 "/api/v1/cases/$owner_case" "$client_token"
   case_demo_request POST 403 /api/v1/cases "$client_token" \
     -H 'Content-Type: application/json' --data '{"title":"Denied","reference":"DENIED"}'
   case_demo_request PUT 403 "/api/v1/cases/$litigator_case/members/$client_id" "$client_token"

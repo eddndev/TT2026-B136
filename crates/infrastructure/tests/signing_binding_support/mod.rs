@@ -37,10 +37,12 @@ impl ClockPort for Clock {
     }
 }
 pub fn fixture() -> Option<(Fixture, Arc<Clock>, Principal)> {
+    fixture_at(crate::declaration_fixture::fixture().at)
+}
+/// The same fixture with trust published at `at`, Unix seconds.
+pub fn fixture_at(at: i64) -> Option<(Fixture, Arc<Clock>, Principal)> {
     let mut db = Fixture::new()?;
-    let clock = Arc::new(Clock(AtomicI64::new(
-        crate::declaration_fixture::fixture().at,
-    )));
+    let clock = Arc::new(Clock(AtomicI64::new(at)));
     PostgresCredentialTrustStore::open(&db.admin_url, clock.clone())
         .unwrap()
         .publish(

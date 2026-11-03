@@ -14,6 +14,10 @@ On 2026-10-28 the catalog grew to 223 pairs with
 `GET /api/v1/evidence/trust`; the 207/222 HTTP measurement and the 222 native
 route payloads below remain historical figures over the earlier catalog, and
 the new pair has no durable-latency sample of its own.
+On 2026-11-02 the catalog grew to 237 pairs with the fourteen bilateral
+contract routes of [ADR 0086](adr/0086-bilateral-contract-signing.md) and one
+more explicit HEAD rejection; those pairs have no durable-latency sample of
+their own either.
 This does not establish HTTP timing for every row, an exhaustive per-role
 campaign, integration or deployment. Contracts and the 414-page manuscript are reconciled and locally inspected;
 exact-revision CI/integration gates are tracked separately in criterion 8. Existing workflow
@@ -21,9 +25,9 @@ acceptance remains separate in [verification-report.md](verification-report.md).
 The parent scope is [technical-closure.md](technical-closure.md): RF-02, CU-04,
 CU-17 and RF-20 in [analysis and design](../latex/chapters/03-analisis-diseno.tex).
 
-The maximum configured product surface contains **223 functional method/path
-pairs on 191 distinct normalized route patterns**: 115 GET, 88 POST, 19 PUT and
-one DELETE. Two additional explicit HEAD handlers reject with 405. The 192
+The maximum configured product surface contains **237 functional method/path
+pairs on 204 distinct normalized route patterns**: 123 GET, 94 POST, 19 PUT and
+one DELETE. Three additional explicit HEAD handlers reject with 405. The 205
 route declarations include separate GET and POST declarations for `/api/v1/users`.
 The appendix expands the two procedural-fact families and both deadline-profile
 collections. Path parameters retain the names used by each source router.
@@ -31,7 +35,8 @@ collections. Path parameters retain the names used by each source router.
 This is a source catalog, not a production endpoint census. Certificate-login
 `start` and `proof` are absent when that optional workflow is disabled; its
 `availability` route remains present. The nine individual-signing routes are
-composed only when signing components are present. Declare enabled components in
+composed only when signing components are present, and the fourteen contract
+routes only when the contract service is composed. Declare enabled components in
 each campaign; disabled operations retain their existing unavailable behavior.
 `GET /healthz`, static assets and the reverse proxy are outside the product
 operation count. Implicit HEAD handling inherited from GET is a transport case,
@@ -54,9 +59,9 @@ revalidation; no token, password, MFA code or private capability is recorded.
 | mfa | Valid server challenge and TOTP/recovery produce the existing session. | Invalid/expired/consumed challenge, invalid/replayed TOTP, consumed recovery and operational failure stay distinct where already known. | [MFA](mfa-access-logs.md) |
 | session | Current bearer for any of the four roles reads identity/session, records activity, logs out or reads the current evidence trust anchors. | Missing, revoked or expired session; record activity cannot revive it. | [HTTP](http-api.md) |
 | owner-members | Active Owner lists, creates, reads and changes accounts/assignments. | Litigator, Paralegal and Client rejected; last active Owner and revision guards remain. | [Members](members-api.md), [HTTP](http-api.md) |
-| basic-cases | Owner sees all; assigned Litigator, Paralegal and Client read basic metadata. Owner/Litigator create; only Owner assigns/removes members. | Unassigned account cannot learn an exact case; Paralegal/Client cannot create; Litigator cannot manage members. | [HTTP](http-api.md) |
-| case-administration | Owner and Litigator create penal cases; Owner manages all, assigned Litigator manages, assigned Paralegal reads. | Client denied even if assigned; unassigned staff denied/hidden under current contract. | [Administration](case-administration-api.md) |
-| documents | Owner globally, assigned Litigator/Paralegal read, upload, classify, append, verify and export. Only Owner/Litigator use existing server sealing. | Client denied even if assigned; Paralegal cannot seal; a document/case mismatch remains hidden even to Owner. | [HTTP document matrix](http-api.md), [Content](document-content-api.md) |
+| basic-cases | Owner sees all; assigned Litigator and Paralegal read basic metadata. Owner/Litigator create; only Owner assigns/removes members. | Unassigned account cannot learn an exact case; a Client account is never assigned ([ADR 0086](adr/0086-bilateral-contract-signing.md)); Paralegal/Client cannot create; Litigator cannot manage members. | [HTTP](http-api.md) |
+| case-administration | Owner and Litigator create penal cases; Owner manages all, assigned Litigator manages, assigned Paralegal reads. | Client denied (never a case member, [ADR 0086](adr/0086-bilateral-contract-signing.md)); unassigned staff denied/hidden under current contract. | [Administration](case-administration-api.md) |
+| documents | Owner globally, assigned Litigator/Paralegal read, upload, classify, append, verify and export. Only Owner/Litigator use existing server sealing. | Client denied (never a case member, [ADR 0086](adr/0086-bilateral-contract-signing.md)); Paralegal cannot seal; a document/case mismatch remains hidden even to Owner. | [HTTP document matrix](http-api.md), [Content](document-content-api.md) |
 | staff-case | Owner manages globally; assigned Litigator manages; assigned Paralegal reads. Read-only history/receipts survive closure where the family contract allows. | Client denied; Paralegal cannot prepare/submit/mutate; revoked membership blocks later access; closed cases block mutations. | Family contracts listed below |
 | global-calendars | Owner publishes/replaces/retires; Owner, Litigator and Paralegal read without membership. | Client denied; non-Owner mutations rejected. | [Calendars](judicial-calendars-api.md) |
 | deadline-profiles | Owner manages both collections; staff reads global profiles and authorized case profiles. | Client denied; non-Owner mutations rejected; case collections require current membership for Litigator/Paralegal. | [Profiles](deadline-profiles-api.md) |
@@ -68,12 +73,14 @@ revalidation; no token, password, MFA code or private capability is recorded.
 | owner-integrity | Current Owner reads the integrity-incident inbox. | All other roles denied; no content access is granted by the incident record. | [Content and incidents](document-content-api.md) |
 | owner-binding | Current Owner operates only on its own certificate binding. | Other roles and another account's binding rejected under current contract. | [Owner certificates](http-owner-certificates.md) |
 | certificate-login | Availability is public; enabled first-factor workflow checks the declared Owner binding/proof before MFA. | Disabled start/proof remain absent; rejected proof does not expose account/binding existence; first factor is not a session. | [Certificate login](owner-certificate-login-http.md) |
-| litigator-binding | Current Litigator manages its own public signing certificate and possession proof. | Owner/Paralegal/Client cannot substitute the holder; another account's binding rejected. | [Individual signing](http-individual-signing.md) |
+| litigator-binding | Current Owner, Litigator or Client manages its own public signing certificate and possession proof ([ADR 0086](adr/0086-bilateral-contract-signing.md)). | Paralegal rejected; no account substitutes the holder; another account's binding rejected. | [Individual signing](http-individual-signing.md) |
 | individual-signing | Assigned Litigator prepares/submits exact-version signatures; authorized receipt recovery survives case closure; verification uses existing VerifyDocument roles. | Wrong account/version, lost membership, withdrawn binding or invalid trust rejected; Client remains denied. | [Individual signing](http-individual-signing.md) |
-| owner-invitations | Current Owner invites Litigator/Paralegal and reads/resends existing invitations. | Non-Owner rejected; unsupported invitation roles and existing-account constraints preserved. | [Invitations](member-invitations-api.md) |
+| staff-contracts | Owner and assigned Litigator list, create, abandon and request contracts of a case and recover their exact receipts; assigned Paralegal reads ([ADR 0086](adr/0086-bilateral-contract-signing.md)). | Unassigned staff and every Client receive `contract_not_found`; a Paralegal mutation is `permission_denied`; no route looks an account up by e-mail; closed cases block mutations. | [Contract signing](http-contract-signing.md) |
+| contract-parties | The designated Client and firm signer read their own requests, exact content and packages and sign, reject or decline in turn; Owner and assigned staff read and the requester or an Owner cancels ([ADR 0086](adr/0086-bilateral-contract-signing.md)). | Any other account receives `contract_not_found` (its own request list is empty); a related account that is not the actor of the action receives `permission_denied`; out-of-turn, expired, superseded or revoked counterparties keep their codes. | [Contract signing](http-contract-signing.md) |
+| owner-invitations | Current Owner invites Litigator/Paralegal/Client and reads/resends existing invitations ([ADR 0086](adr/0086-bilateral-contract-signing.md)). | Non-Owner rejected; unsupported invitation roles and existing-account constraints preserved. | [Invitations](member-invitations-api.md) |
 | invitation-recipient | Public private-capability workflow prepares/finishes enrollment and reconciles the exact receipt. | Invalid/expired capability, wrong password/code and conflicting operation retain existing rejection; no unrelated bearer is adopted. | [Invitations](member-invitations-api.md) |
 | password-reset | Existing public request/completion workflow with generic public responses and private reset capability. | Invalid/expired/used capability and operational errors retain existing semantics; generic request acceptance does not prove account existence or email delivery. | [Reset](password-reset-public.md) |
-| head-rejected | No positive operation: explicit content/report HEAD is 405. | Retain 405 and audit transport outcome without emitting a business read/download action. | Source handlers in appendix |
+| head-rejected | No positive operation: explicit document content, contract content, contract evidence and report HEAD is 405. | Retain 405 and audit transport outcome without emitting a business read/download action. | Source handlers in appendix |
 
 The `staff-case` group covers [participants and identities](typed-participants-api.md),
 [stages](case-stages-api.md), [hearings](hearings-api.md),
@@ -90,7 +97,11 @@ record. Do not infer authorization from the HTTP method alone.
 Client documentary access remains an explicit human policy decision in
 [technical-closure.md](technical-closure.md). This matrix preserves its current
 denial and the separate assigned basic-case metadata permission. It does not
-open document access, add roles, or alter the finite workflow catalogs.
+open document access, add roles, or alter the finite workflow catalogs. The
+only Client access beyond its own identity and signing certificate is the
+relation of a designated party to its own contract requests, authorized in
+[ADR 0086](adr/0086-bilateral-contract-signing.md); a Client is never a case
+member.
 
 ## Capture and trust contract
 
@@ -189,14 +200,14 @@ identify which enabled operations actually ran through HTTP and what they took.
 
 Every functional appendix row resolves to three separate checks: its exact
 method/path in **B**, its `policy` in the table below, and its source-family
-fixture where a policy spans multiple routers. The 24 policy counts sum to
-223. The 112 `staff-case` rows are expanded by exact source below; no appendix
-row is added or removed by this mapping. The two HEAD rows resolve separately.
+fixture where a policy spans multiple routers. The 26 policy counts sum to
+237. The 112 `staff-case` rows are expanded by exact source below; no appendix
+row is added or removed by this mapping. The four HEAD rows resolve separately.
 
 **B - common access boundary:**
 [`catalog_tests.rs`](../crates/web/src/access_audit/catalog_tests.rs) consumes
 every appendix pair and exercises 200, 401, 403, 404, 422 and 500 with exactly
-one outcome and recognized route/resource identity. It includes the two HEAD
+one outcome and recognized route/resource identity. It includes the four HEAD
 patterns for boundary behavior. This is a synthetic router test, not an
 execution of the composed workflow, role authorization or actual HEAD handler.
 Reproduce it with `cargo test -p web --lib access_audit:: -- --test-threads=1`.
@@ -230,6 +241,8 @@ scenario table above remains the expected policy. Every row also inherits B.
 | certificate-login (3) | [Public availability](../crates/web/tests/owner_login_http_cases/availability.rs), [enabled/disabled composition](../crates/web/tests/owner_login_http_cases/composition_cases.rs), [proof transport](../crates/web/tests/owner_login_http_cases/transport.rs), [native login fixture](../scripts/api_owner_login_demo.py). |
 | litigator-binding (5) | [Self-bound signing transport](../crates/web/tests/individual_signing_http.rs), [native signing fixture](../scripts/api-individual-signing-demo.py). |
 | individual-signing (4) | [Exact-version signing transport](../crates/web/tests/individual_signing_http.rs), [native signing/restore fixture](../scripts/api-individual-signing-demo.py). |
+| staff-contracts (6) | [Contract transport](../crates/web/tests/contract_http.rs), [native contract storage](../crates/infrastructure/tests/contract_service_backend.rs), [bilateral API/restore fixture](../scripts/api-contract-demo.py). |
+| contract-parties (8) | [Contract transport](../crates/web/tests/contract_http.rs), [access rules](../crates/application/src/contracts/access_tests.rs), [native refusals and closings](../crates/infrastructure/tests/contract_service_failures.rs), [bilateral API/restore fixture](../scripts/api-contract-demo.py). |
 | owner-invitations (4) | [Owner bearer/role delegation](../crates/web/tests/member_invitations.rs), [native invitation acceptance](../crates/bin/src/serve_invitation_acceptance.rs). |
 | invitation-recipient (3) | [Public capability/no-session/error contract](../crates/web/tests/member_invitations.rs), [native enrollment/resend/reentry](../crates/bin/src/serve_invitation_acceptance.rs). |
 | password-reset (2) | [Generic public request](../crates/web/tests/password_reset_http_support/request_cases.rs), [completion and uncertainty](../crates/web/tests/password_reset_http_support/completion_cases.rs), [native reset/MFA acceptance](../crates/bin/src/serve_password_reset_http_acceptance.rs). |
@@ -264,7 +277,9 @@ Report download HEAD remains an explicit handler in
 no direct assertion of that handler's 405 was identified in the mapped report
 tests. B alone does not close that transport assertion. The mapped report
 fixture is not evidence of a positive HEAD business operation.
-Neither HEAD row is included in the 223 functional operations or their latency
+The contract content HEAD rejection has a direct case in
+[`contract_http.rs`](../crates/web/tests/contract_http.rs).
+No HEAD row is included in the 237 functional operations or their latency
 population.
 
 ### Accepted focused and composed evidence
@@ -296,10 +311,11 @@ Their later receipts are listed explicitly instead of treating the earlier
 No unimplemented mandatory functional pair was identified in the source/fixture
 mapping. This finding does not mean that every positive/negative role scenario
 has run: B uses synthetic status responses, and existing native fixtures are
-family coverage rather than a 223-row per-role acceptance ledger. In particular,
+family coverage rather than a 237-row per-role acceptance ledger. In particular,
 assignment loss already has concrete fixtures: [case/documents](../scripts/api-case-demo.sh)
 remove Paralegal and Litigator without replacing their bearer, require hidden
-404s afterward, and retain assigned Client basic metadata with document denial.
+404s afterward, and reject a Client assignment with `422`, leaving the case
+hidden and its documents denied.
 [Resource workflows](../scripts/api-resource-activities-demo.py) and
 [reports](../scripts/api-case-reports-demo.py) also test loss of captured access.
 The accepted HTTP receipt reconciles observed requests with their durable access
@@ -389,7 +405,7 @@ sequential commands; no new runner or feature is required by this map.
 ## Acceptance ledger
 
 - [x] Map every catalog row to its current composition, policy and reproducible
-      positive/negative fixtures. B covers all 223 pairs plus the two explicit
+      positive/negative fixtures. B covers all 237 pairs plus the three explicit
       HEAD patterns; composed API and native fixtures supply the existing
       workflow acceptance. The 15 unobserved HTTP pairs are enumerated above.
 - [x] Verify existing role, membership, revocation, closure, wrong-resource and
@@ -469,6 +485,12 @@ POST	/api/v1/case-reports/:id/notice-read	own-reports	crates/web/src/case_report
 GET	/api/v1/case-reports/litigators	own-reports	crates/web/src/case_reports/mod.rs
 GET	/api/v1/cases	basic-cases	crates/web/src/cases.rs
 POST	/api/v1/cases	basic-cases	crates/web/src/cases.rs
+GET	/api/v1/cases/:case/contracts	staff-contracts	crates/web/src/contracts.rs
+POST	/api/v1/cases/:case/contracts	staff-contracts	crates/web/src/contracts.rs
+GET	/api/v1/cases/:case/contracts/:contract	staff-contracts	crates/web/src/contracts.rs
+POST	/api/v1/cases/:case/contracts/:contract/abandon	staff-contracts	crates/web/src/contracts.rs
+POST	/api/v1/cases/:case/contracts/:contract/requests	staff-contracts	crates/web/src/contracts.rs
+GET	/api/v1/cases/:case/contracts/operations/:operation	staff-contracts	crates/web/src/contracts.rs
 GET	/api/v1/cases/:case/deadlines/:id/resource-associations	staff-case	crates/web/src/resource_activities/mod.rs
 POST	/api/v1/cases/:case/documents/:document/versions/:version/individual-signing/prepare	individual-signing	crates/web/src/individual_signing_documents.rs
 GET	/api/v1/cases/:case/documents/:document/versions/:version/individual-signing/receipts/:operation	individual-signing	crates/web/src/individual_signing_documents.rs
@@ -618,6 +640,14 @@ GET	/api/v1/cases/:id/stage	staff-case	crates/web/src/case_stages/mod.rs
 POST	/api/v1/cases/:id/stage/adoption	staff-case	crates/web/src/case_stages/mod.rs
 GET	/api/v1/cases/:id/stage/history	staff-case	crates/web/src/case_stages/mod.rs
 POST	/api/v1/cases/:id/stage/transitions	staff-case	crates/web/src/case_stages/mod.rs
+GET	/api/v1/contract-requests	contract-parties	crates/web/src/contracts_requests.rs
+GET	/api/v1/contract-requests/:request	contract-parties	crates/web/src/contracts_requests.rs
+POST	/api/v1/contract-requests/:request/close	contract-parties	crates/web/src/contracts_requests.rs
+GET	/api/v1/contract-requests/:request/content	contract-parties	crates/web/src/contracts_requests.rs
+GET	/api/v1/contract-requests/:request/evidence/:stage	contract-parties	crates/web/src/contracts_requests.rs
+GET	/api/v1/contract-requests/:request/operations/:operation	contract-parties	crates/web/src/contracts_requests.rs
+POST	/api/v1/contract-requests/:request/prepare	contract-parties	crates/web/src/contracts_requests.rs
+POST	/api/v1/contract-requests/:request/sign	contract-parties	crates/web/src/contracts_requests.rs
 GET	/api/v1/dashboard	dashboard	crates/web/src/dashboard.rs
 GET	/api/v1/deadline-profiles	deadline-profiles	crates/web/src/deadline_profiles/mod.rs
 POST	/api/v1/deadline-profiles	deadline-profiles	crates/web/src/deadline_profiles/mod.rs
@@ -656,10 +686,12 @@ GET	/api/v1/users/:id	owner-members	crates/web/src/members/mod.rs
 PUT	/api/v1/users/:id/access	owner-members	crates/web/src/members/mod.rs
 ```
 
-Explicit transport rejections, excluded from the 223 functional pairs:
+Explicit transport rejections, excluded from the 237 functional pairs:
 
 ```tsv
 method	path	policy	source
 HEAD	/api/v1/case-reports/:id/download	head-rejected	crates/web/src/case_reports/mod.rs
 HEAD	/api/v1/cases/:case/documents/:id/versions/:version/content	head-rejected	crates/web/src/document_content.rs
+HEAD	/api/v1/contract-requests/:request/content	head-rejected	crates/web/src/contracts_requests.rs
+HEAD	/api/v1/contract-requests/:request/evidence/:stage	head-rejected	crates/web/src/contracts_requests.rs
 ```

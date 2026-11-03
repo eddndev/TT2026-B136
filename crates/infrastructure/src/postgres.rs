@@ -139,9 +139,12 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     for migration in crate::individual_signing_manifest_schema::MIGRATIONS {
         transaction.batch_execute(migration).map_err(port_error)?;
     }
-    transaction
-        .batch_execute(crate::invitation_schema::MIGRATION)
-        .map_err(port_error)?;
+    for migration in crate::invitation_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
+    for migration in crate::contract_schema::MIGRATIONS {
+        transaction.batch_execute(migration).map_err(port_error)?;
+    }
     transaction
         .batch_execute(crate::audit_query_schema::CONTEXT_MIGRATION)
         .map_err(port_error)?;
@@ -159,6 +162,8 @@ pub(crate) fn connect(database_url: &str) -> Result<Client, ApplicationError> {
     crate::owner_certificate_schema::validate_schema(&mut transaction)?;
     crate::owner_certificate_schema::validate_inventory(&mut transaction)?;
     crate::owner_certificate_postgres::validate_inventory(&mut transaction)?;
+    crate::contract_schema::validate_schema(&mut transaction)?;
+    crate::contract_schema::validate_inventory(&mut transaction)?;
     transaction.commit().map_err(port_error)?;
     Ok(client)
 }
@@ -232,6 +237,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::individual_signing_schema::validate_inventory(client)?;
     crate::individual_signing_manifest_schema::validate_inventory(client)?;
     crate::individual_signing_postgres::validate_inventory(client)?;
+    crate::contract_schema::validate_inventory(client)?;
     Ok(())
 }
 
@@ -272,6 +278,7 @@ fn validate_catalog<C: CatalogClient>(catalog: &mut C) -> Result<(), Application
     crate::individual_signing_schema::validate_schema(catalog)?;
     crate::individual_signing_manifest_schema::validate_schema(catalog)?;
     crate::invitation_schema::validate_schema(catalog)?;
+    crate::contract_schema::validate_schema(catalog)?;
     let role: String = catalog
         .query_one("SELECT current_user", &[])
         .map_err(port_error)?
@@ -368,6 +375,7 @@ pub fn initialize_database(database_url: &str, runtime_role: &str) -> Result<(),
     crate::individual_signing_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::individual_signing_manifest_schema::grant_runtime(&mut transaction, runtime_role)?;
     crate::invitation_schema::grant_runtime(&mut transaction, runtime_role)?;
+    crate::contract_schema::grant_runtime(&mut transaction, runtime_role)?;
     validate_runtime_role(&mut transaction, runtime_role)?;
     transaction.commit().map_err(port_error)
 }

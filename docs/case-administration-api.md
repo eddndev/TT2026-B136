@@ -19,8 +19,10 @@ Todas requieren Bearer. Owner y Litigator pueden crear un expediente penal sin
 asignación previa; el alta asigna a su creador. Para expedientes existentes,
 Owner consulta y administra cualquiera; Litigator asignado consulta y administra;
 Paralegal asignado consulta. Client
-recibe `403 permission_denied` en las seis operaciones, incluso si está asignado.
-Conserva únicamente la API básica de expedientes. El actor activo, rol y alcance
+recibe `403 permission_denied` en las seis operaciones. Una cuenta Client nunca
+es miembro de un expediente
+([ADR 0086](adr/0086-bilateral-contract-signing.md)), por lo que tampoco
+obtiene la API básica de expedientes. El actor activo, rol y alcance
 se revalidan dentro de la transacción. Las consultas confirman un evento antes
 de devolver datos; los comandos devuelven su propia instantánea confirmada.
 

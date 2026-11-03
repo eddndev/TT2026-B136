@@ -29,7 +29,7 @@ pub(super) fn signature(value: &Signature) -> Result<(), ApplicationError> {
     Ok(())
 }
 
-pub(super) fn successor(
+pub(crate) fn successor(
     binding: &SigningBindingReceipt,
     trust: &CredentialTrustSnapshot,
 ) -> Result<(), ApplicationError> {
@@ -93,7 +93,7 @@ pub(super) fn exact_intent(
 }
 
 /// Canonical public PEM preserves exact DER while admitting no private material.
-pub(super) fn pem(label: &str, bytes: &[u8]) -> Vec<u8> {
+pub(crate) fn pem(label: &str, bytes: &[u8]) -> Vec<u8> {
     let encoded = STANDARD.encode(bytes);
     let mut pem = format!("-----BEGIN {label}-----\n");
     for line in encoded.as_bytes().chunks(64) {

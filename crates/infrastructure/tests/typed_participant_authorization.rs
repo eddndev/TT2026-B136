@@ -50,7 +50,7 @@ fn all_roles_use_current_membership_and_scope_for_identity_reads_and_management(
         (Role::Paralegal, "paralegal", true, false),
         (Role::Client, "client", false, false),
     ] {
-        let actor = db.user(name, true);
+        let actor = db.user(name, role != Role::Client);
         let operations = workflow(&db, actor, role, FormatCheck(None));
         assert_eq!(
             operations

@@ -36,6 +36,18 @@ export function normalizeView(hash, role) {
   return 'overview';
 }
 
+export const alertReturnViews = [
+  'case-summary',
+  'documents',
+  'participants',
+  'stages',
+  'hearings',
+  'case-measures',
+  'resolutions',
+  'resources',
+  'deadlines',
+];
+
 export const viewLabels = {
   overview: 'Inicio',
   reports: 'Informes',

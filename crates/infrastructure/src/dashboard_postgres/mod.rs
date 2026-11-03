@@ -12,7 +12,6 @@ use postgres::{Client, Error};
 use std::sync::{Arc, Mutex};
 
 const MAX_CASES: usize = 1000;
-const MAX_DOCUMENTS: usize = 10_000;
 const MAX_DEADLINES: usize = 1000;
 const MAX_WORKLOAD: usize = 1000;
 

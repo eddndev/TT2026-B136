@@ -35,7 +35,8 @@ export async function provisionResources(call, prefix = '') {
       throw new Error('resource case response lacks its actual administrative metadata');
     const scenario = { case: { id: row.id, title, reference: capturedReference } };
     const path = `/cases/${row.id}`;
-    for (const role of ['litigator', 'paralegal', 'client'])
+    // A Client account is never a case member.
+    for (const role of ['litigator', 'paralegal'])
       await call('PUT', `${path}/members/${fixture[role].id}`, undefined, 204);
     scenario.support = await call('POST', `${path}/documents`, pdf, 201,
       { 'X-Document-Name': `resource-${key}-source.pdf` });

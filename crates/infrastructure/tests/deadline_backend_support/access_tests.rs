@@ -12,7 +12,7 @@ fn store_authorizes_all_four_roles_before_reads_mutations_and_cross_case_lookups
         (owner, Role::Owner),
         (db.user("litigator", true), Role::Litigator),
         (db.user("paralegal", true), Role::Paralegal),
-        (db.user("client", true), Role::Client),
+        (db.user("client", false), Role::Client),
     ];
     for (actor, role) in actors {
         let adapter = store(&db);
@@ -78,7 +78,7 @@ fn responsible_must_be_active_staff_authorized_for_the_case_but_history_is_immut
         );
         assert_eq!(row.responsible.id, actor);
     }
-    let client = db.user("client", true);
+    let client = db.user("client", false);
     let outsider = db.user("litigator", false);
     let inactive = db.user("paralegal", true);
     db.admin

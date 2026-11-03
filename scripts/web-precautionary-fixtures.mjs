@@ -180,7 +180,8 @@ export async function provisionPrecautionaryHearings(call) {
       reference: metadata.reference,
     };
     const path = `/cases/${record.id}`;
-    for (const role of ["owner", "litigator", "paralegal", "client"])
+    // A Client account is never a case member.
+    for (const role of ["owner", "litigator", "paralegal"])
       await call("PUT", `${path}/members/${fixture[role].id}`, undefined, 204);
     const support = await call("POST", `${path}/documents`, pdf, 201, {
       "X-Document-Name": `precautionary-${key}-support.pdf`,
