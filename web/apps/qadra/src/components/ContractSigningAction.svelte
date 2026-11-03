@@ -2,10 +2,15 @@
   // One signature request seen by one of its parties. The Client signs in
   // three steps (review, confirm, sign); the firm signer reviews the PDF and
   // validates the partial acknowledgement before counter-signing. Signing
-  // stays disabled until the exact PDF was loaded and its digest checked.
+  // stays disabled until the exact PDF was loaded and its digest checked
+  // and, for the firm signer, until the local validation of the partial
+  // package of this request did not fail.
   // Rationale: docs/adr/0086-bilateral-contract-signing.md.
   import { onDestroy, onMount } from 'svelte';
   import { download } from '../lib/documents.mjs';
+  import { signingHash } from '../lib/individual-signing-files.mjs';
+  import { ownerBase64 } from '../lib/owner-certificate-binary.mjs';
+  import { partialAccepted } from '../lib/contract-signing-gate.mjs';
   import {
     CLIENT_CONSENT_TEXT,
     CLIENT_SIGNED_NOTICE,
@@ -31,6 +36,8 @@
     pdfUrl = '',
     pdfBlob = null,
     confirmed = false,
+    requestDigest = '',
+    partialReport = null,
     alive = true;
   $: actions = detail ? requestActions(detail, user) : null;
   $: status = detail ? requestStatusView(detail.status) : null;
@@ -39,6 +46,7 @@
     : actions?.position === 1
       ? detail.client_certificate_fingerprint
       : detail.firm_certificate_fingerprint;
+  $: partialChecked = actions?.position !== 2 || partialAccepted(partialReport, requestDigest);
   $: bindingProblem = !actions?.sign
     ? ''
     : !binding || binding.withdrawn_at
@@ -78,9 +86,11 @@
       } finally {
         certificates.dispose();
       }
+      const digest = await signingHash(ownerBase64(value.statement_base64, 240));
       if (!alive) return;
       detail = value;
       binding = current;
+      requestDigest = digest;
     });
   }
   function loadPdf() {
@@ -158,7 +168,10 @@
           <button class="secondary" disabled={busy} onclick={() => evidence('partial')}
             >Descargar acuse parcial</button
           >
-          <EvidenceValidation {api} />
+          <EvidenceValidation {api} onresult={(report) => (partialReport = report)} />
+          {#if !partialChecked}<p class="hint">
+              Firmar se habilita cuando el acuse parcial de esta solicitud se valida sin fallas.
+            </p>{/if}
         </section>{/if}
       <section class="stack" aria-label="Confirma">
         <h3>2. Confirma</h3>
@@ -175,7 +188,7 @@
           {user}
           {binding}
           position={actions.position}
-          disabled={!pdfUrl || !confirmed}
+          disabled={!pdfUrl || !confirmed || !partialChecked}
           onsigned={signed}
           onstale={load}
         />{/key}
