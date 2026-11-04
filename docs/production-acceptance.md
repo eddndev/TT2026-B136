@@ -4,6 +4,8 @@ Corte: 12 de octubre de 2026. Este registro cubre los puntos 1 y 4 autorizados:
 informes y recuperación en producción, y conciliación de manuales e inventarios.
 No añade funcionalidades. La base productiva comprobada es `v0.1.6`, commit
 `671d356c428fd01d26a1fa80eb182bc1f526813e`.
+La sección del 4 de noviembre de 2026 registra después la instalación de
+`v0.1.16` y la firma bilateral; esta base de `v0.1.6` no rige ese alcance.
 El [checklist revisado](https://chatgpt.com/space/page_8292451649ac819190aa3cdd7a91c8e8)
 conserva doce criterios finitos y su avance.
 
@@ -88,7 +90,7 @@ cliente real ni una evaluación con personas.
 | Ventana | Bajo `deploy.lock` y la generación aprobada del controlador: admisión, detención, respaldo `20261104T014518Z-47234d6c`, migraciones 0050 a 0052 con el rol administrador, `database check` con el rol de ejecución, marca de esquema `46d07ca0…57937a5`, `current` y `previous` y arranque. Sin `release.activate`. | 01:45:17 a 01:47:12 UTC, unos dos minutos sin servicio. |
 | Alta de la Cliente | Invitación `client` del Owner enviada por Resend al buzón de la cuenta controlada; enlace recibido en ese buzón; preparación MFA y `finish`. | Cuenta `client` aceptada a las 02:20:27 UTC, sin pertenencia a expedientes. |
 | Certificados | Claves RSA-3072 y CSR generados fuera de la CA; la CA interna emitió las series 1005 (Owner) y 1006 (Cliente) con propósito `document-signing`; cada parte vinculó el suyo con su prueba `DOCBIND1`. | Owner como único firmante elegible del despacho. |
-| Firma | Contrato `275e98cb-6bfd-4ae9-b9d8-0b1d72e5da24` sobre el PDF `152bc743…f07e`; solicitud `0282ade9-cc91-4a93-b69f-f65fa8f3eba6` con referencia de hoja de huella. La Cliente leyó la versión exacta y firmó en la posición 1; el Owner contrafirmó en la posición 2. | Solicitud `completed`, contrato `firmado`, revisión 4. T1 02:46:34 ≤ Td 02:46:42 ≤ Tf 02:46:42 UTC. |
+| Firma | Contrato `275e98cb-6bfd-4ae9-b9d8-0b1d72e5da24` sobre el PDF `152bc743…f07e`; solicitud `0282ade9-cc91-4a93-b69f-f65fa8f3eba6` con la referencia asignada `HF-RTA-2026-014-01`; no se imprimió hoja de huella: las huellas de ambos certificados se cotejaron entre los recibos de emisión de la CA y los de vinculación. La Cliente leyó la versión exacta y firmó en la posición 1; el Owner contrafirmó en la posición 2. | Solicitud `completed`, contrato `firmado`, revisión 4. T1 02:46:34 ≤ Td 02:46:42 ≤ Tf 02:46:42 UTC. |
 | Acuse parcial | `BilateralContractPartialV1` exportado por la Cliente tras firmar. | Validador: `overall: partial`, sin comprobaciones fallidas; OpenSSL `Verified OK` y cadena correcta. |
 | Paquete final | `BilateralContractV1`, SHA-256 `c8b55911a46e5c26f7894f3debbfeebaf403e6a367e3a1ba9954bf6f83bea261`, idéntico exportado por el Owner y por la Cliente. | Validador nativo (`evidence-verify`, la misma biblioteca del validador del navegador): `overall: complete`. Cada orden de `INSTRUCCIONES.md`: cuatro firmas `Verified OK`, dos certificados con CRL correctos, raíz de los vínculos igual a `ca.pem`, contrafirma sobre la firma y el sello de la Cliente, tres sellos `Verification: OK`, 23 entradas del manifiesto coincidentes. |
 

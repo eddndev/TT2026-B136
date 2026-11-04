@@ -19,11 +19,11 @@ sus límites están en [aceptación productiva](production-acceptance.md).
   fuera del servidor: alta por invitación `client`, dos certificados
   `document-signing` vinculados, solicitud, firma de la Cliente, acuse parcial,
   contrafirma del Owner y paquete final.
-- `evidence-verify` (ejemplo `validate`, compilado en `26eb7efb`): acuse
+- `evidence-verify` (ejemplo `validate`, compilado de una fuente idéntica a `26eb7efb`): acuse
   parcial `BilateralContractPartialV1` con `overall: partial` y paquete final
   `BilateralContractV1` con `overall: complete`, ambos sin comprobaciones
   fallidas, con la raíz productiva fijada.
-- OpenSSL 3.5 sobre el paquete final, siguiendo `INSTRUCCIONES.md`: firmas de
+- OpenSSL 3.5.9 sobre el paquete final, siguiendo `INSTRUCCIONES.md`: firmas de
   declaración y vínculo de ambas partes, certificados con su CRL, huellas de
   solicitud y PDF en las declaraciones, contrafirma sobre la firma y el sello
   de la Cliente, sellos T1, Td y Tf y las 23 entradas del manifiesto.
