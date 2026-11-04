@@ -1,5 +1,35 @@
 # Informe de verificación local
 
+## Despliegue de `v0.1.16` y firma bilateral en producción: 4 de noviembre de 2026
+
+Ensayo, ventana y ceremonia en el servidor productivo con `v0.1.16`
+(`26eb7efb`, la integración de #135, #136 y #137). El registro de aceptación y
+sus límites están en [aceptación productiva](production-acceptance.md).
+
+- Ensayo de las migraciones 0050 a 0052 sobre el respaldo del 30 de octubre en
+  un clúster desechable: restauración 39 s, migración 3 s; tablas 81 a 87 y
+  disparadores 191 a 214; con una asignación de Cliente la migración 0051 se
+  niega sin cambiar la base; migrar de nuevo es idempotente; el binario
+  anterior rechaza la base migrada.
+- Ventana: un primer intento se detuvo antes de parar servicios porque
+  `systemctl --user` no recibió `XDG_RUNTIME_DIR` y el bus de sesión al
+  ejecutarse con `sudo -u`; con ambas variables, la ventana completa duró de
+  01:45:17 a 01:47:12 UTC.
+- Ceremonia por la API productiva, con firmas RSA/SHA-256 hechas con OpenSSL
+  fuera del servidor: alta por invitación `client`, dos certificados
+  `document-signing` vinculados, solicitud, firma de la Cliente, acuse parcial,
+  contrafirma del Owner y paquete final.
+- `evidence-verify` (ejemplo `validate`, compilado en `26eb7efb`): acuse
+  parcial `BilateralContractPartialV1` con `overall: partial` y paquete final
+  `BilateralContractV1` con `overall: complete`, ambos sin comprobaciones
+  fallidas, con la raíz productiva fijada.
+- OpenSSL 3.5 sobre el paquete final, siguiendo `INSTRUCCIONES.md`: firmas de
+  declaración y vínculo de ambas partes, certificados con su CRL, huellas de
+  solicitud y PDF en las declaraciones, contrafirma sobre la firma y el sello
+  de la Cliente, sellos T1, Td y Tf y las 23 entradas del manifiesto.
+- No se usó el validador del navegador de producción ni se comprobaron avisos
+  por correo de contratos, que siguen desactivados.
+
 ## Interfaz de contratos bilaterales: cadena, acuse parcial y declaraciones obsoletas: 2 de noviembre de 2026
 
 Ejecución local fresca sobre la rama `feat/bilateral-ui`, con `TMPDIR` en disco
