@@ -6,8 +6,6 @@
   import FactAdministrativeCapture from './FactAdministrativeCapture.svelte';
   import { stageLabels } from '../lib/case-stages.mjs';
   import { measureActions, measureKinds } from '../lib/measure-presentation.mjs';
-  import '../styles/hearings.css';
-  import '../styles/procedural-facts.css';
   export let value,
     onclose,
     record = null;

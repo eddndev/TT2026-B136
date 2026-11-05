@@ -1,6 +1,6 @@
 import { setup, login, navigate } from './helpers.mjs';
 export const panel = (page) =>
-  page.getByRole('region', { name: 'Actividad registrada', exact: true });
+  page.getByRole('region', { name: 'Movimientos registrados', exact: true });
 export const auditPage = (start = 0, count = 1, change = {}) => ({
   checked_at: '2026-10-02T10:20:30.123456789Z',
   snapshot_max_sequence: '9223372036854775807',
@@ -28,10 +28,10 @@ export async function setupAudit(page, role = 'owner') {
 }
 export async function enterAudit(page) {
   await login(page, false, false);
-  await navigate(page, 'Auditor\u00eda');
-  await panel(page).getByLabel('Desde (UTC, incluido)', { exact: true }).fill('2026-10-01');
-  await panel(page).getByLabel('Hasta (UTC, excluido)', { exact: true }).fill('2026-10-02');
+  await navigate(page, 'Bit\u00e1cora');
+  await panel(page).getByLabel('Desde', { exact: true }).fill('2026-10-01');
+  await panel(page).getByLabel('Hasta', { exact: true }).fill('2026-10-01');
 }
 export async function consult(page) {
-  await panel(page).getByRole('button', { name: 'Consultar actividad', exact: true }).click();
+  await panel(page).getByRole('button', { name: 'Consultar', exact: true }).click();
 }

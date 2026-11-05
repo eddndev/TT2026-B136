@@ -4,6 +4,14 @@ import { watchApiFailures } from '../api-diagnostics.mjs';
 
 export const fixture = JSON.parse(readFileSync(process.env.TT_WEB_FIXTURES, 'utf8'));
 
+// Logout lives in the account menu of the top bar.
+export async function signOut(page) {
+  const trigger = page
+    .getByRole('button', { name: 'Tu cuenta', exact: true })
+    .filter({ visible: true });
+  if ((await trigger.getAttribute('aria-expanded')) !== 'true') await trigger.click();
+  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+}
 export async function login(page, recoveryCode, account = fixture) {
   watchApiFailures(page, test.info());
   await page.getByLabel('Correo electr\u00f3nico').fill(account.email);

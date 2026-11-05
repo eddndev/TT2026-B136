@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { test, expect } from '@playwright/test';
 
-import { fixture, login, capture } from './helpers.mjs';
+import { fixture, login, capture, signOut } from './helpers.mjs';
 import { validateEvidence } from './evidence-validation-helpers.mjs';
 
 test('persisted cases and document evidence work through the real services', async ({
@@ -89,7 +89,7 @@ test('persisted cases and document evidence work through the real services', asy
   expect(readFileSync(historicalArchive)).toEqual(originalArchive);
   await capture(page, testInfo, 'historical-desktop');
   await validateEvidence(page, historicalArchive);
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
+  await signOut(page);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible();
   await page.reload();
   await login(page, fixture.recoveryCodes[1]);

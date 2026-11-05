@@ -227,11 +227,20 @@ export async function selectCase(page, title = 'Defensa inicial') {
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
-  if (await page.getByRole('link', { name: 'Documentos', exact: true }).count())
-    await page.getByRole('link', { name: 'Documentos', exact: true }).click();
-  else await navigate(page, 'Documentos');
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
 }
 
+// Logout lives in the account menu of the top bar.
+export async function openAccountMenu(page) {
+  const trigger = page
+    .getByRole('button', { name: 'Tu cuenta', exact: true })
+    .filter({ visible: true });
+  if ((await trigger.getAttribute('aria-expanded')) !== 'true') await trigger.click();
+}
+export async function signOut(page) {
+  await openAccountMenu(page);
+  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+}
 export async function login(page, recovery = false, openDocuments = true) {
   await page.getByLabel('Correo electr\u00f3nico').fill('hatz@example.com');
   await page.getByLabel('Contrase\u00f1a', { exact: true }).fill('a-long-password');

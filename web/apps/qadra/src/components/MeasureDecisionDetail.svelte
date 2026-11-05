@@ -2,8 +2,6 @@
   import { onMount } from 'svelte';
   import MeasureDecisionReview from './MeasureDecisionReview.svelte';
   import { measureActions, measureKinds, measureTimeLabel } from '../lib/measure-presentation.mjs';
-  import '../styles/hearings.css';
-  import '../styles/procedural-facts.css';
   export let value, record, onclose;
   let heading;
   $: group = value.group;

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, signOut } from './helpers.mjs';
 import { openCase } from '../case-administration-workflow.mjs';
 import { createPenal, capture, archive } from './case-administration-helpers.mjs';
 import {
@@ -140,7 +140,7 @@ test('stage transitions retain exact historic supports, explicit conflict and or
     page.getByRole('button', { name: 'Descargar evidencia', exact: true }),
   ).toBeEnabled();
   expect(await archive(page, testInfo, 'stage-support-after-transitions.zip')).toEqual(zip);
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible();
   await page.reload();
   await loginAs(page, accounts.owner, 2);

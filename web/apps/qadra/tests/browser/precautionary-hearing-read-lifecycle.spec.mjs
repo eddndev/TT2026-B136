@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { navigate } from './helpers.mjs';
+import { navigate, signOut } from './helpers.mjs';
 import { signInOther } from './session-inactivity-helpers.mjs';
 import { absoluteSession } from '../fixtures/session.mjs';
 import {
@@ -88,7 +88,7 @@ test('a precautionary Agenda reply from the previous principal cannot reopen in 
     await precautionaryCard(page, state).click();
     await expect.poll(() => gate.entered).toBe(true);
     const oldAuthorization = state.detailCalls[0].headers().authorization;
-    await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+    await signOut(page);
     const other = {
       id: '22222222-2222-4222-8222-222222222222',
       email: 'other@example.test',

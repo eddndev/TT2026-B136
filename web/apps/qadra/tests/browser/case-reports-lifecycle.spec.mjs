@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { navigate } from './helpers.mjs';
+import { navigate, signOut } from './helpers.mjs';
 import { reportId, otherReportId, report, pending, reportPage } from './case-reports-fixtures.mjs';
 import {
   setupReports,
@@ -72,7 +72,7 @@ test('a report response released after logout cannot restore private detail or d
     .click();
   const route = await captured;
   await expect(details(page)).toHaveAttribute('aria-busy', 'true');
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   const response = page.waitForResponse((value) => value.url() === route.request().url());
   await route.fulfill({ json: report() });

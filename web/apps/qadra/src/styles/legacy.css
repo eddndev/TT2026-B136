@@ -1,0 +1,26 @@
+/* Pre-Tailwind styles, loaded in the legacy layer by global.css. Delete each
+   import once its screen uses Tailwind utilities. */
+@import '@qadra/ui/base.css';
+@import './auth.css';
+@import './layout.css';
+@import './overview.css';
+@import './documents.css';
+@import './detail.css';
+@import './evidence-validation.css';
+@import './responsive.css';
+@import './cases.css';
+@import './versions.css';
+@import './metadata.css';
+@import './participants.css';
+@import './case-administration.css';
+@import './stages.css';
+@import './hearings.css';
+@import './hearing-results.css';
+@import './agenda.css';
+@import './alerts.css';
+@import './audit-events.css';
+@import './case-reports.css';
+@import './dashboard.css';
+@import './deadlines.css';
+@import './judicial-calendars.css';
+@import './procedural-facts.css';

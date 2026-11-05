@@ -6,8 +6,6 @@
     precautionaryHearingPurposes,
     precautionaryHearingActions,
   } from '../lib/precautionary-hearing-presentation.mjs';
-  import '../styles/hearings.css';
-  import '../styles/procedural-facts.css';
   export let value, caseRecord, onclose;
   let heading;
   $: capture = value.capture;

@@ -72,7 +72,7 @@ export async function signedDownload(page, control, scenario, testInfo, name, la
 
 export async function registerSigningCertificate(page, scenario, testInfo) {
   const current = responseTo(page, bindingsPath + '/current');
-  await navigate(page, 'Mi firma documental');
+  await navigate(page, 'Mi firma digital');
   expect(await jsonResponse(current)).toEqual({ binding: null });
   await page
     .getByLabel('Certificado publico PEM', { exact: true })

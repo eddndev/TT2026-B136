@@ -8,20 +8,20 @@
   import Overview from './Overview.svelte';
   import CaseReports from './CaseReports.svelte';
   import Guide from './Guide.svelte';
-  import Icon from '@qadra/ui/Icon.svelte';
+  import CaseEmptyState from './CaseEmptyState.svelte';
+  import WorkspaceReturns from './WorkspaceReturns.svelte';
+  import SkipLink from './SkipLink.svelte';
   import Cases from './Cases.svelte';
   import CaseWorkspace from './CaseWorkspace.svelte';
   import Admin from './Admin.svelte';
   import Agenda from './Agenda.svelte';
   import Alerts from './Alerts.svelte';
   import DocumentIntegrityNotice from './DocumentIntegrityNotice.svelte';
-  import DocumentIntegrityIncidents from './DocumentIntegrityIncidents.svelte';
+  import Logbook from './Logbook.svelte';
   import JudicialCalendars from './JudicialCalendars.svelte';
   import AccountCertificates from './AccountCertificates.svelte';
   import ContractsView from './ContractsView.svelte';
   import EvidenceValidationView from './EvidenceValidationView.svelte';
-  import '../styles/judicial-calendars.css';
-  import '../styles/alerts.css';
   import { createApi } from '../lib/api.mjs';
   import { takeInvitationLink } from '../lib/invitation-link.mjs';
   import { installWorkspaceListeners } from '../lib/workspace-listeners.mjs';
@@ -30,9 +30,13 @@
   import { createSessionLifecycle } from '../lib/session-lifecycle.mjs';
   import { createSessionDialogs } from '../lib/session-dialogs.mjs';
   import { alertReturnViews, normalizeView } from '../lib/workspace.mjs';
+  import { loadCaseRecord } from '../lib/open-case.mjs';
+  import { recentCases } from '../lib/shell-search.mjs';
   let user = null;
   let pendingUser = null;
   let selectedCase = null;
+  let recent = [];
+  $: recent = recentCases(recent, selectedCase);
   let hearingIntent = null,
     deadlineIntent = null,
     agendaFilters = null;
@@ -54,6 +58,7 @@
     user = null;
     pendingUser = null;
     selectedCase = null;
+    recent = [];
     hearingIntent = null;
     deadlineIntent = null;
     agendaFilters = null;
@@ -166,6 +171,35 @@
     deadlineIntent = origin.kind === 'deadline' ? origin : null;
     go(origin.kind === 'hearing' ? 'hearings' : 'deadlines');
   }
+  function navigate(next) {
+    if (!lifecycle.canAdmit()) return;
+    documentIntent = null;
+    incidentReturn = false;
+    alertReturn = false;
+    activityReturn = null;
+    resourceIntent = null;
+    go(next);
+  }
+  async function openCase(record) {
+    if (!lifecycle.canAdmit()) return;
+    try {
+      const loaded = await loadCaseRecord(api, record.id);
+      if (!user || !lifecycle.canAdmit()) return;
+      [selectedCase, hearingIntent, deadlineIntent, error] = [loaded, null, null, ''];
+      navigate('case-summary');
+    } catch (failure) {
+      if ([403, 404].includes(failure.status)) drafts.denyContext(record.id);
+      recent = recent.filter((row) => row.id !== record.id);
+      error = failure.message;
+    }
+  }
+  function openActivity(record, intent, fromAlerts) {
+    if (!lifecycle.canAdmit()) return;
+    [selectedCase, alertReturn, documentIntent] = [record, fromAlerts, null];
+    hearingIntent = intent.kind === 'hearing' ? intent : null;
+    deadlineIntent = intent.kind === 'deadline' ? intent : null;
+    go(intent.kind === 'deadline' ? 'deadlines' : 'hearings');
+  }
   function openDocument(intent) {
     if (!lifecycle.canAdmit()) return;
     documentIntent = intent;
@@ -218,33 +252,38 @@
       onlogout={logout}
     />
   {/if}
-  <a
-    class="skip-link"
-    href="#main-content"
-    onclick={(event) => {
-      event.preventDefault();
-      main?.focus();
-    }}>Saltar al contenido</a
+  <SkipLink target={() => main} />
+  <div
+    class="app-layout group/app min-h-dvh bg-slate-50"
+    bind:this={appLayout}
+    inert={sessionState.phase !== 'active'}
   >
-  <div class="app-layout" bind:this={appLayout} inert={sessionState.phase !== 'active'}>
     <Sidebar
       bind:this={sidebar}
       {user}
       {view}
-      onnavigate={(next) => {
-        if (!lifecycle.canAdmit()) return;
-        documentIntent = null;
-        incidentReturn = false;
-        alertReturn = false;
-        activityReturn = null;
-        resourceIntent = null;
-        go(next);
-      }}
-      onlogout={logout}
+      {recent}
+      onopencase={openCase}
+      onnavigate={navigate}
     />
-    <div class="app-content">
-      <Topbar {user} {view} onmenu={() => sidebar.open()} />
-      <main id="main-content" tabindex="-1" bind:this={main}>
+    <div
+      class="transition-[padding] duration-200 lg:pl-64 lg:group-has-data-collapsed/app:pl-[4.0625rem]"
+    >
+      <Topbar
+        {api}
+        {user}
+        {view}
+        onmenu={() => sidebar.open()}
+        onnavigate={navigate}
+        onopencase={openCase}
+        onlogout={logout}
+      />
+      <main
+        id="main-content"
+        tabindex="-1"
+        bind:this={main}
+        class="mx-auto max-w-7xl px-4 py-8 outline-none sm:px-6 lg:px-8 lg:py-10"
+      >
         {#if user.role === 'owner'}<DocumentIntegrityNotice
             bind:this={integrityNotice}
             {api}
@@ -258,8 +297,11 @@
             onnavigate={go}
             ondocument={openDocument}
           />
-        {:else if view === 'integrity-incidents' && user.role === 'owner'}<DocumentIntegrityIncidents
+        {:else if ['audit', 'integrity-incidents'].includes(view) && user.role === 'owner'}<Logbook
             {api}
+            {user}
+            tab={view}
+            onnavigate={go}
             onknown={(exists) => integrityNotice?.observed(exists)}
             onopen={(record, intent) => {
               if (!lifecycle.canAdmit()) return;
@@ -280,28 +322,13 @@
             {api}
             {user}
             bind:filters={alertFilters}
-            onopen={(record, intent) => {
-              if (!lifecycle.canAdmit()) return;
-              selectedCase = record;
-              alertReturn = true;
-              hearingIntent = intent.kind === 'hearing' ? intent : null;
-              deadlineIntent = intent.kind === 'deadline' ? intent : null;
-              documentIntent = null;
-              go(intent.kind === 'deadline' ? 'deadlines' : 'hearings');
-            }}
+            onopen={(record, intent) => openActivity(record, intent, true)}
           />
         {:else if view === 'agenda'}<Agenda
             {api}
             bind:filters={agendaFilters}
             oncalendars={() => go('judicial-calendars')}
-            onopen={(record, intent) => {
-              if (!lifecycle.canAdmit()) return;
-              selectedCase = record;
-              hearingIntent = intent.kind === 'hearing' ? intent : null;
-              deadlineIntent = intent.kind === 'deadline' ? intent : null;
-              documentIntent = null;
-              go(intent.kind === 'deadline' ? 'deadlines' : 'hearings');
-            }}
+            onopen={(record, intent) => openActivity(record, intent, false)}
           />
         {:else if view === 'cases'}<Cases
             {api}
@@ -313,17 +340,13 @@
             }}
           />
         {:else if ['case-summary', 'case-members', 'documents', 'participants', 'stages', 'hearings', 'case-measures', 'resolutions', 'resources', 'deadlines', 'case-contracts'].includes(view)}
-          {#if incidentReturn}<button
-              class="text-button alerts-return"
-              onclick={() => go('integrity-incidents')}>Volver a incidentes</button
-            >{/if}
-          {#if alertReturn}<button class="text-button alerts-return" onclick={() => go('alerts')}
-              >Volver a Alertas</button
-            >{/if}
-          {#if activityReturn && activityReturn.case_id === selectedCase?.id}<button
-              class="text-button alerts-return"
-              onclick={returnToActivity}>Volver a actividad</button
-            >{/if}
+          <WorkspaceReturns
+            incident={incidentReturn}
+            alert={alertReturn}
+            activity={activityReturn && activityReturn.case_id === selectedCase?.id}
+            onnavigate={go}
+            onactivity={returnToActivity}
+          />
           {#if selectedCase}{#key selectedCase.id}<CaseWorkspace
                 {api}
                 {user}
@@ -350,27 +373,17 @@
                 intent={documentIntent}
                 onintent={() => (documentIntent = null)}
               />{/key}
-          {:else}<section class="card empty-state">
-              <span class="empty-icon"><Icon name="briefcase" size={35} /></span>
-              <h1>Selecciona un expediente</h1>
-              <p>Abre un expediente para consultar sus datos.</p>
-              <button class="primary" onclick={() => go('cases')}>Ver expedientes</button>
-            </section>{/if}
+          {:else}<CaseEmptyState onnavigate={go} />{/if}
         {:else if ['owner-certificates', 'signing-certificates'].includes(view)}<AccountCertificates
             {api}
             {user}
             {view}
+            onnavigate={go}
           />
         {:else if view === 'guide'}<Guide onnavigate={go} />
-        {:else if user.role === 'owner'}{#key view}<Admin
-              {api}
-              {user}
-              view={view === 'team' ? 'users' : 'audit'}
-            />{/key}{/if}
+        {:else if user.role === 'owner'}<Admin {api} {user} />{/if}
         <footer class="workspace-footer">
-          <span>Qadra / Despacho digital</span><span
-            >Entorno local <span class="footer-separator">/</span> TT2026-B136</span
-          >
+          <span>Qadra / Despacho digital</span><span>TT2026-B136</span>
         </footer>
       </main>
     </div>

@@ -1,6 +1,5 @@
 <script>
   import FactCollection from './FactCollection.svelte';
-  import '../styles/procedural-facts.css';
   export let api, user, record, ondenied;
 </script>
 

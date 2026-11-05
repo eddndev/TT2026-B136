@@ -17,6 +17,7 @@ import {
   instant,
   notChecked,
 } from '../fixtures/deadline-v2-unit.mjs';
+import { signOut } from './helpers.mjs';
 
 const panel = (page) => page.getByRole('region', { name: 'Detalle de plazo', exact: true });
 const policy = (page) =>
@@ -194,7 +195,7 @@ for (const destination of ['case', 'session'])
     if (destination === 'case') {
       await page.getByRole('button', { name: 'Cambiar expediente', exact: true }).click();
       await page.getByRole('button', { name: /Otro expediente/ }).click();
-    } else await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+    } else await signOut(page);
     release();
     await expect.poll(() => finished).toBe(true);
     await expect(editor(page)).toHaveCount(0);

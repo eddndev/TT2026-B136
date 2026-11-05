@@ -14,7 +14,6 @@
     agendaIntent,
     mergeAgendaItems,
   } from './agenda-presentation.mjs';
-  import '../styles/agenda.css';
 
   export let api,
     onopen,

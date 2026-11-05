@@ -8,6 +8,7 @@ import {
   login,
   navigate,
   selectCase,
+  signOut,
 } from './helpers.mjs';
 
 async function waitForRendering(page) {
@@ -33,7 +34,7 @@ test('a document detail arriving after logout cannot enter the next session', as
   await page.getByLabel('Identificador del documento').fill(id);
   await page.getByRole('button', { name: 'Abrir documento' }).click();
   await expect.poll(() => typeof release).toBe('function');
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
+  await signOut(page);
   await login(page, false, false);
   const finished = page.waitForEvent('requestfinished', (request) =>
     request.url().endsWith(`/documents/${id}`),

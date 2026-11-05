@@ -10,10 +10,9 @@
 
 <article class="card incident-card" data-incident-id={incident.id}>
   <div class="section-heading">
-    <h2>Validaci&#243;n documental fallida</h2>
+    <h2>{incidentFailureLabels[incident.failure]}</h2>
     <span class="badge warning">Versi&#243;n {incident.document_version}</span>
   </div>
-  <p>{incidentFailureLabels[incident.failure]}</p>
   <dl>
     <dt>Documento</dt>
     <dd><code>{incident.document_id}</code></dd>
@@ -25,22 +24,22 @@
     <dd>{incidentTimeLabel(incident.recorded_at)}</dd>
   </dl>
   <details>
-    <summary>Referencia t&#233;cnica del incidente</summary>
+    <summary>Detalle t&#233;cnico</summary>
     <dl>
       <dt>Incidente</dt>
       <dd><code>{incident.id}</code></dd>
       <dt>Observaci&#243;n</dt>
       <dd><code>{incident.observation_id}</code></dd>
-      <dt>Cuenta que solicit&#243; la operaci&#243;n</dt>
+      <dt>Solicitado por</dt>
       <dd><code>{incident.requester_id}</code></dd>
-      <dt>Resumen esperado del contenido</dt>
+      <dt>Huella esperada (SHA-256)</dt>
       <dd><code>{incident.expected_digest}</code></dd>
-      <dt>Resumen de la captura observada</dt>
+      <dt>Huella observada (SHA-256)</dt>
       <dd><code>{incident.observed_snapshot_digest}</code></dd>
     </dl>
   </details>
   <button class="secondary" {disabled} onclick={() => onopen(incident)}
-    >Abrir versi&#243;n exacta</button
+    >Abrir esta versi&#243;n</button
   >
 </article>
 

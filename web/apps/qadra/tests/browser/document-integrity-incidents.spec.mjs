@@ -1,10 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { requestCompletion } from './request-completion.mjs';
-import { login, navigate, caseId, id, expectLanding } from './helpers.mjs';
+import { login, caseId, id, expectLanding, signOut } from './helpers.mjs';
 import { incidentPage } from '../fixtures/document-integrity-incidents.mjs';
 import {
   setupIncidents,
   enterIncidents,
+  openIncidentsTab,
   inbox,
   incidentCard,
 } from './document-integrity-incidents-helpers.mjs';
@@ -22,14 +23,24 @@ for (const width of [1440, 390]) {
     await notice.getByRole('button', { name: 'Consultar incidentes', exact: true }).click();
     await expect(inbox(page)).toBeVisible();
     await expect(incidentCard(page, state.rows[0])).toBeVisible();
-    await expect(inbox(page)).toContainText('Orden por identificador');
-    await expect(inbox(page)).toContainText('validaci\u00f3n');
+    await expect(
+      incidentCard(page, state.rows[0]).getByRole('heading', {
+        name: 'El resumen del contenido no coincide',
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(inbox(page)).toContainText('Un incidente no indica la causa ni a un responsable.');
+    await expect(
+      page.getByRole('button', { name: 'Incidentes de integridad', exact: true }),
+    ).toHaveAttribute('aria-current', 'page');
+    if (width === 1440)
+      await expect(
+        page.getByRole('navigation').getByRole('button', { name: 'Bit\u00e1cora', exact: true }),
+      ).toHaveAttribute('aria-current', 'page');
     await expect(
       inbox(page).getByRole('button', { name: /Marcar|Reconocer|Enviar correo/ }),
     ).toHaveCount(0);
-    await inbox(page)
-      .getByRole('button', { name: 'Cargar m\u00e1s incidentes', exact: true })
-      .click();
+    await inbox(page).getByRole('button', { name: 'Cargar m\u00e1s', exact: true }).click();
     await expect(inbox(page).locator('[data-incident-id]')).toHaveCount(2);
     expect(
       await inbox(page)
@@ -48,7 +59,7 @@ for (const width of [1440, 390]) {
       fullPage: true,
     });
     await incidentCard(page, state.rows[0])
-      .getByRole('button', { name: 'Abrir versi\u00f3n exacta', exact: true })
+      .getByRole('button', { name: 'Abrir esta versi\u00f3n', exact: true })
       .click();
     await expect(page.getByRole('heading', { name: 'contrato.pdf', exact: true })).toBeVisible();
     await expect(
@@ -77,14 +88,14 @@ test('Owner incident service failure stays visible until explicit refresh, disti
   await expect(
     page.getByRole('region', { name: 'Avisos de integridad', exact: true }).getByRole('alert'),
   ).toBeVisible();
-  await navigate(page, 'Incidentes de integridad');
+  await openIncidentsTab(page);
   await expect(inbox(page).getByRole('alert')).toBeVisible();
   await expect(
     inbox(page).getByText('No hay incidentes registrados.', { exact: true }),
   ).toHaveCount(0);
   const before = state.calls.length;
   state.handle = (route) => route.fulfill({ json: incidentPage() }).then(() => true);
-  await inbox(page).getByRole('button', { name: 'Actualizar incidentes', exact: true }).click();
+  await inbox(page).getByRole('button', { name: 'Actualizar', exact: true }).click();
   await expect(
     inbox(page).getByText('No hay incidentes registrados.', { exact: true }),
   ).toBeVisible();
@@ -104,12 +115,12 @@ test('a late Owner incident list is discarded after logout', async ({ page }) =>
         resolve(true);
       };
     });
-  await inbox(page).getByRole('button', { name: 'Actualizar incidentes', exact: true }).click();
+  await inbox(page).getByRole('button', { name: 'Actualizar', exact: true }).click();
   await expect.poll(() => typeof release).toBe('function');
   const finished = requestCompletion(page, (request) =>
     request.url().includes('/document-integrity-incidents?'),
   );
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await release();
   const completed = await finished;
@@ -125,9 +136,10 @@ for (const role of ['litigator', 'paralegal', 'client']) {
     const state = await setupIncidents(page, role);
     await login(page, false, false);
     await expect(
-      page
-        .getByRole('navigation')
-        .getByRole('button', { name: 'Incidentes de integridad', exact: true }),
+      page.getByRole('navigation').getByRole('button', { name: 'Bit\u00e1cora', exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Incidentes de integridad', exact: true }),
     ).toHaveCount(0);
     await page.evaluate(() => {
       location.hash = '#integrity-incidents';

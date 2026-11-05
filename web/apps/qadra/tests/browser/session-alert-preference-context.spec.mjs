@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, signOut } from './helpers.mjs';
 import { expire, signInOther } from './session-inactivity-helpers.mjs';
 import {
   alertPreferenceDraftSetup,
@@ -58,7 +58,7 @@ test('cancel, explicit logout with a pending capture and a different MFA princip
   await fillPreferenceDraft(form);
   await expire(page, state, await form.elementHandle());
   await login(page, false, false);
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await login(page, false, false);
   await enterPreferenceInbox(page);

@@ -15,8 +15,8 @@ async function bytes(download) {
 async function prepareBinding(page, state) {
   if (await page.getByRole('button', { name: 'Abrir men\u00fa', exact: true }).isVisible())
     await page.getByRole('button', { name: 'Abrir men\u00fa', exact: true }).click();
-  await page.getByRole('button', { name: 'Mi firma documental', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Mi firma documental' })).toBeVisible();
+  await page.getByRole('button', { name: 'Mi firma digital', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Mi firma digital' })).toBeVisible();
   await page.getByLabel('Certificado publico PEM').setInputFiles({
     name: 'private.key',
     mimeType: 'application/octet-stream',
@@ -111,9 +111,9 @@ for (const role of ['owner', 'paralegal'])
     ).toHaveCount(0);
     // An Owner may bind a document-signing certificate to sign contracts,
     // but never signs a document individually.
-    await expect(
-      page.getByRole('button', { name: 'Mi firma documental', exact: true }),
-    ).toHaveCount(role === 'owner' ? 1 : 0);
+    await expect(page.getByRole('button', { name: 'Mi firma digital', exact: true })).toHaveCount(
+      role === 'owner' ? 1 : 0,
+    );
   });
 
 test('mobile certificate withdrawal requires its own confirmation and keeps its receipt', async ({

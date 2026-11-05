@@ -54,8 +54,12 @@ export async function setupIncidents(page, role = 'owner') {
   });
   return state;
 }
+export async function openIncidentsTab(page) {
+  await navigate(page, 'Bit\u00e1cora');
+  await page.getByRole('button', { name: 'Incidentes de integridad', exact: true }).click();
+}
 export async function enterIncidents(page) {
   await login(page, false, false);
-  await navigate(page, 'Incidentes de integridad');
+  await openIncidentsTab(page);
   await expect(inbox(page)).toBeVisible();
 }

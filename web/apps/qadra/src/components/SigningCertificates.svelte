@@ -224,19 +224,10 @@
   });
 </script>
 
-<div class="page-heading">
-  <div>
-    <span class="eyebrow">MI CUENTA</span>
-    <h1>{user.role === 'client' ? 'Mi firma' : 'Mi firma documental'}</h1>
-    <p>
-      {user.role === 'client'
-        ? 'Genera tu clave, vincula tu certificado publico y firma tus contratos con la clave en tu equipo.'
-        : 'Vincula tu certificado publico y firma documentos con la clave en tu equipo.'}
-    </p>
-  </div>
-</div>
-<p class="notice">
-  Perfil interno de demostracion. Solo se reciben certificados publicos y firmas separadas.
+<p class="mb-4">
+  {user.role === 'client'
+    ? 'Firma tus contratos con la clave que guardas en tu equipo. Qadra solo recibe tu certificado p\u00fablico y tus firmas.'
+    : 'Firma documentos con la clave que guardas en tu equipo. Qadra solo recibe tu certificado p\u00fablico y tus firmas.'}
 </p>
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 {#if !ready}<section class="card stack">

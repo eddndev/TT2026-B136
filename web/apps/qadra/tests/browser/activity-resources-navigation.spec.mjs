@@ -10,6 +10,7 @@ import {
   login,
   caseId,
 } from './activity-resources-helpers.mjs';
+import { signOut } from './helpers.mjs';
 
 for (const kind of ['hearing', 'deadline'])
   test(`alert ${kind} opens exact linked resource and returns to distinct activity origin without reading it`, async ({
@@ -153,7 +154,7 @@ for (const destination of ['case', 'session'])
       .click();
     await expect.poll(() => started).toBe(true);
     if (destination === 'session') {
-      await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+      await signOut(page);
       await login(page, false, false);
       await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
     } else {

@@ -209,7 +209,9 @@
       >Recibo p&uacute;blico del v&iacute;nculo
       <input type="file" accept=".json,application/json" disabled={busy} onchange={receipt} />
     </label>
-    <small>Selecciona el JSON descargado de Mi certificado. No selecciones una clave privada.</small
+    <small
+      >Selecciona el JSON descargado en Mi firma digital, Acceso con certificado. No selecciones una
+      clave privada.</small
     >
     {#if selected}
       <dl class="selected-receipt">

@@ -98,7 +98,7 @@ export async function findIncident(page, row) {
     await expect(inbox(page).getByRole('alert')).toHaveCount(0);
     if (await card(page, row).count()) return;
     const more = inbox(page).getByRole('button', {
-      name: 'Cargar m\u00e1s incidentes',
+      name: 'Cargar m\u00e1s',
       exact: true,
     });
     if (!(await more.count())) break;

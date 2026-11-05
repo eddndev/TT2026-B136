@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, signOut } from './helpers.mjs';
 import { expire, signInOther } from './session-inactivity-helpers.mjs';
 import {
   memberDraftSetup,
@@ -201,7 +201,7 @@ test('a different Owner cannot inherit account access choices and returning to t
   await accessValues(page, 'paralegal', true);
   await expect(reviewButton(page)).toBeEnabled();
   await closeAccess(page);
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await login(page, false, false);
   await enterMembers(page);
   await openAccess(page, state.target);

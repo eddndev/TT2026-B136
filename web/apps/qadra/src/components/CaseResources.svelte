@@ -11,7 +11,6 @@
     resourceDenied,
     resourceFailure,
   } from '../lib/procedural-resource-errors.mjs';
-  import '../styles/procedural-facts.css';
   export let api, user, record, ondenied;
   export let intent = null,
     onintent = () => {};

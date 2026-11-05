@@ -18,6 +18,7 @@ import {
   activityPanel,
   clone,
 } from './resource-hearing-scheduling-helpers.mjs';
+import { signOut } from './helpers.mjs';
 
 test('same-account expiry restores raw fields and exact selections only after fresh authority', async ({
   page,
@@ -117,7 +118,7 @@ for (const transition of ['different account', 'explicit logout']) {
     await expire(page, state, await hearingEditor(page).elementHandle());
     if (transition === 'different account') await signInOther(page);
     else await login(page, false, false);
-    await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+    await signOut(page);
     await login(page, false, false);
     await openHearingScope(page, state);
     await expect(

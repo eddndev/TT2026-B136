@@ -8,8 +8,6 @@
   import { decisionEditorFailure } from './measure-decision-editor-values.mjs';
   import { pendingMeasureDecisionDrafts } from '../lib/measure-decision-draft.mjs';
   import { measureTimeLabel } from '../lib/measure-presentation.mjs';
-  import '../styles/hearings.css';
-  import '../styles/procedural-facts.css';
   export let api, user, record, ondenied;
   const scoped = api.caseMeasureDecisions(record.id),
     contextApi = api.casePrecautionaryHearings(record.id),

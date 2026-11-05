@@ -162,7 +162,7 @@
       }
       if (!admitted()) return;
       if (!binding || binding.withdrawn_at)
-        throw new Error('Primero registra tu certificado en Mi firma documental.');
+        throw new Error('Primero registra tu certificado en Mi firma digital.');
       state = { ...blank(), operationId: crypto.randomUUID() };
       draft.register();
       opened = active = true;

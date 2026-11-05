@@ -118,17 +118,9 @@
   });
 </script>
 
-<div class="page-heading">
-  <div>
-    <span class="eyebrow">MI CUENTA</span>
-    <h1>Mi certificado</h1>
-    <p>Vincula tu certificado p&#250;blico a tu propia cuenta con una firma personal.</p>
-  </div>
-</div>
-<p class="notice">
-  Perfil interno de demostraci&#243;n. Registrar el v&#237;nculo no abre una sesi&#243;n ni firma
-  documentos. Si el servidor habilita el acceso por certificado, requiere una firma nueva y tu
-  segundo factor.
+<p class="mb-4">
+  Entra a Qadra con tu certificado, adem&#225;s de tu segundo factor. Este certificado no firma
+  documentos.
 </p>
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 {#if !ready}

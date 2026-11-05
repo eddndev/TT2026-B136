@@ -29,7 +29,7 @@ for (const { name, viewport } of localSigningViewports) {
     await login(page, false, false);
     const menu = page.getByRole('button', { name: 'Abrir men\u00fa', exact: true });
     if (await menu.isVisible()) await menu.click();
-    await page.getByRole('button', { name: 'Mi firma documental', exact: true }).click();
+    await page.getByRole('button', { name: 'Mi firma digital', exact: true }).click();
     await page
       .getByLabel('Certificado publico PEM', { exact: true })
       .setInputFiles(localFile('browser-test-certificate.pem', material.certificatePem));

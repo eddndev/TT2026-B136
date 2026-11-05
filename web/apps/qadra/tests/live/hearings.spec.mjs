@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, signOut } from './helpers.mjs';
 import { openCase } from '../case-administration-workflow.mjs';
 import { capture } from './case-administration-helpers.mjs';
 import {
@@ -114,7 +114,7 @@ test('real hearings reconcile an exact receipt and retain immutable references t
   await capture(page, testInfo, 'hearing-history-mobile', detail(page));
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible();
   await page.reload();
   await loginAs(page, accounts.owner, 2);

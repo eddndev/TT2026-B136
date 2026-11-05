@@ -106,7 +106,9 @@ test('non Owner navigation and a direct account-certificate hash never open the 
 }) => {
   const requests = await setup(page, 'litigator');
   await login(page, false, false);
-  await expect(page.getByRole('button', { name: 'Mi certificado', exact: true })).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Acceso con certificado', exact: true }),
+  ).toHaveCount(0);
   await page.evaluate(() => {
     window.location.hash = 'owner-certificates';
   });

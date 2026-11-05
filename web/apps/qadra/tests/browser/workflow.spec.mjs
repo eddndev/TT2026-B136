@@ -8,6 +8,7 @@ import {
   login,
   navigate,
   openDocument,
+  signOut,
 } from './helpers.mjs';
 
 test.beforeEach(async ({ page }) => {
@@ -146,16 +147,16 @@ test('failed evidence verdict shows the failed component', async ({ page }) => {
 test('a broken audit shows index zero and clears verdict when recheck fails', async ({ page }) => {
   await setup(page);
   await login(page, false, false);
-  await navigate(page, 'Auditor\u00eda');
+  await navigate(page, 'Bit\u00e1cora');
   await page.route('**/audit/verify', (route) =>
     route.fulfill({ json: { valid: false, entries: null, first_broken_index: 0 } }),
   );
   await page.getByRole('button', { name: 'Verificar cadena' }).click();
-  await expect(page.getByText('Primer \u00edndice roto: 0')).toBeVisible();
+  await expect(page.getByText('primer evento roto: 0')).toBeVisible();
   await page.route('**/audit/verify', (route) => route.fulfill({ status: 502 }));
   await page.getByRole('button', { name: 'Verificar cadena' }).click();
   await expect(page.getByRole('alert')).toContainText('servidor');
-  await expect(page.getByText('Primer \u00edndice roto: 0')).toHaveCount(0);
+  await expect(page.getByText('primer evento roto: 0')).toHaveCount(0);
 });
 
 test('login upload seal verify download logout follow the case HTTP contract', async ({ page }) => {
@@ -196,7 +197,7 @@ test('login upload seal verify download logout follow the case HTTP contract', a
   ).toBeGreaterThanOrEqual(3);
   await page.evaluate(() => scrollTo(0, 0));
   await page.screenshot({ path: 'test-results/document-desktop.png', fullPage: true });
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
 });
@@ -245,7 +246,7 @@ test('owner enrollment and audit work in a mobile viewport', async ({ page }) =>
   await expect(page.getByText('TESTSECRET', { exact: true })).toBeVisible();
   await page.getByLabel('Ya guard\u00e9 la clave y los c\u00f3digos').check();
   await page.getByRole('button', { name: 'Finalizar' }).click();
-  await navigate(page, 'Auditor\u00eda');
+  await navigate(page, 'Bit\u00e1cora');
   await page.getByRole('button', { name: 'Verificar cadena' }).click();
   await expect(page.getByText('12 eventos verificados')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

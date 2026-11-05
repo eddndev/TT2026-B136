@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { requestCompletion } from './request-completion.mjs';
-import { selectCase } from './helpers.mjs';
+import { selectCase, signOut } from './helpers.mjs';
 import {
   contentSetup,
   contentResponse,
@@ -131,7 +131,7 @@ for (const change of ['version', 'case', 'session']) {
       await selectCase(page, 'Otro expediente');
       await expect(page.getByRole('heading', { name: 'contrato.pdf', exact: true })).toHaveCount(0);
     } else {
-      await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+      await signOut(page);
       await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
     }
     await release();

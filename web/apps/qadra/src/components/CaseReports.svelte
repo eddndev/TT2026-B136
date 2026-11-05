@@ -9,7 +9,6 @@
     scopeLabel,
     reportFailure,
   } from '../lib/case-reports-presentation.mjs';
-  import '../styles/case-reports.css';
   export let api, user;
   let mounted = false,
     alive = true,

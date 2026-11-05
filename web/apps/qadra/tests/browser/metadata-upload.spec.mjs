@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { setup, login, navigate } from './helpers.mjs';
+import { setup, login } from './helpers.mjs';
 
 test('classified upload preserves Unicode tags as individual values and waits for one multipart commit', async ({
   page,
 }) => {
   const calls = await setup(page);
   await login(page);
-  await navigate(page, 'Documentos');
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
   await page.getByRole('button', { name: 'Subir documento', exact: true }).click();
   const modal = page.getByRole('dialog', { name: 'Subir documento' });
   await expect(modal.getByLabel('Tipo de documento (opcional)', { exact: true })).toBeVisible();
@@ -59,7 +59,7 @@ test('upload failures retain file and classification and never retry automatical
 }) => {
   await setup(page);
   await login(page);
-  await navigate(page, 'Documentos');
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
   await page.getByRole('button', { name: 'Subir documento', exact: true }).click();
   const modal = page.getByRole('dialog', { name: 'Subir documento' });
   await modal.getByLabel('Archivo', { exact: true }).setInputFiles({
@@ -90,7 +90,7 @@ test('upload failures retain file and classification and never retry automatical
 test('invalid pending tags focus the tag input while preserving the file', async ({ page }) => {
   const calls = await setup(page);
   await login(page);
-  await navigate(page, 'Documentos');
+  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
   await page.getByRole('button', { name: 'Subir documento', exact: true }).click();
   const modal = page.getByRole('dialog', { name: 'Subir documento' });
   await modal.getByLabel('Archivo', { exact: true }).setInputFiles({

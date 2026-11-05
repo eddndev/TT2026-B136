@@ -26,6 +26,7 @@
       solicitud nueva con tu certificado actual.
     </p>
   {/if}
-  <button class="secondary" onclick={() => onnavigate('signing-certificates')}>Ir a Mi firma</button
+  <button class="secondary" onclick={() => onnavigate('signing-certificates')}
+    >Ir a Mi firma digital</button
   >
 </section>

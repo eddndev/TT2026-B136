@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, selectCase } from './helpers.mjs';
+import { login, selectCase, signOut } from './helpers.mjs';
 import { expire, signInOther, casePath } from './session-inactivity-helpers.mjs';
 import {
   participantDraftSetup,
@@ -167,7 +167,7 @@ test('cancelling and changing account discard suspended manual fields without re
   modal = await createManual(page);
   await expectManual(modal, blank);
   await modal.getByRole('button', { name: 'Cancelar', exact: true }).click();
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await login(page);
   await openParticipants(page);
   await expectManual(await createManual(page), blank);

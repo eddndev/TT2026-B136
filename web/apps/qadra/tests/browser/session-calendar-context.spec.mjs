@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login } from './helpers.mjs';
+import { login, signOut } from './helpers.mjs';
 import { expire, signInOther } from './session-inactivity-helpers.mjs';
 import {
   calendarDraftSetup,
@@ -51,7 +51,7 @@ test('closing a calendar draft, another principal and explicit logout discard it
   await title(form).fill('Captura de la segunda cuenta');
   await expire(page, state, await form.elementHandle());
   await signInOther(page);
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await signInOther(page);
   await enterCalendars(page);

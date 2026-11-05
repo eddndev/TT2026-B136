@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, signOut } from './helpers.mjs';
 import { saveAdministration } from '../case-administration-workflow.mjs';
 import {
   accounts,
@@ -207,7 +207,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
     await context.close();
   }
 
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible();
   await page.reload();
   await loginAs(page, accounts.owner, 2);

@@ -1,20 +1,34 @@
-@import '@qadra/ui/base.css';
-@import './auth.css';
-@import './layout.css';
-@import './overview.css';
-@import './documents.css';
-@import './detail.css';
-@import './evidence-validation.css';
-@import './responsive.css';
-@import './cases.css';
-@import './versions.css';
-@import './metadata.css';
-@import './participants.css';
+/* Tailwind CSS 4 entry point. Legacy styles sit in their own layer between
+   the reset and the utilities, so any utility class wins over them. */
+@layer theme, base, legacy, components, utilities;
 
-@import './case-administration.css';
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import './legacy.css' layer(legacy);
+@import 'tailwindcss/utilities.css' layer(utilities);
 
-@import './stages.css';
+@source '../../../../packages/ui/src';
 
-@import './hearings.css';
-
-@import './hearing-results.css';
+/* Brand tokens. brand-800 and navy are the Qadra blue (#1e40af) and navy
+   (#111344) of packages/ui/src/base.css; the rest of the brand scale keeps the
+   same blue family so tints and hovers stay on brand. Neutrals use slate, the
+   family of the existing ink, muted and line colors. */
+@theme {
+  --font-sans: Inter, 'Segoe UI', sans-serif;
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+  --color-brand-950: #172554;
+  --color-navy: #111344;
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+  --color-line: #e2e8f0;
+  --color-success: #2f855a;
+}

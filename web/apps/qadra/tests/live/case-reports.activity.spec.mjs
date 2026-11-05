@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { test, expect } from '@playwright/test';
-import { fixture, loginAs } from './helpers.mjs';
+import { fixture, loginAs, signOut } from './helpers.mjs';
 import { provisionActivityCatalogue } from './case-report-activity-fixtures.mjs';
 import {
   form,
@@ -141,7 +141,7 @@ test('real activity report retains original upload author 1/0/0 after reassignme
   expect(acknowledged.notice.read_at).toEqual(expect.any(String));
   await expect(detail(page)).toContainText('Aviso le\u00eddo');
   const logout = responseTo(page, '/auth/logout', 'POST');
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   expect((await logout).status()).toBe(204);
   await expect(page.getByLabel('Correo electr\u00f3nico', { exact: true })).toBeVisible();
   await loginAs(page, scenario.reader, 1);

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { document, login, navigate, selectCase } from './helpers.mjs';
+import { document, login, navigate, selectCase, signOut } from './helpers.mjs';
 import { requestCompletion } from './request-completion.mjs';
 import {
   sessionSetup,
@@ -116,7 +116,7 @@ test('a different account cannot recover a draft and returning to the owner does
     .getByRole('dialog', { name: editorName })
     .getByRole('button', { name: 'Cancelar', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
+  await signOut(page);
   await login(page);
   await blankEditor(page);
 });
@@ -128,7 +128,7 @@ test('explicit logout discards a suspended draft even before its original editor
   await login(page);
   await expire(page, state, await draft(page));
   await login(page, false, false);
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await login(page);
   await blankEditor(page);

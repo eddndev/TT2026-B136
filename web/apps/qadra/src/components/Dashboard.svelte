@@ -1,7 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
-  import '../styles/dashboard.css';
   export let api, user, onnavigate;
   let mounted = false,
     alive = true,

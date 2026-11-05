@@ -1,9 +1,6 @@
 <script>
   import DeadlineCollection from './DeadlineCollection.svelte';
   import { canDeadlines } from '../lib/deadline-errors.mjs';
-  import '../styles/procedural-facts.css';
-  import '../styles/judicial-calendars.css';
-  import '../styles/deadlines.css';
   export let api, user, record, ondenied, onnavigate;
   export let onresource = () => {};
   export let intent = null,

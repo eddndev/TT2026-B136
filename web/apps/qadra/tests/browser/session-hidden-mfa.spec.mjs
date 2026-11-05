@@ -83,13 +83,14 @@ test('MFA completed while hidden waits for a fresh visible session read before m
   check.release();
   await expect(page.locator('.app-layout')).not.toHaveAttribute('inert', '');
   await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
+  // The top bar counts unread alerts, so that read also waits for the session check.
   await expect
     .poll(() =>
       business(state)
         .map((call) => call.path)
         .sort(),
     )
-    .toEqual(['/api/v1/dashboard', '/api/v1/document-integrity-incidents']);
+    .toEqual(['/api/v1/alerts', '/api/v1/dashboard', '/api/v1/document-integrity-incidents']);
   await expect(
     page.getByRole('button', { name: 'Actualizar indicadores', exact: true }),
   ).toBeEnabled();

@@ -47,8 +47,12 @@ export async function freshOwner(page, owner, action) {
 }
 
 export async function openOwner(page, owner) {
-  const current = await freshOwner(page, owner, () => navigate(page, 'Mi certificado'));
-  await expect(page.getByRole('heading', { name: 'Mi certificado', exact: true })).toBeVisible();
+  // The certificate access tab lives inside Mi firma digital.
+  const current = await freshOwner(page, owner, async () => {
+    await navigate(page, 'Mi firma digital');
+    await button(page, 'Acceso con certificado').click();
+  });
+  await expect(page.getByRole('heading', { name: 'Mi firma digital', exact: true })).toBeVisible();
   return current;
 }
 

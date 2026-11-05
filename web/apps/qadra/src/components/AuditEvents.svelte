@@ -1,12 +1,12 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import '../styles/audit-events.css';
   import { auditOutcomeLabel, auditSourceLabel } from '../lib/audit-event-context.mjs';
   export let api, user;
   const day = (value) => value.toISOString().slice(0, 10);
   const today = new Date();
+  const following = (value) => day(new Date(Date.parse(`${value}T00:00:00Z`) + 86400000));
   let from = day(new Date(today.getTime() - 7 * 86400000)),
-    until = day(new Date(today.getTime() + 86400000));
+    until = day(today);
   let actor = '',
     action = '',
     resource = '',
@@ -47,7 +47,7 @@
       ? { ...submitted, cursor: value.next_cursor }
       : {
           from: `${from}T00:00:00Z`,
-          until: `${until}T00:00:00Z`,
+          until: `${following(until)}T00:00:00Z`,
           limit,
           ...(actor ? { actor } : {}),
           ...(action ? { action } : {}),
@@ -100,86 +100,49 @@
 </script>
 
 {#if allowed}
-  <section class="card audit-events" aria-label="Actividad registrada" aria-busy={busy}>
+  <section class="card audit-events" aria-label="Movimientos registrados" aria-busy={busy}>
     <div class="section-heading">
-      <div>
-        <h2>Actividad registrada</h2>
-        <p>Consulta eventos del despacho por fecha, actor, operaci&#243;n o recurso.</p>
-      </div>
+      <h2>Movimientos registrados</h2>
     </div>
     <form class="audit-filters" onsubmit={submit}>
+      <label>Desde<input type="date" required bind:value={from} oninput={clear} /></label>
+      <label>Hasta<input type="date" required bind:value={until} oninput={clear} /></label>
       <label
-        >Desde (UTC, incluido)<input
-          type="date"
-          required
-          bind:value={from}
-          oninput={clear}
-        /></label
-      >
-      <label
-        >Hasta (UTC, excluido)<input
-          type="date"
-          required
-          bind:value={until}
-          oninput={clear}
-        /></label
-      >
-      <label
-        >Actor registrado<input
+        >Actor<input
           autocomplete="off"
           bind:value={actor}
           oninput={clear}
-          placeholder="Texto o UUID exacto, opcional"
+          placeholder="Correo o ID de cuenta"
         /></label
       >
+      <label>Operaci&#243;n<input autocomplete="off" bind:value={action} oninput={clear} /></label>
+      <label>Recurso<input autocomplete="off" bind:value={resource} oninput={clear} /></label>
       <label
-        >Operaci&#243;n registrada<input
-          autocomplete="off"
-          bind:value={action}
-          oninput={clear}
-          placeholder="Texto exacto, opcional"
-        /></label
-      >
-      <label
-        >Recurso registrado<input
-          autocomplete="off"
-          bind:value={resource}
-          oninput={clear}
-          placeholder="Texto exacto, opcional"
-        /></label
-      >
-      <label
-        >Eventos por p&#225;gina<select bind:value={limit} onchange={clear}>
+        >Por p&#225;gina<select bind:value={limit} onchange={clear}>
           <option value={20}>20</option><option value={50}>50</option><option value={100}
             >100</option
           >
         </select></label
       >
       <div class="action-row">
-        <button class="primary" disabled={busy}>Consultar actividad</button>
+        <button class="primary" disabled={busy}>Consultar</button>
       </div>
     </form>
     <p class="hint">
-      El periodo usa d&#237;as UTC y puede abarcar hasta 366 d&#237;as. Los filtros de texto
-      distinguen may&#250;sculas y espacios. Actor admite el texto registrado o la identidad de
-      cuenta capturada; no reconstruye identidades hist&#243;ricas.
+      Fechas en UTC, hasta 366 d&#237;as. Los filtros de texto buscan el valor exacto.
     </p>
-    {#if busy}<p role="status">Consultando la actividad registrada...</p>
+    {#if busy}<p role="status">Consultando movimientos...</p>
     {:else if error}<p class="notice error" role="alert">{error}</p>
     {:else if value}
-      <p class="hint">
-        P&#225;gina {pageNumber}: {value.events.length} eventos. Consulta del
-        <time datetime={value.checked_at}>{value.checked_at}</time>. Las p&#225;ginas siguientes
-        conservan el mismo corte de actividad.
-      </p>
+      <p class="hint">P&#225;gina {pageNumber} &#183; {value.events.length} movimientos</p>
       {#if value.events.length}
-        <ol class="audit-records" aria-label="Eventos de esta pagina">
+        <ol class="audit-records" aria-label="Movimientos de esta p&#225;gina">
           {#each value.events as event (event.sequence)}
             <li class="audit-record" data-sequence={event.sequence}>
               <time datetime={event.timestamp}>{event.timestamp}</time>
               <dl>
                 <div>
-                  <dt>Actor registrado</dt>
+                  <dt>Actor</dt>
                   <dd>{event.actor}</dd>
                 </div>
                 <div>
@@ -195,11 +158,11 @@
                   <dd>{event.sequence}</dd>
                 </div>
                 <div>
-                  <dt>Identidad de cuenta</dt>
+                  <dt>Cuenta</dt>
                   <dd>{event.context?.user_id ?? 'No disponible'}</dd>
                 </div>
                 <div>
-                  <dt>IP de origen</dt>
+                  <dt>IP</dt>
                   <dd>{event.context?.ip_address ?? 'No disponible'}</dd>
                 </div>
                 <div>
@@ -215,19 +178,15 @@
           {/each}
         </ol>
       {:else}<p class="notice" role="status">
-          No hay eventos que coincidan con estos filtros.
+          Ning&#250;n movimiento coincide con estos filtros.
         </p>{/if}
       <div class="action-row">
-        <button class="secondary" onclick={() => load()}>Actualizar actividad</button>
+        <button class="secondary" onclick={() => load()}>Actualizar</button>
         {#if value.has_more}<button class="secondary" onclick={() => load(true)}
-            >Cargar siguiente p&#225;gina</button
+            >Siguiente p&#225;gina</button
           >
-        {:else}<span class="hint">Fin de esta consulta.</span>{/if}
+        {:else}<span class="hint">No hay m&#225;s movimientos.</span>{/if}
       </div>
-    {:else}<p class="hint">Elige los filtros y pulsa Consultar actividad.</p>{/if}
-    <p class="hint">
-      Cada p&#225;gina reemplaza la anterior. Actualizar incorpora los eventos registrados
-      despu&#233;s. Para comprobar la integridad de la bit&#225;cora usa Verificar cadena.
-    </p>
+    {:else}<p class="hint">Elige un periodo y pulsa Consultar.</p>{/if}
   </section>
 {/if}

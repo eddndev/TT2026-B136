@@ -4,8 +4,6 @@
   import ResourceHearingSources from './ResourceHearingSources.svelte';
   import FactAdministrativeCapture from './FactAdministrativeCapture.svelte';
   import { resourceHearingKinds } from '../lib/resource-hearing-values.mjs';
-  import '../styles/hearings.css';
-  import '../styles/procedural-facts.css';
   export let value, caseRecord, onclose;
   let heading;
   $: hearing = value.hearing;
