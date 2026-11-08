@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // A closing that needs its own confirmation: rejection by the Client,
   // decline by the firm signer, cancellation of a request or abandonment of
   // a contract. None of them is evidence in a package.
@@ -64,7 +65,8 @@
   }
 </script>
 
-{#if !open}<button class="secondary" {disabled} onclick={() => (open = true)}>{words.open}</button>
+{#if !open}<Button variant="secondary" {disabled} onclick={() => (open = true)}>{words.open}</Button
+  >
 {:else}<section class="notice stack contract-close" aria-label={words.title}>
     <h3>{words.title}</h3>
     <p>{words.text}</p>
@@ -74,8 +76,10 @@
     </label>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
     <div class="action-row">
-      <button class="primary" disabled={busy || disabled} onclick={confirm}>{words.confirm}</button>
-      <button class="secondary" disabled={busy} onclick={() => (open = false)}>Volver</button>
+      <Button variant="primary" disabled={busy || disabled} onclick={confirm}
+        >{words.confirm}</Button
+      >
+      <Button variant="secondary" disabled={busy} onclick={() => (open = false)}>Volver</Button>
     </div>
   </section>{/if}
 

@@ -1,13 +1,21 @@
 //! Session admission and activity preserve the exact authentication origin.
 
+use domain::identity::DisplayName;
+
 use super::{certificate_authority::session_error, IdentityService};
 use crate::{
     identity::{
-        certificate_login::SessionAuthentication, Principal, SessionPolicy, SessionState,
-        SessionStatus,
+        certificate_login::SessionAuthentication, CurrentAccount, Principal, SessionPolicy,
+        SessionState, SessionStatus,
     },
     ApplicationError,
 };
+
+/// Admitted session state with the account name read during the same admission.
+pub(super) struct AdmittedSession {
+    pub(super) state: SessionState,
+    pub(super) display_name: DisplayName,
+}
 
 impl IdentityService {
     pub fn authenticate(&self, access_token: &str) -> Result<Principal, ApplicationError> {
@@ -15,14 +23,27 @@ impl IdentityService {
     }
 
     pub fn session_status(&self, access_token: &str) -> Result<SessionStatus, ApplicationError> {
+        let admitted = self.admit_account(access_token)?;
         Ok(status(
-            self.admit_session(access_token)?,
+            admitted.state,
             self.session_policy,
+            admitted.display_name,
         ))
     }
 
+    pub fn current_account(&self, access_token: &str) -> Result<CurrentAccount, ApplicationError> {
+        let admitted = self.admit_account(access_token)?;
+        Ok(CurrentAccount {
+            principal: admitted.state.identity.principal,
+            display_name: admitted.display_name,
+        })
+    }
+
     pub fn record_activity(&self, access_token: &str) -> Result<SessionStatus, ApplicationError> {
-        let admitted = self.admit_session(access_token)?;
+        let AdmittedSession {
+            state: admitted,
+            display_name,
+        } = self.admit_account(access_token)?;
         let updated = match &admitted.authentication {
             SessionAuthentication::Password => self.ports.sessions.record_activity(
                 access_token,
@@ -41,25 +62,33 @@ impl IdentityService {
         .filter(|value| same_session(value, &admitted))
         .ok_or(ApplicationError::InvalidSession)?;
         self.validate_session_state(&updated)?;
-        let updated = if matches!(
+        let (updated, display_name) = if matches!(
             updated.authentication,
             SessionAuthentication::Certificate(_)
         ) {
-            let confirmed = self.admit_session(access_token)?;
-            if !same_session(&confirmed, &updated) {
+            let confirmed = self.admit_account(access_token)?;
+            if !same_session(&confirmed.state, &updated) {
                 return Err(ApplicationError::InvalidSession);
             }
-            confirmed
+            (confirmed.state, confirmed.display_name)
         } else {
-            updated
+            (updated, display_name)
         };
-        Ok(status(updated, self.session_policy))
+        Ok(status(updated, self.session_policy, display_name))
     }
 
     pub(super) fn admit_session(
         &self,
         access_token: &str,
     ) -> Result<SessionState, ApplicationError> {
+        self.admit_account(access_token)
+            .map(|admitted| admitted.state)
+    }
+
+    pub(super) fn admit_account(
+        &self,
+        access_token: &str,
+    ) -> Result<AdmittedSession, ApplicationError> {
         let cached = self
             .ports
             .sessions
@@ -101,7 +130,10 @@ impl IdentityService {
         }
         self.validate_session_state(&confirmed)?;
         crate::audit_context::bind_actor(confirmed.identity.principal.id)?;
-        Ok(confirmed)
+        Ok(AdmittedSession {
+            state: confirmed,
+            display_name: user.display_name,
+        })
     }
 
     pub(super) fn validate_session_state(
@@ -147,9 +179,14 @@ pub(super) fn same_session(left: &SessionState, right: &SessionState) -> bool {
         && left.absolute_expires_at_unix_ms == right.absolute_expires_at_unix_ms
 }
 
-pub(super) fn status(state: SessionState, policy: SessionPolicy) -> SessionStatus {
+pub(super) fn status(
+    state: SessionState,
+    policy: SessionPolicy,
+    display_name: DisplayName,
+) -> SessionStatus {
     SessionStatus {
         principal: state.identity.principal,
+        display_name,
         policy,
         server_now_unix_ms: state.server_now_unix_ms,
         absolute_expires_at_unix_ms: state.absolute_expires_at_unix_ms,

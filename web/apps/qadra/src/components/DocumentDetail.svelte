@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
@@ -9,6 +10,7 @@
   import DocumentVerificationReport from './DocumentVerificationReport.svelte';
   import EvidenceValidation from './EvidenceValidation.svelte';
   import DocumentContractAction from './DocumentContractAction.svelte';
+  import SectionTabs from './SectionTabs.svelte';
   import { can, download } from '../lib/documents.mjs';
   import { contractDocumentStatus } from '../lib/contract-presentation.mjs';
   export let api;
@@ -36,23 +38,10 @@
   // Rationale: docs/adr/0086-bilateral-contract-signing.md.
   $: contract = contractDocumentStatus(document);
   const tabs = [
-    { id: 'summary', label: 'Resumen', icon: 'file' },
+    { id: 'summary', label: 'Resumen', icon: 'document' },
     { id: 'verification', label: 'Verificaci\u00f3n', icon: 'shield' },
     { id: 'evidence', label: 'Evidencia', icon: 'download' },
   ];
-  function moveTab(event, index) {
-    const key = event.key;
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(key)) return;
-    event.preventDefault();
-    const next =
-      key === 'Home'
-        ? 0
-        : key === 'End'
-          ? tabs.length - 1
-          : (index + (key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
-    activeTab = tabs[next].id;
-    event.currentTarget.parentElement.querySelectorAll('[role="tab"]')[next].focus();
-  }
   async function copyIdentifier() {
     copyMessage = '';
     try {
@@ -137,26 +126,26 @@
       bind:error
       bind:message
     />
-    {#if can(user.role, 'seal') && document.sealed !== true && !contract}<button
-        class="primary"
+    {#if can(user.role, 'seal') && document.sealed !== true && !contract}<Button
+        variant="primary"
         disabled={disabled || !!busy || sealUncertain || personalActive || $administration.closed}
-        onclick={() => sealAction.open()}><Icon name="lock" size={17} />Sellar documento</button
+        onclick={() => sealAction.open()}><Icon name="lock" size={17} />Sellar documento</Button
       >{/if}
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={disabled || !!busy || document.sealed === false}
       onclick={() => run('verify')}
       ><Icon name="shield" size={17} />{busy === 'verify'
         ? 'Verificando...'
-        : 'Verificar integridad'}</button
+        : 'Verificar integridad'}</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={disabled || !!busy || document.sealed === false}
       onclick={() => run('evidence')}
       ><Icon name="download" size={17} />{busy === 'evidence'
         ? 'Descargando...'
-        : 'Descargar evidencia'}</button
+        : 'Descargar evidencia'}</Button
     >
   </div>
   {#if disabled && !busy}<p class="hint" role="status">
@@ -200,19 +189,15 @@
   <DocumentContractAction {api} {user} {document} {disabled} {onupdate} />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if message}<p class="notice success" role="status">{message}</p>{/if}
-  <div class="detail-tabs" role="tablist" aria-label="Informaci&#243;n del documento">
-    {#each tabs as tab, index}<button
-        id={`document-tab-${tab.id}`}
-        role="tab"
-        aria-selected={activeTab === tab.id}
-        aria-controls={`document-panel-${tab.id}`}
-        tabindex={activeTab === tab.id ? 0 : -1}
-        class:active={activeTab === tab.id}
-        onclick={() => (activeTab = tab.id)}
-        onkeydown={(event) => moveTab(event, index)}
-        ><Icon name={tab.icon} size={17} />{tab.label}</button
-      >{/each}
-  </div>
+  <SectionTabs
+    items={tabs}
+    current={activeTab}
+    label="Informaci&#243;n del documento"
+    onselect={(id) => (activeTab = id)}
+    mode="tabs"
+    idPrefix="document"
+  />
+
   <div
     class="detail-tab-content"
     role="tabpanel"
@@ -264,10 +249,10 @@
       <div class="identifier-card">
         <label for="document-identifier">Identificador del documento</label>
         <div class="identifier-control">
-          <input id="document-identifier" readonly value={document.id} /><button
-            class="secondary"
+          <input id="document-identifier" readonly value={document.id} /><Button
+            variant="secondary"
             onclick={copyIdentifier}
-            aria-label="Copiar identificador"><Icon name="copy" size={16} />Copiar</button
+            aria-label="Copiar identificador"><Icon name="copy" size={16} />Copiar</Button
           >
         </div>
         <p class="hint">

@@ -2,6 +2,10 @@ use super::{incomplete, port, TABLES};
 use crate::postgres::CatalogClient;
 use application::ApplicationError;
 
+/// Catalog text of the account display name rule: docs/adr/0087-account-display-names.md.
+pub(crate) const DISPLAY_NAME_CHECK: &str = "((display_name = btrim(display_name)) AND \
+    ((char_length(display_name) >= 1) AND (char_length(display_name) <= 120)))";
+
 pub(super) fn expected(table: &str) -> Vec<String> {
     if table != "users" {
         return vec![];
@@ -10,6 +14,7 @@ pub(super) fn expected(table: &str) -> Vec<String> {
         "(role = ANY (ARRAY['owner'::text, 'litigator'::text, 'paralegal'::text, 'client'::text]))",
         "(revision >= 0)",
         "(auth_generation >= 0)",
+        DISPLAY_NAME_CHECK,
     ]
     .into_iter()
     .map(str::to_owned)

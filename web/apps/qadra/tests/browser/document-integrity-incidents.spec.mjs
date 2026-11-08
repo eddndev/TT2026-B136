@@ -30,9 +30,10 @@ for (const width of [1440, 390]) {
       }),
     ).toBeVisible();
     await expect(inbox(page)).toContainText('Un incidente no indica la causa ni a un responsable.');
-    await expect(
-      page.getByRole('button', { name: 'Incidentes de integridad', exact: true }),
-    ).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('a[href="#integrity-incidents"]')).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     if (width === 1440)
       await expect(
         page.getByRole('navigation').getByRole('button', { name: 'Bit\u00e1cora', exact: true }),
@@ -138,9 +139,7 @@ for (const role of ['litigator', 'paralegal', 'client']) {
     await expect(
       page.getByRole('navigation').getByRole('button', { name: 'Bit\u00e1cora', exact: true }),
     ).toHaveCount(0);
-    await expect(
-      page.getByRole('button', { name: 'Incidentes de integridad', exact: true }),
-    ).toHaveCount(0);
+    await expect(page.locator('a[href="#integrity-incidents"]')).toHaveCount(0);
     await page.evaluate(() => {
       location.hash = '#integrity-incidents';
     });

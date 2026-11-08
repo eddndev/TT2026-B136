@@ -7,7 +7,9 @@ use uuid::Uuid;
 
 use crate::DomainError;
 
+pub mod display_name;
 pub mod invitations;
+pub use display_name::DisplayName;
 pub use invitations::InvitationId;
 
 /// Stable identifier for a persisted user.

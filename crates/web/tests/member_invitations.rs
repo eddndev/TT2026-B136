@@ -57,6 +57,7 @@ async fn owner_routes_delegate_exact_intent_and_return_only_metadata() {
                 InvitationIssueRequest {
                     operation_id: operation(),
                     email: "staff@example.test".into(),
+                    display_name: INVITEE.into(),
                     role: Role::Litigator,
                 }
             ),
@@ -124,6 +125,7 @@ async fn issue_translates_a_client_role_and_rejects_an_owner_invitation() {
             InvitationIssueRequest {
                 operation_id: operation(),
                 email: "staff@example.test".into(),
+                display_name: INVITEE.into(),
                 role: Role::Client,
             }
         )]
@@ -276,4 +278,54 @@ async fn absent_capability_has_no_effect_and_returns_no_secrets() {
         .await
         .error(StatusCode::SERVICE_UNAVAILABLE, "invitation_unavailable");
     assert!(fixture.workflow.calls().is_empty());
+}
+
+#[tokio::test]
+async fn issue_requires_a_name_and_keeps_it_out_of_the_summary() {
+    let fixture = Harness::ready();
+    let mut body = issue();
+    body.as_object_mut().unwrap().remove("name");
+    call(&fixture.router, "POST", OWNER, Some("owner"), Some(body))
+        .await
+        .error(StatusCode::BAD_REQUEST, "invalid_json");
+    for name in [json!(7), json!(null)] {
+        let mut body = issue();
+        body["name"] = name;
+        call(&fixture.router, "POST", OWNER, Some("owner"), Some(body))
+            .await
+            .error(StatusCode::BAD_REQUEST, "invalid_json");
+    }
+    assert!(fixture.workflow.calls().is_empty());
+    let mut body = issue();
+    body["name"] = json!("  Staff Member ");
+    let reply = call(&fixture.router, "POST", OWNER, Some("owner"), Some(body)).await;
+    assert_eq!(reply.status, StatusCode::CREATED);
+    let summary = reply.json();
+    assert!(summary.get("name").is_none());
+    assert!(summary.get("display_name").is_none());
+    assert_eq!(
+        fixture.workflow.calls(),
+        vec![Call::Issue(
+            "owner".into(),
+            InvitationIssueRequest {
+                operation_id: operation(),
+                email: "staff@example.test".into(),
+                display_name: "  Staff Member ".into(),
+                role: Role::Litigator,
+            }
+        )]
+    );
+}
+
+#[tokio::test]
+async fn an_invalid_invitee_name_is_an_invalid_invitation_request() {
+    let fixture = Harness::ready();
+    for name in ["", "Staff\u{202e}", "\tStaff"] {
+        let mut body = issue();
+        body["name"] = json!(name);
+        call(&fixture.router, "POST", OWNER, Some("owner"), Some(body))
+            .await
+            .error(StatusCode::BAD_REQUEST, "invalid_invitation_request");
+    }
+    assert_eq!(fixture.workflow.calls().len(), 3);
 }

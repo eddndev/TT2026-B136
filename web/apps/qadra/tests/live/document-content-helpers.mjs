@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { expect } from '@playwright/test';
-import { fixture } from './helpers.mjs';
+import { fixture, openSection } from './helpers.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 export { accountAction } from './hearing-result-helpers.mjs';
 
@@ -36,7 +36,7 @@ export async function openHistoricalContent(page, scenario) {
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
   if (scenario.closed) await expect(page.locator('.case-summary')).toContainText('Cerrado');
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await page
     .locator('.reference-panel')
     .getByLabel('Identificador del documento')

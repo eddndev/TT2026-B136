@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import PrecautionaryReviewTargets from './PrecautionaryReviewTargets.svelte';
   import HearingDate from './HearingDate.svelte';
@@ -114,8 +115,10 @@
       />
     {:else if reviewTargets.length}
       <p class="notice">La imposicion requiere quitar las referencias de revision.</p>
-      <button class="secondary" disabled={disabled || pending} onclick={() => (reviewTargets = [])}
-        >Quitar referencias de revision</button
+      <Button
+        variant="secondary"
+        disabled={disabled || pending}
+        onclick={() => (reviewTargets = [])}>Quitar referencias de revision</Button
       >
     {/if}
     <HearingDate bind:value={fields} disabled={disabled || pending} />
@@ -150,14 +153,14 @@
           disabled={disabled || pending}></textarea></label
       >
       <StageSupportSummary record={support} />
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || pending}
         onclick={() => {
           closeParticipant();
           choosingSupport = true;
-        }}>Elegir soporte</button
+        }}>Elegir soporte</Button
       >
       {#if choosingSupport}<StagePicker
           api={documents}
@@ -179,14 +182,14 @@
         onremove={removeParticipant}
         disabled={disabled || pending}
       />
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || pending || participants.length >= 32}
         onclick={() => {
           closeSupport();
           choosingParticipant = true;
-        }}>Elegir participante</button
+        }}>Elegir participante</Button
       >
       {#if choosingParticipant}<HearingParticipantPicker
           api={directory}

@@ -18,7 +18,7 @@ fn logged_in(
     let service =
         IdentityService::with_session_policy(ports(users.clone(), sessions.clone()), policy);
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let challenge = service
         .start_login("owner@example.com", "correct horse battery")

@@ -23,6 +23,7 @@ fn enrolled_litigator(db: &mut Fixture) -> (PostgresUserRepository, Principal) {
     let user = UserRecord {
         id,
         email: format!("{id}@example.test"),
+        display_name: domain::identity::DisplayName::new("Test Account").unwrap(),
         password_hash: "fixture".into(),
         role: Role::Litigator,
         active: true,

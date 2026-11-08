@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { hearingKinds, hearingStatus, hearingTimeLabel } from '../lib/hearings.mjs';
   import { resultStatus } from '../lib/hearing-result-errors.mjs';
   export let anchor,
@@ -29,11 +30,11 @@
       <p>Huella <code>{continuation.values_digest}</code></p>
       <p>Recibo <code>{continuation.submission_digest}</code></p>
     </details>
-    {#if onprevious}<button
+    {#if onprevious}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         {disabled}
-        onclick={() => onprevious(continuation)}>Consultar antecedente exacto</button
+        onclick={() => onprevious(continuation)}>Consultar antecedente exacto</Button
       >{/if}
   {/if}
   <p class="hint">

@@ -139,7 +139,7 @@ impl Acceptance {
         let email = format!("invitation-owner-{}@example.test", Uuid::new_v4().simple());
         let enrollment = self
             .identity
-            .bootstrap_owner(&email, PASSWORD)
+            .bootstrap_owner(&email, "Test Account", PASSWORD)
             .unwrap_or_else(|_| panic!("bootstrap native invitation owner"));
         self.authenticate(
             &email,

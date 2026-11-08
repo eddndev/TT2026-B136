@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import {
     incidentFailureLabels,
     incidentTimeLabel,
@@ -38,8 +39,8 @@
       <dd><code>{incident.observed_snapshot_digest}</code></dd>
     </dl>
   </details>
-  <button class="secondary" {disabled} onclick={() => onopen(incident)}
-    >Abrir esta versi&#243;n</button
+  <Button variant="secondary" {disabled} onclick={() => onopen(incident)}
+    >Abrir esta versi&#243;n</Button
   >
 </article>
 

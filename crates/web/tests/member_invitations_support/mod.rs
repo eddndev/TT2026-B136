@@ -22,6 +22,7 @@ pub const CODE: &str = "123456";
 pub const REVISION: u64 = 9_007_199_254_740_993;
 pub const SECRET: &str = "PRIVATE-INVITATION-SECRET";
 pub const PRIVATE_ERROR: &str = "private invitation provider detail";
+pub const INVITEE: &str = "Staff Member";
 
 pub fn operation() -> Uuid {
     Uuid::from_u128(41)
@@ -36,7 +37,7 @@ pub fn recipient() -> Value {
     json!({"token":token(),"operation_id":operation(),"password":PASSWORD})
 }
 pub fn issue() -> Value {
-    json!({"operation_id":operation(),"email":"staff@example.test","role":"litigator"})
+    json!({"operation_id":operation(),"email":"staff@example.test","name":INVITEE,"role":"litigator"})
 }
 pub fn resend() -> Value {
     json!({"operation_id":operation(),"expected_revision":REVISION.to_string()})

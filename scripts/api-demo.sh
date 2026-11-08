@@ -146,7 +146,7 @@ printf 'Expediente API local verificable.\n' >"$WORK_DIR/document.txt"
 
 BOOTSTRAP="$(curl -fsS -X POST "$BASE_URL/api/v1/auth/bootstrap" \
   -H 'Content-Type: application/json' \
-  --data '{"email":"owner@example.com","password":"correct horse battery staple"}')"
+  --data '{"email":"owner@example.com","name":"Demo Owner","password":"correct horse battery staple"}')"
 OWNER_SECRET="$(jq -er '.totp_secret_base32' <<<"$BOOTSTRAP")"
 OWNER_RECOVERY="$(jq -er '.recovery_codes[0]' <<<"$BOOTSTRAP")"
 
@@ -186,7 +186,7 @@ UNAUTHORIZED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
 PARALEGAL="$(curl -fsS -X POST "$BASE_URL/api/v1/users" \
   -H "Authorization: Bearer $OWNER_TOKEN" \
   -H 'Content-Type: application/json' \
-  --data '{"email":"helper@example.com","password":"another safe password","role":"paralegal"}')"
+  --data '{"email":"helper@example.com","name":"Demo Paralegal","password":"another safe password","role":"paralegal"}')"
 PARALEGAL_SECRET="$(jq -er '.totp_secret_base32' <<<"$PARALEGAL")"
 PARALEGAL_CHALLENGE="$(curl -fsS -X POST "$BASE_URL/api/v1/auth/login" \
   -H 'Content-Type: application/json' \

@@ -49,7 +49,8 @@ def own_resource(target, with_act=False):
 def enroll(role, route):
     email = 'resource-activities-' + role + '@example.com'
     password = 'synthetic resource activities fixture password'
-    user = request('POST', '/api/v1/users', {'email': email, 'password': password, 'role': role}, 201)
+    user = request('POST', '/api/v1/users', {'email': email, 'name': 'Resource activity ' + role,
+                                             'password': password, 'role': role}, 201)
     challenge = request('POST', '/api/v1/auth/login', {'email': email, 'password': password})
     session = request('POST', '/api/v1/auth/mfa/recovery', {
         'challenge_token': challenge['challenge_token'], 'code': user['recovery_codes'][0],

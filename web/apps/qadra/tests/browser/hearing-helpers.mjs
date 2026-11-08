@@ -1,6 +1,6 @@
 import { activityResourcePage } from './activity-resources-fixtures.mjs';
 import { expect } from '@playwright/test';
-import { setup, login, navigate, caseId, caseRecord } from './helpers.mjs';
+import { setup, login, navigate, caseId, caseRecord, openSection } from './helpers.mjs';
 import { administration, overview, profile } from './case-administration-helpers.mjs';
 import {
   hearingContext,
@@ -239,7 +239,7 @@ export async function openHearings(page) {
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Audiencias', exact: true }).click();
+  await openSection(page, 'Audiencias');
   await expect(
     page.getByRole('heading', { name: 'Audiencias del expediente', exact: true }),
   ).toBeVisible();

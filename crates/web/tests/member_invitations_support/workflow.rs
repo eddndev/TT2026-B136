@@ -8,7 +8,9 @@ use domain::{
 };
 use zeroize::Zeroizing;
 
-use super::{invitation, operation, CODE, PASSWORD, PRIVATE_ERROR, REVISION, SECRET, TOKEN};
+use super::{
+    invitation, operation, CODE, INVITEE, PASSWORD, PRIVATE_ERROR, REVISION, SECRET, TOKEN,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Call {
@@ -116,6 +118,7 @@ fn summary() -> InvitationSummary {
         revision: REVISION,
         operation_id: operation(),
         email: "staff@example.test".into(),
+        display_name: domain::identity::DisplayName::new(INVITEE).unwrap(),
         role: Role::Litigator,
         status: InvitationStatus::Pending,
         delivery: InvitationDeliveryState::Pending,
@@ -141,7 +144,9 @@ impl InvitationWorkflow for Workflow {
         token: &str,
         request: InvitationIssueRequest,
     ) -> Result<InvitationSummary, ApplicationError> {
+        let name = request.display_name.clone();
         self.owner(token, Call::Issue(token.into(), request))?;
+        domain::identity::DisplayName::new(&name)?;
         Ok(summary())
     }
     fn resend(

@@ -1,4 +1,8 @@
 <script>
+  import Modal from './Modal.svelte';
+  import ModalHeading from './ModalHeading.svelte';
+  import ModalActions from './ModalActions.svelte';
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import {
     withdrawalIntent,
@@ -165,18 +169,8 @@
   });
 </script>
 
-<dialog
-  class="upload-dialog"
-  bind:this={dialog}
-  aria-label="Retirar mi certificado"
-  oncancel={close}
->
-  <div class="dialog-heading">
-    <div>
-      <span class="eyebrow">MI CUENTA</span>
-      <h2>Retirar mi certificado</h2>
-    </div>
-  </div>
+<Modal class="modal" bind:element={dialog} aria-label="Retirar mi certificado" oncancel={close}>
+  <ModalHeading title="Retirar mi certificado" eyebrow="MI CUENTA" />
   <p class="identifier">{bindingId}</p>
   <p>
     El retiro es terminal para este v&#237;nculo. Conserva su evidencia hist&#243;rica; no revoca el
@@ -185,23 +179,23 @@
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if !ready}<p role="status">Comprobando acceso y estado de la cuenta...</p>
-    {#if !busy}<button class="secondary" onclick={load}>Volver a consultar</button>{/if}
+    {#if !busy}<Button variant="secondary" onclick={load}>Volver a consultar</Button>{/if}
   {:else if mode !== 'editing'}
     <p class="notice">
       Comprueba el recibo de este UUID. La consulta del v&#237;nculo actual no confirma el retiro.
       Cancelar descarta este intento; no revierte un retiro confirmado en el servidor.
     </p>
-    <button class="secondary" disabled={busy} onclick={check}>Comprobar retiro</button>
+    <Button variant="secondary" disabled={busy} onclick={check}>Comprobar retiro</Button>
   {/if}
-  <div class="dialog-actions">
-    <button class="secondary" disabled={busy} onclick={close}>Cancelar retiro</button>
-    <button
-      class="primary"
+  <ModalActions>
+    <Button variant="secondary" disabled={busy} onclick={close}>Cancelar retiro</Button>
+    <Button
+      variant="primary"
       disabled={!ready || busy || !['editing', 'unconfirmed'].includes(mode)}
-      onclick={submit}>Confirmar retiro</button
+      onclick={submit}>Confirmar retiro</Button
     >
-  </div>
-</dialog>
+  </ModalActions>
+</Modal>
 
 <style>
   .identifier {

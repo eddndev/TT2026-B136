@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import HearingDerivedDeadlineFields from './HearingDerivedDeadlineFields.svelte';
   import HearingDerivedDeadlineReview from './HearingDerivedDeadlineReview.svelte';
@@ -286,8 +287,8 @@
   <p>Revisa ambos registros antes de confirmarlos juntos.</p>
   <CaseClosedNotice />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if blocked}<button class="secondary" disabled={pending} onclick={initialize}
-      >Volver a consultar el contexto</button
+  {#if blocked}<Button variant="secondary" disabled={pending} onclick={initialize}
+      >Volver a consultar el contexto</Button
     >{/if}
   <HearingResultSources {anchor} {continuation} />
   {#if last && ['uncertain', 'conflict'].includes(mode)}
@@ -300,11 +301,11 @@
         support={last.result.support}
       />
       <p>Plazo solicitado: {last.command.deadline.change.definition.title}</p>
-      <button class="primary" disabled={pending || blocked || disabled} onclick={actions.check}
-        >Consultar envio exacto</button
+      <Button variant="primary" disabled={pending || blocked || disabled} onclick={actions.check}
+        >Consultar envio exacto</Button
       >
-      {#if retryAvailable}<button class="secondary" disabled={frozen} onclick={actions.retry}
-          >Reintentar el mismo envio</button
+      {#if retryAvailable}<Button variant="secondary" disabled={frozen} onclick={actions.retry}
+          >Reintentar el mismo envio</Button
         >{/if}
       <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
     </div>
@@ -315,11 +316,11 @@
       y el plazo revisados</label
     >
     <div class="action-row">
-      <button class="secondary" disabled={pending} onclick={actions.edit}
-        >Volver al borrador conjunto</button
+      <Button variant="secondary" disabled={pending} onclick={actions.edit}
+        >Volver al borrador conjunto</Button
       >
-      <button class="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
-        >Confirmar resultado y plazo</button
+      <Button variant="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
+        >Confirmar resultado y plazo</Button
       >
     </div>
   {:else if mode === 'draft' && !blocked}
@@ -350,9 +351,9 @@
         )}
       discardSupport={() => recovery?.discardSupport(['provenance', 'support'])}
     />
-    <button class="primary" disabled={frozen} onclick={actions.prepare}
-      >Preparar resultado y plazo</button
+    <Button variant="primary" disabled={frozen} onclick={actions.prepare}
+      >Preparar resultado y plazo</Button
     >
   {/if}
-  <button class="text-button" disabled={pending} onclick={close}>Cerrar resultado y plazo</button>
+  <Button variant="text" disabled={pending} onclick={close}>Cerrar resultado y plazo</Button>
 </section>

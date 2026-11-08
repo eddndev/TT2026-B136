@@ -1,4 +1,8 @@
 <script>
+  import Modal from './Modal.svelte';
+  import ModalHeading from './ModalHeading.svelte';
+  import ModalActions from './ModalActions.svelte';
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import CaseValues from './CaseValues.svelte';
@@ -83,26 +87,23 @@
   });
 </script>
 
-<dialog
-  class="upload-dialog case-status-dialog"
-  bind:this={dialog}
+<Modal
+  class="modal case-status-dialog"
+  bind:element={dialog}
   aria-labelledby="case-status-title"
   oncancel={(event) => {
     event.preventDefault();
     close();
   }}
 >
-  <div class="dialog-heading">
-    <h2 id="case-status-title">
-      {intended === 'closed' ? 'Cerrar administrativamente' : 'Reactivar expediente'}
-    </h2>
-    <button
-      class="icon-button"
-      disabled={busy}
-      aria-label="Cerrar cambio administrativo"
-      onclick={close}><Icon name="close" /></button
+  <ModalHeading
+    title={intended === 'closed' ? 'Cerrar administrativamente' : 'Reactivar expediente'}
+    id="case-status-title"
+  >
+    <Button variant="icon" disabled={busy} aria-label="Cerrar cambio administrativo" onclick={close}
+      ><Icon name="close" /></Button
     >
-  </div>
+  </ModalHeading>
   <p>
     {intended === 'closed'
       ? 'El expediente seguir\u00e1 disponible para consulta, verificaci\u00f3n y exportaci\u00f3n. Se suspender\u00e1n las nuevas modificaciones.'
@@ -112,27 +113,27 @@
   {#if candidate}<CaseValues record={candidate.administration} />
     <p class="hint">Revisi&#243;n {candidate.administration.revision}</p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if conflict || uncertain}<button class="secondary" disabled={busy} onclick={refresh}
-      >Consultar datos actuales</button
+  {#if conflict || uncertain}<Button variant="secondary" disabled={busy} onclick={refresh}
+      >Consultar datos actuales</Button
     >{/if}
   {#if refreshed}<p class="notice" role="status">
       {already
         ? 'El expediente ya tiene el estado solicitado. No es necesario volver a enviar.'
         : 'Datos actuales consultados. Revisa y confirma el cambio de estado.'}
     </p>{/if}
-  <div class="dialog-actions">
-    <button class="secondary" disabled={busy} onclick={close}
-      >{already ? 'Cerrar' : 'Cancelar'}</button
+  <ModalActions>
+    <Button variant="secondary" disabled={busy} onclick={close}
+      >{already ? 'Cerrar' : 'Cancelar'}</Button
     >
-    <button
-      class="primary"
+    <Button
+      variant="primary"
       disabled={busy || exhausted || already || ((conflict || uncertain) && !refreshed)}
       onclick={confirm}
       >{busy
         ? 'Guardando...'
         : intended === 'closed'
           ? 'Confirmar cierre administrativo'
-          : 'Confirmar reactivaci\u00f3n'}</button
+          : 'Confirmar reactivaci\u00f3n'}</Button
     >
-  </div>
-</dialog>
+  </ModalActions>
+</Modal>

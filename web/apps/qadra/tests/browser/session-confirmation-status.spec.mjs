@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, caseRecord } from './helpers.mjs';
+import { login, caseRecord, openSection } from './helpers.mjs';
 import { expire } from './session-inactivity-helpers.mjs';
 import { administration } from './case-administration-helpers.mjs';
 import { participant, openParticipant, detail, directory } from './participant-helpers.mjs';
@@ -86,7 +86,7 @@ test('an unapplied participant status is discarded at expiry and its late error 
   const state = await confirmationSetup(page);
   await login(page, false, false);
   await enterConfirmationCase(page);
-  await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+  await openSection(page, 'Participantes');
   await openParticipant(page);
   await detail(page).getByRole('button', { name: 'Archivar participante', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Archivar participante', exact: true });
@@ -108,7 +108,7 @@ test('an unapplied participant status is discarded at expiry and its late error 
   expect(
     state.calls.slice(start).some((call) => call.path === casePath && call.method === 'GET'),
   ).toBe(true);
-  await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+  await openSection(page, 'Participantes');
   await expect(directory(page)).toHaveAttribute('aria-busy', 'false');
   const fresh = holdConfirmationRequest(state, 'GET', participantPath);
   await directory(page)

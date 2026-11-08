@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import MeasureRecordPicker from './MeasureRecordPicker.svelte';
   import MeasureRecordSummary from './MeasureRecordSummary.svelte';
@@ -79,25 +80,25 @@
   <h3>Medidas seleccionadas para revisi&#243;n ({references.length}/32)</h3>
   <p>Las referencias conservan su revisi&#243;n aunque existan declaraciones posteriores.</p>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" disabled={disabled || pending} onclick={refresh}
-      >Consultar medidas seleccionadas</button
+    <Button variant="secondary" disabled={disabled || pending} onclick={refresh}
+      >Consultar medidas seleccionadas</Button
     >{/if}
   {#each references as reference (reference.id)}
     {#if selected.has(reference.id)}<MeasureRecordSummary value={selected.get(reference.id)} />
     {:else}<p>Medida: <code>{reference.id}</code> / Revisi&#243;n {reference.revision}</p>
       <p>Captura: <code>{reference.capture_digest}</code></p>{/if}
-    <button
-      class="text-button"
+    <Button
+      variant="text"
       disabled={disabled || pending}
       onclick={() => remove(reference.id)}
-      aria-label={`Quitar medida ${reference.id}`}>Quitar medida</button
+      aria-label={`Quitar medida ${reference.id}`}>Quitar medida</Button
     >
   {/each}
   {#if !references.length}<p>Selecciona al menos una medida exacta para la revisi&#243;n.</p>{/if}
-  <button
-    class="secondary"
+  <Button
+    variant="secondary"
     disabled={disabled || pending || references.length >= 32}
-    onclick={() => (choosing = true)}>Elegir medida</button
+    onclick={() => (choosing = true)}>Elegir medida</Button
   >
   {#if choosing}<MeasureRecordPicker
       api={scoped}

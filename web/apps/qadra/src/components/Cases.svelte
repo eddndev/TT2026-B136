@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy, getContext } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import Pagination from '@qadra/ui/Pagination.svelte';
@@ -85,10 +86,10 @@
     <h1>Expedientes</h1>
     <p>Consulta los expedientes a los que tienes acceso.</p>
   </div>
-  {#if manageCase(user.role)}<button
-      class="primary"
+  {#if manageCase(user.role)}<Button
+      variant="primary"
       disabled={busy || creating}
-      onclick={() => (creating = true)}><Icon name="plus" size={18} />Nuevo expediente penal</button
+      onclick={() => (creating = true)}><Icon name="plus" size={18} />Nuevo expediente penal</Button
     >{/if}
 </div>
 {#if creating}<CaseEditor
@@ -105,8 +106,8 @@
       <h2>Archivo de expedientes</h2>
       <p class="hint">Tus asignaciones se comprueban en cada consulta.</p>
     </div>
-    <button class="secondary" disabled={busy} onclick={() => load(staff ? index : offset)}
-      >Actualizar</button
+    <Button variant="secondary" disabled={busy} onclick={() => load(staff ? index : offset)}
+      >Actualizar</Button
     >
   </div>
   {#if staff}<CaseFilters {busy} onapply={apply} />{/if}
@@ -146,9 +147,9 @@
   {#if staff}<div class="pagination">
       <span class="hint">{cases.length} expedientes en esta p&#225;gina</span>
       <div class="action-row">
-        <button class="secondary" disabled={busy || !index} onclick={() => load(index - 1)}
-          >Anterior</button
-        ><button class="secondary" disabled={busy || !hasMore} onclick={next}>Siguiente</button>
+        <Button variant="secondary" disabled={busy || !index} onclick={() => load(index - 1)}
+          >Anterior</Button
+        ><Button variant="secondary" disabled={busy || !hasMore} onclick={next}>Siguiente</Button>
       </div>
     </div>
   {:else}<Pagination {offset} count={cases.length} {hasMore} {busy} onchange={load} />{/if}

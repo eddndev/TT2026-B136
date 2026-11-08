@@ -12,7 +12,7 @@ fn store(f: &Fixture) -> PostgresCaseRepository {
 }
 fn user(f: &mut Fixture, active: bool) -> UserId {
     let id = UserId::new();
-    f.admin.execute("INSERT INTO users(id,email,password_hash,role,active,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture','litigator',$3,'\\x00','{}')", &[&id.as_uuid(),&format!("{id}@example.test"),&active]).unwrap();
+    f.admin.execute("INSERT INTO users(id,email,password_hash,role,active,protected_totp_secret,recovery_codes,display_name) VALUES($1,$2,'fixture','litigator',$3,'\\x00','{}','Fixture')", &[&id.as_uuid(),&format!("{id}@example.test"),&active]).unwrap();
     id
 }
 fn create(f: &Fixture, s: &PostgresCaseRepository, actor: UserId) -> CaseId {

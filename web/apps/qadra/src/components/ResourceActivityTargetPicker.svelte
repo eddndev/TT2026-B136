@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import {
     hearingKinds,
@@ -115,8 +116,8 @@
 
 <section class="case-comparison" aria-label="Seleccionar actividad existente" aria-busy={busy}>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button type="button" class="secondary" disabled={busy || disabled} onclick={() => list()}
-      >Consultar actividades de nuevo</button
+    <Button type="button" variant="secondary" disabled={busy || disabled} onclick={() => list()}
+      >Consultar actividades de nuevo</Button
     >{/if}
   <label
     >Actividad existente
@@ -128,11 +129,11 @@
   {#if !busy && !error && roots.length === 0}<p class="case-muted">
       No hay actividades disponibles de este tipo.
     </p>{/if}
-  {#if rootMore}<button
+  {#if rootMore}<Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || busy}
-      onclick={() => list(rootCursor)}>Cargar m&#225;s actividades</button
+      onclick={() => list(rootCursor)}>Cargar m&#225;s actividades</Button
     >{/if}
   {#if rootId}
     <label
@@ -148,11 +149,11 @@
           </option>{/each}
       </select>
     </label>
-    {#if historyMore}<button
+    {#if historyMore}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
-        onclick={() => history(historyCursor)}>Cargar revisiones anteriores de la actividad</button
+        onclick={() => history(historyCursor)}>Cargar revisiones anteriores de la actividad</Button
       >{/if}
   {/if}
   {#if candidate}
@@ -162,11 +163,11 @@
       Esta captura hist&#243;rica conserva la revisi&#243;n elegida. La actividad actual se consulta
       por separado.
     </p>
-    <button
+    <Button
       type="button"
-      class="primary"
+      variant="primary"
       disabled={disabled || busy}
-      onclick={() => onselected(candidate)}>Usar esta revisi&#243;n</button
+      onclick={() => onselected(candidate)}>Usar esta revisi&#243;n</Button
     >
   {/if}
 </section>

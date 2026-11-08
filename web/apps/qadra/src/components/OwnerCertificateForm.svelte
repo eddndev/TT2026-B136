@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import OwnerCertificateFields from './OwnerCertificateFields.svelte';
   export let prepared, signatureBase64, signatureName, selectedName, selected, command;
   export let latest, bindingId, ready, busy, mode, error;
@@ -24,8 +25,8 @@
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if !ready}
     <p role="status">Comprobando acceso y estado de la cuenta...</p>
-    {#if !busy}<button class="secondary" onclick={onload}>Volver a consultar</button>{/if}
-    <button class="secondary" disabled={busy} onclick={onclose}>Cancelar registro</button>
+    {#if !busy}<Button variant="secondary" onclick={onload}>Volver a consultar</Button>{/if}
+    <Button variant="secondary" disabled={busy} onclick={onclose}>Cancelar registro</Button>
   {:else}
     {#if blocked}<p class="notice identifier">
         La cuenta tiene otro v&#237;nculo sin retirar: {latest.binding_id}. Conserva estos bytes
@@ -55,9 +56,11 @@
         confirmado en el servidor.
       </p>
       <div class="action-row">
-        <button class="secondary" disabled={busy} onclick={oncheck}>Comprobar registro</button>
-        {#if mode === 'absent'}<button class="primary" disabled={busy || blocked} onclick={onretry}
-            >Reenviar este registro</button
+        <Button variant="secondary" disabled={busy} onclick={oncheck}>Comprobar registro</Button>
+        {#if mode === 'absent'}<Button
+            variant="primary"
+            disabled={busy || blocked}
+            onclick={onretry}>Reenviar este registro</Button
           >{/if}
       </div>
     {/if}
@@ -66,12 +69,12 @@
       flujo no habilita acceso por certificado ni firma documentos.
     </p>
     <div class="action-row">
-      <button
-        class="primary"
+      <Button
+        variant="primary"
         disabled={busy || !prepared || !signatureBase64 || mode !== 'editing' || blocked}
-        onclick={onregister}>Registrar v&#237;nculo</button
+        onclick={onregister}>Registrar v&#237;nculo</Button
       >
-      <button class="secondary" disabled={busy} onclick={onclose}>Cancelar registro</button>
+      <Button variant="secondary" disabled={busy} onclick={onclose}>Cancelar registro</Button>
     </div>
   {/if}
 </section>

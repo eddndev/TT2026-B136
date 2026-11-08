@@ -3,7 +3,7 @@ use application::{
     members::{validate_user_summary, MemberError, UserSummary},
     ApplicationError,
 };
-use domain::identity::{Role, UserId};
+use domain::identity::{DisplayName, Role, UserId};
 use postgres::GenericClient;
 use std::str::FromStr;
 
@@ -22,7 +22,7 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
     loop {
         let rows = client
             .query(
-                "SELECT id,email,role,active,revision FROM users
+                "SELECT id,email,role,active,revision,display_name FROM users
             WHERE ($1::uuid IS NULL OR id>$1) ORDER BY id LIMIT 64",
                 &[&after],
             )
@@ -41,6 +41,8 @@ pub(crate) fn validate<C: GenericClient>(client: &mut C) -> Result<(), Applicati
                     .map_err(|_| MemberError::Stored("invalid user revision"))?,
             };
             validate_user_summary(&user)?;
+            DisplayName::from_stored(row.get::<_, &str>("display_name"))
+                .map_err(|_| MemberError::Stored("invalid user display name"))?;
             after = Some(user.id.as_uuid());
         }
     }

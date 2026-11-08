@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import ParticipantSummary from './ParticipantSummary.svelte';
   import ParticipantCredentialEvidence from './ParticipantCredentialEvidence.svelte';
@@ -87,8 +88,8 @@
   {#if busy}<p class="hint" role="status">Consultando cambios...</p>{/if}
   {#if !busy && !rows.length && !error}<p class="hint">No hay revisiones en esta consulta.</p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" onclick={load}>Volver a consultar historial</button>{/if}
-  {#if hasMore}<button class="secondary" disabled={busy || disabled} onclick={load}
-      >Cargar cambios anteriores</button
+    <Button variant="secondary" onclick={load}>Volver a consultar historial</Button>{/if}
+  {#if hasMore}<Button variant="secondary" disabled={busy || disabled} onclick={load}
+      >Cargar cambios anteriores</Button
     >{/if}
 </section>

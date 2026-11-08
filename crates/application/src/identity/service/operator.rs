@@ -1,6 +1,6 @@
 //! Local administrative credential preparation; this never persists an account.
 use super::{normalize_email, validate_password, IdentityService};
-use crate::identity::{EnrollmentResult, UserRecord};
+use crate::identity::{ca_operator_display_name, EnrollmentResult, UserRecord};
 use crate::ApplicationError;
 use domain::identity::Role;
 
@@ -16,6 +16,6 @@ impl IdentityService {
     ) -> Result<(UserRecord, EnrollmentResult), ApplicationError> {
         let email = normalize_email(email)?;
         validate_password(password)?;
-        self.enroll(&email, password, Role::Client)
+        self.enroll(&email, ca_operator_display_name(), password, Role::Client)
     }
 }

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import ResourceActivityTargetPicker from './ResourceActivityTargetPicker.svelte';
   import ResourceActivityActPicker from './ResourceActivityActPicker.svelte';
@@ -105,8 +106,8 @@
       {selection.act.revision} / Recurso revisi&#243;n {selection.act.resource_revision}
     </p>
     {#if selectedAct}<p class="case-multiline">{selectedAct.act.values.statement}</p>{/if}
-    <button type="button" class="text-button" disabled={disabled || busy} onclick={clearAct}
-      >Quitar acto</button
+    <Button type="button" variant="text" disabled={disabled || busy} onclick={clearAct}
+      >Quitar acto</Button
     >
   {:else}<p class="case-muted">Sin acto seleccionado.</p>{/if}
   {#if choosingAct}
@@ -125,11 +126,11 @@
       />
     {/key}
   {:else}
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || busy}
-      onclick={() => (choosingAct = true)}>Elegir acto del recurso</button
+      onclick={() => (choosingAct = true)}>Elegir acto del recurso</Button
     >
   {/if}
 </section>

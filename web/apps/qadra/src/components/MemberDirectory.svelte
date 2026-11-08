@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import MemberFilters from './MemberFilters.svelte';
   import MemberCard from './MemberCard.svelte';
@@ -150,10 +151,10 @@
       No hay cuentas para estos filtros.
     </p>{/if}
   {#if more}<div class="action-row">
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={busy || opening || !!selected || denied}
-        onclick={() => load(true)}>Cargar m&#225;s cuentas</button
+        onclick={() => load(true)}>Cargar m&#225;s cuentas</Button
       >
     </div>{/if}
 </section>

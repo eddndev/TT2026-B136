@@ -38,6 +38,9 @@ test('Owner issues and explicitly resends without ever seeing recipient secrets'
   });
   await enterDirectory(page);
   await region(page)
+    .getByLabel('Nombre de la persona invitada', { exact: true })
+    .fill(' Persona Invitada ');
+  await region(page)
     .getByLabel('Correo de la invitacion', { exact: true })
     .fill('recipient@example.test');
   await region(page)
@@ -48,7 +51,9 @@ test('Owner issues and explicitly resends without ever seeing recipient secrets'
   await expect(region(page)).toContainText('Correo pendiente');
   await expect(region(page).locator('input[type="password"]')).toHaveCount(0);
   expect(calls).toHaveLength(1);
-  expect(Object.keys(calls[0].data).sort()).toEqual(['email', 'operation_id', 'role']);
+  expect(Object.keys(calls[0].data).sort()).toEqual(['email', 'name', 'operation_id', 'role']);
+  expect(calls[0].data.name).toBe('Persona Invitada');
+  await expect(region(page)).not.toContainText('Persona Invitada');
   await region(page)
     .getByRole('button', { name: 'Reenviar a recipient@example.test', exact: true })
     .click();
@@ -77,6 +82,9 @@ test('uncertain issue survives navigation and is reconciled by its exact id', as
     });
   });
   await enterDirectory(page);
+  await region(page)
+    .getByLabel('Nombre de la persona invitada', { exact: true })
+    .fill(' Persona Invitada ');
   await region(page)
     .getByLabel('Correo de la invitacion', { exact: true })
     .fill('recipient@example.test');

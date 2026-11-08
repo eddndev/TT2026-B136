@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { hearingKinds, hearingTimeLabel } from '../lib/hearings.mjs';
   import { hearingResultTimeLabel } from '../lib/hearing-result-time.mjs';
@@ -140,20 +141,20 @@
           : 'Programada'}
       </p>
       <details><summary>Identidad de la audiencia</summary><code>{row.id}</code></details>
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
         onclick={() => listResults(row.id)}
-        aria-label={`Consultar resultados de audiencia ${row.id}`}>Consultar resultados</button
+        aria-label={`Consultar resultados de audiencia ${row.id}`}>Consultar resultados</Button
       >
     </div>{/each}
   {#if !hearings.length && !busy}<p>No hay audiencias en esta p&#225;gina.</p>{/if}
-  {#if hearingMore}<button
+  {#if hearingMore}<Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || busy}
-      onclick={() => listHearings(hearingCursor)}>Siguientes audiencias</button
+      onclick={() => listHearings(hearingCursor)}>Siguientes audiencias</Button
     >{/if}
   {#if hearingId}<h5>Resultados de la audiencia seleccionada</h5>
     {#each results as row}<div class="hearing-result-picker-row">
@@ -163,39 +164,39 @@
             : 'Registrado'} / Revision {row.revision}
         </p>
         <details><summary>Identidad del resultado</summary><code>{row.id}</code></details>
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || busy}
           onclick={() => history(row.id)}
           aria-label={`Consultar revisiones de resultado ${row.id}`}
-          >Consultar revisiones del resultado</button
+          >Consultar revisiones del resultado</Button
         >
       </div>{/each}
     {#if !results.length && !busy}<p>No hay resultados en esta p&#225;gina.</p>{/if}
-    {#if resultMore}<button
+    {#if resultMore}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
-        onclick={() => listResults(hearingId, resultCursor)}>Siguientes resultados</button
+        onclick={() => listResults(hearingId, resultCursor)}>Siguientes resultados</Button
       >{/if}
   {/if}
   {#if resultId}<h5>Revisiones del resultado seleccionado</h5>
     {#each revisions as row}<div class="hearing-result-picker-row">
         <p>Revision {row.revision} / {row.status === 'withdrawn' ? 'Retirado' : 'Registrado'}</p>
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || busy}
           onclick={() => read(row.revision)}
-          >Consultar resultado revisi&#243;n {row.revision}</button
+          >Consultar resultado revisi&#243;n {row.revision}</Button
         >
       </div>{/each}
-    {#if historyMore}<button
+    {#if historyMore}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
-        onclick={() => history(resultId, historyCursor)}>Revisiones anteriores del resultado</button
+        onclick={() => history(resultId, historyCursor)}>Revisiones anteriores del resultado</Button
       >{/if}
   {/if}
   {#if exact}<div class="case-comparison">
@@ -214,11 +215,11 @@
             >{/each}
         </select></label
       >
-      <button type="button" class="primary" disabled={disabled || busy} onclick={select}
-        >Vincular este resultado exacto</button
+      <Button type="button" variant="primary" disabled={disabled || busy} onclick={select}
+        >Vincular este resultado exacto</Button
       >
     </div>{/if}
-  <button type="button" class="text-button" disabled={busy} onclick={oncancel}
-    >Cerrar selector de resultados</button
+  <Button type="button" variant="text" disabled={busy} onclick={oncancel}
+    >Cerrar selector de resultados</Button
   >
 </section>

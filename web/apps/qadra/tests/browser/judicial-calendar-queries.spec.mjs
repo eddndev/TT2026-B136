@@ -108,3 +108,36 @@ test('month navigation reaches civil extremes without fabricating year 10000', a
     'no se aplica una regla por defecto',
   );
 });
+test('month controls stay within the declared coverage and mark today', async ({ page }) => {
+  await page.clock.setFixedTime(new Date(2026, 10, 5, 12));
+  const { state } = await setupCalendars(page);
+  await openCalendars(page);
+  await calendarPanel(page)
+    .getByRole('button', { name: `Consultar calendario ${calendarId}`, exact: true })
+    .click();
+  const detail = calendarDetail(page);
+  await expect(
+    detail.getByRole('button', { name: '29 de febrero de 2000: Excluido', exact: true }),
+  ).toBeVisible();
+  await expect(detail.getByRole('button', { name: /^1 de marzo de 2000/ })).toHaveCount(0);
+  await expect(detail.getByRole('button', { name: 'Mes anterior', exact: true })).toBeDisabled();
+  const calls = state.calls.filter((c) => c.path.endsWith('/days')).length;
+  await detail.getByRole('button', { name: 'Mes siguiente', exact: true }).click();
+  await expect(
+    detail.getByRole('button', { name: '1 de marzo de 2000: Computable', exact: true }),
+  ).toBeVisible();
+  expect(state.calls.filter((c) => c.path.endsWith('/days'))).toHaveLength(calls + 1);
+  expect(state.calls.at(-1).search).toContain('from=2000-03-01');
+  expect(state.calls.at(-1).search).toContain('through=2000-03-31');
+  await expect(detail.getByLabel('Mes de consulta', { exact: true })).toHaveValue('2000-03');
+  await expect(detail.getByRole('button', { name: 'Mes siguiente', exact: true })).toBeDisabled();
+  await expect(detail.getByRole('button', { name: 'Mes anterior', exact: true })).toBeEnabled();
+  await detail.getByLabel('Mes de consulta', { exact: true }).fill('2026-11');
+  await detail.getByRole('button', { name: 'Consultar mes', exact: true }).click();
+  await expect(
+    detail.getByRole('button', { name: '5 de noviembre de 2026: Fuera de cobertura', exact: true }),
+  ).toHaveAttribute('aria-current', 'date');
+  await expect(detail.locator('[aria-current="date"]')).toHaveCount(1);
+  await expect(detail.getByRole('button', { name: 'Mes siguiente', exact: true })).toBeDisabled();
+  await expect(detail.getByRole('button', { name: 'Mes anterior', exact: true })).toBeEnabled();
+});

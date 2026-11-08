@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import HearingResultSources from './HearingResultSources.svelte';
   import HearingResultValues from './HearingResultValues.svelte';
   import HearingResultHistory from './HearingResultHistory.svelte';
@@ -32,8 +33,10 @@
   {#if historical}<p class="notice">
       Esta vista conserva la revisi&#243;n seleccionada. Puede existir una posterior.
     </p>
-    <button class="secondary" disabled={disabled || historyBusy} onclick={() => onselect(record.id)}
-      >Consultar resultado actual</button
+    <Button
+      variant="secondary"
+      disabled={disabled || historyBusy}
+      onclick={() => onselect(record.id)}>Consultar resultado actual</Button
     >{/if}
   <HearingResultSources
     anchor={record.anchor}
@@ -58,24 +61,26 @@
     <p>Recibo <code>{record.receipt.submission_digest}</code></p>
   </details>
   <div class="action-row">
-    {#if canManage && !historical && record.status === 'recorded'}<button
-        class="primary"
+    {#if canManage && !historical && record.status === 'recorded'}<Button
+        variant="primary"
         disabled={disabled || historyBusy}
-        onclick={() => onedit('correct')}>Rectificar registro</button
-      ><button
-        class="secondary"
+        onclick={() => onedit('correct')}>Rectificar registro</Button
+      ><Button
+        variant="secondary"
         disabled={disabled || historyBusy}
-        onclick={() => onedit('withdraw')}>Retirar registro</button
+        onclick={() => onedit('withdraw')}>Retirar registro</Button
       >{/if}
-    {#if canManage}<button class="secondary" disabled={disabled || historyBusy} onclick={oncontinue}
-        >Registrar continuaci&#243;n</button
+    {#if canManage}<Button
+        variant="secondary"
+        disabled={disabled || historyBusy}
+        onclick={oncontinue}>Registrar continuaci&#243;n</Button
       >{/if}
-    <button
-      class="text-button"
+    <Button
+      variant="text"
       disabled={disabled || historyBusy}
       aria-expanded={history}
       onclick={() => (history = !history)}
-      >{history ? 'Ocultar historial del registro' : 'Ver historial del registro'}</button
+      >{history ? 'Ocultar historial del registro' : 'Ver historial del registro'}</Button
     >
   </div>
   {#if history}<HearingResultHistory

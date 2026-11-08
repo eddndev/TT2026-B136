@@ -180,7 +180,7 @@
   border-color: #cbd5e1;
   border-radius: 7px;
 }
-.auth-form .primary {
+.auth-form .btn-primary {
   min-height: 46px;
   justify-content: space-between;
   padding: 13px 17px;
@@ -220,7 +220,7 @@
   color: var(--muted, #64748b);
   line-height: 1.8;
 }
-.auth-switch .text-button {
+.auth-switch .btn-text {
   display: block;
   margin: 3px auto 0;
   font-size: 12px;

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { calendarEntities, calendarStatus } from '../lib/judicial-calendar-labels.mjs';
   export let rows,
     filters,
@@ -20,9 +21,10 @@
   <div class="section-heading">
     <h2>Calendarios del despacho</h2>
     <div class="action-row">
-      <button class="secondary" disabled={locked} onclick={onrefresh}>Actualizar calendarios</button
-      >{#if canManage}<button class="primary" disabled={locked} onclick={onnew}
-          >Publicar calendario</button
+      <Button variant="secondary" disabled={locked} onclick={onrefresh}
+        >Actualizar calendarios</Button
+      >{#if canManage}<Button variant="primary" disabled={locked} onclick={onnew}
+          >Publicar calendario</Button
         >{/if}
     </div>
   </div>
@@ -53,7 +55,7 @@
           >{/each}</select
       ></label
     >
-    <button class="secondary" disabled={locked}>Aplicar filtros de calendarios</button>
+    <Button variant="secondary" disabled={locked}>Aplicar filtros de calendarios</Button>
   </form>
   {#if busy}<p role="status">Consultando calendarios...</p>{/if}
   {#each rows as row (row.id)}<article class="calendar-list-row">
@@ -71,21 +73,21 @@
         </p>
         <details><summary>Identidad del calendario</summary><code>{row.id}</code></details>
       </div>
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={locked}
         onclick={() => onselect(row.id)}
-        aria-label={`Consultar calendario ${row.id}`}>Consultar calendario</button
+        aria-label={`Consultar calendario ${row.id}`}>Consultar calendario</Button
       >
     </article>{/each}
   {#if !busy && !rows.length}<p>No hay calendarios en esta consulta.</p>{/if}
   <div class="pagination">
     <span class="hint">{rows.length} calendarios en esta p&#225;gina</span>
     <div class="action-row">
-      <button class="secondary" disabled={locked || !index} onclick={onprevious}
-        >P&#225;gina anterior de calendarios</button
-      ><button class="secondary" disabled={locked || !more} onclick={onnext}
-        >P&#225;gina siguiente de calendarios</button
+      <Button variant="secondary" disabled={locked || !index} onclick={onprevious}
+        >P&#225;gina anterior de calendarios</Button
+      ><Button variant="secondary" disabled={locked || !more} onclick={onnext}
+        >P&#225;gina siguiente de calendarios</Button
       >
     </div>
   </div>

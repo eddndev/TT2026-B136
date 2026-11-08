@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import ResourceActivitySources from './ResourceActivitySources.svelte';
   import ResourceActivityTarget from './ResourceActivityTarget.svelte';
   import ResourceActivityHistory from './ResourceActivityHistory.svelte';
@@ -30,10 +31,10 @@
       ? 'Consulta historica exacta'
       : 'Actual al consultar'}
   </p>
-  {#if historical}<button
-      class="secondary"
+  {#if historical}<Button
+      variant="secondary"
       disabled={disabled || historyBusy}
-      onclick={() => onselect(record.id)}>Consultar v&#237;nculo actual</button
+      onclick={() => onselect(record.id)}>Consultar v&#237;nculo actual</Button
     >{/if}
   {#if record.reason}<p class="case-multiline">Motivo: {record.reason}</p>{/if}
   <ResourceActivitySources sources={record.sources} />
@@ -55,17 +56,17 @@
     <p>Captura: <code>{record.receipt.capture_digest}</code></p>
   </details>
   <div class="action-row">
-    {#if canManage && !historical && record.status === 'linked'}<button
-        class="secondary"
+    {#if canManage && !historical && record.status === 'linked'}<Button
+        variant="secondary"
         disabled={disabled || historyBusy}
-        onclick={() => onedit(record)}>Desvincular actividad</button
+        onclick={() => onedit(record)}>Desvincular actividad</Button
       >{/if}
-    <button
-      class="text-button"
+    <Button
+      variant="text"
       disabled={disabled || historyBusy}
       aria-expanded={history}
       onclick={() => (history = !history)}
-      >{history ? 'Ocultar historial de v\u00ednculo' : 'Ver historial de v\u00ednculo'}</button
+      >{history ? 'Ocultar historial de v\u00ednculo' : 'Ver historial de v\u00ednculo'}</Button
     >
   </div>
   {#if history}<ResourceActivityHistory

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import FactDeclarationFields from './FactDeclarationFields.svelte';
   import HistoricalParticipantPicker from './HistoricalParticipantPicker.svelte';
@@ -57,24 +58,24 @@
     <details>
       <summary>Referencia de recurrente {number}</summary><code>{value.participant.id}</code>
     </details>
-    <button
+    <Button
       type="button"
-      class="text-button"
+      variant="text"
       onclick={() => {
         if (!canApply()) return;
         value = { ...value, participant: null };
         selected = null;
-      }}>Quitar ficha de recurrente {number}</button
+      }}>Quitar ficha de recurrente {number}</Button
     >
   {:else}<p class="hint">
       Sin ficha vinculada. El nombre y rol se conservan como declaraci&#243;n.
     </p>{/if}
-  <button
+  <Button
     type="button"
-    class="secondary"
+    variant="secondary"
     onclick={() => {
       if (canApply()) choosing = true;
-    }}>Elegir ficha de recurrente {number}</button
+    }}>Elegir ficha de recurrente {number}</Button
   >
 </fieldset>
 {#if choosing}

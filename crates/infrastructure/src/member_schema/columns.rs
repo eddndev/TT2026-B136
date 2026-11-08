@@ -16,6 +16,7 @@ pub(super) fn expected(table: &str) -> &'static [(&'static str, &'static str, bo
             ("created_at", "timestamp with time zone", true),
             ("updated_at", "timestamp with time zone", true),
             ("auth_generation", "bigint", true),
+            ("display_name", "text", true),
         ],
         "case_memberships" => &[
             ("case_id", "uuid", true),

@@ -4,11 +4,13 @@ import { caseId, id, document, setup, openDocument } from './helpers.mjs';
 const owner = {
   id: '11111111-1111-4111-8111-111111111111',
   email: 'hatz@example.com',
+  name: 'Hatziel Ortega',
   role: 'owner',
 };
 const other = {
   id: '22222222-2222-4222-8222-222222222222',
   email: 'other@example.test',
+  name: 'Otra Cuenta',
   role: 'owner',
 };
 const epoch = Date.UTC(2026, 9, 2, 18);

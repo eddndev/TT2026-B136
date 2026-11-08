@@ -206,6 +206,7 @@ fn operator() -> UserRecord {
     UserRecord {
         id: UserId::new(),
         email: "operator@example.test".into(),
+        display_name: application::identity::ca_operator_display_name(),
         password_hash: "$argon2id$synthetic-credential".into(),
         role: Role::Client,
         active: true,

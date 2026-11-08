@@ -112,8 +112,10 @@ impl Harness {
             .admin
             .execute(
                 "INSERT INTO member_invitations(id,email,role,revision,operation_id,issued_at,
-                expires_at,accepted_at,token_digest,delivery_state,delivery_generation,audit_sequence)
-                SELECT $1,email,'client',1,$1,$2::bigint,$2::bigint+86400,$2::bigint+60,$3,'sent',0,$4 FROM users WHERE id=$5",
+                expires_at,accepted_at,token_digest,delivery_state,delivery_generation,audit_sequence,
+                display_name)
+                SELECT $1,email,'client',1,$1,$2::bigint,$2::bigint+86400,$2::bigint+60,$3,'sent',0,$4,
+                display_name FROM users WHERE id=$5",
                 &[&invitation, &at, &token, &issued, &user.as_uuid()],
             )
             .unwrap();

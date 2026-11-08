@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { openSection } from './helpers.mjs';
 import { resolutionId, notificationId } from './session-fact-draft-fixtures.mjs';
 import {
   factEditor,
@@ -26,7 +27,7 @@ export const prepareButton = (form) =>
 export const confirmButton = (form) =>
   form.getByRole('button', { name: 'Confirmar registro', exact: true });
 export async function enterFacts(page) {
-  await page.getByRole('link', { name: 'Resoluciones', exact: true }).click();
+  await openSection(page, 'Resoluciones');
   await expect(
     page.getByRole('heading', { name: 'Resoluciones y notificaciones', exact: true }),
   ).toBeVisible();

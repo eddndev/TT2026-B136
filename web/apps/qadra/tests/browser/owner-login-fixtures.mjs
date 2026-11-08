@@ -11,7 +11,12 @@ import {
 
 export { publicReceipt, selection, signature };
 export const loginPath = '/api/v1/auth/certificate-login';
-export const owner = { id: selection.ownerId, email: 'owner@example.test', role: 'owner' };
+export const owner = {
+  id: selection.ownerId,
+  email: 'owner@example.test',
+  name: 'Owner Example',
+  role: 'owner',
+};
 const states = new WeakMap();
 const workspaceReads = new Set([
   '/api/v1/dashboard',

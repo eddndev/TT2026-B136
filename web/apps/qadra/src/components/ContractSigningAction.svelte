@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // One signature request seen by one of its parties. The Client signs in
   // three steps (review, confirm, sign); the firm signer reviews the PDF and
   // validates the partial acknowledgement before counter-signing. Signing
@@ -148,7 +149,8 @@
       <span class="badge {status.tone}">{status.label}</span>
     </div>
     {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
-    {#if actions.position === 1 && actions.signedByMe && detail.status !== 'completed'}
+    <!-- The standing notice is skipped while the confirmation already says it. -->
+    {#if actions.position === 1 && actions.signedByMe && detail.status !== 'completed' && notice !== CLIENT_SIGNED_NOTICE}
       <p class="notice" role="status">{CLIENT_SIGNED_NOTICE}</p>
     {/if}
     {#if actions.sign && bindingProblem}
@@ -165,8 +167,8 @@
       {#if actions.position === 2}<section class="stack" aria-label="Firma del Cliente">
           <h3>Comprueba la firma del Cliente</h3>
           <p>Descarga el acuse parcial y val&#237;dalo en este navegador antes de contrafirmar.</p>
-          <button class="secondary" disabled={busy} onclick={() => evidence('partial')}
-            >Descargar acuse parcial</button
+          <Button variant="secondary" disabled={busy} onclick={() => evidence('partial')}
+            >Descargar acuse parcial</Button
           >
           <EvidenceValidation {api} onresult={(report) => (partialReport = report)} />
           {#if !partialChecked}<p class="hint">
@@ -195,13 +197,13 @@
     {/if}
     {#if actions.partial && actions.position === 1}<p class="hint">{PARTIAL_NOTICE}</p>{/if}
     <div class="action-row">
-      {#if actions.partial && actions.position !== 2}<button
-          class="secondary"
+      {#if actions.partial && actions.position !== 2}<Button
+          variant="secondary"
           disabled={busy}
-          onclick={() => evidence('partial')}>Descargar acuse parcial</button
+          onclick={() => evidence('partial')}>Descargar acuse parcial</Button
         >{/if}
-      {#if actions.final}<button class="primary" disabled={busy} onclick={() => evidence('final')}
-          >Descargar contrato firmado</button
+      {#if actions.final}<Button variant="primary" disabled={busy} onclick={() => evidence('final')}
+          >Descargar contrato firmado</Button
         >{/if}
       {#if actions.reject}<ContractCloseAction
           outcome="reject"

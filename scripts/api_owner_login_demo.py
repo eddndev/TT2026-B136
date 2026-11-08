@@ -26,7 +26,7 @@ def prepare():
     assert redis("EXISTS", *GLOBALS) == 0, "Login budgets are not owned by this campaign"
     password = secrets.token_urlsafe(32)
     enrollment = request("POST", "/api/v1/users", {
-        "email": "owner-login-" + uuid4().hex + "@example.test",
+        "email": "owner-login-" + uuid4().hex + "@example.test", "name": "Login Owner",
         "password": password, "role": "owner"}, expected=201)
     owner = enrollment["user"]
     assert owner["role"] == "owner"

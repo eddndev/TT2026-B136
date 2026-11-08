@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import AlertPreferenceFields from './AlertPreferenceFields.svelte';
   import AlertPreferenceSummary from './AlertPreferenceSummary.svelte';
@@ -230,23 +231,23 @@
   {#if current}
     <form class="stack" onsubmit={save}>
       <AlertPreferenceFields bind:values bind:hours disabled={busy || frozen} />
-      {#if mode === 'conflict'}<button
-          class="secondary"
+      {#if mode === 'conflict'}<Button
+          variant="secondary"
           type="button"
           disabled={busy}
-          onclick={check}>Consultar preferencias actuales</button
+          onclick={check}>Consultar preferencias actuales</Button
         >{/if}
-      {#if mode === 'uncertain'}<button
-          class="secondary"
+      {#if mode === 'uncertain'}<Button
+          variant="secondary"
           type="button"
           disabled={busy}
-          onclick={check}>Comprobar guardado</button
+          onclick={check}>Comprobar guardado</Button
         >{/if}
       {#if candidate}<AlertPreferenceSummary current={candidate} />{/if}
       <div class="action-row">
-        <button class="secondary" type="button" disabled={busy} onclick={close}>Cancelar</button>
-        <button
-          class="primary"
+        <Button variant="secondary" type="button" disabled={busy} onclick={close}>Cancelar</Button>
+        <Button
+          variant="primary"
           disabled={busy || mode === 'uncertain' || (mode === 'conflict' && !candidate)}
         >
           {busy
@@ -256,11 +257,11 @@
               : candidate
                 ? 'Guardar mis preferencias'
                 : 'Guardar preferencias'}
-        </button>
+        </Button>
       </div>
     </form>
   {:else if !busy}<div class="action-row">
-      <button class="secondary" onclick={load}>Consultar preferencias</button>
-      <button class="text-button" onclick={close}>Cerrar preferencias</button>
+      <Button variant="secondary" onclick={load}>Consultar preferencias</Button>
+      <Button variant="text" onclick={close}>Cerrar preferencias</Button>
     </div>{/if}
 </section>

@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { login } from './helpers.mjs';
+import { login, openSection } from './helpers.mjs';
 import { expire } from './session-inactivity-helpers.mjs';
 import { editor, fillDeadline } from './deadline-editor-helpers.mjs';
 import { holdDeadlineRead, deadlinesPath } from './session-deadline-editor-fixtures.mjs';
@@ -21,7 +21,7 @@ export const detailPanel = (page) =>
   page.getByRole('region', { name: 'Detalle de plazo', exact: true });
 
 export async function enterDeadlines(page) {
-  await page.getByRole('link', { name: 'Plazos', exact: true }).click();
+  await openSection(page, 'Plazos');
   await expect(page.getByRole('button', { name: 'Actualizar plazos', exact: true })).toBeEnabled();
 }
 export async function beginDeadline(page, mode = 'register', record = null) {

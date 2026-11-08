@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onDestroy } from 'svelte';
   import StagePicker from './StagePicker.svelte';
   import StageSupportSummary from './StageSupportSummary.svelte';
@@ -145,26 +146,26 @@
     confirmar el registro.
   </p>
   <div class="action-row">
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       type="button"
       disabled={disabled || pending}
       onclick={() =>
         prepare(() => {
           picking = true;
-        })}>{chooseLabel}</button
+        })}>{chooseLabel}</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       type="button"
       disabled={disabled || pending}
-      onclick={() => prepare(() => uploader.open())}>{uploadLabel}</button
+      onclick={() => prepare(() => uploader.open())}>{uploadLabel}</Button
     >
-    {#if optional && value}<button
-        class="text-button"
+    {#if optional && value}<Button
+        variant="text"
         type="button"
         disabled={disabled || pending}
-        onclick={remove}>Quitar soporte del borrador</button
+        onclick={remove}>Quitar soporte del borrador</Button
       >{/if}
   </div>
   {#if picking}<StagePicker

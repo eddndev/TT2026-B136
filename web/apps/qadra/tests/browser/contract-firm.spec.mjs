@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { createHash, verify } from 'node:crypto';
 import { contractSetup, openRequest } from './contract-helpers.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, openSection } from './helpers.mjs';
 import { localSignatureMaterial, signLocally } from './local-signature-material.mjs';
 
 test.use({ channel: 'chromium' });
@@ -97,7 +97,7 @@ test('the requester cancels an open request from the case contracts with a reaso
     status: 'awaiting_client',
   });
   await login(page);
-  await page.getByRole('link', { name: 'Contratos', exact: true }).click();
+  await openSection(page, 'Contratos');
   await expect(page.getByRole('heading', { name: 'Contratos', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Abrir Contrato de prestacion de servicios' }).click();
   const detail = page.getByRole('region', { name: 'Detalle del contrato' });

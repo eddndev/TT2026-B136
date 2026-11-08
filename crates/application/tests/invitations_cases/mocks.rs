@@ -1,8 +1,8 @@
 use super::*;
 
 mockall::mock! { pub Identity {} impl IdentityWorkflow for Identity {
-    fn bootstrap_owner(&self, email:&str, password:&str)->Result<EnrollmentResult,ApplicationError>;
-    fn create_user(&self, token:&str, email:&str, password:&str, role:Role)->Result<EnrollmentResult,ApplicationError>;
+    fn bootstrap_owner(&self, email:&str, display_name:&str, password:&str)->Result<EnrollmentResult,ApplicationError>;
+    fn create_user(&self, token:&str, email:&str, display_name:&str, password:&str, role:Role)->Result<EnrollmentResult,ApplicationError>;
     fn start_login(&self, email:&str, password:&str)->Result<LoginChallenge,ApplicationError>;
     fn complete_totp(&self, token:&str, code:&str)->Result<SessionResult,ApplicationError>;
     fn complete_recovery(&self, token:&str, code:&str)->Result<SessionResult,ApplicationError>;
@@ -11,6 +11,7 @@ mockall::mock! { pub Identity {} impl IdentityWorkflow for Identity {
     fn record_activity(&self, token:&str)->Result<SessionStatus,ApplicationError>;
     fn authorize(&self, token:&str, permission:Permission)->Result<Principal,ApplicationError>;
     fn logout(&self, token:&str)->Result<(),ApplicationError>;
+    fn current_account(&self, token:&str)->Result<CurrentAccount,ApplicationError>;
 } }
 mockall::mock! { pub Users {} impl UserRepository for Users {
     fn has_users(&self)->Result<bool,ApplicationError>;

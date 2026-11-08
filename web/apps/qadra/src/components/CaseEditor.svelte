@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import CaseReconciliation from './CaseReconciliation.svelte';
   import CaseFields from './CaseFields.svelte';
@@ -281,17 +282,17 @@
       </p>{/if}
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
     {#if restoring}<p class="notice" role="status">Comprobando el acceso actual...</p>{/if}
-    {#if restoreBlocked && !restoring}<button
+    {#if restoreBlocked && !restoring}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={busy}
-        onclick={initialize}>Volver a consultar el contexto</button
+        onclick={initialize}>Volver a consultar el contexto</Button
       >{/if}
-    {#if original && (conflict || uncertain || restoredClosed)}<button
+    {#if original && (conflict || uncertain || restoredClosed)}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={busy || restoring || restoreBlocked}
-        onclick={refresh}>Consultar datos actuales</button
+        onclick={refresh}>Consultar datos actuales</Button
       >{/if}
     {#if !original && uncertain && submitted && !restoring && !restoreBlocked}<CaseReconciliation
         {api}
@@ -324,10 +325,10 @@
         expediente para guardar.
       </p>{/if}
     <div class="action-row">
-      <button type="button" class="secondary" disabled={busy || restoring} onclick={cancel}
-        >Cancelar</button
+      <Button type="button" variant="secondary" disabled={busy || restoring} onclick={cancel}
+        >Cancelar</Button
       >
-      <button class="primary" disabled={blocked}
+      <Button variant="primary" disabled={blocked}
         >{restoring
           ? 'Comprobando acceso...'
           : busy
@@ -338,7 +339,7 @@
                 ? 'Crear expediente penal'
                 : complete
                   ? 'Guardar ficha penal'
-                  : 'Guardar datos b\u00e1sicos'}</button
+                  : 'Guardar datos b\u00e1sicos'}</Button
       >
     </div>
   </form>

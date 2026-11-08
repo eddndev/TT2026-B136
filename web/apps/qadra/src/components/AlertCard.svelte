@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import {
     alertKindLabel,
@@ -117,7 +118,7 @@
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   <div class="action-row alert-actions">
-    <button class="secondary" disabled={disabled || busy} onclick={() => onopen(row)}>
+    <Button variant="secondary" disabled={disabled || busy} onclick={() => onopen(row)}>
       {row.subject.kind === 'precautionary_hearing'
         ? 'Abrir audiencia cautelar'
         : row.subject.kind === 'resource_hearing'
@@ -125,14 +126,14 @@
           : row.subject.kind === 'hearing'
             ? 'Abrir audiencia'
             : 'Abrir plazo'}
-    </button>
+    </Button>
     {#if row.read_at === null}
-      {#if uncertain}<button class="secondary" disabled={disabled || busy} onclick={checkRead}
-          >Comprobar lectura</button
+      {#if uncertain}<Button variant="secondary" disabled={disabled || busy} onclick={checkRead}
+          >Comprobar lectura</Button
         >
-      {:else}<button class="text-button" disabled={disabled || busy} onclick={markRead}>
+      {:else}<Button variant="text" disabled={disabled || busy} onclick={markRead}>
           {busy ? 'Guardando lectura...' : 'Marcar como le\u00edda'}
-        </button>{/if}
+        </Button>{/if}
     {/if}
   </div>
 </article>

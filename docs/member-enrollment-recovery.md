@@ -1,8 +1,10 @@
 # Recuperar un alta de integrante tras vencer la sesión
 
-En **Equipo**, Qadra puede conservar el correo escrito, el rol seleccionado y
-si el envío quedó sin confirmar. El correo conserva sus mayúsculas y texto
-parcial. El borrador permanece sólo en la memoria de la pestaña.
+En **Equipo**, Qadra puede conservar el nombre y el correo escritos, el rol
+seleccionado y si el envío quedó sin confirmar. El nombre y el correo conservan
+sus mayúsculas y texto parcial. El borrador permanece sólo en la memoria de la
+pestaña y usa la versión 2 de su forma: un borrador de la versión anterior, sin
+nombre, no se retoma.
 
 La contraseña inicial, la clave TOTP, la URI de configuración y los códigos de
 recuperación quedan fuera del borrador. Esta función no recupera el acceso ni
@@ -14,7 +16,7 @@ el segundo factor del nuevo integrante.
 2. Abre **Equipo** y pulsa **Retomar alta de integrante**.
 3. Qadra consulta la identidad actual antes de mostrar los campos. Mientras
    espera, el formulario y su envío están bloqueados.
-4. Si el alta todavía no se había enviado, revisa correo y rol e introduce
+4. Si el alta todavía no se había enviado, revisa nombre, correo y rol e introduce
    otra vez la contraseña inicial antes de decidir su envío.
 
 Entrar con otra cuenta o cerrar sesión expresamente descarta el borrador.
@@ -37,7 +39,7 @@ decisión del usuario.
 
 Salir de **Equipo** conserva un intento incierto. Al volver se ofrecen
 **Retomar alta de integrante** y **Descartar alta y volver al directorio**;
-retomarlo exige otra consulta de autoridad antes de mostrar correo y rol.
+retomarlo exige otra consulta de autoridad antes de mostrar nombre, correo y rol.
 El bloqueo permanece aunque ya se hubiera recuperado tras una sesión vencida.
 Los campos de un formulario que nunca se envió pueden reiniciarse al navegar.
 

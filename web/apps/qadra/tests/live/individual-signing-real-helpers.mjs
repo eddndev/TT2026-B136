@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { openSection } from './helpers.mjs';
 import { execFileSync } from 'node:child_process';
 import { createHash, X509Certificate, verify } from 'node:crypto';
 import { expect } from '@playwright/test';
@@ -30,7 +31,7 @@ export async function openSigningDocument(page, scenario) {
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await page
     .locator('.reference-panel')
     .getByLabel('Identificador del documento')

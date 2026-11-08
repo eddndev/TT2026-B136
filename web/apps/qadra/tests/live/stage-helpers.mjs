@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { fixture } from './helpers.mjs';
+import { fixture, openSection } from './helpers.mjs';
 export const accounts = fixture.caseStages;
 export const pdf = readFileSync(
   new URL('../../../../../crates/infrastructure/tests/fixtures/stage-support.pdf', import.meta.url),
 );
 export async function openStages(page) {
-  await page.getByRole('link', { name: 'Etapas', exact: true }).click();
+  await openSection(page, 'Etapas');
   await expect(
     page.getByRole('heading', { name: 'Etapas del expediente', exact: true }),
   ).toBeVisible();

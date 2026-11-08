@@ -9,12 +9,14 @@ import {
   usersPath,
   principalPath,
   submittedEmail,
+  submittedName,
 } from './session-member-enrollment-fixtures.mjs';
 import {
   enterEnrollment,
   fillEnrollment,
   expectBlankEnrollment,
   expectNoEnrollmentMaterial,
+  name,
   email,
   password,
   role,
@@ -48,6 +50,7 @@ test('same Owner restores partial email and role only after fresh authority whil
     false,
   );
   fresh.release();
+  await expect(name(page)).toHaveValue(submittedName);
   await expect(email(page)).toHaveValue(rawEmail);
   await expect(role(page)).toHaveValue('litigator');
   await expectNoEnrollmentMaterial(page);

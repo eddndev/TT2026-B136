@@ -87,11 +87,9 @@ for (const [name, width] of [
     paths.length = 0;
     await navigate(page, 'Agenda');
     await expect(agenda(page)).toHaveAttribute('aria-busy', 'false');
-    for (const [view, label] of [
-      ['day', 'Vista diaria'],
-      ['week', 'Vista semanal'],
-      ['month', 'Vista mensual'],
-    ]) {
+    const calendar = page.getByRole('region', { name: 'Calendario de la agenda', exact: true });
+    const list = page.getByRole('region', { name: 'Actividades en el periodo', exact: true });
+    for (const view of ['day', 'week', 'month']) {
       const result = await query(page, view, scenario.date);
       expect(result.complete).toBe(true);
       expect(result.next_cursor).toBeNull();
@@ -114,12 +112,12 @@ for (const [name, width] of [
         },
       });
       expect(result.items.map((row) => row.at)).toEqual([scenario.dueAt, scenario.dueAt]);
-      const region = page.getByRole('region', { name: label, exact: true });
-      await expect(region).toBeVisible();
+      await expect(calendar).toBeVisible();
+      await expect(list).toBeVisible();
       await expect(activity(page, 'hearing', scenario.hearing.id)).toBeVisible();
       await expect(activity(page, 'deadline', scenario.deadline.id)).toBeVisible();
       expect(
-        await region
+        await list
           .locator('[data-agenda-kind]')
           .evaluateAll((rows) => rows.map((row) => row.dataset.agendaKind)),
       ).toEqual(['hearing', 'deadline']);

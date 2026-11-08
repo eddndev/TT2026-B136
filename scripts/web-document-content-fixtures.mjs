@@ -28,7 +28,7 @@ export async function provisionDocumentContent(call) {
     const role = name.endsWith('Owner') ? 'owner' : name;
     const password = `web document content ${name} synthetic password`;
     const result = await call('POST', '/users', {
-      email: `web-document-content-${name.toLowerCase()}@example.com`, password, role,
+      name: `Document content ${name}`, email: `web-document-content-${name.toLowerCase()}@example.com`, password, role,
     }, 201);
     fixture[name] = { id: result.user.id, email: result.user.email, password,
       recoveryCodes: result.recovery_codes };

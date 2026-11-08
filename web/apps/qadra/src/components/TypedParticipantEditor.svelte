@@ -1,4 +1,7 @@
 <script>
+  import Modal from './Modal.svelte';
+  import ModalHeading from './ModalHeading.svelte';
+  import Button from './Button.svelte';
   import { getContext, onDestroy, tick } from 'svelte';
   import { caseState } from '../lib/case-state.mjs';
   import { subjectDraft, roleDraft } from '../lib/typed-participant-values.mjs';
@@ -357,23 +360,19 @@
   });
 </script>
 
-<dialog
-  class="upload-dialog participant-dialog"
+<Modal
+  class="modal participant-dialog"
   aria-busy={pending}
-  bind:this={dialog}
+  bind:element={dialog}
   aria-labelledby="typed-participant-title"
   oncancel={(event) => {
     event.preventDefault();
     close();
   }}
 >
-  <div class="dialog-heading">
-    <div>
-      <span class="eyebrow">DIRECTORIO DEL EXPEDIENTE</span>
-      <h2 id="typed-participant-title">{title}</h2>
-    </div>
-    <button class="text-button" disabled={pending} onclick={close}>Cerrar ficha</button>
-  </div>
+  <ModalHeading {title} id="typed-participant-title" eyebrow="DIRECTORIO DEL EXPEDIENTE">
+    <Button variant="text" disabled={pending} onclick={close}>Cerrar ficha</Button>
+  </ModalHeading>
   {#if state.opened}<TypedParticipantBody
       bind:this={body}
       bind:state
@@ -393,4 +392,4 @@
       {close}
       {retry}
     />{/if}
-</dialog>
+</Modal>

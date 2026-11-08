@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   export let phase,
     pending = false,
     oncheck,
@@ -13,8 +14,8 @@
     {#if pending}El despacho se abrir&aacute; cuando se confirme tu acceso.
     {:else}Tus cambios siguen en esta pantalla.{/if}
   {/if}
-  <button class="secondary" disabled={phase !== 'checking'} onclick={oncheck}
-    >Comprobar de nuevo</button
+  <Button variant="secondary" disabled={phase !== 'checking'} onclick={oncheck}
+    >Comprobar de nuevo</Button
   >
-  <button class="text-button" onclick={onlogout}>Cerrar sesi&oacute;n</button>
+  <Button variant="text" onclick={onlogout}>Cerrar sesi&oacute;n</Button>
 </section>

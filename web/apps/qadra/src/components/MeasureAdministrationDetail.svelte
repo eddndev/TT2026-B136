@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount } from 'svelte';
   import MeasureRecordSummary from './MeasureRecordSummary.svelte';
   import ParticipantSubjectSummary from './ParticipantSubjectSummary.svelte';
@@ -40,7 +41,7 @@
 <section class="card hearing-detail fact-detail" aria-label="Detalle de rectificacion">
   <div class="section-heading">
     <h2 tabindex="-1" bind:this={heading}>Rectificaci&#243;n administrativa registrada</h2>
-    <button class="secondary" onclick={onclose}>Cerrar detalle de rectificacion</button>
+    <Button variant="secondary" onclick={onclose}>Cerrar detalle de rectificacion</Button>
   </div>
   {#if record}<p><strong>{record.title}</strong> / {record.reference}</p>{/if}
   {#if record?.administration?.administrative_status === 'closed'}

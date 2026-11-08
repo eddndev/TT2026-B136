@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onDestroy } from 'svelte';
   import { caseState } from '../lib/case-state.mjs';
   import { createSigningDraft } from '../lib/individual-signing-draft.mjs';
@@ -282,13 +283,13 @@
 
 {#if saved}<section class="notice stack">
     <p>Hay un intento de firma conservado para esta version.</p>
-    <button class="secondary" disabled={!!busy || disabled} onclick={recover}
-      >Recuperar intento de firma</button
+    <Button variant="secondary" disabled={!!busy || disabled} onclick={recover}
+      >Recuperar intento de firma</Button
     >
   </section>
 {:else if !opened && !receipt && !document.sealed}
-  <button class="secondary" disabled={!!busy || disabled || $administration.closed} onclick={open}
-    >Firmar personalmente</button
+  <Button variant="secondary" disabled={!!busy || disabled || $administration.closed} onclick={open}
+    >Firmar personalmente</Button
   >
 {/if}
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
@@ -323,19 +324,19 @@
     <h3>Resultado pendiente de confirmar</h3>
     <p>Conserva esta operacion. Consultar el recibo no vuelve a enviar la firma.</p>
     <code>{state.operationId}</code>
-    <button class="secondary" disabled={!!busy || disabled} onclick={checkReceipt}
-      >Consultar recibo de firma</button
+    <Button variant="secondary" disabled={!!busy || disabled} onclick={checkReceipt}
+      >Consultar recibo de firma</Button
     >
   </section>{/if}
 {#if receipt}<section class="card stack">
     <h3>Firma personal aceptada</h3>
     <SigningConsentDetails value={receipt} />
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       onclick={() =>
         download(
           new Blob([JSON.stringify(receipt)], { type: 'application/json' }),
           'document-signing-receipt.json',
-        )}>Descargar recibo de firma</button
+        )}>Descargar recibo de firma</Button
     >
   </section>{/if}

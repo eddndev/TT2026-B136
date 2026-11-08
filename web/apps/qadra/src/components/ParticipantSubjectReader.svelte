@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import ParticipantSubjectSummary from './ParticipantSubjectSummary.svelte';
   import ParticipantSubjectEditor from './ParticipantSubjectEditor.svelte';
@@ -66,30 +67,30 @@
 </script>
 
 <div class="participant-history">
-  <button class="text-button" disabled={disabled || busy} onclick={load}
-    >Consultar identidad actual</button
+  <Button variant="text" disabled={disabled || busy} onclick={load}
+    >Consultar identidad actual</Button
   >
   {#if current}<section class="participant-comparison" aria-label="Identidad actual consultada">
       <h3>Identidad actual consultada</h3>
       <ParticipantSubjectSummary record={current} />
-      {#if canParticipants(user.role, 'manage')}<button
-          class="secondary"
+      {#if canParticipants(user.role, 'manage')}<Button
+          variant="secondary"
           disabled={disabled || busy || $administration.closed}
-          onclick={() => editor.open(current)}>Editar identidad</button
+          onclick={() => editor.open(current)}>Editar identidad</Button
         >
-        {#if $administration.closed && editor?.hasSuspendedDraft(current.id)}<button
-            class="secondary"
+        {#if $administration.closed && editor?.hasSuspendedDraft(current.id)}<Button
+            variant="secondary"
             disabled={disabled || busy}
-            onclick={() => editor.open(current)}>Retomar borrador de identidad</button
+            onclick={() => editor.open(current)}>Retomar borrador de identidad</Button
           >{/if}
       {/if}
       <p class="hint">La ficha sigue vinculada a la revisi&#243;n {record.revision}.</p>
     </section>{/if}
-  <button
-    class="text-button"
+  <Button
+    variant="text"
     disabled={disabled || busy}
     onclick={() => (showHistory ? (showHistory = false) : history())}
-    >{showHistory ? 'Ocultar historial de identidad' : 'Consultar historial de identidad'}</button
+    >{showHistory ? 'Ocultar historial de identidad' : 'Consultar historial de identidad'}</Button
   >
   {#if showHistory}<section aria-label="Historial de identidad">
       {#each rows as row}<details class="participant-revision">
@@ -97,10 +98,10 @@
           ><ParticipantSubjectSummary record={row} /><time datetime={row.changed_at}
             >{new Date(row.changed_at).toLocaleString('es-MX')}</time
           >
-        </details>{/each}{#if more}<button
-          class="secondary"
+        </details>{/each}{#if more}<Button
+          variant="secondary"
           disabled={disabled || busy}
-          onclick={() => history(cursor)}>Cargar revisiones de identidad anteriores</button
+          onclick={() => history(cursor)}>Cargar revisiones de identidad anteriores</Button
         >{/if}
     </section>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}

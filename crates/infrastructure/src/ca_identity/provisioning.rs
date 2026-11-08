@@ -6,7 +6,7 @@ use domain::identity::Role;
 
 use crate::{
     audit_postgres::{append_transaction, begin_audited},
-    identity::postgres::insert_user,
+    identity::postgres::{insert_user, UserColumns},
     postgres_source::StartupConnection,
 };
 
@@ -67,7 +67,7 @@ pub fn provision_initial_ca_operator(
     {
         return Err(ApplicationError::UserAlreadyExists);
     }
-    insert_user(&mut transaction, &user)?;
+    insert_user(&mut transaction, &user, UserColumns::CertificateAuthority)?;
     append_transaction(
         &mut transaction,
         expected_admin_role,

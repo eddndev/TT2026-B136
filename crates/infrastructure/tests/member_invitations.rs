@@ -14,6 +14,9 @@ use domain::{
 };
 use infrastructure::PostgresInvitationStore;
 
+#[path = "member_invitation_names.rs"]
+mod names;
+
 fn fixture() -> Fixture {
     Fixture::new().expect("invitation acceptance requires isolated CASE_TEST_DATABASE_URL")
 }
@@ -36,6 +39,7 @@ fn issue(op: Uuid, email: &str) -> IssueInvitation {
         request: InvitationIssueRequest {
             operation_id: op,
             email: email.into(),
+            display_name: "Test Invitee".into(),
             role: Role::Litigator,
         },
         token_digest: digest(1),
@@ -70,6 +74,7 @@ fn finish(id: InvitationId, pending: &PendingInvitation) -> FinishInvitation {
         user: UserRecord {
             id: UserId::new(),
             email: "invited@example.test".into(),
+            display_name: domain::identity::DisplayName::new("Test Invitee").unwrap(),
             role: Role::Litigator,
             password_hash: "fixture-password".into(),
             active: true,

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { normalizeTag } from '../lib/document-metadata.mjs';
   export let prefix;
   export let tags = [];
@@ -62,22 +63,22 @@
       }}
     /></label
   >
-  <button type="button" class="secondary" {disabled} onclick={add}>Agregar etiqueta</button>
+  <Button type="button" variant="secondary" {disabled} onclick={add}>Agregar etiqueta</Button>
 </div>
 <p class="hint">
   Agrega una etiqueta por vez. Puede contener comas y acentos. Hasta 20 etiquetas de 40 caracteres.
 </p>
 <ul class="metadata-tags" aria-label="Etiquetas del documento">
   {#each tags as tag, index}<li class="badge">
-      <span>{tag}</span><button
+      <span>{tag}</span><Button
         type="button"
-        class="text-button"
+        variant="text"
         {disabled}
         aria-label={`Quitar etiqueta: ${tag}`}
         onclick={() => {
           tags = tags.filter((_, i) => i !== index);
           message = 'Etiqueta retirada.';
-        }}>Quitar</button
+        }}>Quitar</Button
       >
     </li>{/each}
 </ul>

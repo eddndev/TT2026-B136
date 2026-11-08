@@ -10,7 +10,7 @@ fn accepted_invalid_replayed_and_missing_challenges_have_distinct_observations()
         Arc::new(MemorySessions::default()),
     );
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let login = || {
         service
@@ -42,7 +42,7 @@ fn inactive_and_changed_credentials_are_identified_without_changing_public_error
         let users = Arc::new(MemoryUsers::default());
         let service = service(users.clone(), Arc::new(MemorySessions::default()));
         let owner = service
-            .bootstrap_owner("owner@example.com", "correct horse battery")
+            .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
             .unwrap();
         let challenge = service
             .start_login("owner@example.com", "correct horse battery")
@@ -72,7 +72,7 @@ fn recovery_observes_success_and_ambiguous_invalid_or_used_code() {
         Arc::new(MemorySessions::default()),
     );
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     for expected in [MfaReason::Accepted, MfaReason::RecoveryInvalidOrUsed] {
         let challenge = service

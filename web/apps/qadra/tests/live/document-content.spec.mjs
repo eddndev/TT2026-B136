@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs, expectClientWorkspace } from './helpers.mjs';
+import { loginAs, expectClientWorkspace, openSection } from './helpers.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 import {
   accounts,
@@ -51,7 +51,7 @@ for (const [name, width] of [
     await capture(page, testInfo, `${name}-exact-content`);
 
     await navigate(page, 'Bit\u00e1cora');
-    await page.getByRole('button', { name: 'Incidentes de integridad', exact: true }).click();
+    await openSection(page, 'Incidentes de integridad');
     await findIncident(page, scenario.incident);
     await expect(inbox(page)).toContainText('Un incidente no indica la causa ni a un responsable.');
     const technical = card(page, scenario.incident).locator('details');

@@ -139,6 +139,7 @@ test('existing account creation retains one-time enrollment and remains distinct
 }) => {
   const state = await setupMembers(page);
   await enterDirectory(page);
+  await page.getByLabel('Nombre del nuevo usuario', { exact: true }).fill('  Nueva Integrante ');
   await page.getByLabel('Correo del nuevo usuario', { exact: true }).fill('new@example.test');
   await page.getByLabel('Contrase\u00f1a inicial', { exact: true }).fill('synthetic-new-password');
   await page.getByRole('button', { name: 'Crear usuario', exact: true }).click();
@@ -152,8 +153,10 @@ test('existing account creation retains one-time enrollment and remains distinct
   await expect(page.getByLabel('Contrase\u00f1a inicial', { exact: true })).toHaveValue('');
   await expect(page.getByText('TESTSECRET', { exact: true })).toHaveCount(0);
   expect(
-    state.calls.filter((call) => call.method === 'POST' && call.path === '/api/v1/users'),
-  ).toHaveLength(1);
+    state.calls
+      .filter((call) => call.method === 'POST' && call.path === '/api/v1/users')
+      .map((call) => call.body.name),
+  ).toEqual(['Nueva Integrante']);
   expect(state.calls.some((call) => /invitation|invite/.test(call.path))).toBe(false);
   await navigate(page, 'Inicio');
   expect(

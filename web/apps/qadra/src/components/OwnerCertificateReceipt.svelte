@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { download } from '../lib/documents.mjs';
   export let receipt,
     busy = false,
@@ -40,12 +41,12 @@
       <dd>{receipt.withdrawal.withdrawn_at}</dd>{/if}
   </dl>
   <div class="action-row">
-    <button class="secondary" disabled={busy} onclick={onread}>Consultar recibo</button>
-    <button class="secondary" disabled={busy} onclick={exportReceipt}>Descargar recibo</button>
-    {#if !receipt.withdrawal && canWithdraw}<button
-        class="secondary"
+    <Button variant="secondary" disabled={busy} onclick={onread}>Consultar recibo</Button>
+    <Button variant="secondary" disabled={busy} onclick={exportReceipt}>Descargar recibo</Button>
+    {#if !receipt.withdrawal && canWithdraw}<Button
+        variant="secondary"
         disabled={busy}
-        onclick={onwithdraw}>Retirar v&#237;nculo</button
+        onclick={onwithdraw}>Retirar v&#237;nculo</Button
       >{/if}
   </div>
 </section>

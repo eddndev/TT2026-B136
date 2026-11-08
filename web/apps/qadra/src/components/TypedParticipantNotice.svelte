@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import ParticipantSummary from './ParticipantSummary.svelte';
   import ParticipantSubjectSummary from './ParticipantSubjectSummary.svelte';
   import ParticipantConflictDirectory from './ParticipantConflictDirectory.svelte';
@@ -20,8 +21,8 @@
     guardado la ficha.
   </p>{/if}
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-{#if conflict}<button class="secondary" disabled={pending} onclick={onrefresh}
-    >Consultar datos actuales</button
+{#if conflict}<Button variant="secondary" disabled={pending} onclick={onrefresh}
+    >Consultar datos actuales</Button
   >{/if}
 {#if current?.record || current?.identity}<section
     class="participant-comparison"
@@ -35,19 +36,19 @@
       Tu formulario se conserva. Al usar esta base deber&#225;s revisar los candidatos y preparar
       otra declaraci&#243;n.
     </p>
-    {#if !current.exact}<button
-        class="secondary"
+    {#if !current.exact}<Button
+        variant="secondary"
         disabled={pending || closed}
-        onclick={onusecurrent}>Usar esta base y conservar mi formulario</button
+        onclick={onusecurrent}>Usar esta base y conservar mi formulario</Button
       >{/if}
   </section>{/if}
-{#if uncertain}<button class="secondary" disabled={pending} onclick={onreconcile}
-    >Consultar resultado del env&#237;o</button
-  >{#if checkedAbsent}<button class="secondary" disabled={pending || closed} onclick={onresend}
-      >Reenviar el mismo registro</button
+{#if uncertain}<Button variant="secondary" disabled={pending} onclick={onreconcile}
+    >Consultar resultado del env&#237;o</Button
+  >{#if checkedAbsent}<Button variant="secondary" disabled={pending || closed} onclick={onresend}
+      >Reenviar el mismo registro</Button
     >{/if}{/if}
-{#if error && !pending}<button class="text-button" onclick={() => (showDirectory = !showDirectory)}
-    >Consultar directorio completo</button
+{#if error && !pending}<Button variant="text" onclick={() => (showDirectory = !showDirectory)}
+    >Consultar directorio completo</Button
   >{/if}
 
 {#if showDirectory}<ParticipantConflictDirectory

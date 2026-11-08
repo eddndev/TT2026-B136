@@ -1,7 +1,7 @@
 //! Values exchanged by identity ports and inbound use cases.
 
 use domain::crypto::RecoveryCodeSet;
-use domain::identity::{Role, UserId};
+use domain::identity::{DisplayName, Role, UserId};
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroizing;
 
@@ -10,6 +10,7 @@ use zeroize::Zeroizing;
 pub struct UserRecord {
     pub id: UserId,
     pub email: String,
+    pub display_name: DisplayName,
     pub password_hash: String,
     pub role: Role,
     pub active: bool,
@@ -56,9 +57,26 @@ impl From<&UserRecord> for Principal {
 /// One-time material returned when an account is enrolled.
 pub struct EnrollmentResult {
     pub principal: Principal,
+    pub display_name: DisplayName,
     pub totp_secret_base32: Zeroizing<String>,
     pub otpauth_uri: Zeroizing<String>,
     pub recovery_codes: Vec<Zeroizing<String>>,
+}
+
+/// Admitted account read with its display name; the name stays out of [`Principal`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CurrentAccount {
+    pub principal: Principal,
+    pub display_name: DisplayName,
+}
+
+/// Fixed label for the separately provisioned CA identity store, which keeps no
+/// display names. It is never stored and never shown to anyone.
+pub const CA_OPERATOR_DISPLAY_NAME: &str = "CA operator";
+
+/// Returns [`CA_OPERATOR_DISPLAY_NAME`] as a validated display name.
+pub fn ca_operator_display_name() -> DisplayName {
+    DisplayName::from_stored(CA_OPERATOR_DISPLAY_NAME).expect("CA operator label is canonical")
 }
 
 /// Password-verified challenge awaiting a second factor.

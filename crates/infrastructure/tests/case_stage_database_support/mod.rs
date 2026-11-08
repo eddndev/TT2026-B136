@@ -123,11 +123,17 @@ impl IdentityWorkflow for TestIdentity {
     fn authorize(&self, _: &str, _: Permission) -> Result<Principal, ApplicationError> {
         unreachable!()
     }
-    fn bootstrap_owner(&self, _: &str, _: &str) -> Result<EnrollmentResult, ApplicationError> {
+    fn bootstrap_owner(
+        &self,
+        _: &str,
+        _: &str,
+        _: &str,
+    ) -> Result<EnrollmentResult, ApplicationError> {
         unreachable!()
     }
     fn create_user(
         &self,
+        _: &str,
         _: &str,
         _: &str,
         _: &str,
@@ -145,6 +151,12 @@ impl IdentityWorkflow for TestIdentity {
         unreachable!()
     }
     fn logout(&self, _: &str) -> Result<(), ApplicationError> {
+        unreachable!()
+    }
+    fn current_account(
+        &self,
+        _: &str,
+    ) -> Result<application::identity::CurrentAccount, ApplicationError> {
         unreachable!()
     }
 }

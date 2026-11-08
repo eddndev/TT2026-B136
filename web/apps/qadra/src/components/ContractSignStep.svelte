@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // The signing step of a contract party: the server prepares the 303-byte
   // CTRTSIG1 statement for this operation, the party signs those exact
   // bytes with its key in this browser (or outside Qadra) and sends only the
@@ -108,7 +109,7 @@
   <h3>3. Firma</h3>
   {#if disabled}<p class="hint">Completa los pasos anteriores para firmar.</p>
   {:else if !prepared}<p role="status">{busy ? 'Preparando la declaraci\u00f3n...' : ''}</p>
-    {#if !busy}<button class="secondary" onclick={prepare}>Preparar la firma</button>{/if}
+    {#if !busy}<Button variant="secondary" onclick={prepare}>Preparar la firma</Button>{/if}
   {:else if mode === 'editing'}
     <p>
       Firmar&#225;s la declaraci&#243;n de esta solicitud: incluye la huella del PDF, las dos
@@ -127,13 +128,13 @@
       />{/key}
     <details>
       <summary>Firmar la declaraci&#243;n fuera de Qadra</summary>
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         onclick={() =>
           download(
             new Blob([statementBytes], { type: 'application/octet-stream' }),
             'contract-statement.bin',
-          )}>Descargar declaraci&#243;n</button
+          )}>Descargar declaraci&#243;n</Button
       >
       <SigningExternalInstructions kind="contract" />
       <SigningPublicFile
@@ -143,12 +144,14 @@
         onerror={(failure) => (error = failure.message)}
       />
     </details>
-    <button class="primary" disabled={busy || !signature} onclick={submit}>Enviar firma</button>
+    <Button variant="primary" disabled={busy || !signature} onclick={submit}>Enviar firma</Button>
   {:else if mode === 'uncertain'}<section class="notice stack">
       <h4>Resultado pendiente de confirmar</h4>
       <p>Consultar el recibo no vuelve a enviar la firma.</p>
       <code>{operationId}</code>
-      <button class="secondary" disabled={busy} onclick={receipt}>Consultar recibo de firma</button>
+      <Button variant="secondary" disabled={busy} onclick={receipt}
+        >Consultar recibo de firma</Button
+      >
     </section>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 </section>

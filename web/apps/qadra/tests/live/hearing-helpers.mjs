@@ -1,12 +1,12 @@
 import { expect } from '@playwright/test';
-import { fixture } from './helpers.mjs';
+import { fixture, openSection } from './helpers.mjs';
 export const accounts = fixture.hearings;
 export const editor = (page) =>
   page.getByRole('region', { name: 'Formulario de audiencia', exact: true });
 export const detail = (page) =>
   page.getByRole('region', { name: 'Detalle de audiencia', exact: true });
 export async function openHearings(page) {
-  await page.getByRole('link', { name: 'Audiencias', exact: true }).click();
+  await openSection(page, 'Audiencias');
   await expect(
     page.getByRole('heading', { name: 'Audiencias del expediente', exact: true }),
   ).toBeVisible();

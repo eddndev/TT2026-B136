@@ -25,7 +25,7 @@ def enroll():
         raise SystemExit('Corpus capture already has private material; use verify or restore')
     password = secrets.token_urlsafe(32)
     row = request('POST', '/api/v1/users', {
-        'email': 'api-legal-corpus-' + uuid4().hex + '@example.com',
+        'email': 'api-legal-corpus-' + uuid4().hex + '@example.com', 'name': 'Legal corpus owner',
         'password': password, 'role': 'owner',
     }, expected=201)
     saved = {'user_id': row['user']['id'], 'email': row['user']['email'],

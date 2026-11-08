@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import StageEntry from './StageEntry.svelte';
   import StageHistory from './StageHistory.svelte';
@@ -105,8 +106,8 @@
   <div class="card case-stage stage-current">
     <div class="section-heading">
       <h2>Etapa actual registrada</h2>
-      <button class="secondary" disabled={pending || editing} onclick={load}
-        >Actualizar etapa</button
+      <Button variant="secondary" disabled={pending || editing} onclick={load}
+        >Actualizar etapa</Button
       >
     </div>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
@@ -117,29 +118,30 @@
       {#if !record.administration.profile}<p class="notice">
           Completa la ficha penal para registrar una etapa.
         </p>
-        <button class="secondary" onclick={() => onnavigate('case-summary')}>Ir al resumen</button>
-      {:else if canManage && action && !editing && !recoverOnly}<button
-          class="primary"
+        <Button variant="secondary" onclick={() => onnavigate('case-summary')}>Ir al resumen</Button
+        >
+      {:else if canManage && action && !editing && !recoverOnly}<Button
+          variant="primary"
           disabled={pending}
           onclick={open}
           >{action === 'adoption'
             ? 'Registrar etapa actual'
-            : `Registrar paso a ${stageLabels[action]}`}</button
+            : `Registrar paso a ${stageLabels[action]}`}</Button
         >
       {:else if current?.stage === 'trial'}<p class="hint">
           No hay otro avance ordinario disponible.
         </p>{/if}
-      {#if recoverOnly && !editing && manageCase(user.role)}<button
-          class="secondary"
+      {#if recoverOnly && !editing && manageCase(user.role)}<Button
+          variant="secondary"
           disabled={pending}
-          onclick={open}>Retomar borrador de etapa</button
+          onclick={open}>Retomar borrador de etapa</Button
         >{/if}
-      <button
-        class="text-button"
+      <Button
+        variant="text"
         disabled={pending}
         aria-expanded={history}
         onclick={() => (history = !history)}
-        >{history ? 'Ocultar historial de etapas' : 'Ver historial de etapas'}</button
+        >{history ? 'Ocultar historial de etapas' : 'Ver historial de etapas'}</Button
       >
     {/if}
   </div>

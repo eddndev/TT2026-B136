@@ -124,14 +124,14 @@
   z-index: 1;
   cursor: pointer;
 }
-.participant-file-picker:focus-within .secondary {
+.participant-file-picker:focus-within .btn-secondary {
   outline: 3px solid #80a1f5;
   outline-offset: 3px;
 }
 .participant-file-picker input:disabled {
   cursor: not-allowed;
 }
-.participant-file-picker input:disabled + .secondary {
+.participant-file-picker input:disabled + .btn-secondary {
   opacity: 0.55;
 }
 .participant-history {
@@ -178,12 +178,6 @@
   }
   .participant-detail .section-heading > .action-row {
     width: 100%;
-  }
-  .participant-dialog .dialog-actions {
-    flex-wrap: wrap;
-  }
-  .participant-dialog .dialog-actions > button {
-    flex: 1;
   }
 }
 .participant-dialog textarea {

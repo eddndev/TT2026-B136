@@ -11,6 +11,7 @@ export async function provisionDashboard(call) {
       "POST",
       "/users",
       {
+        name: `Dashboard ${role}`,
         email: `web-dashboard-${role}@example.com`,
         password,
         role,

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import OwnerCertificateEditor from './OwnerCertificateEditor.svelte';
   import OwnerCertificateReceipt from './OwnerCertificateReceipt.svelte';
@@ -126,7 +127,7 @@
 {#if !ready}
   <section class="card">
     <p role="status">Consultando tu cuenta y su v&#237;nculo...</p>
-    {#if !busy}<button class="secondary" onclick={load}>Volver a consultar</button>{/if}
+    {#if !busy}<Button variant="secondary" onclick={load}>Volver a consultar</Button>{/if}
   </section>
 {:else}
   <KeyRequest
@@ -139,20 +140,21 @@
     {#each pending as saved (saved.key)}<section class="card retained">
         <h2>Intento pendiente</h2>
         <p>Conservado en memoria para esta cuenta. Reabrir no lo env&#237;a.</p>
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           onclick={() =>
             saved.action === 'register' ? openRegistration(saved) : openWithdrawal(saved)}
         >
           {saved.action === 'register' ? 'Continuar registro' : 'Continuar retiro'}
-        </button>
+        </Button>
       </section>{/each}
     {#if !current && !pending.some((row) => row.action === 'register')}
       <section class="card stack">
         <h2>Registrar mi certificado</h2>
         <p>No hay un v&#237;nculo sin retirar para tu cuenta.</p>
         <div class="action-row">
-          <button class="primary" onclick={() => openRegistration()}>Registrar certificado</button>
+          <Button variant="primary" onclick={() => openRegistration()}>Registrar certificado</Button
+          >
         </div>
       </section>
     {/if}

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // Rows of contracts or signature requests, each with a plain state label.
   export let title,
     description = '',
@@ -17,7 +18,8 @@
       <h2>{title}</h2>
       {#if description}<p class="hint">{description}</p>{/if}
     </div>
-    {#if onrefresh}<button class="secondary" disabled={busy} onclick={onrefresh}>Actualizar</button
+    {#if onrefresh}<Button variant="secondary" disabled={busy} onclick={onrefresh}
+        >Actualizar</Button
       >{/if}
   </div>
   {#if busy}<p role="status">Consultando contratos...</p>{/if}
@@ -28,12 +30,12 @@
         <h3>{row.title}</h3>
         {#if row.detail}<p class="hint">{row.detail}</p>{/if}
       </div>
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={busy}
         aria-label={`Abrir ${row.title}`}
         aria-pressed={selected === row.id}
-        onclick={() => onopen(row.id)}>Abrir</button
+        onclick={() => onopen(row.id)}>Abrir</Button
       >
     </article>{/each}
   {#if loaded && !busy && !rows.length}<p class="hint">{empty}</p>{/if}

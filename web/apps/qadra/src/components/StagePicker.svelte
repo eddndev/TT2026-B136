@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import StageSupportSummary from './StageSupportSummary.svelte';
   export let api,
@@ -114,14 +115,14 @@
   {#if !document}
     <div class="stage-search">
       <label>Nombre del soporte<input bind:value={name} disabled={busy || disabled} /></label>
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={busy || disabled}
         onclick={() => {
           query = name.trim();
           list();
-        }}>Buscar soporte</button
+        }}>Buscar soporte</Button
       >
     </div>
     <div class="stage-pick-list">
@@ -134,17 +135,17 @@
     </div>
     {#if !busy && !rows.length}<p>No hay documentos en esta p&#225;gina.</p>{/if}
     <div class="action-row">
-      {#if offset}<button
+      {#if offset}<Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={busy || disabled}
-          onclick={() => list(Math.max(0, offset - 20))}>Documentos anteriores</button
+          onclick={() => list(Math.max(0, offset - 20))}>Documentos anteriores</Button
         >{/if}
-      {#if more}<button
+      {#if more}<Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={busy || disabled}
-          onclick={() => list(offset + 20)}>Documentos siguientes</button
+          onclick={() => list(offset + 20)}>Documentos siguientes</Button
         >{/if}
     </div>
   {:else}
@@ -160,31 +161,31 @@
             : 'Hist\u00f3rica'}</button
         >{/each}
     </div>
-    {#if versionMore}<button
+    {#if versionMore}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={busy || disabled}
-        onclick={() => history(document, cursor)}>Cargar versiones anteriores</button
+        onclick={() => history(document, cursor)}>Cargar versiones anteriores</Button
       >{/if}
-    {#if exact}<StageSupportSummary record={exact} /><button
+    {#if exact}<StageSupportSummary record={exact} /><Button
         type="button"
-        class="primary"
+        variant="primary"
         disabled={busy || disabled}
         onclick={() => {
           if (admitted()) onselected(exact);
-        }}>Usar esta versi&#243;n</button
+        }}>Usar esta versi&#243;n</Button
       >{/if}
-    <button
+    <Button
       type="button"
-      class="text-button"
+      variant="text"
       disabled={busy || disabled}
       onclick={() => {
         document = null;
         exact = null;
-      }}>Elegir otro documento</button
+      }}>Elegir otro documento</Button
     >
   {/if}
-  <button type="button" class="text-button" disabled={busy || disabled} onclick={oncancel}
-    >Cerrar selector</button
+  <Button type="button" variant="text" disabled={busy || disabled} onclick={oncancel}
+    >Cerrar selector</Button
   >
 </section>

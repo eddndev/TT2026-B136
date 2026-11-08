@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { createInvitationAcceptanceApi } from '../lib/invitation-acceptance-api.mjs';
   import { invitationOperations } from '../lib/invitation-operation.mjs';
@@ -158,17 +159,15 @@
         /></label
       >
     {/if}
-    <button class="primary" disabled={busy || !operations || (mode === 'finish' && !saved)}
+    <Button variant="primary" disabled={busy || !operations || (mode === 'finish' && !saved)}
       >{busy
         ? 'Comprobando...'
         : mode === 'prepare'
           ? 'Preparar segundo factor'
           : mode === 'finish'
             ? 'Confirmar alta'
-            : 'Comprobar resultado'}</button
+            : 'Comprobar resultado'}</Button
     >
   </form>
 {/if}
-<button class="text-button" type="button" disabled={busy} onclick={onclose}
-  >Ir a iniciar sesion</button
->
+<Button variant="text" type="button" disabled={busy} onclick={onclose}>Ir a iniciar sesion</Button>

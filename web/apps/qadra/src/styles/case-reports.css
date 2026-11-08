@@ -47,7 +47,7 @@
   line-height: 1.6;
   margin: 12px 0;
 }
-.report-request form > .primary {
+.report-request form > .btn-primary {
   width: 100%;
   margin-top: 10px;
 }
@@ -82,7 +82,7 @@
   line-height: 1.55;
   margin: 6px 0;
 }
-.report-row .secondary {
+.report-row .btn-secondary {
   flex-shrink: 0;
 }
 .report-phase {

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import ResourceHearingDetail from './ResourceHearingDetail.svelte';
   import { resourceHearingCreationScope } from '../lib/resource-hearing-creation.mjs';
@@ -151,8 +152,8 @@
 <section class="fact-collection" aria-label="Audiencias del recurso" aria-busy={busy}>
   <div class="section-heading">
     <h3>Audiencias del recurso</h3>
-    <button class="secondary" disabled={disabled || busy} onclick={() => load()}
-      >Actualizar audiencias del recurso</button
+    <Button variant="secondary" disabled={disabled || busy} onclick={() => load()}
+      >Actualizar audiencias del recurso</Button
     >
   </div>
   <p class="hint">Programaciones conservadas, incluso si su asociaci&#243;n fue desvinculada.</p>
@@ -172,8 +173,8 @@
       </button>
     {/each}
   </div>
-  {#if more}<button class="secondary" disabled={disabled || busy} onclick={() => load(true)}
-      >Cargar mas audiencias del recurso</button
+  {#if more}<Button variant="secondary" disabled={disabled || busy} onclick={() => load(true)}
+      >Cargar mas audiencias del recurso</Button
     >{/if}
   {#if selected && caseRecord}
     <ResourceHearingDetail

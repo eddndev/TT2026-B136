@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { auditOutcomeLabel, auditSourceLabel } from '../lib/audit-event-context.mjs';
   export let api, user;
@@ -125,7 +126,7 @@
         </select></label
       >
       <div class="action-row">
-        <button class="primary" disabled={busy}>Consultar</button>
+        <Button variant="primary" disabled={busy}>Consultar</Button>
       </div>
     </form>
     <p class="hint">
@@ -181,9 +182,9 @@
           Ning&#250;n movimiento coincide con estos filtros.
         </p>{/if}
       <div class="action-row">
-        <button class="secondary" onclick={() => load()}>Actualizar</button>
-        {#if value.has_more}<button class="secondary" onclick={() => load(true)}
-            >Siguiente p&#225;gina</button
+        <Button variant="secondary" onclick={() => load()}>Actualizar</Button>
+        {#if value.has_more}<Button variant="secondary" onclick={() => load(true)}
+            >Siguiente p&#225;gina</Button
           >
         {:else}<span class="hint">No hay m&#225;s movimientos.</span>{/if}
       </div>

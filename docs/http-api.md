@@ -241,15 +241,15 @@ transacción.
 | Método y ruta | Acceso | Resultado |
 | --- | --- | --- |
 | `GET /healthz` | Público | Estado del proceso. |
-| `POST /api/v1/auth/bootstrap` | Público hasta el primer usuario | Crea el owner y devuelve material TOTP y recuperación una sola vez; `201`. |
+| `POST /api/v1/auth/bootstrap` | Público hasta el primer usuario | Crea el owner con `email`, `name` y `password` y devuelve material TOTP y recuperación una sola vez; `201`. |
 | `POST /api/v1/auth/login` | Público | Verifica contraseña y devuelve un desafío MFA de 5 minutos. |
 | `POST /api/v1/auth/mfa/totp` | Desafío | Consume un intento MFA y devuelve sesión con límite absoluto de 24 horas y metadatos de vigencia. |
 | `POST /api/v1/auth/mfa/recovery` | Desafío | Consume un código de recuperación y devuelve una sesión. |
-| `GET /api/v1/auth/me` | Bearer | Devuelve la identidad vigente. |
+| `GET /api/v1/auth/me` | Bearer | Devuelve la identidad vigente: `id`, `email`, `name` y `role`. |
 | `GET /api/v1/auth/session` | Bearer, cualquier rol | Devuelve identidad, política y plazos vigentes sin renovar; `200`. |
 | `POST /api/v1/auth/activity` | Bearer, cualquier rol | Registra actividad explícita dentro de la misma sesión vigente; `200`. |
 | `POST /api/v1/auth/logout` | Bearer | Revoca la sesión; `204`. |
-| `POST /api/v1/users` | Owner | Crea otro usuario y devuelve su material de enrolamiento; `201`. |
+| `POST /api/v1/users` | Owner | Crea otro usuario con `email`, `name`, `password` y `role` y devuelve su material de enrolamiento; `201`. |
 
 Ejemplo de alta y primer paso de login:
 
@@ -257,12 +257,22 @@ Ejemplo de alta y primer paso de login:
 base=http://127.0.0.1:3000
 curl --fail-with-body -X POST "$base/api/v1/auth/bootstrap" \
   -H 'Content-Type: application/json' \
-  --data '{"email":"owner@example.com","password":"correct horse battery staple"}'
+  --data '{"email":"owner@example.com","name":"Ana García","password":"correct horse battery staple"}'
 
 curl --fail-with-body -X POST "$base/api/v1/auth/login" \
   -H 'Content-Type: application/json' \
   --data '{"email":"owner@example.com","password":"correct horse battery staple"}'
 ```
+
+`name` es el nombre visible de la cuenta y lo escribe el Owner al crearla
+([ADR 0087](adr/0087-account-display-names.md)). Es obligatorio en bootstrap y
+en `POST /api/v1/users`; login no lo acepta. El servidor rechaza cualquier
+carácter de control (Cc), de formato (Cf), U+2028 o U+2029, después recorta
+los espacios de los extremos y exige de 1 a 120 caracteres Unicode. Un nombre
+inválido responde `422 invalid_display_name`; un cuerpo sin `name` lo rechaza
+el lector JSON con `422`. El nombre queda fijo: no existe ruta para cambiarlo,
+no aparece en el directorio de miembros ni en los eventos de auditoría, y la
+respuesta de enrolamiento lo devuelve dentro de `user`.
 
 Las respuestas de las rutas MFA incluyen `X-Request-Id`, generado por el servidor.
 El resultado y los motivos internos se consultan en los
@@ -290,7 +300,7 @@ Estado y actividad devuelven esta forma, sin bearer nuevo ni generación interna
 
 ```json
 {
-  "user": {"id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "email": "owner@example.com", "role": "owner"},
+  "user": {"id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "email": "owner@example.com", "name": "Ana García", "role": "owner"},
   "policy": {"absolute_ttl_seconds": 86400, "idle_ttl_seconds": null},
   "server_now_unix_ms": 1790899200000,
   "absolute_expires_at_unix_ms": 1790985600000,

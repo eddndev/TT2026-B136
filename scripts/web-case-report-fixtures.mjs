@@ -12,6 +12,7 @@ export async function provisionCaseReports(call) {
       "POST",
       "/users",
       {
+        name: `Case report ${role}`,
         email: `web-case-reports-${role}@example.com`,
         password,
         role,
@@ -71,6 +72,7 @@ async function provisionActivity(call) {
       "POST",
       "/users",
       {
+        name: `Report activity ${name}`,
         email: `web-report-activity-${name}@example.com`,
         password,
         role: "litigator",

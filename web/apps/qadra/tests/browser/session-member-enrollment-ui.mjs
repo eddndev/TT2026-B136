@@ -5,6 +5,7 @@ import {
   initialPassword,
   enrollmentSecret,
   enrollmentCode,
+  submittedName,
 } from './session-member-enrollment-fixtures.mjs';
 
 export { directory };
@@ -13,6 +14,7 @@ export const panel = (page) =>
   page.locator('.admin-panel').filter({
     has: page.getByRole('heading', { name: 'Nuevo integrante', exact: true }),
   });
+export const name = (page) => panel(page).getByLabel('Nombre del nuevo usuario', { exact: true });
 export const email = (page) => panel(page).getByLabel('Correo del nuevo usuario', { exact: true });
 export const password = (page) =>
   panel(page).getByLabel('Contrase\u00f1a inicial', { exact: true });
@@ -32,6 +34,7 @@ export async function enterEnrollment(page) {
 }
 
 export async function fillEnrollment(page, address = rawEmail) {
+  await name(page).fill(submittedName);
   await email(page).fill(address);
   await role(page).selectOption('litigator');
   await password(page).fill(initialPassword);
@@ -49,6 +52,7 @@ export async function expectNoEnrollmentMaterial(page) {
 
 export async function expectBlankEnrollment(page) {
   await expect(resume(page)).toHaveCount(0);
+  await expect(name(page)).toHaveValue('');
   await expect(email(page)).toHaveValue('');
   await expect(role(page)).toHaveValue('paralegal');
   await expectNoEnrollmentMaterial(page);

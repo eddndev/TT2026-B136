@@ -12,7 +12,7 @@ fn old_sessions_do_not_revive_after_deactivation_and_reactivation() {
     let users = Arc::new(MemoryUsers::default());
     let service = service(users.clone(), Arc::new(MemorySessions::default()));
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let mut tokens = Vec::new();
     for code in &owner.recovery_codes[..2] {
@@ -41,7 +41,7 @@ fn old_password_challenge_cannot_take_the_generation_of_a_reactivated_account() 
     let users = Arc::new(MemoryUsers::default());
     let service = service(users.clone(), Arc::new(MemorySessions::default()));
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let challenge = service
         .start_login("owner@example.com", "correct horse battery")
@@ -69,7 +69,7 @@ fn role_change_during_totp_verification_prevents_session_issuance() {
         }),
     );
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let challenge = service
         .start_login("owner@example.com", "correct horse battery")
@@ -98,7 +98,7 @@ fn consuming_another_recovery_code_does_not_revoke_existing_generation_sessions(
         Arc::new(MemorySessions::default()),
     );
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let first = super::login_with_recovery(&service, &owner, "correct horse battery");
     let challenge = service

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { activityReport, reportPeriod, phaseLabel } from '../lib/case-reports-presentation.mjs';
   export let rows = [],
     busy = false,
@@ -32,11 +33,11 @@
             >{row.notice.read_at ? 'Aviso le\u00eddo' : 'Aviso sin leer'}</span
           >{/if}
       </div>
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={busy}
         aria-label={`Consultar informe ${row.id}`}
-        onclick={() => onopen(row.id)}>Consultar informe</button
+        onclick={() => onopen(row.id)}>Consultar informe</Button
       >
     </article>{/each}
   {#if loaded && !busy && !rows.length}<p class="report-empty">
@@ -44,6 +45,6 @@
     </p>{/if}
   {#if more}<div class="report-pagination">
       <p class="hint">Hay m&#225;s solicitudes disponibles.</p>
-      <button class="secondary" disabled={busy} onclick={onmore}>Siguientes informes</button>
+      <Button variant="secondary" disabled={busy} onclick={onmore}>Siguientes informes</Button>
     </div>{/if}
 </section>

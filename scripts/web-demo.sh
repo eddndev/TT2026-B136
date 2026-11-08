@@ -174,8 +174,8 @@ fi
 umask 077
 curl -fsS -X POST "$API_PROXY_TARGET/api/v1/auth/bootstrap" \
   -H 'Content-Type: application/json' \
-  --data '{"email":"browser@example.com","password":"browser demonstration password"}' \
-  | jq '{email: .user.email, password: "browser demonstration password", recoveryCodes: .recovery_codes}' \
+  --data '{"email":"browser@example.com","name":"Browser Owner","password":"browser demonstration password"}' \
+  | jq '{email: .user.email, name: .user.name, password: "browser demonstration password", recoveryCodes: .recovery_codes}' \
   >"$TT_WEB_FIXTURES"
 provision_fixture() {
   if node "$REPO_ROOT/scripts/web-live-plan.mjs" --has "$1"; then

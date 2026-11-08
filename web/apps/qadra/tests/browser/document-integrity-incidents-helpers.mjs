@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { setup, login, navigate, caseId, id, document } from './helpers.mjs';
+import { setup, login, navigate, openSection, caseId, id, document } from './helpers.mjs';
 import { incidentRecord, incidentPage } from '../fixtures/document-integrity-incidents.mjs';
 
 export const inbox = (page) =>
@@ -56,7 +56,7 @@ export async function setupIncidents(page, role = 'owner') {
 }
 export async function openIncidentsTab(page) {
   await navigate(page, 'Bit\u00e1cora');
-  await page.getByRole('button', { name: 'Incidentes de integridad', exact: true }).click();
+  await openSection(page, 'Incidentes de integridad');
 }
 export async function enterIncidents(page) {
   await login(page, false, false);

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import DeadlineFieldsBoolean from './DeadlineFieldsBoolean.svelte';
   import DeadlineFieldsSource from './DeadlineFieldsSource.svelte';
@@ -130,8 +131,8 @@
 
 <div class="hearing-fields fact-fields">
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button type="button" class="secondary" disabled={locked} onclick={loadProfile}
-      >Consultar perfil seleccionado</button
+    <Button type="button" variant="secondary" disabled={locked} onclick={loadProfile}
+      >Consultar perfil seleccionado</Button
     >{/if}
   <label
     >T&#237;tulo del plazo<input
@@ -168,8 +169,11 @@
         expediente.
       </p>
     {/if}
-    <button type="button" class="secondary" disabled={locked} onclick={() => (choosing = 'profile')}
-      >Elegir perfil exacto</button
+    <Button
+      type="button"
+      variant="secondary"
+      disabled={locked}
+      onclick={() => (choosing = 'profile')}>Elegir perfil exacto</Button
     >
     <DeadlinePolicyChoice
       dependency="profile"
@@ -182,11 +186,11 @@
     <h3>Responsable</h3>
     {#if responsible}<p>{responsible.email} / {responsible.role}</p>
     {:else}<p>Selecciona una persona con acceso vigente al expediente.</p>{/if}
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={locked}
-      onclick={() => (choosing = 'responsible')}>Elegir responsable</button
+      onclick={() => (choosing = 'responsible')}>Elegir responsable</Button
     >
   </section>
   {#if choosing === 'profile'}<DeadlineCatalogPicker
@@ -253,20 +257,20 @@
         bloqueado.
       </p>{/if}
     <div class="action-row">
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={locked}
-        onclick={() => (choosing = 'calendar')}>Elegir calendario exacto</button
+        onclick={() => (choosing = 'calendar')}>Elegir calendario exacto</Button
       >
-      {#if value.input.calendar}<button
+      {#if value.input.calendar}<Button
           type="button"
-          class="text-button"
+          variant="text"
           disabled={locked}
           onclick={() => {
             value = { ...value, input: { ...value.input, calendar: null } };
             calendarName = '';
-          }}>Declarar calendario ausente</button
+          }}>Declarar calendario ausente</Button
         >{/if}
     </div>
     <DeadlinePolicyChoice
@@ -360,11 +364,11 @@
     {#each missingConditions as condition}<section class="case-comparison">
         <p class="case-multiline">{condition.statement}</p>
         <p>Sin declaraci&#243;n guardada.</p>
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={locked}
-          onclick={() => addCondition(condition)}>Agregar declaraci&#243;n de condici&#243;n</button
+          onclick={() => addCondition(condition)}>Agregar declaraci&#243;n de condici&#243;n</Button
         >
       </section>{/each}
     {#if !value.input.qualification.conditions.length}<p>

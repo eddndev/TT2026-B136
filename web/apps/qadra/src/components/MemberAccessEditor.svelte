@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { roles } from '../lib/documents.mjs';
   import { memberAccessChange } from '../lib/members-values.mjs';
@@ -185,7 +186,7 @@
       <h2>{base.email}</h2>
       <p class="hint">Revisi&#243;n consultada {base.revision}</p>
     </div>
-    <button class="text-button" disabled={busy} onclick={close}>Cerrar acceso de cuenta</button>
+    <Button variant="text" disabled={busy} onclick={close}>Cerrar acceso de cuenta</Button>
   </div>
   <p class="notice">
     Desactivar conserva las asignaciones y bloquea el acceso. Reactivar conserva esas asignaciones y
@@ -195,8 +196,8 @@
       Un cambio efectivo de tu propio rol o estado cerrar&#225; esta sesi&#243;n.
     </p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if mode === 'blocked'}<button class="secondary" disabled={busy} onclick={retry}
-      >Volver a consultar el acceso de cuenta</button
+  {#if mode === 'blocked'}<Button variant="secondary" disabled={busy} onclick={retry}
+      >Volver a consultar el acceso de cuenta</Button
     >{/if}
   <form class="stack" onsubmit={review}>
     <div class="case-field-grid">
@@ -211,7 +212,7 @@
         </select></label
       >
     </div>
-    {#if mode === 'draft'}<button class="primary" disabled={busy}>Revisar acceso</button>{/if}
+    {#if mode === 'draft'}<Button variant="primary" disabled={busy}>Revisar acceso</Button>{/if}
   </form>
   {#if mode === 'review'}<div class="notice">
       <h3>Confirmar los permisos seleccionados</h3>
@@ -225,15 +226,16 @@
         hist&#243;ricas permanecen intactas.
       </p>
       <div class="action-row">
-        <button class="primary" disabled={busy} onclick={confirm}>Confirmar cambio de acceso</button
+        <Button variant="primary" disabled={busy} onclick={confirm}
+          >Confirmar cambio de acceso</Button
         >
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={busy}
           onclick={() => {
             mode = 'draft';
             prepared = null;
-          }}>Editar selecci&#243;n</button
+          }}>Editar selecci&#243;n</Button
         >
       </div>
     </div>{/if}
@@ -243,14 +245,14 @@
           ? 'No se pudo confirmar el resultado. Consulta la cuenta antes de realizar otro cambio.'
           : 'La revisi\u00f3n cambi\u00f3. Revisa el estado actual y decide si conservas tu selecci\u00f3n.'}
       </p>
-      <button class="secondary" disabled={busy} onclick={consult}>Consultar cuenta actual</button>
+      <Button variant="secondary" disabled={busy} onclick={consult}>Consultar cuenta actual</Button>
       {#if candidate}<p>
           Revisi&#243;n actual {candidate.revision}: {roles[candidate.role]} / {candidate.active
             ? 'Activa'
             : 'Inactiva'}.
         </p>
-        <button class="secondary" disabled={busy} onclick={accept}
-          >Usar revisi&#243;n actual y conservar cambios</button
+        <Button variant="secondary" disabled={busy} onclick={accept}
+          >Usar revisi&#243;n actual y conservar cambios</Button
         >{/if}
     </div>{/if}
 </section>

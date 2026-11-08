@@ -38,6 +38,7 @@ export async function contractSetup(page, role, material, options = {}) {
   const user = {
     id: position === 1 ? inputs.client_account_id : inputs.firm_account_id,
     email: position === 1 ? 'cliente@example.test' : 'litigante@example.test',
+    name: position === 1 ? 'Cliente Ejemplo' : 'Litigante Ejemplo',
     role,
   };
   const expiresAt = Math.floor(Date.now() / 1000) + 7 * 86400;

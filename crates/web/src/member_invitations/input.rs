@@ -17,6 +17,7 @@ use super::error::InvitationError;
 pub(super) struct Issue {
     operation_id: String,
     email: String,
+    name: String,
     role: String,
 }
 impl Issue {
@@ -30,6 +31,7 @@ impl Issue {
         Ok(InvitationIssueRequest {
             operation_id: uuid(&self.operation_id)?,
             email: self.email,
+            display_name: self.name,
             role,
         })
     }

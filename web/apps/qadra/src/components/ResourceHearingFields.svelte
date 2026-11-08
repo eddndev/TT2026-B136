@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import HearingDate from './HearingDate.svelte';
   import HearingParticipants from './HearingParticipants.svelte';
@@ -119,8 +120,8 @@
     <h3>Acto del recurso (opcional)</h3>
     {#if act}<p>Acto revisi&#243;n {act.act.revision} / Recurso revisi&#243;n {act.revision}</p>
       <p class="case-multiline">{act.act.values.statement}</p>
-      <button type="button" class="text-button" disabled={disabled || pending} onclick={clearAct}
-        >Quitar acto</button
+      <Button type="button" variant="text" disabled={disabled || pending} onclick={clearAct}
+        >Quitar acto</Button
       >
     {:else}<p>Sin acto seleccionado.</p>{/if}
     {#if choosingAct}<ResourceActivityActPicker
@@ -138,11 +139,11 @@
           choosingAct = false;
         }}
       />
-    {:else}<button
+    {:else}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || pending}
-        onclick={() => (choosingAct = true)}>Elegir acto del recurso</button
+        onclick={() => (choosingAct = true)}>Elegir acto del recurso</Button
       >{/if}
   </section>
   <fieldset class="case-offenses" disabled={disabled || pending}>
@@ -171,11 +172,11 @@
       disabled={disabled || pending}
       onremove={(id) => (participants = participants.filter((row) => row.id !== id))}
     />
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || pending || participants.length >= 32}
-      onclick={() => (choosingParticipant = true)}>Elegir participante</button
+      onclick={() => (choosingParticipant = true)}>Elegir participante</Button
     >
     {#if choosingParticipant}<HearingParticipantPicker
         api={directory}

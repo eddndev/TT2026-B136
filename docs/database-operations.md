@@ -1764,6 +1764,46 @@ el respaldo previo. Las
 [pruebas de invitaciones Cliente](../crates/infrastructure/tests/member_invitation_clients.rs)
 requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
 
+### Nombres visibles de cuentas
+
+Dos migraciones 0053 añaden el nombre visible obligatorio de cada cuenta
+([ADR 0087](adr/0087-account-display-names.md)). Son dos archivos porque la
+familia de miembros se aplica antes que la de invitaciones:
+
+- [0053_user_display_names.sql](../migrations/0053_user_display_names.sql)
+  añade `users.display_name` con la restricción `member_display_name_check`.
+- [0053_invitation_display_names.sql](../migrations/0053_invitation_display_names.sql)
+  añade `member_invitations.display_name` con
+  `member_invitations_display_name_check`.
+
+Cada una agrega la columna `text` sin valor por omisión, rellena las filas
+existentes con la parte local del correo (recortada, limitada a 120
+caracteres, recortada otra vez y `cuenta` si queda vacía), exige `NOT NULL` y
+crea la restricción solo si falta. La restricción exige que el valor ya esté
+recortado y mida de 1 a 120 caracteres; PostgreSQL la guarda como
+`((display_name = btrim(display_name)) AND ((char_length(display_name) >= 1) AND (char_length(display_name) <= 120)))`.
+Repetir `database migrate --runtime-role` no cambia filas ya rellenadas y
+vuelve a otorgar al rol de ejecución `INSERT`, nunca `UPDATE`, sobre la nueva
+columna; la apertura rechaza un rol que pueda actualizarla. El relleno no
+borra datos: las cuentas e invitaciones previas conservan su correo, su rol y
+su revisión.
+
+La restricción no puede expresar la regla de caracteres de control y formato.
+Por eso la apertura del servicio revisa cada `users.display_name` y se niega a
+arrancar ante un valor no canónico; un nombre de invitación corrupto falla al
+leer esa invitación, no al arrancar.
+
+Las operaciones de invitación guardadas antes de la migración no incluyen el
+nombre. Repetir una emisión previa responde conflicto (`409`) y repetir un
+reenvío previo falla como error interno (`500 internal_error`), porque su
+respuesta guardada no contiene el nombre; las operaciones nuevas no se ven
+afectadas.
+Un binario anterior rechaza la columna adicional al arrancar, por lo que volver
+atrás requiere restaurar el respaldo previo a la migración. El esquema
+`qadra_ca` no se modifica. Las
+[pruebas de nombres visibles](../crates/infrastructure/tests/user_display_names.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
 ## Contratos bilaterales
 
 Las tres migraciones 0052 forman una sola familia y se aplican en este orden

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import HearingDate from './HearingDate.svelte';
   import HearingParticipants from './HearingParticipants.svelte';
   import HearingParticipantPicker from './HearingParticipantPicker.svelte';
@@ -97,11 +98,11 @@
   <fieldset class="case-offenses">
     <legend>Participantes previstos ({draft.participants.length}/32)</legend>
     <HearingParticipants {rows} onremove={remove} disabled={disabled || pending} />
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || pending || draft.participants.length >= 32}
-      onclick={() => (picking = true)}>Elegir participante</button
+      onclick={() => (picking = true)}>Elegir participante</Button
     >
     {#if picking}<HearingParticipantPicker
         {api}

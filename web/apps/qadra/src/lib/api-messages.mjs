@@ -47,6 +47,8 @@ export const messages = {
   user_already_exists:
     'Ya existe una cuenta con ese correo. Usa otro correo para el nuevo integrante.',
   bootstrap_closed: 'El despacho ya tiene un administrador. Inicia sesi\u00f3n con tu cuenta.',
+  invalid_display_name:
+    'Escribe un nombre de 1 a 120 caracteres, sin saltos de l\u00ednea ni caracteres de control.',
   invalid_input: 'Revisa los datos ingresados y los l\u00edmites de cada campo.',
   case_not_found: 'El expediente no est\u00e1 disponible o ya no tienes acceso.',
   user_not_found: 'No se encontr\u00f3 un usuario activo con ese identificador.',

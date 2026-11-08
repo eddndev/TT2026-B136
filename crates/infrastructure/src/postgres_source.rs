@@ -1,4 +1,5 @@
 //! Explicit scoped startup validation with no process-wide connection cache.
+use crate::identity::postgres::UserColumns;
 use application::ApplicationError;
 use postgres::Client;
 use std::{cell::RefCell, marker::PhantomData, rc::Rc};
@@ -92,6 +93,9 @@ pub(crate) fn connect(
 pub(crate) fn url(source: &(impl PostgresConnectionSource + ?Sized)) -> &str {
     sealed::Source::url(source)
 }
+pub(crate) fn user_columns(source: &(impl PostgresConnectionSource + ?Sized)) -> UserColumns {
+    sealed::Source::user_columns(source)
+}
 
 mod sealed {
     use super::*;
@@ -99,6 +103,10 @@ mod sealed {
     pub trait Source {
         fn connect(&self) -> Result<Client, ApplicationError>;
         fn url(&self) -> &str;
+        /// The user table family this source opens; office unless overridden.
+        fn user_columns(&self) -> UserColumns {
+            UserColumns::Office
+        }
     }
     impl Source for str {
         fn connect(&self) -> Result<Client, ApplicationError> {
@@ -131,6 +139,9 @@ mod sealed {
         fn url(&self) -> &str {
             (**self).url()
         }
+        fn user_columns(&self) -> UserColumns {
+            (**self).user_columns()
+        }
     }
     impl Source for ValidatedPostgres<'_> {
         fn connect(&self) -> Result<Client, ApplicationError> {
@@ -157,6 +168,9 @@ mod sealed {
         }
         fn url(&self) -> &str {
             self.connection_url()
+        }
+        fn user_columns(&self) -> UserColumns {
+            UserColumns::CertificateAuthority
         }
     }
 }

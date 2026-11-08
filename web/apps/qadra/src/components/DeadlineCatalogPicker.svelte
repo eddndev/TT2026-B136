@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import CalendarValues from './CalendarValues.svelte';
   import CalendarSources from './CalendarSources.svelte';
@@ -106,43 +107,43 @@
       {#if family === 'profile'}<p>
           {row.scope.kind === 'case' ? 'Privado del expediente' : 'Global'}
         </p>{/if}
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
-        onclick={() => history(row.id)}>Revisiones de {row.title || row.scope?.title}</button
+        onclick={() => history(row.id)}>Revisiones de {row.title || row.scope?.title}</Button
       >
     </div>{/each}
   {#if !rows.length && !busy}<p>
       No hay {family === 'profile' ? 'perfiles' : 'calendarios'} publicados en esta p&#225;gina.
     </p>{/if}
   <div class="action-row">
-    <button type="button" class="secondary" disabled={disabled || busy} onclick={() => list()}
-      >Primera p&#225;gina de {noun}</button
+    <Button type="button" variant="secondary" disabled={disabled || busy} onclick={() => list()}
+      >Primera p&#225;gina de {noun}</Button
     >
-    {#if more}<button
+    {#if more}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
         onclick={() => list(cursor)}
-        >Siguientes {family === 'profile' ? 'perfiles' : 'calendarios'}</button
+        >Siguientes {family === 'profile' ? 'perfiles' : 'calendarios'}</Button
       >{/if}
   </div>
   {#if selectedId}<h5>Revisiones del {noun}</h5>
-    {#each revisions as row}<button
+    {#each revisions as row}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
         onclick={() => read(row.revision)}
         >Consultar {noun} revisi&#243;n {row.revision} ({row.status === 'retired'
           ? 'retirado'
-          : 'publicado'})</button
+          : 'publicado'})</Button
       >{/each}
-    {#if historyMore}<button
+    {#if historyMore}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
-        onclick={() => history(selectedId, historyCursor)}>Revisiones anteriores del {noun}</button
+        onclick={() => history(selectedId, historyCursor)}>Revisiones anteriores del {noun}</Button
       >{/if}
   {/if}
   {#if exact}<section class="case-comparison" aria-label={`Revision exacta del ${noun}`}>
@@ -160,14 +161,14 @@
       {#if exact.status === 'retired'}<p class="notice">
           Esta revisi&#243;n est&#225; retirada y no puede elegirse para una captura nueva.
         </p>
-      {:else}<button
+      {:else}<Button
           type="button"
-          class="primary"
+          variant="primary"
           disabled={disabled || busy}
-          onclick={() => onselected(exact)}>Usar este {noun} exacto</button
+          onclick={() => onselected(exact)}>Usar este {noun} exacto</Button
         >{/if}
     </section>{/if}
-  <button type="button" class="text-button" disabled={busy} onclick={oncancel}
-    >Cerrar selector de {noun}</button
+  <Button type="button" variant="text" disabled={busy} onclick={oncancel}
+    >Cerrar selector de {noun}</Button
   >
 </section>

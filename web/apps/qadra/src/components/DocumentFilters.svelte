@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import { metadataFilters } from '../lib/document-metadata.mjs';
   export let onapply;
@@ -38,7 +39,7 @@
         placeholder="Buscar por nombre..."
         bind:value={search}
       /></label
-    ><button class="secondary">Buscar</button>
+    ><Button variant="secondary">Buscar</Button>
   </form>
   <select aria-label="Filtrar por estado" bind:value={filter} onchange={apply}
     ><option value="all">Todos los estados</option><option value="pending"
@@ -46,18 +47,18 @@
     ><option value="sealed">Sellados</option></select
   >
   <div class="view-switch" aria-label="Presentaci&#243;n del listado">
-    <button
-      class="icon-button"
-      class:active={layout === 'list'}
+    <Button
+      variant="icon"
+      class={layout === 'list' ? 'active' : ''}
       aria-label="Vista de lista"
       aria-pressed={layout === 'list'}
-      onclick={() => (layout = 'list')}><Icon name="list" size={18} /></button
-    ><button
-      class="icon-button"
-      class:active={layout === 'grid'}
+      onclick={() => (layout = 'list')}><Icon name="list" size={18} /></Button
+    ><Button
+      variant="icon"
+      class={layout === 'grid' ? 'active' : ''}
       aria-label="Vista de tarjetas"
       aria-pressed={layout === 'grid'}
-      onclick={() => (layout = 'grid')}><Icon name="grid" size={18} /></button
+      onclick={() => (layout = 'grid')}><Icon name="grid" size={18} /></Button
     >
   </div>
 </div>
@@ -74,10 +75,10 @@
       de la etiqueta.
     </p>
     <div class="action-row">
-      <button class="secondary">Aplicar filtros</button><button
+      <Button variant="secondary">Aplicar filtros</Button><Button
         type="button"
-        class="text-button"
-        onclick={clear}>Limpiar filtros</button
+        variant="text"
+        onclick={clear}>Limpiar filtros</Button
       >
     </div>
   </form>

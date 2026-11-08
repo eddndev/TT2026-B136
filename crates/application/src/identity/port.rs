@@ -7,8 +7,9 @@ use zeroize::Zeroizing;
 
 use super::{
     certificate_login::{CertificateMfaChallenge, CertificateSessionProvenance, MfaChallenge},
-    EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SessionGrant,
-    SessionIdentity, SessionPolicy, SessionResult, SessionState, SessionStatus, UserRecord,
+    CurrentAccount, EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal,
+    SessionGrant, SessionIdentity, SessionPolicy, SessionResult, SessionState, SessionStatus,
+    UserRecord,
 };
 use crate::ApplicationError;
 
@@ -23,12 +24,14 @@ pub trait IdentityWorkflow: Send + Sync {
     fn bootstrap_owner(
         &self,
         email: &str,
+        display_name: &str,
         password: &str,
     ) -> Result<EnrollmentResult, ApplicationError>;
     fn create_user(
         &self,
         access_token: &str,
         email: &str,
+        display_name: &str,
         password: &str,
         role: Role,
     ) -> Result<EnrollmentResult, ApplicationError>;
@@ -48,6 +51,8 @@ pub trait IdentityWorkflow: Send + Sync {
     fn session_status(&self, access_token: &str) -> Result<SessionStatus, ApplicationError>;
     /// Records explicit activity only while the same session remains valid.
     fn record_activity(&self, access_token: &str) -> Result<SessionStatus, ApplicationError>;
+    /// Reads the admitted account and its display name without recording activity.
+    fn current_account(&self, access_token: &str) -> Result<CurrentAccount, ApplicationError>;
     fn authorize(
         &self,
         access_token: &str,

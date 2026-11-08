@@ -1,5 +1,9 @@
 use crate::identity::{Principal, UserRecord};
-use domain::{clock::OffsetDateTime, crypto::Sha256Digest, identity::Role};
+use domain::{
+    clock::OffsetDateTime,
+    crypto::Sha256Digest,
+    identity::{DisplayName, Role},
+};
 use zeroize::Zeroizing;
 
 use super::{InvitationDeliveryState, InvitationId, Uuid};
@@ -43,6 +47,7 @@ pub struct InvitationSummary {
     pub revision: u64,
     pub operation_id: Uuid,
     pub email: String,
+    pub display_name: DisplayName,
     pub role: Role,
     pub status: InvitationStatus,
     pub delivery: InvitationDeliveryState,
@@ -55,6 +60,8 @@ pub struct InvitationSummary {
 pub struct InvitationIssueRequest {
     pub operation_id: Uuid,
     pub email: String,
+    /// Raw Owner input; issue normalizes it in place like `email`.
+    pub display_name: String,
     pub role: Role,
 }
 
@@ -94,6 +101,7 @@ pub struct InvitationCandidate {
     pub id: InvitationId,
     pub revision: u64,
     pub email: String,
+    pub display_name: DisplayName,
     pub role: Role,
     pub expires_at: OffsetDateTime,
     pub pending: Option<PendingInvitation>,

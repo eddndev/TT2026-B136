@@ -92,6 +92,7 @@ test('a precautionary Agenda reply from the previous principal cannot reopen in 
     const other = {
       id: '22222222-2222-4222-8222-222222222222',
       email: 'other@example.test',
+      name: 'Otra Cuenta',
       role: 'owner',
     };
     await page.route(/\/api\/v1\/auth\/(mfa\/|me)/, async (route) =>

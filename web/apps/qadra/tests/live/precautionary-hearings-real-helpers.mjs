@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { fixture, loginAs } from './helpers.mjs';
+import { fixture, loginAs, openSection } from './helpers.mjs';
 import { openCase, responseTo } from './procedural-resources-helpers.mjs';
 export { openCase, responseTo };
 export const accounts = fixture.precautionaryHearings;
@@ -115,7 +115,7 @@ async function submitAction(page, form, path, noun, review) {
 
 export async function scheduleHearing(page, scenario) {
   await openCase(page, scenario.case);
-  await page.getByRole('link', { name: 'Audiencias', exact: true }).click();
+  await openSection(page, 'Audiencias');
   await page.getByRole('button', { name: 'Programar audiencia cautelar', exact: true }).click();
   const form = hearingEditor(page);
   const seconds = Math.floor(Date.now() / 1000) + 36 * 3600;
@@ -157,7 +157,7 @@ export async function scheduleHearing(page, scenario) {
 
 export async function declareMeasure(page, scenario, hearing, anchorKind) {
   await openCase(page, scenario.case);
-  await page.getByRole('link', { name: 'Medidas cautelares', exact: true }).click();
+  await openSection(page, 'Medidas cautelares');
   await page.getByRole('button', { name: 'Registrar decision cautelar', exact: true }).click();
   const form = decisionEditor(page);
   await form.getByLabel('Autoridad', { exact: true }).fill('Juzgado declarado en soporte');

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import CaseValues from './CaseValues.svelte';
   import CaseEditor from './CaseEditor.svelte';
   import CaseStatus from './CaseStatus.svelte';
@@ -24,27 +25,27 @@
     <h1>Resumen del expediente</h1>
     <p>Ficha, administraci&#243;n y registro inicial de etapa.</p>
   </div>
-  <button class="secondary" onclick={onrefresh}>Actualizar resumen</button>
+  <Button variant="secondary" onclick={onrefresh}>Actualizar resumen</Button>
 </div>
 <section class="card case-summary">
   <div class="section-heading">
     <h2>{current.profile ? 'Ficha penal completa' : 'Ficha penal pendiente'}</h2>
     {#if manageCase(user.role)}<div class="action-row">
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={$state.closed || !!editing}
           onclick={() => (editing = current.profile ? 'profile' : 'basic')}
-          >{current.profile ? 'Editar ficha penal' : 'Editar datos b\u00e1sicos'}</button
+          >{current.profile ? 'Editar ficha penal' : 'Editar datos b\u00e1sicos'}</Button
         >
-        {#if !current.profile}<button
-            class="primary"
+        {#if !current.profile}<Button
+            variant="primary"
             disabled={$state.closed || !!editing}
-            onclick={() => (editing = 'profile')}>Completar ficha penal</button
+            onclick={() => (editing = 'profile')}>Completar ficha penal</Button
           >{/if}
-        <button class="text-button" onclick={() => statusDialog.open()}
+        <Button variant="text" onclick={() => statusDialog.open()}
           >{current.administrative_status === 'closed'
             ? 'Reactivar expediente'
-            : 'Cerrar administrativamente'}</button
+            : 'Cerrar administrativamente'}</Button
         >
       </div>{/if}
   </div>
@@ -67,8 +68,8 @@
   {:else}<p class="hint">
       Datos originales; a&#250;n no hay una revisi&#243;n administrativa registrada.
     </p>{/if}
-  <button class="text-button" aria-expanded={history} onclick={() => (history = !history)}
-    >{history ? 'Ocultar historial administrativo' : 'Ver historial administrativo'}</button
+  <Button variant="text" aria-expanded={history} onclick={() => (history = !history)}
+    >{history ? 'Ocultar historial administrativo' : 'Ver historial administrativo'}</Button
   >
   {#if history}{#key current.revision}<CaseHistory api={scoped} {ondenied} />{/key}{/if}
 </section>
@@ -102,7 +103,7 @@
     </details>
   {:else}<h2>Etapa sin registrar</h2>
     <p>Completar la ficha no crea un registro de etapa ni reconstruye actos anteriores.</p>{/if}
-  <button class="text-button" onclick={() => onnavigate('stages')}>Consultar etapas</button>
+  <Button variant="text" onclick={() => onnavigate('stages')}>Consultar etapas</Button>
 </section>
 {#if manageCase(user.role)}<CaseStatus
     bind:this={statusDialog}

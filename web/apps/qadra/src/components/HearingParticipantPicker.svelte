@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import HearingReference from './HearingReference.svelte';
   import ParticipantSummary from './ParticipantSummary.svelte';
@@ -78,43 +79,43 @@
   <h4>Seleccionar participante exacto</h4>
   <div class="action-row">
     <label>Nombre del participante<input bind:value={name} disabled={busy || disabled} /></label>
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={busy || disabled}
       onclick={() => {
         query = name.trim();
         load();
-      }}>Buscar participante</button
+      }}>Buscar participante</Button
     >
   </div>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   <div class="hearing-pick-list">
     {#each rows as row (row.id)}<div class="hearing-pick-reference">
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={busy || disabled || selectedIds.includes(row.id)}
-          onclick={() => read(row)}>Consultar ficha: {row.display_name}</button
+          onclick={() => read(row)}>Consultar ficha: {row.display_name}</Button
         ><HearingReference {row} label="Referencia exacta" />
       </div>{/each}
   </div>
   {#if !rows.length && !busy && !error}<p>No hay fichas activas en esta consulta.</p>{/if}
-  {#if more}<button
+  {#if more}<Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={busy || disabled}
-      onclick={() => load(cursor)}>Siguientes participantes</button
+      onclick={() => load(cursor)}>Siguientes participantes</Button
     >{/if}
   {#if exact}<ParticipantSummary record={exact} />
     <HearingReference row={exact} />
-    <button
+    <Button
       type="button"
-      class="primary"
+      variant="primary"
       disabled={busy || disabled}
-      onclick={() => onselected(exact)}>Vincular esta revisi&#243;n</button
+      onclick={() => onselected(exact)}>Vincular esta revisi&#243;n</Button
     >{/if}
-  <button type="button" class="text-button" onclick={oncancel} disabled={busy}
-    >Cerrar selector de participantes</button
+  <Button type="button" variant="text" onclick={oncancel} disabled={busy}
+    >Cerrar selector de participantes</Button
   >
 </section>

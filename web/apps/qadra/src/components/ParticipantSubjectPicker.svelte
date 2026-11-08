@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import ParticipantSubjectSummary from './ParticipantSubjectSummary.svelte';
   export let api,
@@ -87,15 +88,15 @@
       ></label
     >
   </div>
-  <button
+  <Button
     type="button"
-    class="secondary"
+    variant="secondary"
     disabled={disabled || busy}
     onclick={() => {
       query = name;
       appliedKind = kind;
       load();
-    }}>Buscar identidades</button
+    }}>Buscar identidades</Button
   >
   <div class="participant-list">
     {#each rows as row}<button
@@ -105,22 +106,22 @@
         onclick={() => select(row)}>Consultar identidad: {row.display_name}</button
       >{/each}
   </div>
-  {#if more}<button
+  {#if more}<Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || busy}
-      onclick={() => load(cursor)}>Cargar m&#225;s identidades</button
+      onclick={() => load(cursor)}>Cargar m&#225;s identidades</Button
     >{/if}
-  {#if current}<ParticipantSubjectSummary record={current} /><button
+  {#if current}<ParticipantSubjectSummary record={current} /><Button
       type="button"
-      class="primary"
+      variant="primary"
       disabled={disabled || busy}
       onclick={() => {
         if (admitted()) onselected(current);
-      }}>Usar esta identidad</button
+      }}>Usar esta identidad</Button
     >{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  <button type="button" class="text-button" disabled={disabled || busy} onclick={oncancel}
-    >Cerrar selector de identidad</button
+  <Button type="button" variant="text" disabled={disabled || busy} onclick={oncancel}
+    >Cerrar selector de identidad</Button
   >
 </section>

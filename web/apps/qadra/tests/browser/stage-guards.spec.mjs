@@ -60,7 +60,7 @@ test('success waits for visible history refresh without additional document read
   defer = true;
   await page.getByRole('button', { name: 'Registrar transici\u00f3n', exact: true }).click();
   await expect.poll(() => !!release).toBe(true);
-  await expect(page.locator('.stage-confirmation .primary')).toBeDisabled();
+  await expect(page.locator('.stage-confirmation .btn-primary')).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Ocultar historial de etapas' })).toBeDisabled();
   release();
   await expect(page.locator('.stage-form')).toHaveCount(0);

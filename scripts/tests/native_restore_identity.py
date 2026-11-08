@@ -90,9 +90,10 @@ def totp(secret):
 def seed(fixture):
     email = 'restore-owner@example.test'
     old_password, password = secrets.token_hex(20), secrets.token_hex(20)
-    enrolled = fixture.request('/auth/bootstrap', {'email': email, 'password': old_password}, status=201)
+    enrolled = fixture.request('/auth/bootstrap', {'email': email, 'name': 'Restore owner',
+                                                   'password': old_password}, status=201)
     owner_session = recover(fixture, login(fixture, email, old_password), enrolled['recovery_codes'][0])
-    other = fixture.request('/users', {'email': 'restore-helper@example.test',
+    other = fixture.request('/users', {'email': 'restore-helper@example.test', 'name': 'Restore helper',
                                       'password': password, 'role': 'litigator'}, owner_session, status=201)
     case = fixture.request('/cases', {'title': 'Private restoration fixture', 'reference': 'RESTORE-OWNED'}, owner_session, status=201)
     helper, = query(fixture, 'SELECT id::text FROM users WHERE email=%s', ('restore-helper@example.test',))[0]

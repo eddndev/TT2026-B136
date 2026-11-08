@@ -1,4 +1,8 @@
 <script>
+  import Modal from './Modal.svelte';
+  import ModalHeading from './ModalHeading.svelte';
+  import ModalActions from './ModalActions.svelte';
+  import Button from './Button.svelte';
   import CaseClosedNotice from './CaseClosedNotice.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
@@ -103,23 +107,23 @@
   });
 </script>
 
-<dialog
-  class="upload-dialog participant-dialog"
-  bind:this={dialog}
+<Modal
+  class="modal participant-dialog"
+  bind:element={dialog}
   aria-labelledby="participant-status-title"
   oncancel={(event) => {
     event.preventDefault();
     close();
   }}
 >
-  <div class="dialog-heading">
-    <h2 id="participant-status-title">
-      {intended === 'archived' ? 'Archivar participante' : 'Reactivar participante'}
-    </h2>
-    <button class="icon-button" disabled={busy} aria-label="Cerrar cambio de estado" onclick={close}
-      ><Icon name="close" /></button
+  <ModalHeading
+    title={intended === 'archived' ? 'Archivar participante' : 'Reactivar participante'}
+    id="participant-status-title"
+  >
+    <Button variant="icon" disabled={busy} aria-label="Cerrar cambio de estado" onclick={close}
+      ><Icon name="close" /></Button
     >
-  </div>
+  </ModalHeading>
   <p>
     Este cambio organiza el directorio y conserva su historial. La situaci&#243;n jur&#237;dica y
     los permisos no cambian.
@@ -127,8 +131,8 @@
   {#if candidate}<ParticipantSummary record={candidate} />
     <p class="hint">Revisi&#243;n {candidate.revision}</p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if conflict || uncertain}<button class="secondary" disabled={busy} onclick={refresh}
-      >Consultar datos actuales</button
+  {#if conflict || uncertain}<Button variant="secondary" disabled={busy} onclick={refresh}
+      >Consultar datos actuales</Button
     >{/if}
   {#if refreshed && !already}<p class="notice" role="status">
       Datos actuales consultados. Revisa y confirma el cambio de estado.
@@ -138,12 +142,12 @@
       necesario volver a enviar.
     </p>{/if}
   <CaseClosedNotice />
-  <div class="dialog-actions">
-    <button class="secondary" disabled={busy} onclick={close}
-      >{already ? 'Cerrar' : 'Cancelar'}</button
+  <ModalActions>
+    <Button variant="secondary" disabled={busy} onclick={close}
+      >{already ? 'Cerrar' : 'Cancelar'}</Button
     >
-    <button
-      class="primary"
+    <Button
+      variant="primary"
       disabled={busy ||
         exhausted ||
         already ||
@@ -154,7 +158,7 @@
         ? 'Guardando...'
         : intended === 'archived'
           ? 'Confirmar archivo'
-          : 'Confirmar reactivaci\u00f3n'}</button
+          : 'Confirmar reactivaci\u00f3n'}</Button
     >
-  </div>
-</dialog>
+  </ModalActions>
+</Modal>

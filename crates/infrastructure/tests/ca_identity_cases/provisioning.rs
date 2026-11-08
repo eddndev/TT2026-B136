@@ -1,9 +1,12 @@
 use std::sync::{Arc, Barrier};
 
-use application::{identity::UserRepository, ApplicationError};
+use application::{
+    identity::{ca_operator_display_name, UserRepository},
+    ApplicationError,
+};
 use domain::{
     audit::{verify_chain, AuditLog, ChainVerification},
-    identity::{Role, UserId},
+    identity::{DisplayName, Role, UserId},
 };
 use infrastructure::{provision_initial_ca_operator, RingSha256Hasher};
 use reqwest::Url;
@@ -62,6 +65,7 @@ fn initial_operator_and_ca_audit_commit_together_without_changing_office_or_runt
     assert!(stored.recovery_codes == user.recovery_codes);
     assert_eq!(stored.revision, 0);
     assert_eq!(stored.auth_generation, 0);
+    assert_eq!(stored.display_name, ca_operator_display_name());
     let events = audit.load_all().unwrap();
     assert_eq!(events.len(), 1);
     assert_eq!(events[0].event.actor, owner);
@@ -75,6 +79,28 @@ fn initial_operator_and_ca_audit_commit_together_without_changing_office_or_runt
     let repeated = provision_initial_ca_operator(&url, &db.database, &owner, user, at);
     assert!(matches!(repeated, Err(ApplicationError::UserAlreadyExists)));
     assert_counts(&mut db, 1, 1);
+}
+
+#[test]
+fn the_ca_store_keeps_no_display_names() {
+    let mut db = empty_fixture();
+    let (url, owner) = admin_target(&mut db);
+    let mut user = db.operator.clone();
+    user.display_name = DisplayName::new("Operadora Nombrada").unwrap();
+    let result =
+        provision_initial_ca_operator(&url, &db.database, &owner, user, OffsetDateTime::now_utc());
+    assert!(matches!(result, Err(ApplicationError::InvalidInput(_))));
+    assert_counts(&mut db, 0, 0);
+    let named: bool = db
+        .admin()
+        .query_one(
+            "SELECT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid='qadra_ca.users'::regclass
+            AND attname='display_name')",
+            &[],
+        )
+        .unwrap()
+        .get(0);
+    assert!(!named, "the CA identity store keeps no display names");
 }
 
 #[test]

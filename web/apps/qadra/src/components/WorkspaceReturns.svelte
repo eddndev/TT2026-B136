@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   export let incident = false,
     alert = false,
     activity = false,
@@ -6,13 +7,14 @@
     onactivity;
 </script>
 
-{#if incident}<button
-    class="text-button alerts-return"
-    onclick={() => onnavigate('integrity-incidents')}>Volver a incidentes</button
+{#if incident}<Button
+    variant="text"
+    class="alerts-return"
+    onclick={() => onnavigate('integrity-incidents')}>Volver a incidentes</Button
   >{/if}
-{#if alert}<button class="text-button alerts-return" onclick={() => onnavigate('alerts')}
-    >Volver a Alertas</button
+{#if alert}<Button variant="text" class="alerts-return" onclick={() => onnavigate('alerts')}
+    >Volver a Alertas</Button
   >{/if}
-{#if activity}<button class="text-button alerts-return" onclick={onactivity}
-    >Volver a actividad</button
+{#if activity}<Button variant="text" class="alerts-return" onclick={onactivity}
+    >Volver a actividad</Button
   >{/if}

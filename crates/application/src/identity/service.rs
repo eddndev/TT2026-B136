@@ -8,7 +8,7 @@ use domain::crypto::{
     PasswordHasher, PasswordVerification, RecoveryCodeGenerator, RecoveryCodeSet, TotpProvider,
     RECOVERY_CODE_COUNT,
 };
-use domain::identity::{Permission, Role, UserId};
+use domain::identity::{DisplayName, Permission, Role, UserId};
 
 use super::validation::{normalize_email, validate_password};
 use super::{
@@ -95,14 +95,16 @@ impl IdentityService {
     pub fn bootstrap_owner(
         &self,
         email: &str,
+        display_name: &str,
         password: &str,
     ) -> Result<EnrollmentResult, ApplicationError> {
         if self.ports.users.has_users()? {
             return Err(ApplicationError::BootstrapClosed);
         }
         let email = normalize_email(email)?;
+        let display_name = DisplayName::new(display_name)?;
         validate_password(password)?;
-        let (record, enrollment) = self.enroll(&email, password, Role::Owner)?;
+        let (record, enrollment) = self.enroll(&email, display_name, password, Role::Owner)?;
         if !self
             .ports
             .users
@@ -117,13 +119,15 @@ impl IdentityService {
         &self,
         access_token: &str,
         email: &str,
+        display_name: &str,
         password: &str,
         role: Role,
     ) -> Result<EnrollmentResult, ApplicationError> {
         let actor = self.authorize(access_token, Permission::CreateUser)?;
         let email = normalize_email(email)?;
+        let display_name = DisplayName::new(display_name)?;
         validate_password(password)?;
-        let (record, enrollment) = self.enroll(&email, password, role)?;
+        let (record, enrollment) = self.enroll(&email, display_name, password, role)?;
         let current = self.authorize(access_token, Permission::CreateUser)?;
         if current != actor {
             return Err(ApplicationError::InvalidSession);
@@ -208,6 +212,7 @@ impl IdentityService {
     fn enroll(
         &self,
         email: &str,
+        display_name: DisplayName,
         password: &str,
         role: Role,
     ) -> Result<(UserRecord, EnrollmentResult), ApplicationError> {
@@ -229,6 +234,7 @@ impl IdentityService {
         let record = UserRecord {
             id,
             email: email.to_string(),
+            display_name: display_name.clone(),
             password_hash,
             role,
             active: true,
@@ -239,6 +245,7 @@ impl IdentityService {
         };
         let result = EnrollmentResult {
             principal,
+            display_name,
             totp_secret_base32: totp.secret_base32,
             otpauth_uri: totp.otpauth_uri,
             recovery_codes: plain_codes,

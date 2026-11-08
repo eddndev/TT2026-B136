@@ -4,20 +4,47 @@ use std::str::FromStr;
 use std::sync::Mutex;
 
 use crate::audit_postgres::{append_transaction, begin_audited};
-use application::identity::{UserRecord, UserRepository};
+use application::identity::{
+    ca_operator_display_name, UserRecord, UserRepository, CA_OPERATOR_DISPLAY_NAME,
+};
 use application::ApplicationError;
 use domain::clock::OffsetDateTime;
 use domain::crypto::RecoveryCodeSet;
-use domain::identity::{Role, UserId};
+use domain::identity::{DisplayName, Role, UserId};
 use postgres::error::SqlState;
 use postgres::{Client, Row};
 
-const USER_COLUMNS: &str = "id, email, password_hash, role, active, \
+const CA_USER_COLUMNS: &str = "id, email, password_hash, role, active, \
     protected_totp_secret, recovery_codes, revision, auth_generation";
+const OFFICE_USER_COLUMNS: &str = "id, email, password_hash, role, active, \
+    protected_totp_secret, recovery_codes, revision, auth_generation, display_name";
+
+/// Column family of a user table.
+///
+/// Office accounts store a display name. The separately provisioned CA identity
+/// store keeps none and reads a fixed label instead; see
+/// docs/adr/0087-account-display-names.md.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UserColumns {
+    /// The office `users` table, which stores display names.
+    Office,
+    /// The `qadra_ca.users` table, which keeps no display names.
+    CertificateAuthority,
+}
+
+impl UserColumns {
+    fn select(self) -> &'static str {
+        match self {
+            Self::Office => OFFICE_USER_COLUMNS,
+            Self::CertificateAuthority => CA_USER_COLUMNS,
+        }
+    }
+}
 
 /// Durable user repository backed by PostgreSQL.
 pub struct PostgresUserRepository {
     client: Mutex<Client>,
+    columns: UserColumns,
 }
 
 impl PostgresUserRepository {
@@ -25,6 +52,7 @@ impl PostgresUserRepository {
     pub fn connect(database_url: &str) -> Result<Self, ApplicationError> {
         Ok(Self {
             client: Mutex::new(crate::postgres::connect(database_url)?),
+            columns: UserColumns::Office,
         })
     }
 
@@ -34,6 +62,7 @@ impl PostgresUserRepository {
     ) -> Result<Self, ApplicationError> {
         Ok(Self {
             client: Mutex::new(crate::postgres::open(database_url)?),
+            columns: crate::postgres_source::user_columns(database_url),
         })
     }
 
@@ -70,7 +99,7 @@ impl UserRepository for PostgresUserRepository {
         if user.role != Role::Owner || !user.active {
             return Err(ApplicationError::PermissionDenied);
         }
-        insert_user(&mut transaction, &user)?;
+        insert_user(&mut transaction, &user, self.columns)?;
         append_transaction(
             &mut transaction,
             "system",
@@ -98,7 +127,7 @@ impl UserRepository for PostgresUserRepository {
             .map_err(port_error)?
             .ok_or(ApplicationError::PermissionDenied)?;
         let email: String = row.get(0);
-        insert_user(&mut transaction, &user)?;
+        insert_user(&mut transaction, &user, self.columns)?;
         append_transaction(
             &mut transaction,
             &email,
@@ -110,20 +139,23 @@ impl UserRepository for PostgresUserRepository {
     }
 
     fn find_by_email(&self, email: &str) -> Result<Option<UserRecord>, ApplicationError> {
-        let sql = format!("SELECT {USER_COLUMNS} FROM users WHERE email = $1");
+        let sql = format!(
+            "SELECT {} FROM users WHERE email = $1",
+            self.columns.select()
+        );
         self.lock()?
             .query_opt(&sql, &[&email])
             .map_err(port_error)?
-            .map(row_to_user)
+            .map(|row| row_to_user(row, self.columns))
             .transpose()
     }
 
     fn find_by_id(&self, id: UserId) -> Result<Option<UserRecord>, ApplicationError> {
-        let sql = format!("SELECT {USER_COLUMNS} FROM users WHERE id = $1");
+        let sql = format!("SELECT {} FROM users WHERE id = $1", self.columns.select());
         self.lock()?
             .query_opt(&sql, &[&id.as_uuid()])
             .map_err(port_error)?
-            .map(row_to_user)
+            .map(|row| row_to_user(row, self.columns))
             .transpose()
     }
 
@@ -162,7 +194,11 @@ impl UserRepository for PostgresUserRepository {
     }
 }
 
-pub(crate) fn insert_user<C>(client: &mut C, user: &UserRecord) -> Result<(), ApplicationError>
+pub(crate) fn insert_user<C>(
+    client: &mut C,
+    user: &UserRecord,
+    columns: UserColumns,
+) -> Result<(), ApplicationError>
 where
     C: postgres::GenericClient,
 {
@@ -176,33 +212,56 @@ where
     }
     let revision = i64::try_from(user.revision)
         .map_err(|_| ApplicationError::Port("user revision exceeds i64".to_string()))?;
-    client
-        .execute(
+    let id = user.id.as_uuid();
+    let role = user.role.as_str();
+    let name = user.display_name.as_str();
+    let mut values: Vec<&(dyn postgres::types::ToSql + Sync)> = vec![
+        &id,
+        &user.email,
+        &user.password_hash,
+        &role,
+        &user.active,
+        &user.protected_totp_secret,
+        &recovery_codes,
+        &revision,
+    ];
+    let sql = match columns {
+        UserColumns::Office => {
+            values.push(&name);
             "INSERT INTO users \
              (id, email, password_hash, role, active, protected_totp_secret, \
-              recovery_codes, revision) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-            &[
-                &user.id.as_uuid(),
-                &user.email,
-                &user.password_hash,
-                &user.role.as_str(),
-                &user.active,
-                &user.protected_totp_secret,
-                &recovery_codes,
-                &revision,
-            ],
-        )
+              recovery_codes, revision, display_name) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+        }
+        UserColumns::CertificateAuthority => {
+            if name != CA_OPERATOR_DISPLAY_NAME {
+                return Err(ApplicationError::InvalidInput(
+                    "CA operator records keep no display name".into(),
+                ));
+            }
+            "INSERT INTO users \
+             (id, email, password_hash, role, active, protected_totp_secret, \
+              recovery_codes, revision) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
+        }
+    };
+    client
+        .execute(sql, &values)
         .map(|_| ())
         .map_err(map_insert_error)
 }
 
-fn row_to_user(row: Row) -> Result<UserRecord, ApplicationError> {
+fn row_to_user(row: Row, columns: UserColumns) -> Result<UserRecord, ApplicationError> {
     let role_name: String = row.get("role");
     let recovery_json: serde_json::Value = row.get("recovery_codes");
     let revision: i64 = row.get("revision");
     Ok(UserRecord {
         id: UserId::from_uuid(row.get("id")),
         email: row.get("email"),
+        display_name: match columns {
+            UserColumns::Office => DisplayName::from_stored(row.get("display_name"))
+                .map_err(|_| ApplicationError::Port("stored display name is invalid".into()))?,
+            UserColumns::CertificateAuthority => ca_operator_display_name(),
+        },
         password_hash: row.get("password_hash"),
         role: Role::from_str(&role_name)?,
         active: row.get("active"),

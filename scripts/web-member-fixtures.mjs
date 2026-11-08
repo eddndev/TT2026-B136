@@ -10,6 +10,7 @@ export async function provisionMembers(call) {
       "POST",
       "/users",
       {
+        name: `Member ${name}`,
         email: `web-members-${name}@example.com`,
         password,
         role,

@@ -1,9 +1,12 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { invitationOwnerDraft } from '../lib/invitation-owner-draft.mjs';
+  import { accountName } from '../lib/account-name.mjs';
   export let api, user;
   const client = api.invitations();
   let email = '',
+    name = '',
     role = 'paralegal',
     items = [],
     next = null;
@@ -61,7 +64,7 @@
     intent = null;
     confirming = null;
     pending = false;
-    email = '';
+    email = name = '';
     notice = `Invitacion registrada para ${row.email}.`;
     items = [row, ...items.filter((item) => item.id !== row.id)].sort((a, b) =>
       a.id.localeCompare(b.id),
@@ -87,11 +90,19 @@
   function issue(event) {
     event.preventDefault();
     if (!admitted() || busy || intent || pending) return;
+    // The Owner writes the invitee name; it is sent once and never listed back.
+    let checkedName;
+    try {
+      checkedName = accountName(name);
+    } catch (failure) {
+      error = failure.message;
+      return;
+    }
     const operation_id = crypto.randomUUID();
     remember({
       kind: 'issue',
       id: operation_id,
-      data: { operation_id, email: email.trim().toLowerCase(), role },
+      data: { operation_id, email: email.trim().toLowerCase(), name: checkedName, role },
     });
     send();
   }
@@ -169,27 +180,36 @@
   {#if notice}<p class="notice" role="status">{notice}</p>{/if}
   {#if pending}
     <p>Hay una invitacion por comprobar de esta cuenta.</p>
-    <button class="secondary" disabled={busy} onclick={restore}>Retomar invitacion</button>
+    <Button variant="secondary" disabled={busy} onclick={restore}>Retomar invitacion</Button>
   {:else if intent}
     <p>Se conserva el identificador de este intento para comprobarlo sin crear otro.</p>
-    <button class="secondary" disabled={busy} onclick={consult}>Comprobar invitacion</button>
-    <button class="secondary" disabled={busy} onclick={send}>Reintentar el mismo envio</button>
-    <button class="text-button" disabled={busy} onclick={discard}>Cerrar intento</button>
+    <Button variant="secondary" disabled={busy} onclick={consult}>Comprobar invitacion</Button>
+    <Button variant="secondary" disabled={busy} onclick={send}>Reintentar el mismo envio</Button>
+    <Button variant="text" disabled={busy} onclick={discard}>Cerrar intento</Button>
   {:else if confirming}
     <p>
       El enlace anterior dejara de funcionar, junto con su preparacion MFA. Se enviara un nuevo
       enlace a {confirming.email}.
     </p>
-    <button class="primary" disabled={busy} onclick={resend}>Confirmar reenvio</button>
-    <button
-      class="text-button"
+    <Button variant="primary" disabled={busy} onclick={resend}>Confirmar reenvio</Button>
+    <Button
+      variant="text"
       disabled={busy}
       onclick={() => {
         confirming = null;
-      }}>Cancelar reenvio</button
+      }}>Cancelar reenvio</Button
     >
   {:else}
     <form class="stack" onsubmit={issue}>
+      <label
+        >Nombre de la persona invitada<input
+          type="text"
+          required
+          autocomplete="off"
+          bind:value={name}
+          disabled={busy}
+        /></label
+      >
       <label
         >Correo de la invitacion<input
           type="email"
@@ -206,11 +226,11 @@
           ><option value="client">Cliente</option></select
         ></label
       >
-      <button class="primary" disabled={busy}>Enviar invitacion</button>
+      <Button variant="primary" disabled={busy}>Enviar invitacion</Button>
     </form>
   {/if}
-  <button class="secondary" disabled={busy} onclick={() => refresh()}
-    >Actualizar invitaciones</button
+  <Button variant="secondary" disabled={busy} onclick={() => refresh()}
+    >Actualizar invitaciones</Button
   >
   <ul>
     {#each items as row (row.id)}
@@ -218,18 +238,18 @@
         <strong>{row.email}</strong> - {roles[row.role]}<br />
         {statuses[row.status]}. {delivery[row.delivery]}.
         <p>Vence: {new Date(row.expires_at).toLocaleString()}.</p>
-        {#if row.status !== 'accepted'}<button
-            class="text-button"
+        {#if row.status !== 'accepted'}<Button
+            variant="text"
             disabled={busy || !!intent || pending}
             onclick={() => {
               confirming = row;
               notice = '';
-            }}>Reenviar a {row.email}</button
+            }}>Reenviar a {row.email}</Button
           >{/if}
       </li>
     {/each}
   </ul>
-  {#if next}<button class="secondary" disabled={busy} onclick={() => refresh(true)}
-      >Cargar mas invitaciones</button
+  {#if next}<Button variant="secondary" disabled={busy} onclick={() => refresh(true)}
+      >Cargar mas invitaciones</Button
     >{/if}
 </section>

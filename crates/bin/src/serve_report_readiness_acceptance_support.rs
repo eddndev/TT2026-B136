@@ -126,6 +126,7 @@ impl Acceptance {
         let owner = identity
             .bootstrap_owner(
                 &format!("report-ready-{}@example.test", Uuid::new_v4().simple()),
+                "Test Account",
                 PASSWORD,
             )
             .unwrap_or_else(|_| panic!("bootstrap real report owner"));

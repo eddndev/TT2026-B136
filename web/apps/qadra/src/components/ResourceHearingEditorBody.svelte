@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import ResourceHearingFields from './ResourceHearingFields.svelte';
   import ResourceHearingReview from './ResourceHearingReview.svelte';
   import ResourceValues from './ResourceValues.svelte';
@@ -43,28 +44,28 @@
       Expediente cerrado administrativamente. Consulta el resultado historico; no se admite una
       nueva programacion.
     </p>{/if}
-  {#if blocked || closed}<button
-      class="secondary"
+  {#if blocked || closed}<Button
+      variant="secondary"
       disabled={pending || disabled}
-      onclick={initialize}>Volver a consultar el contexto</button
+      onclick={initialize}>Volver a consultar el contexto</Button
     >{/if}
   {#if mode === 'uncertain'}
     <h3>Resultado incierto</h3>
     <p>Consulta la audiencia exacta y su asociaci&#243;n original antes de decidir.</p>
-    <button class="primary" disabled={pending || disabled || blocked} onclick={actions.check}
-      >Consultar resultado</button
+    <Button variant="primary" disabled={pending || disabled || blocked} onclick={actions.check}
+      >Consultar resultado</Button
     >
-    {#if retryAvailable}<button
-        class="secondary"
+    {#if retryAvailable}<Button
+        variant="secondary"
         disabled={pending || disabled || blocked || closed}
-        onclick={actions.retry}>Reintentar envio exacto</button
+        onclick={actions.retry}>Reintentar envio exacto</Button
       >{/if}
     <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
   {:else if mode === 'conflict'}
     <h3>El registro cambi&#243;</h3>
     <p>La programaci&#243;n y las revisiones hist&#243;ricas seleccionadas se conservan.</p>
-    <button class="secondary" disabled={pending || disabled || blocked} onclick={actions.compare}
-      >Comparar con registro actual</button
+    <Button variant="secondary" disabled={pending || disabled || blocked} onclick={actions.compare}
+      >Comparar con registro actual</Button
     >
     {#if candidate}
       <p>
@@ -74,10 +75,10 @@
           : 'Archivado'}
       </p>
       <ResourceValues values={candidate.values} />
-      <button
-        class="primary"
+      <Button
+        variant="primary"
         disabled={pending || disabled || blocked || closed || candidate.status !== 'active'}
-        onclick={actions.accept}>Usar base actual y conservar borrador</button
+        onclick={actions.accept}>Usar base actual y conservar borrador</Button
       >
     {/if}
   {:else if mode === 'review' && prepared}
@@ -87,23 +88,23 @@
       programacion y las capturas seleccionadas</label
     >
     <div class="action-row">
-      <button class="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
-        >Confirmar audiencia y vinculo</button
+      <Button variant="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
+        >Confirmar audiencia y vinculo</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={frozen}
         onclick={() => {
           mode = 'draft';
           prepared = null;
           acknowledged = false;
-        }}>Volver al borrador</button
+        }}>Volver al borrador</Button
       >
     </div>
   {/if}
   {#if blocked}
     <p role="status">Confirma tu acceso actual antes de recuperar las capturas.</p>
-    <button class="primary" disabled>Preparar audiencia y vinculo</button>
+    <Button variant="primary" disabled>Preparar audiencia y vinculo</Button>
   {:else if !['review', 'confirmed'].includes(mode)}
     <ResourceHearingFields
       {api}
@@ -119,11 +120,9 @@
       bind:pending={fieldsBusy}
       disabled={frozen || mode !== 'draft'}
     />
-    <button class="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
-      >Preparar audiencia y vinculo</button
+    <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
+      >Preparar audiencia y vinculo</Button
     >
   {/if}
-  <button class="text-button" disabled={pending || disabled} onclick={close}
-    >Cerrar formulario</button
-  >
+  <Button variant="text" disabled={pending || disabled} onclick={close}>Cerrar formulario</Button>
 </section>

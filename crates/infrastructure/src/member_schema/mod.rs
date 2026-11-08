@@ -11,11 +11,13 @@ mod specifications;
 mod triggers;
 use application::ApplicationError;
 pub(crate) use catalog::validate;
+pub(crate) use checks::DISPLAY_NAME_CHECK;
 pub(crate) use inventory::validate as validate_inventory;
 pub(crate) use permissions::{grant_runtime, validate_runtime_role};
 pub(crate) const MIGRATIONS: &[&str] = &[
     include_str!("../../../../migrations/0025_member_lifecycle.sql"),
     include_str!("../../../../migrations/0051_client_memberships.sql"),
+    include_str!("../../../../migrations/0053_user_display_names.sql"),
 ];
 const TABLES: [&str; 2] = ["users", "case_memberships"];
 fn incomplete() -> ApplicationError {

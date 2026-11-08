@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { pendingResourceDrafts } from '../lib/resource-draft.mjs';
   import ResourceEditor from './ResourceEditor.svelte';
@@ -211,10 +212,10 @@
 <section class="fact-collection" aria-label="Recursos procesales del expediente">
   <div class="section-heading">
     <h2>Recursos del expediente</h2>
-    {#if canResources(user.role, 'manage')}<button
-        class="primary"
+    {#if canResources(user.role, 'manage')}<Button
+        variant="primary"
         disabled={pending || !manage}
-        onclick={() => edit('register')}>Registrar recurso</button
+        onclick={() => edit('register')}>Registrar recurso</Button
       >{/if}
   </div>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
@@ -232,15 +233,15 @@
         oncancel={closeEditor}
         bind:pending={editorBusy}
       />{/key}{/if}
-  {#if !action}{#each drafts as saved (saved.key)}<button
-        class="secondary"
+  {#if !action}{#each drafts as saved (saved.key)}<Button
+        variant="secondary"
         disabled={pending}
-        onclick={() => resume(saved)}>Retomar borrador de recurso</button
+        onclick={() => resume(saved)}>Retomar borrador de recurso</Button
       >{/each}{/if}
   <section class="card" aria-label="Recursos registrados" aria-busy={busy || opening}>
     <div class="section-heading">
       <h3>Registros disponibles</h3>
-      <button class="secondary" disabled={pending} onclick={reset}>Actualizar recursos</button>
+      <Button variant="secondary" disabled={pending} onclick={reset}>Actualizar recursos</Button>
     </div>
     <div class="action-row">
       <label
@@ -257,13 +258,13 @@
           ></select
         ></label
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={pending}
         onclick={() => {
           applied = { kind, status };
           reset();
-        }}>Aplicar filtros</button
+        }}>Aplicar filtros</Button
       >
     </div>
     <p class="hint">El orden por identificador no indica precedencia procesal.</p>
@@ -285,22 +286,22 @@
     {#if !rows.length && !busy && !error}<p>No hay recursos en esta consulta.</p>{/if}
     {#if busy || opening}<p role="status">Consultando recursos...</p>{/if}
     <div class="action-row">
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={pending || !index}
         onclick={() => {
           selected = null;
           load(index - 1);
-        }}>Recursos anteriores</button
+        }}>Recursos anteriores</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={pending || !more}
         onclick={() => {
           selected = null;
           cursors = [...cursors.slice(0, index + 1), next];
           load(index + 1);
-        }}>Siguientes recursos</button
+        }}>Siguientes recursos</Button
       >
     </div>
   </section>

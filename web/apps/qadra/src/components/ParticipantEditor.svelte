@@ -1,4 +1,8 @@
 <script>
+  import Modal from './Modal.svelte';
+  import ModalHeading from './ModalHeading.svelte';
+  import ModalActions from './ModalActions.svelte';
+  import Button from './Button.svelte';
   import CaseClosedNotice from './CaseClosedNotice.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
@@ -258,26 +262,24 @@
   });
 </script>
 
-<dialog
-  class="upload-dialog participant-dialog"
-  bind:this={dialog}
+<Modal
+  class="modal participant-dialog"
+  bind:element={dialog}
   aria-labelledby="participant-editor-title"
   oncancel={(event) => {
     event.preventDefault();
     close();
   }}
 >
-  <div class="dialog-heading">
-    <div>
-      <span class="eyebrow">DIRECTORIO DEL EXPEDIENTE</span>
-      <h2 id="participant-editor-title">
-        {original ? 'Editar participante' : 'Agregar participante'}
-      </h2>
-    </div>
-    <button class="icon-button" disabled={busy} aria-label="Cerrar participante" onclick={close}
-      ><Icon name="close" /></button
+  <ModalHeading
+    title={original ? 'Editar participante' : 'Agregar participante'}
+    id="participant-editor-title"
+    eyebrow="DIRECTORIO DEL EXPEDIENTE"
+  >
+    <Button variant="icon" disabled={busy} aria-label="Cerrar participante" onclick={close}
+      ><Icon name="close" /></Button
     >
-  </div>
+  </ModalHeading>
   <p>Registrar a esta persona no le da acceso al sistema.</p>
   <form class="stack" onsubmit={submit}>
     <ParticipantFields bind:this={fields} bind:draft disabled={fieldsBlocked} />
@@ -288,19 +290,19 @@
     {#if restoreBlocked}<p class="notice" role="status">
         Confirma el expediente y la ficha actuales antes de recuperar el borrador.
       </p>
-      <button type="button" class="secondary" disabled={busy} onclick={() => open(original)}
-        >Volver a consultar el contexto</button
+      <Button type="button" variant="secondary" disabled={busy} onclick={() => open(original)}
+        >Volver a consultar el contexto</Button
       >{/if}
     {#if unconfirmed}<p class="notice" role="status">
         No se pudo confirmar el registro anterior. Consulta los datos actuales antes de decidir si
         volver a enviar; registrar otra ficha puede duplicar la anterior.
       </p>{/if}
-    {#if conflict || unconfirmed || needsReview || restoredClosed}<button
+    {#if conflict || unconfirmed || needsReview || restoredClosed}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={busy || restoreBlocked || disabled}
         onclick={refresh}
-        >{original ? 'Consultar datos actuales' : 'Consultar directorio actual'}</button
+        >{original ? 'Consultar datos actuales' : 'Consultar directorio actual'}</Button
       >{/if}
     {#if candidate}<section class="participant-comparison" aria-label="Valores actuales guardados">
         <h3>Valores actuales guardados</h3>
@@ -342,15 +344,15 @@
         reemplazar el perfil con estos campos.
       </p>{/if}
     <CaseClosedNotice />
-    <div class="dialog-actions">
-      <button type="button" class="secondary" disabled={busy} onclick={close}>Cancelar</button>
-      <button class="primary" disabled={submitBlocked}
+    <ModalActions>
+      <Button type="button" variant="secondary" disabled={busy} onclick={close}>Cancelar</Button>
+      <Button variant="primary" disabled={submitBlocked}
         >{submitting
           ? 'Guardando...'
           : candidate
             ? 'Guardar mis cambios'
-            : 'Guardar participante'}</button
+            : 'Guardar participante'}</Button
       >
-    </div>
+    </ModalActions>
   </form>
-</dialog>
+</Modal>

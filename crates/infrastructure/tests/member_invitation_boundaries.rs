@@ -34,6 +34,7 @@ fn issued(db: &Fixture, store: &PostgresInvitationStore) -> InvitationId {
                 request: InvitationIssueRequest {
                     operation_id: Uuid::new_v4(),
                     email: "invited@example.test".into(),
+                    display_name: "Test Invitee".into(),
                     role: Role::Litigator,
                 },
                 token_digest: Sha256Digest::from_array([1; 32]),

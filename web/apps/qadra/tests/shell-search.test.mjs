@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { foldText, matchCases, recentCases } from '../src/lib/shell-search.mjs';
+import { foldText, matchCases } from '../src/lib/shell-search.mjs';
 
 const rows = [
   {
@@ -52,18 +52,4 @@ test('matchCases requires every word and ranks title prefixes first', () => {
     'a single character is not a query',
   );
   assert.equal(matchCases(rows, 'rta', 2).length, 2);
-});
-
-test('recentCases keeps the newest distinct cases up to the limit', () => {
-  let recent = [];
-  for (const row of [rows[0], rows[1], rows[0], rows[2]]) recent = recentCases(recent, row, 2);
-  assert.deepEqual(
-    recent.map((row) => row.id),
-    ['c', 'a'],
-  );
-  assert.deepEqual(
-    recentCases(recent, null, 2).map((row) => row.id),
-    ['c', 'a'],
-  );
-  assert.deepEqual(Object.keys(recent[0]).sort(), ['id', 'reference', 'title']);
 });

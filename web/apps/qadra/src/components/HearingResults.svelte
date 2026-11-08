@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onDestroy } from 'svelte';
   import { pendingHearingDrafts, resultDraftIntent } from '../lib/hearing-draft.mjs';
   import HearingResultEditor from './HearingResultEditor.svelte';
@@ -225,14 +226,14 @@
 </script>
 
 <div class="hearing-result-toggle">
-  <button
-    class="secondary"
+  <Button
+    variant="secondary"
     disabled={disabled || pending}
     aria-expanded={expanded}
     onclick={() => {
       expanded = !expanded;
       if (expanded) load();
-    }}>{expanded ? 'Ocultar sesiones y resultados' : 'Ver sesiones y resultados'}</button
+    }}>{expanded ? 'Ocultar sesiones y resultados' : 'Ver sesiones y resultados'}</Button
   >
 </div>
 {#if expanded}<section class="hearing-results" aria-label="Sesiones y resultados declarados">
@@ -241,15 +242,15 @@
         <h2>Sesiones y resultados declarados</h2>
         <p>Cada sesi&#243;n o acto tiene su propio registro y revisiones.</p>
       </div>
-      {#if canManage}<button
-          class="primary"
+      {#if canManage}<Button
+          variant="primary"
           disabled={disabled || pending || !manage}
-          onclick={() => edit('record')}>Registrar sesi&#243;n o acto</button
+          onclick={() => edit('record')}>Registrar sesi&#243;n o acto</Button
         >{/if}
-      {#if canManage && canDeadlines(user.role, 'manage')}<button
-          class="primary"
+      {#if canManage && canDeadlines(user.role, 'manage')}<Button
+          variant="primary"
           disabled={disabled || pending || !manage}
-          onclick={createDerived}>Registrar resultado y plazo</button
+          onclick={createDerived}>Registrar resultado y plazo</Button
         >{/if}
     </div>
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}{#if notice}<p
@@ -286,21 +287,21 @@
           oncancel={closedEditor}
           bind:pending={editorBusy}
         />{/key}{/if}
-    {#if !action}{#each derivedDrafts as saved (saved.key)}<button
-          class="secondary"
+    {#if !action}{#each derivedDrafts as saved (saved.key)}<Button
+          variant="secondary"
           disabled={disabled || pending}
-          onclick={() => resume(saved)}>Recuperar resultado y plazo</button
+          onclick={() => resume(saved)}>Recuperar resultado y plazo</Button
         >{/each}{/if}
-    {#if !action}{#each drafts as saved (saved.key)}<button
-          class="secondary"
+    {#if !action}{#each drafts as saved (saved.key)}<Button
+          variant="secondary"
           disabled={disabled || pending}
-          onclick={() => resume(saved)}>Retomar borrador de resultado</button
+          onclick={() => resume(saved)}>Retomar borrador de resultado</Button
         >{/each}{/if}
     <section class="card" aria-label="Registros de sesiones y actos" aria-busy={busy || opening}>
       <div class="section-heading">
         <h3>Registros de esta audiencia</h3>
-        <button class="secondary" disabled={disabled || pending} onclick={reset}
-          >Actualizar resultados</button
+        <Button variant="secondary" disabled={disabled || pending} onclick={reset}
+          >Actualizar resultados</Button
         >
       </div>
       <div class="action-row">
@@ -310,13 +311,13 @@
               value="withdrawn">Retirados</option
             ></select
           ></label
-        ><button
-          class="secondary"
+        ><Button
+          variant="secondary"
           disabled={disabled || pending}
           onclick={() => {
             applied = status;
             reset();
-          }}>Aplicar estado del resultado</button
+          }}>Aplicar estado del resultado</Button
         >
       </div>
       <p class="hint">Orden por identificador; no representa el orden procesal de los actos.</p>
@@ -342,24 +343,24 @@
         </p>{/if}
       {#if busy}<p role="status">Consultando registros de sesiones...</p>{/if}
       <div class="action-row">
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={disabled || pending || !index}
           onclick={() => {
             selected = null;
             detailGeneration++;
             load(index - 1);
-          }}>Resultados anteriores</button
+          }}>Resultados anteriores</Button
         >
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={disabled || pending || !more}
           onclick={() => {
             selected = null;
             detailGeneration++;
             cursors = [...cursors.slice(0, index + 1), next];
             load(index + 1);
-          }}>Siguientes resultados</button
+          }}>Siguientes resultados</Button
         >
       </div>
     </section>

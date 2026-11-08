@@ -42,8 +42,13 @@ fn composed_http_reset_uses_real_backends_and_requires_existing_mfa_after_comple
     let old_password = Zeroizing::new("initial password for HTTP acceptance".to_string());
     let new_password = Zeroizing::new("replacement password for HTTP acceptance".to_string());
     let enrolled = ok(
-        flow.identity
-            .create_user(&owner_session, &email, &old_password, Role::Litigator),
+        flow.identity.create_user(
+            &owner_session,
+            &email,
+            "Test Account",
+            &old_password,
+            Role::Litigator,
+        ),
         "enroll HTTP target",
     );
     let id = enrolled.principal.id;

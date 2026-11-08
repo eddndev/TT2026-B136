@@ -1,3 +1,7 @@
+// The command actor is the account principal; the display name of the session user
+// is presentation only and never part of a command.
+const sessionActor = (user) => ({ id: user?.id, email: user?.email, role: user?.role });
+
 export function createHearingDerivedDeadlineActions({
   read,
   update,
@@ -32,7 +36,7 @@ export function createHearingDerivedDeadlineActions({
     const expected = begin({ prepared: null, acknowledged: false, retryAvailable: false });
     try {
       const command = structuredClone(buildCommand()),
-        actor = structuredClone(value.user);
+        actor = sessionActor(value.user);
       const response = await scoped.prepare(command, actor);
       if (!current(expected)) return;
       if (response.state === 'replay') await finish(response.record, true);
@@ -57,7 +61,7 @@ export function createHearingDerivedDeadlineActions({
     )
       return;
     const last = structuredClone(value.prepared),
-      actor = structuredClone(value.user);
+      actor = sessionActor(value.user);
     const expected = begin({ last, mode: 'uncertain', acknowledged: false, retryAvailable: false });
     try {
       const response = await scoped.submit(structuredClone(last), actor);
@@ -72,7 +76,7 @@ export function createHearingDerivedDeadlineActions({
     const value = read();
     if (!available(value) || !['uncertain', 'conflict'].includes(value.mode) || !value.last) return;
     const last = structuredClone(value.last),
-      actor = structuredClone(value.user);
+      actor = sessionActor(value.user);
     const expected = begin({ retryAvailable: false, acknowledged: false });
     try {
       const response = await scoped.prepare(structuredClone(last.command), actor);
@@ -108,7 +112,7 @@ export function createHearingDerivedDeadlineActions({
     )
       return;
     const last = structuredClone(value.last),
-      actor = structuredClone(value.user);
+      actor = sessionActor(value.user);
     const expected = begin({ retryAvailable: false, acknowledged: false });
     try {
       const response = await scoped.submit(last, actor);

@@ -65,6 +65,7 @@ impl PostgresInvitationStore {
                 id: InvitationId::from_uuid(r.get("id")),
                 revision: u64::try_from(r.get::<_, i64>("revision")).map_err(|_| storage())?,
                 email: r.get("email"),
+                display_name: name(r.get("display_name"))?,
                 role: r.get::<_, String>("role").parse()?,
                 expires_at: seconds(r.get("expires_at"))?,
                 pending: pending(&r)?,

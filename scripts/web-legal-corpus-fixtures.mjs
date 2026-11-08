@@ -67,6 +67,7 @@ export async function provisionLegalCorpus(call) {
     "POST",
     "/users",
     {
+      name: "Legal corpus owner",
       email: `legal-corpus-${randomUUID()}@example.com`,
       password,
       role: "owner",

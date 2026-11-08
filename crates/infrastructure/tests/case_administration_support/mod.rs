@@ -79,7 +79,7 @@ impl Fixture {
     }
     pub fn user(&mut self, role: &str, assigned: bool) -> UserId {
         let id = UserId::new();
-        self.admin.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture',$3,'\\x00','{}')", &[&id.as_uuid(),&format!("{id}@example.test"),&role]).unwrap();
+        self.admin.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes,display_name) VALUES($1,$2,'fixture',$3,'\\x00','{}','Fixture')", &[&id.as_uuid(),&format!("{id}@example.test"),&role]).unwrap();
         if assigned {
             self.admin
                 .execute(

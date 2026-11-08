@@ -49,6 +49,7 @@ pub fn user() -> UserRecord {
     UserRecord {
         id: UserId::from_uuid(Uuid::from_u128(1)),
         email: "owner@example.test".into(),
+        display_name: domain::identity::DisplayName::new("Owner Example").unwrap(),
         role: Role::Owner,
         active: true,
         revision: 9,

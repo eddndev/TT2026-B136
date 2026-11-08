@@ -13,7 +13,7 @@ export async function provisionResources(call, prefix = '') {
   for (const role of ['owner', 'litigator', 'paralegal', 'client']) {
     const password = `procedural resources browser ${prefix}${role} password`;
     const enrollment = await call('POST', '/users', {
-      email: `procedural-resources.${prefix}${role}@example.com`, password, role,
+      name: `Procedural resource ${prefix}${role}`, email: `procedural-resources.${prefix}${role}@example.com`, password, role,
     }, 201);
     fixture[role] = { id: enrollment.user.id, email: enrollment.user.email,
       password, recoveryCodes: enrollment.recovery_codes };

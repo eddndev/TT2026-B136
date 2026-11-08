@@ -1,17 +1,22 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import AgendaFilters from './AgendaFilters.svelte';
-  import AgendaList from './AgendaList.svelte';
-  import AgendaCalendar from './AgendaCalendar.svelte';
+  import MonthCalendar from './MonthCalendar.svelte';
+  import UpcomingList from './UpcomingList.svelte';
   import ResourceHearingDetail from './ResourceHearingDetail.svelte';
   import PrecautionaryHearingDetail from './PrecautionaryHearingDetail.svelte';
   import { basicCase } from '../lib/case-administration.mjs';
   import { deadlineInstantLabel } from '../lib/deadline-time.mjs';
+  import { agendaCivilDay } from '../lib/agenda-periods.mjs';
+  import { monthOf } from '../lib/month-grid.mjs';
+  import { agendaCalendarDay, agendaRow } from './agenda-rows.mjs';
   import {
     initialAgendaSelection,
     agendaSelection,
     agendaRecord,
     agendaIntent,
+    agendaGroups,
     mergeAgendaItems,
   } from './agenda-presentation.mjs';
 
@@ -25,6 +30,13 @@
   let chosen = initial.filters,
     applied = initial.query,
     range = initial.range;
+  // First month shown by the calendar, the only one below md. It opens on
+  // the reference date of each applied view (a custom range on its first
+  // day), so a week that starts in the previous month still shows the chosen
+  // day; the month controls move it without querying again.
+  const anchorMonth = (filters, period) =>
+    monthOf(filters.view === 'custom' ? period.from : filters.date);
+  let visibleMonth = anchorMonth(chosen, range);
   let rows = [],
     next = null,
     complete = false,
@@ -115,6 +127,7 @@
       filters = { ...chosen };
       applied = selection.query;
       range = selection.range;
+      visibleMonth = anchorMonth(chosen, range);
       load();
     } catch (failure) {
       error = failure.message;
@@ -165,6 +178,32 @@
     }
   }
 
+  // A clicked day becomes the reference date of the applied view (a custom
+  // range becomes that day), keeping the applied kind, status and offset.
+  function chooseDay(date) {
+    apply({ ...chosen, view: chosen.view === 'custom' ? 'day' : chosen.view, date });
+  }
+  function civilNow(offset) {
+    try {
+      return agendaCivilDay(new Date().toISOString(), offset);
+    } catch {
+      return null;
+    }
+  }
+  $: groups = agendaGroups(rows, chosen.offset);
+  $: describeDay = agendaCalendarDay({ groups, range, complete });
+  $: listed = rows.map((item) => agendaRow(item, chosen.offset));
+  $: today = civilNow(chosen.offset);
+  $: empty = error
+    ? null
+    : complete
+      ? busy
+        ? null
+        : 'No hay actividades en esta consulta.'
+      : checkedAt
+        ? 'A\u00fan no hay actividades cargadas.'
+        : null;
+
   onMount(() => {
     filters = { ...chosen };
     load();
@@ -183,56 +222,54 @@
     <h1>Agenda del despacho</h1>
     <p>Audiencias y vencimientos operativos de tus expedientes autorizados.</p>
   </div>
-  <button class="secondary" onclick={oncalendars}>Calendarios jurisdiccionales</button>
+  <Button variant="secondary" onclick={oncalendars}>Calendarios jurisdiccionales</Button>
 </div>
 <section
-  class="card hearing-agenda combined-agenda"
+  class="card hearing-agenda min-w-0"
   aria-label="Agenda combinada"
   aria-busy={busy || opening}
 >
   <AgendaFilters value={chosen} onapply={apply} />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  <div class="section-heading">
-    <div>
-      <h2>Actividades en el periodo</h2>
-      <p class="hint">{range.from} hasta {range.until} (excluido) / UTC{chosen.offset}</p>
-    </div>
-    <button class="secondary" disabled={busy} onclick={() => load()}>Actualizar Agenda</button>
+  <MonthCalendar
+    label="Calendario de la agenda"
+    month={visibleMonth}
+    {today}
+    selected={chosen.view === 'custom' ? null : chosen.date}
+    describe={describeDay}
+    onselect={chooseDay}
+    onmonth={(month) => (visibleMonth = month)}
+  />
+  <div class="mt-8">
+    <UpcomingList
+      title="Actividades en el periodo"
+      rows={listed}
+      {empty}
+      onselect={open}
+      disabled={busy || opening}
+    >
+      <div slot="header" class="mt-1 grid gap-2">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <p class="hint">{range.from} hasta {range.until} (excluido) / UTC{chosen.offset}</p>
+          <Button variant="secondary" disabled={busy} onclick={() => load()}
+            >Actualizar Agenda</Button
+          >
+        </div>
+        {#if checkedAt}<p class="hint">
+            &#218;ltima consulta: {deadlineInstantLabel(checkedAt)}
+          </p>{/if}
+        {#if busy}<p role="status">Consultando Agenda...</p>{/if}
+        {#if !complete && !error && checkedAt}
+          <p class="notice" role="status">Consulta parcial: faltan actividades por consultar.</p>
+        {/if}
+      </div>
+    </UpcomingList>
   </div>
-  {#if checkedAt}<p class="hint">&#218;ltima consulta: {deadlineInstantLabel(checkedAt)}</p>{/if}
-  {#if busy}<p role="status">Consultando Agenda...</p>{/if}
-  {#if !complete && !error && checkedAt}
-    <p class="notice" role="status">Consulta parcial: faltan actividades por consultar.</p>
-  {/if}
-  {#if chosen.view === 'week' || chosen.view === 'month'}
-    <AgendaCalendar
-      {rows}
-      {range}
-      view={chosen.view}
-      offset={chosen.offset}
-      {complete}
-      onselect={open}
-      disabled={busy || opening}
-    />
-  {:else}
-    <AgendaList
-      {rows}
-      {range}
-      view={chosen.view}
-      offset={chosen.offset}
-      {complete}
-      onselect={open}
-      disabled={busy || opening}
-    />
-  {/if}
-  {#if !busy && complete && !rows.length && !error}
-    <p>No hay actividades en esta consulta.</p>
-  {/if}
   <div class="pagination">
     <span class="hint">{rows.length} actividades cargadas</span>
     {#if !complete && next !== null}
-      <button class="secondary" disabled={busy || opening} onclick={() => load(true)}
-        >Cargar m&#225;s actividades</button
+      <Button variant="secondary" disabled={busy || opening} onclick={() => load(true)}
+        >Cargar m&#225;s actividades</Button
       >
     {/if}
   </div>

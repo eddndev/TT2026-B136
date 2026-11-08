@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // The review step of a contract signature: the exact PDF, whose SHA-256 is
   // recomputed in this browser and compared with the signed request before
   // it is shown, the counterparty with its declared name and certificate
@@ -35,8 +36,8 @@
     El nombre es el declarado en el certificado; la huella es la que debe coincidir con la hoja
     firmada a mano.
   </p>
-  {#if !pdfUrl}<button class="primary" disabled={busy} onclick={onload}
-      >Cargar y comprobar el PDF</button
+  {#if !pdfUrl}<Button variant="primary" disabled={busy} onclick={onload}
+      >Cargar y comprobar el PDF</Button
     >
   {:else}
     <p class="notice success" role="status">
@@ -47,7 +48,7 @@
       only bytes whose digest was checked. See
       docs/adr/0086-bilateral-contract-signing.md. -->
     <iframe src={pdfUrl} title="PDF exacto del contrato"></iframe>
-    <button class="secondary" disabled={busy} onclick={ondownload}>Descargar PDF</button>
+    <Button variant="secondary" disabled={busy} onclick={ondownload}>Descargar PDF</Button>
   {/if}
 </section>
 

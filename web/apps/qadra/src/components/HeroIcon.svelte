@@ -16,6 +16,8 @@
   import menu from 'heroicons/24/outline/bars-3.svg?raw';
   import close from 'heroicons/24/outline/x-mark.svg?raw';
   import chevron from 'heroicons/24/outline/chevron-down.svg?raw';
+  import chevronLeft from 'heroicons/24/outline/chevron-left.svg?raw';
+  import chevronRight from 'heroicons/24/outline/chevron-right.svg?raw';
   import logout from 'heroicons/24/outline/arrow-right-start-on-rectangle.svg?raw';
   import help from 'heroicons/24/outline/question-mark-circle.svg?raw';
   import fingerprint from 'heroicons/24/outline/finger-print.svg?raw';
@@ -24,6 +26,7 @@
   import document from 'heroicons/24/outline/document-text.svg?raw';
   import arrow from 'heroicons/24/outline/arrow-right.svg?raw';
   import clock from 'heroicons/24/outline/clock.svg?raw';
+  import download from 'heroicons/24/outline/arrow-down-tray.svg?raw';
   // Panel toggle drawn in the same 24px, 1.5 stroke outline style.
   const sidebar =
     '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><rect x="3" y="4.5" width="18" height="15" rx="2.25"/><path stroke-linecap="round" d="M9.75 4.5v15"/></svg>';
@@ -45,6 +48,8 @@
     menu,
     close,
     chevron,
+    chevronLeft,
+    chevronRight,
     logout,
     help,
     fingerprint,
@@ -53,6 +58,7 @@
     document,
     arrow,
     clock,
+    download,
   };
   export let name;
   let className = 'size-6';

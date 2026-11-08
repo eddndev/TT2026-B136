@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fixture, loginAs } from './helpers.mjs';
+import { fixture, loginAs, openSection } from './helpers.mjs';
 import { openCase } from '../case-administration-workflow.mjs';
 
 const corpus = fixture.legalCorpus;
@@ -154,7 +154,7 @@ for (const [width, recoveryIndex] of [
         writes.push(request.method());
     });
     await openCase(page, corpus.scenario.case);
-    await page.getByRole('link', { name: 'Plazos', exact: true }).click();
+    await openSection(page, 'Plazos');
     await expect(list(page)).toHaveAttribute('aria-busy', 'false');
     const positives = corpus.records.filter((record) => record.variant === 'positive');
     expect(positives.map((record) => record.kind).sort()).toEqual([...positiveKinds].sort());

@@ -1,7 +1,7 @@
 import { activityResourcePage } from './activity-resources-fixtures.mjs';
 import { expect } from '@playwright/test';
 import { setupFacts } from './procedural-facts-helpers.mjs';
-import { login, navigate, caseId } from './helpers.mjs';
+import { login, navigate, caseId, openSection } from './helpers.mjs';
 import { absoluteSession } from '../fixtures/session.mjs';
 import { profile, id } from '../fixtures/deadline-unit.mjs';
 import { v2Record, summary, historyRow, notChecked } from '../fixtures/deadline-v2-unit.mjs';
@@ -39,7 +39,12 @@ export async function setupDeadlines(
     return row;
   };
   await page.route(/\/api\/v1\/auth\/(mfa\/|me)/, async (route) => {
-    const user = { id: id(4), email: 'staff@example.test', role: options.role || 'owner' };
+    const user = {
+      id: id(4),
+      email: 'staff@example.test',
+      name: 'Staff Example',
+      role: options.role || 'owner',
+    };
     if (route.request().url().endsWith('/me')) return route.fulfill({ json: user });
     return route.fulfill({
       json: absoluteSession(user, 'deadline-token'),
@@ -177,7 +182,7 @@ export async function openDeadlines(page) {
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Plazos', exact: true }).click();
+  await openSection(page, 'Plazos');
 }
 export async function fillDeadline(page, title = 'Respuesta con fuente pendiente') {
   const form = editor(page);

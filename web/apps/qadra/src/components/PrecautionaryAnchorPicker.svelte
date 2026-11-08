@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { precautionaryHearingRecordOverview } from '../lib/precautionary-hearing-record.mjs';
   import { hearingTimeLabel, hearingStatus } from '../lib/hearings.mjs';
@@ -58,25 +59,25 @@
 <section class="case-comparison" aria-label="Elegir audiencia cautelar de origen" aria-busy={busy}>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#each rows as row}
-    <button class="secondary" disabled={disabled || busy} onclick={() => (selected = row)}>
+    <Button variant="secondary" disabled={disabled || busy} onclick={() => (selected = row)}>
       Consultar convocatoria {hearingTimeLabel(
         row.capture.review.resolved_values.scheduled_at,
-      )}</button
+      )}</Button
     >
   {/each}
-  {#if more}<button class="secondary" disabled={disabled || busy} onclick={() => load(nextId)}
-      >Siguientes convocatorias</button
+  {#if more}<Button variant="secondary" disabled={disabled || busy} onclick={() => load(nextId)}
+      >Siguientes convocatorias</Button
     >{/if}
   {#if selected}{#each selected.history.captures as capture}
       <p>
         Revision {capture.review.result_revision} / {hearingStatus[capture.review.status]} /
         {hearingTimeLabel(capture.review.resolved_values.scheduled_at)}
       </p>
-      <button class="primary" disabled={disabled || busy} onclick={() => choose(capture)}
-        >Usar audiencia cautelar revision {capture.review.result_revision}</button
+      <Button variant="primary" disabled={disabled || busy} onclick={() => choose(capture)}
+        >Usar audiencia cautelar revision {capture.review.result_revision}</Button
       >
     {/each}{/if}
-  <button class="text-button" disabled={disabled || busy} onclick={oncancel}
-    >Cerrar selector de audiencia</button
+  <Button variant="text" disabled={disabled || busy} onclick={oncancel}
+    >Cerrar selector de audiencia</Button
   >
 </section>

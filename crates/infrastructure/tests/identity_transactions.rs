@@ -12,6 +12,7 @@ fn user(email: &str, role: Role) -> UserRecord {
     UserRecord {
         id: UserId::new(),
         email: email.into(),
+        display_name: domain::identity::DisplayName::new("Test Account").unwrap(),
         password_hash: "test-hash".into(),
         role,
         active: true,

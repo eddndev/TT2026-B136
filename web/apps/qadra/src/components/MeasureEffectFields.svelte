@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import MeasureRecordPicker from './MeasureRecordPicker.svelte';
   import MeasureRecordSummary from './MeasureRecordSummary.svelte';
@@ -132,23 +133,23 @@
       <p>Selecciona las medidas anteriores y sus sustitutas del mismo sujeto declarado.</p>
       {#each row.predecessors as previous (previous.reference.id)}
         <MeasureRecordSummary value={previous} />
-        <button
+        <Button
           type="button"
-          class="text-button"
+          variant="text"
           disabled={disabled || pending}
-          onclick={() => removePrior(previous.reference.id)}>Quitar medida anterior</button
+          onclick={() => removePrior(previous.reference.id)}>Quitar medida anterior</Button
         >
       {/each}
     {:else if row.previous}<MeasureRecordSummary value={row.previous} />{/if}
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled ||
         pending ||
         (row.action === 'substitute' && row.predecessors.length + row.successors.length >= 32)}
       onclick={() => {
         if (canApply()) choosing = true;
-      }}>Elegir medida</button
+      }}>Elegir medida</Button
     >
     {#if choosing}<MeasureRecordPicker
         api={measures}
@@ -192,19 +193,19 @@
             disabled={disabled || pickerBusy}
             inputs={inputs?.successors?.[successor.id] ?? null}
           />
-          <button
+          <Button
             type="button"
-            class="text-button"
+            variant="text"
             disabled={disabled || pending}
-            onclick={() => removeSuccessor(successor.id)}>Quitar medida sustituta</button
+            onclick={() => removeSuccessor(successor.id)}>Quitar medida sustituta</Button
           >
         </fieldset>
       {/each}
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || pending || row.predecessors.length + row.successors.length >= 32}
-        onclick={addSuccessor}>Agregar medida sustituta</button
+        onclick={addSuccessor}>Agregar medida sustituta</Button
       >
     {/if}
   {/if}

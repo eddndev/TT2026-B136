@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import HeroIcon from './HeroIcon.svelte';
   export let api;
@@ -45,7 +46,7 @@
     {:else if error}<p class="text-red-700" role="alert">{error}</p>
     {:else}<p>Comprueba que ning&#250;n movimiento se haya alterado o eliminado.</p>{/if}
   </div>
-  <button class="primary" disabled={busy} onclick={verify}
-    >{busy ? 'Verificando...' : 'Verificar cadena'}</button
+  <Button variant="primary" disabled={busy} onclick={verify}
+    >{busy ? 'Verificando...' : 'Verificar cadena'}</Button
   >
 </section>

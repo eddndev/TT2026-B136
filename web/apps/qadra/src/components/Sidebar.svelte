@@ -6,10 +6,8 @@
   import { readSidebarCollapsed, storeSidebarCollapsed } from '../lib/sidebar-state.mjs';
   export let user;
   export let view;
-  export let recent = [];
   export let onnavigate;
-  export let onopencase = () => {};
-  let drawer, panel, expandButton, collapseButton;
+  let drawer, panel, aside, collapseButton;
   // Desktop only: the mobile drawer always shows labels.
   let collapsed = readSidebarCollapsed();
   export function open() {
@@ -19,17 +17,16 @@
     drawer.close();
     onnavigate(destination);
   }
-  function openCase(record) {
-    drawer.close();
-    onopencase(record);
-  }
-  // The toggle is replaced by its counterpart, so focus follows it.
+  // The control that was used becomes hidden or changes its role, so focus
+  // moves to the control that reverses the change. The brand button is also
+  // rendered in the mobile drawer, so it is looked up inside the desktop aside.
   async function toggle() {
     collapsed = !collapsed;
     storeSidebarCollapsed(collapsed);
     await tick();
-    (collapsed ? expandButton : collapseButton)?.focus();
+    (collapsed ? aside?.querySelector('[data-sidebar-brand]') : collapseButton)?.focus();
   }
+  const expandLabel = 'Expandir men\u00fa';
   const client = user.role === 'client';
   const caseViews = [
     'documents',
@@ -80,16 +77,20 @@
     (id === 'cases' && caseViews.includes(current)) ||
     (id === 'audit' && current === 'integrity-incidents') ||
     (id === 'signing-certificates' && current === 'owner-certificates');
+  // Both states share one structure: the width animates and the text only
+  // fades, so no row changes its height or position while the menu toggles.
+  const fade = (compact) =>
+    `whitespace-nowrap transition-opacity duration-200 motion-reduce:transition-none ${
+      compact ? 'opacity-0' : 'opacity-100'
+    }`;
   const itemClass = (active) =>
-    `group flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold ${
+    `group flex w-full items-center gap-x-3 overflow-hidden rounded-md p-2 text-left text-sm/6 font-semibold ${
       active
         ? 'bg-brand-50 text-brand-800'
         : 'text-slate-700 hover:bg-slate-50 hover:text-brand-800'
     }`;
   const iconClass = (active) =>
     `size-6 ${active ? 'text-brand-800' : 'text-slate-400 group-hover:text-brand-800'}`;
-  const initial = (record) =>
-    (record.title || record.reference || '?').trim().charAt(0).toUpperCase();
 </script>
 
 {#snippet item(entry, compact)}
@@ -100,7 +101,7 @@
       aria-current={active ? 'page' : undefined}
       title={compact ? entry.label : undefined}
       onclick={() => go(entry.id)}
-      ><HeroIcon name={entry.icon} class={iconClass(active)} /><span class:sr-only={compact}
+      ><HeroIcon name={entry.icon} class={iconClass(active)} /><span class={fade(compact)}
         >{entry.label}</span
       ></button
     >
@@ -108,52 +109,57 @@
 {/snippet}
 
 {#snippet heading(text, compact)}
-  {#if compact}
-    <div aria-hidden="true" class="mx-auto mb-3 h-px w-6 bg-line"></div>
-    <div class="sr-only">{text}</div>
-  {:else}
-    <div class="mb-1 text-xs/6 font-semibold text-slate-400">{text}</div>
-  {/if}
+  <div class="relative mb-1 h-6 overflow-hidden">
+    <div
+      aria-hidden="true"
+      class={`absolute top-1/2 left-0 h-px w-6 bg-line transition-opacity duration-200 motion-reduce:transition-none ${
+        compact ? 'opacity-100' : 'opacity-0'
+      }`}
+    ></div>
+    <div class={`text-xs/6 font-semibold text-slate-400 ${fade(compact)}`}>{text}</div>
+  </div>
 {/snippet}
 
 {#snippet content(compact, desktop)}
-  <div class="flex h-16 shrink-0 items-center justify-between">
-    {#if compact}
-      <button
-        class="group -mx-2 rounded-md p-2 hover:bg-slate-50"
-        bind:this={expandButton}
-        onclick={toggle}
-        aria-label="Expandir men&#250;"
-        aria-expanded="false"
-        title="Expandir men&#250;"
-      >
+  <div class="flex h-16 shrink-0 items-center">
+    <button
+      class={`group -mx-2 flex shrink-0 items-center gap-x-3 overflow-hidden rounded-md p-2 transition-[max-width] duration-200 motion-reduce:transition-none ${
+        compact ? 'max-w-10 hover:bg-slate-50' : 'max-w-40'
+      }`}
+      data-sidebar-brand
+      onclick={compact ? toggle : () => go(client ? 'contracts' : 'overview')}
+      aria-label={compact ? expandLabel : 'Qadra, ir al inicio'}
+      aria-expanded={compact ? 'false' : undefined}
+      title={compact ? expandLabel : undefined}
+    >
+      <span class="relative size-6 shrink-0">
         <img
           src="/brand/qadra/favicon.svg"
           alt=""
-          class="size-6 max-w-none shrink-0 group-hover:hidden group-focus-visible:hidden"
+          class={`size-6 max-w-none ${compact ? 'group-hover:opacity-0 group-focus-visible:opacity-0' : ''}`}
         />
-        <span class="hidden group-hover:block group-focus-visible:block"
-          ><HeroIcon name="sidebar" class="size-6 text-slate-500" /></span
+        <span
+          class={`absolute inset-0 opacity-0 ${
+            compact ? 'group-hover:opacity-100 group-focus-visible:opacity-100' : ''
+          }`}><HeroIcon name="sidebar" class="size-6 text-slate-500" /></span
         >
-      </button>
-    {:else}
-      <button
-        class="-mx-2 flex items-center gap-x-3 rounded-md p-2"
-        onclick={() => go(client ? 'contracts' : 'overview')}
-        aria-label="Qadra, ir al inicio"
-        ><img src="/brand/qadra/favicon.svg" alt="" class="size-6 max-w-none shrink-0" /><span
-          class="text-lg font-semibold tracking-tight text-navy">Qadra</span
-        ></button
-      >
-      {#if desktop}<button
-          class="-mr-2 rounded-md p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600"
-          bind:this={collapseButton}
-          onclick={toggle}
-          aria-label="Contraer men&#250;"
-          aria-expanded="true"
-          title="Contraer men&#250;"><HeroIcon name="sidebar" class="size-6" /></button
-        >{/if}
-    {/if}
+      </span>
+      <span class={`text-lg font-semibold tracking-tight text-navy ${fade(compact)}`}>Qadra</span>
+    </button>
+    <!-- Visibility only animates while hiding: when shown, the button must be
+    focusable at once. -->
+    {#if desktop}<button
+        class={`-mr-2 ml-auto shrink-0 rounded-md p-2 text-slate-400 duration-200 hover:bg-slate-50 hover:text-slate-600 motion-reduce:transition-none ${
+          compact
+            ? 'invisible opacity-0 transition-[opacity,visibility]'
+            : 'opacity-100 transition-opacity'
+        }`}
+        bind:this={collapseButton}
+        onclick={toggle}
+        aria-label="Contraer men&#250;"
+        aria-expanded="true"
+        title="Contraer men&#250;"><HeroIcon name="sidebar" class="size-6" /></button
+      >{/if}
   </div>
   <nav aria-label="Navegaci&#243;n principal" class="flex flex-1 flex-col">
     <ul role="list" class="flex flex-1 flex-col gap-y-6">
@@ -170,32 +176,6 @@
           </ul>
         </li>
       {/if}
-      {#if !client && recent.length}
-        <li>
-          {@render heading('Expedientes recientes', compact)}
-          <ul role="list" class="-mx-2 space-y-1">
-            {#each recent as record (record.id)}
-              <li>
-                <a
-                  href="#case-summary"
-                  class="group flex w-full items-center gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-slate-700 no-underline hover:bg-slate-50 hover:text-brand-800"
-                  title={`${record.title} (${record.reference})`}
-                  aria-label={compact ? record.title : undefined}
-                  onclick={(event) => {
-                    event.preventDefault();
-                    openCase(record);
-                  }}
-                  ><span
-                    aria-hidden="true"
-                    class="flex size-6 shrink-0 items-center justify-center rounded-lg border border-line bg-white text-[0.625rem] font-medium text-slate-400 group-hover:border-brand-800 group-hover:text-brand-800"
-                    >{initial(record)}</span
-                  >{#if !compact}<span class="truncate">{record.title}</span>{/if}</a
-                >
-              </li>
-            {/each}
-          </ul>
-        </li>
-      {/if}
       {#if account.length}
         <li class="mt-auto">
           <ul role="list" class="-mx-2 space-y-1">
@@ -209,6 +189,7 @@
 
 <!-- Collapsed width: 1.5rem icon + 2 x 1.25rem padding + the 1px right border. -->
 <aside
+  bind:this={aside}
   class={`desktop-sidebar hidden transition-[width] duration-200 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col ${collapsed ? 'lg:w-[4.0625rem]' : 'lg:w-64'}`}
   data-collapsed={collapsed ? '' : undefined}
 >

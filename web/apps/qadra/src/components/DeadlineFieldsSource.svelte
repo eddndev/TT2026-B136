@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import DeadlineSourcePicker from './DeadlineSourcePicker.svelte';
   import FactTimeFields from './FactTimeFields.svelte';
   import DeadlinePolicyChoice from './DeadlinePolicyChoice.svelte';
@@ -108,8 +109,8 @@
             </p>{/if}
         </details>
       {/if}
-      <button type="button" class="secondary" onclick={() => (choosing = true)}
-        >Elegir fuente exacta</button
+      <Button type="button" variant="secondary" onclick={() => (choosing = true)}
+        >Elegir fuente exacta</Button
       >
     {/if}
   {/if}<DeadlinePolicyChoice

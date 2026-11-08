@@ -50,6 +50,11 @@ pub fn configure(harness: &mut Harness) {
             if state.change_owner_on_protect {
                 state.principal = None;
             }
+            if state.rename_candidate_on_protect {
+                if let Some(candidate) = state.candidate.as_mut() {
+                    candidate.display_name = DisplayName::new("Renamed Recipient").unwrap();
+                }
+            }
             Ok(opaque)
         });
     let state = harness.state.clone();

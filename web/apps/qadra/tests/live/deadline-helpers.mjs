@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { fixture } from './helpers.mjs';
+import { fixture, openSection } from './helpers.mjs';
 import { openCase } from '../case-administration-workflow.mjs';
 export { accountAction } from './hearing-result-helpers.mjs';
 export const accounts = fixture.deadlines;
@@ -9,7 +9,7 @@ export const detail = (page) => page.getByRole('region', { name: 'Detalle de pla
 export const list = (page) => page.getByRole('region', { name: 'Plazos registrados', exact: true });
 export async function openDeadlines(page, record = accounts.case) {
   await openCase(page, record);
-  await page.getByRole('link', { name: 'Plazos', exact: true }).click();
+  await openSection(page, 'Plazos');
   await expect(list(page)).toHaveAttribute('aria-busy', 'false');
 }
 export async function openDeadline(page, row) {

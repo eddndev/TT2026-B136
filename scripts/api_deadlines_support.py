@@ -35,7 +35,8 @@ def request(method, path, body=None, expected=200, token=TOKEN, code=None):
 def enroll(role):
     email = 'persistent-deadline-' + role + '@example.com'
     password = 'synthetic deadline fixture password'
-    row = request('POST', '/api/v1/users', {'email': email, 'password': password, 'role': role}, 201)
+    row = request('POST', '/api/v1/users', {'email': email, 'name': 'Deadline ' + role, 'password': password,
+                                            'role': role}, 201)
     challenge = request('POST', '/api/v1/auth/login', {'email': email, 'password': password})
     session = request('POST', '/api/v1/auth/mfa/recovery', {
         'challenge_token': challenge['challenge_token'], 'code': row['recovery_codes'][0],

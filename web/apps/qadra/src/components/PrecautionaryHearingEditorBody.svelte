@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import PrecautionaryHearingFields from './PrecautionaryHearingFields.svelte';
   import PrecautionaryHearingReview from './PrecautionaryHearingReview.svelte';
   export let api,
@@ -48,30 +49,30 @@
       Expediente cerrado administrativamente. La consulta del resultado sigue disponible. La
       convocatoria no admite cambios nuevos.
     </p>{/if}
-  {#if blocked || closed}<button
-      class="secondary"
+  {#if blocked || closed}<Button
+      variant="secondary"
       disabled={pending || disabled}
-      onclick={initialize}>Volver a consultar el contexto</button
+      onclick={initialize}>Volver a consultar el contexto</Button
     >{/if}
   {#if mode === 'uncertain'}
     <h3>Resultado incierto</h3>
     <p>Consulta el resultado de esta operaci&#243;n antes de decidir un reintento.</p>
-    <button class="primary" disabled={pending || disabled || blocked} onclick={actions.check}
-      >Consultar resultado</button
+    <Button variant="primary" disabled={pending || disabled || blocked} onclick={actions.check}
+      >Consultar resultado</Button
     >
-    {#if retryAvailable}<button
-        class="secondary"
+    {#if retryAvailable}<Button
+        variant="secondary"
         disabled={pending || disabled || blocked || closed}
-        onclick={actions.retry}>Reintentar envio exacto</button
+        onclick={actions.retry}>Reintentar envio exacto</Button
       >{/if}
     <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
   {:else if mode === 'conflict'}
     <h3>La convocatoria o su contexto cambi&#243;</h3>
     <p>El borrador conserva su base y las referencias seleccionadas.</p>
-    {#if !blocked && !closed}<button
-        class="secondary"
+    {#if !blocked && !closed}<Button
+        variant="secondary"
         disabled={pending || disabled}
-        onclick={initialize}>Volver a consultar el contexto</button
+        onclick={initialize}>Volver a consultar el contexto</Button
       >{/if}
   {:else if mode === 'review' && prepared}
     <PrecautionaryHearingReview value={prepared} />
@@ -80,23 +81,23 @@
       convocatoria y las fuentes seleccionadas</label
     >
     <div class="action-row">
-      <button class="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
-        >Confirmar convocatoria</button
+      <Button variant="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
+        >Confirmar convocatoria</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={frozen}
         onclick={() => {
           mode = 'draft';
           prepared = null;
           acknowledged = false;
-        }}>Volver al borrador</button
+        }}>Volver al borrador</Button
       >
     </div>
   {/if}
   {#if blocked}
     <p role="status">Confirma tu acceso actual antes de recuperar la convocatoria.</p>
-    <button class="primary" disabled>Revisar convocatoria</button>
+    <Button variant="primary" disabled>Revisar convocatoria</Button>
   {:else if !['review', 'confirmed'].includes(mode)}
     <PrecautionaryHearingFields
       {api}
@@ -113,11 +114,9 @@
       bind:pending={fieldsBusy}
       disabled={frozen || mode !== 'draft'}
     />
-    <button class="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
-      >Revisar convocatoria</button
+    <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
+      >Revisar convocatoria</Button
     >
   {/if}
-  <button class="text-button" disabled={pending || disabled} onclick={close}
-    >Cerrar formulario</button
-  >
+  <Button variant="text" disabled={pending || disabled} onclick={close}>Cerrar formulario</Button>
 </section>

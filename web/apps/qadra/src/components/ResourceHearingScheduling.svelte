@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import ResourceHearingEditor from './ResourceHearingEditor.svelte';
   import ResourceHearingCollection from './ResourceHearingCollection.svelte';
@@ -142,21 +143,21 @@
 <div class="stack resource-hearing-scheduling">
   {#if canResources(user.role, 'manage')}
     <div class="action-row">
-      <button
-        class="primary"
+      <Button
+        variant="primary"
         disabled={disabled ||
           pending ||
           !initialized ||
           closed ||
           head?.status !== 'active' ||
           !compatible}
-        onclick={() => open()}>Crear audiencia de recurso</button
+        onclick={() => open()}>Crear audiencia de recurso</Button
       >
       {#if !opened}{#each drafts as saved (saved.key)}
-          <button
-            class="secondary"
+          <Button
+            variant="secondary"
             disabled={disabled || pending || !initialized}
-            onclick={() => open(saved)}>Retomar borrador de audiencia</button
+            onclick={() => open(saved)}>Retomar borrador de audiencia</Button
           >
         {/each}{/if}
     </div>

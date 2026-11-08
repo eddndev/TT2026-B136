@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs, signOut } from './helpers.mjs';
+import { loginAs, signOut, openSection } from './helpers.mjs';
 import { openCase } from '../case-administration-workflow.mjs';
 import { createPenal, capture, archive } from './case-administration-helpers.mjs';
 import {
@@ -63,7 +63,7 @@ test('stage transitions retain exact historic supports, explicit conflict and or
   } finally {
     await context.close();
   }
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await page
     .getByRole('button', { name: /stage-accusation.pdf/ })
     .first()
@@ -119,7 +119,7 @@ test('stage transitions retain exact historic supports, explicit conflict and or
     expect(a.x + a.width <= b.x + 1 || a.y + a.height <= b.y + 1).toBe(true);
   }
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+  await openSection(page, 'Resumen');
   await expect(
     page.getByRole('heading', { name: 'Investigaci\u00f3n', exact: true }),
   ).toBeVisible();
@@ -130,7 +130,7 @@ test('stage transitions retain exact historic supports, explicit conflict and or
   ).toBeVisible();
   await openStages(page);
   await expect(page.locator('.stage-current')).toContainText('Juicio');
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await page
     .getByRole('button', { name: /stage-later.pdf/ })
     .first()

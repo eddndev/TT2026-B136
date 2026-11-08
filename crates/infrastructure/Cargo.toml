@@ -435,6 +435,10 @@ name = "member_invitations"
 path = "tests/member_invitations.rs"
 
 [[test]]
+name = "user_display_names"
+path = "tests/user_display_names.rs"
+
+[[test]]
 name = "member_invitation_boundaries"
 path = "tests/member_invitation_boundaries.rs"
 

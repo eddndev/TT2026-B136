@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
   import { getContext, onMount, onDestroy } from 'svelte';
@@ -174,16 +175,16 @@
     <h1>Participantes</h1>
     <p>Personas registradas en este expediente.</p>
   </div>
-  {#if canParticipants(user.role, 'manage')}<button
-      class="primary"
+  {#if canParticipants(user.role, 'manage')}<Button
+      variant="primary"
       disabled={$administration.closed || !!refreshing}
-      onclick={() => typedEditor.open()}><Icon name="plus" size={18} />Agregar participante</button
+      onclick={() => typedEditor.open()}><Icon name="plus" size={18} />Agregar participante</Button
     >{/if}
 </div>
-{#if canParticipants(user.role, 'manage') && $administration.closed && typedDrafts.some((entry) => entry.id === null)}<button
-    class="secondary"
+{#if canParticipants(user.role, 'manage') && $administration.closed && typedDrafts.some((entry) => entry.id === null)}<Button
+    variant="secondary"
     disabled={!!refreshing}
-    onclick={() => typedEditor.resume()}>Retomar borrador tipificado</button
+    onclick={() => typedEditor.resume()}>Retomar borrador tipificado</Button
   >{/if}
 {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
@@ -193,14 +194,14 @@
       <h2>Directorio del expediente</h2>
       <p class="hint">Este registro organiza personas; no administra cuentas ni permisos.</p>
     </div>
-    <button class="secondary" disabled={busy || !!refreshing} onclick={() => load()}
-      >Actualizar</button
+    <Button variant="secondary" disabled={busy || !!refreshing} onclick={() => load()}
+      >Actualizar</Button
     >
   </div>
-  {#if canParticipants(user.role, 'manage')}<button
-      class="text-button"
+  {#if canParticipants(user.role, 'manage')}<Button
+      variant="text"
       disabled={($administration.closed && !manualDrafts.includes(null)) || !!refreshing}
-      onclick={() => editor.open()}>Registrar ficha pendiente</button
+      onclick={() => editor.open()}>Registrar ficha pendiente</Button
     >{/if}
   <ParticipantFilters onapply={apply} busy={busy || !!refreshing} />
   {#if busy}<p class="hint" role="status">Consultando participantes...</p>
@@ -221,10 +222,10 @@
       {rows.length === 1 ? 'participante' : 'participantes'} en esta p&#225;gina</span
     >
     <div class="action-row">
-      <button class="secondary" disabled={busy || !!refreshing || !index} onclick={previous}
-        >Anterior</button
-      ><button class="secondary" disabled={busy || !!refreshing || !hasMore} onclick={next}
-        >Siguiente</button
+      <Button variant="secondary" disabled={busy || !!refreshing || !index} onclick={previous}
+        >Anterior</Button
+      ><Button variant="secondary" disabled={busy || !!refreshing || !hasMore} onclick={next}
+        >Siguiente</Button
       >
     </div>
   </div>

@@ -2,10 +2,12 @@
 
 use application::documents::CaseDocumentSummary;
 use application::identity::{
-    EnrollmentResult, LoginChallenge, Principal, SessionPolicy, SessionResult, SessionStatus,
+    CurrentAccount, EnrollmentResult, LoginChallenge, Principal, SessionPolicy, SessionResult,
+    SessionStatus,
 };
 use application::verification::{ComponentReport, ComponentStatus, Verdict, VerificationReport};
 use domain::audit::ChainVerification;
+use domain::identity::DisplayName;
 use serde::{Deserialize, Serialize};
 
 mod metadata;
@@ -21,6 +23,16 @@ pub struct CredentialsRequest {
     pub password: String,
 }
 
+/// First-Owner enrollment. `name` is the account display name written by the
+/// Owner: docs/adr/0087-account-display-names.md.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BootstrapRequest {
+    pub email: String,
+    pub name: String,
+    pub password: String,
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ChallengeCodeRequest {
@@ -32,30 +44,42 @@ pub struct ChallengeCodeRequest {
 #[serde(deny_unknown_fields)]
 pub struct CreateUserRequest {
     pub email: String,
+    pub name: String,
     pub password: String,
     pub role: String,
 }
 
+/// The signed-in account as the session payloads expose it. The display name
+/// rides beside the principal and never inside it:
+/// docs/adr/0087-account-display-names.md.
 #[derive(Serialize)]
-pub struct PrincipalResponse {
+pub struct SessionUserResponse {
     id: String,
     email: String,
+    name: String,
     role: &'static str,
 }
 
-impl From<Principal> for PrincipalResponse {
-    fn from(principal: Principal) -> Self {
+impl SessionUserResponse {
+    pub fn new(principal: Principal, display_name: &DisplayName) -> Self {
         Self {
             id: principal.id.to_string(),
             email: principal.email,
+            name: display_name.as_str().to_owned(),
             role: principal.role.as_str(),
         }
     }
 }
 
+impl From<CurrentAccount> for SessionUserResponse {
+    fn from(account: CurrentAccount) -> Self {
+        Self::new(account.principal, &account.display_name)
+    }
+}
+
 #[derive(Serialize)]
 pub struct EnrollmentResponse {
-    user: PrincipalResponse,
+    user: SessionUserResponse,
     totp_secret_base32: String,
     otpauth_uri: String,
     recovery_codes: Vec<String>,
@@ -64,7 +88,7 @@ pub struct EnrollmentResponse {
 impl From<EnrollmentResult> for EnrollmentResponse {
     fn from(result: EnrollmentResult) -> Self {
         Self {
-            user: result.principal.into(),
+            user: SessionUserResponse::new(result.principal, &result.display_name),
             totp_secret_base32: result.totp_secret_base32.to_string(),
             otpauth_uri: result.otpauth_uri.to_string(),
             recovery_codes: result
@@ -113,7 +137,7 @@ impl From<SessionResult> for SessionResponse {
 
 #[derive(Serialize)]
 pub struct SessionStatusResponse {
-    user: PrincipalResponse,
+    user: SessionUserResponse,
     policy: SessionPolicyResponse,
     server_now_unix_ms: i64,
     absolute_expires_at_unix_ms: i64,
@@ -123,7 +147,7 @@ pub struct SessionStatusResponse {
 impl From<SessionStatus> for SessionStatusResponse {
     fn from(session: SessionStatus) -> Self {
         Self {
-            user: session.principal.into(),
+            user: SessionUserResponse::new(session.principal, &session.display_name),
             policy: session.policy.into(),
             server_now_unix_ms: session.server_now_unix_ms,
             absolute_expires_at_unix_ms: session.absolute_expires_at_unix_ms,

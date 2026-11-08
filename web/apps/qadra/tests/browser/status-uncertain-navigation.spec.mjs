@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setup, login, navigate, caseRecord } from './helpers.mjs';
+import { setup, login, navigate, caseRecord, openSection } from './helpers.mjs';
 import { administration } from './case-administration-helpers.mjs';
 
 for (const applied of [false, true]) {
@@ -78,11 +78,11 @@ for (const applied of [false, true]) {
       await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
       await expect(dialog).not.toBeVisible();
 
-      await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+      await openSection(page, 'Participantes');
       await expect(
         page.getByRole('region', { name: 'Directorio del expediente', exact: true }),
       ).toHaveAttribute('aria-busy', 'false');
-      await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+      await openSection(page, 'Resumen');
       await expect(
         page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
       ).toBeVisible();

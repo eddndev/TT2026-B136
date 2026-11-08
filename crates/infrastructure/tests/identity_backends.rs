@@ -7,13 +7,14 @@ use application::identity::{
 };
 use application::ApplicationError;
 use domain::crypto::{RecoveryCodeSet, RECOVERY_CODE_COUNT};
-use domain::identity::{Role, UserId};
+use domain::identity::{DisplayName, Role, UserId};
 use infrastructure::{PostgresUserRepository, RedisSessionStore};
 
 fn user(email: &str, role: Role) -> UserRecord {
     UserRecord {
         id: UserId::new(),
         email: email.to_string(),
+        display_name: DisplayName::new("Test Account").unwrap(),
         password_hash: "$argon2id$test".to_string(),
         role,
         active: true,
@@ -35,7 +36,8 @@ fn postgres_persists_users_and_closes_bootstrap_atomically() {
         return;
     };
     let repository = PostgresUserRepository::connect(&database_url).unwrap();
-    let owner = user("owner@example.com", Role::Owner);
+    let mut owner = user("owner@example.com", Role::Owner);
+    owner.display_name = DisplayName::new("Ana  Garc\u{ed}a").unwrap();
 
     assert!(!repository.has_users().unwrap());
     assert!(repository
@@ -55,10 +57,10 @@ fn postgres_persists_users_and_closes_bootstrap_atomically() {
     assert_eq!(stored.id, owner.id);
     assert_eq!(stored.role, Role::Owner);
     assert_eq!(stored.recovery_codes.remaining(), RECOVERY_CODE_COUNT);
-    assert_eq!(
-        repository.find_by_id(owner.id).unwrap().unwrap().email,
-        stored.email
-    );
+    assert_eq!(stored.display_name, owner.display_name);
+    let by_id = repository.find_by_id(owner.id).unwrap().unwrap();
+    assert_eq!(by_id.email, stored.email);
+    assert_eq!(by_id.display_name, owner.display_name);
 
     let paralegal = user("helper@example.com", Role::Paralegal);
     repository
@@ -100,6 +102,9 @@ fn postgres_persists_users_and_closes_bootstrap_atomically() {
         Err(ApplicationError::ConcurrentModification)
     ));
 }
+
+#[path = "identity_display_name_cases.rs"]
+mod display_name_cases;
 
 #[test]
 fn redis_sessions_are_opaque_replay_safe_and_revocable() {

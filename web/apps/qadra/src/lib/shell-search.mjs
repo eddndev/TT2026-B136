@@ -32,9 +32,3 @@ export function matchCases(rows, query, limit = 6) {
   );
   return scored.slice(0, limit).map((item) => item.row);
 }
-
-export function recentCases(recent, record, limit = 4) {
-  if (!record?.id) return recent;
-  const entry = { id: record.id, title: record.title, reference: record.reference };
-  return [entry, ...recent.filter((row) => row.id !== record.id)].slice(0, limit);
-}

@@ -1,5 +1,6 @@
 import { descriptorKey } from './draft-descriptor.mjs';
-import { factObject } from './procedural-fact-primitives.mjs';
+import { factInvalid, factObject } from './procedural-fact-primitives.mjs';
+import { canonicalAccountName } from './account-name.mjs';
 import { reportCommand, reportUuid } from './case-report-values.mjs';
 import { canReports, reportScope } from './case-reports-presentation.mjs';
 
@@ -28,7 +29,8 @@ export async function freshReportRequest(api, scoped, user, admitted, types = ['
   if (!admitted()) return null;
   const principal = await api.me();
   if (!admitted()) return null;
-  factObject(principal, ['id', 'email', 'role']);
+  factObject(principal, ['id', 'email', 'role', 'name'], ['id', 'email', 'role']);
+  if (Object.hasOwn(principal, 'name') && !canonicalAccountName(principal.name)) factInvalid();
   reportUuid(principal.id);
   if (principal.id !== user.id || principal.role !== user.role || !canReports(principal.role)) {
     const error = new Error('La cuenta o sus permisos ya no admiten esta solicitud de informe.');

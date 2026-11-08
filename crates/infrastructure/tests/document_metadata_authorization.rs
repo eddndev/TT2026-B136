@@ -14,7 +14,7 @@ fn metadata_operations_recheck_roles_membership_and_exact_document_case() {
     store.insert(f.owner, f.case, record.clone(), f.at).unwrap();
     for role in ["litigator", "paralegal", "client"] {
         let user = UserId::new();
-        f.db.client.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture',$3,'\\x00','{}')",&[&user.as_uuid(),&format!("{user}@example.test"),&role]).unwrap();
+        f.db.client.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes,display_name) VALUES($1,$2,'fixture',$3,'\\x00','{}','Fixture')",&[&user.as_uuid(),&format!("{user}@example.test"),&role]).unwrap();
         if role != "client" {
             f.db.client
                 .execute(

@@ -1,15 +1,19 @@
 //! Schema and least-privilege runtime access for recoverable invitations.
 use crate::postgres::CatalogClient;
 use application::ApplicationError;
+use domain::identity::DisplayName;
 use postgres::GenericClient;
 
 pub(crate) const MIGRATIONS: &[&str] = &[
     include_str!("../../../migrations/0046_member_invitations.sql"),
     include_str!("../../../migrations/0051_client_invitations.sql"),
+    include_str!("../../../migrations/0053_invitation_display_names.sql"),
 ];
 /// Invitation roles, Client included: docs/adr/0086-bilateral-contract-signing.md.
 const ROLE_CHECK: &str =
     "(role = ANY (ARRAY['litigator'::text, 'paralegal'::text, 'client'::text]))";
+/// Invitee display names follow the account rule: docs/adr/0087-account-display-names.md.
+const NAME_CHECK: &str = crate::member_schema::DISPLAY_NAME_CHECK;
 const TABLES: [&str; 3] = [
     "member_invitations",
     "member_invitation_operations",
@@ -54,6 +58,24 @@ pub(crate) fn validate_schema<C: CatalogClient>(c: &mut C) -> Result<(), Applica
         .map_err(port)?
         .get(0);
     if !roles {
+        return Err(invalid());
+    }
+    let named: bool = c
+        .query_one(
+            "SELECT EXISTS(SELECT 1 FROM pg_attribute a
+                WHERE a.attrelid='member_invitations'::regclass AND a.attname='display_name'
+                AND NOT a.attisdropped AND a.attnotnull AND a.atttypid='pg_catalog.text'::regtype
+                AND NOT EXISTS(SELECT 1 FROM pg_attrdef d
+                    WHERE d.adrelid=a.attrelid AND d.adnum=a.attnum))
+            AND EXISTS(SELECT 1 FROM pg_constraint c
+                WHERE c.conrelid='member_invitations'::regclass AND c.contype='c'
+                AND c.conname='member_invitations_display_name_check' AND c.convalidated
+                AND pg_get_expr(c.conbin,c.conrelid)=$1)",
+            &[&NAME_CHECK],
+        )
+        .map_err(port)?
+        .get(0);
+    if !named {
         return Err(invalid());
     }
     let valid: bool = c
@@ -114,7 +136,7 @@ pub(crate) fn validate_runtime<C: CatalogClient>(
             }
         }
     }
-    for column in ["id", "email", "role"] {
+    for column in ["id", "email", "role", "display_name"] {
         let allowed: bool = c
             .query_one(
                 "SELECT has_column_privilege($1,'member_invitations',$2,'UPDATE')",
@@ -139,6 +161,31 @@ pub(crate) fn validate_runtime<C: CatalogClient>(
         }
     }
     Ok(())
+}
+/// Rejects stored invitee names that are not canonical, which the database
+/// CHECK cannot express: docs/adr/0087-account-display-names.md.
+pub(crate) fn validate_inventory<C: GenericClient>(c: &mut C) -> Result<(), ApplicationError> {
+    let mut after: Option<uuid::Uuid> = None;
+    loop {
+        let rows = c
+            .query(
+                "SELECT id,display_name FROM member_invitations
+                WHERE ($1::uuid IS NULL OR id>$1) ORDER BY id LIMIT 64",
+                &[&after],
+            )
+            .map_err(port)?;
+        let Some(last) = rows.last() else {
+            return Ok(());
+        };
+        after = Some(last.get("id"));
+        for row in &rows {
+            DisplayName::from_stored(row.get::<_, &str>("display_name")).map_err(|_| {
+                ApplicationError::InvalidConfiguration(
+                    "invalid invitation display name; restore a consistent database".into(),
+                )
+            })?;
+        }
+    }
 }
 fn invalid() -> ApplicationError {
     ApplicationError::InvalidConfiguration(

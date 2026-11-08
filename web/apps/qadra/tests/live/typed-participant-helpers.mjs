@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { fixture } from './helpers.mjs';
+import { fixture, openSection } from './helpers.mjs';
 export const accounts = fixture.typedParticipants;
 export const personName = 'Persona sintetica del expediente';
 export const pdf = readFileSync(
@@ -12,7 +12,7 @@ export const directory = (page) =>
 export const detail = (page) =>
   page.getByRole('region', { name: 'Datos del participante', exact: true });
 export async function participants(page) {
-  await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+  await openSection(page, 'Participantes');
   await expect(directory(page)).toHaveAttribute('aria-busy', 'false');
 }
 export async function chooseSupport(page, label, name = 'participant-identity.pdf', version = 1) {

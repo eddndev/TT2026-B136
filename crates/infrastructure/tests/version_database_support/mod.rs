@@ -44,7 +44,16 @@ impl Database {
     pub fn seed_case(&mut self) -> Uuid {
         let user = Uuid::new_v4();
         let case = Uuid::new_v4();
-        self.client.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture','owner','\\x00','{}')", &[&user, &format!("{user}@example.test")]).unwrap();
+        // Upgraded schemas require a display name: docs/adr/0087-account-display-names.md.
+        let named: bool = self.client.query_one("SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_attribute WHERE attrelid='users'::regclass AND attname='display_name' AND NOT attisdropped)",&[]).unwrap().get(0);
+        let account = if named {
+            "INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes,display_name) VALUES($1,$2,'fixture','owner','\\x00','{}','Fixture')"
+        } else {
+            "INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture','owner','\\x00','{}')"
+        };
+        self.client
+            .execute(account, &[&user, &format!("{user}@example.test")])
+            .unwrap();
         let revised: bool = self.client.query_one("SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_attribute WHERE attrelid='cases'::regclass AND attname='required_initial_revision' AND NOT attisdropped)",&[]).unwrap().get(0);
         let insert = if revised {
             "INSERT INTO cases(id,title,reference,created_by,required_initial_revision) VALUES($1,'Versions','V',$2,NULL)"

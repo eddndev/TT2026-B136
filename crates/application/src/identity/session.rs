@@ -1,5 +1,7 @@
 //! Server-selected lifetime limits and authenticated session deadlines.
 
+use domain::identity::DisplayName;
+
 use super::{certificate_login::SessionAuthentication, Principal, SessionIdentity};
 use crate::ApplicationError;
 
@@ -58,6 +60,7 @@ pub struct SessionGrant {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SessionStatus {
     pub principal: Principal,
+    pub display_name: DisplayName,
     pub policy: SessionPolicy,
     pub server_now_unix_ms: i64,
     pub absolute_expires_at_unix_ms: i64,

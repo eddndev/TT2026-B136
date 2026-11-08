@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount } from 'svelte';
   import MeasureDecisionReview from './MeasureDecisionReview.svelte';
   import { measureActions, measureKinds, measureTimeLabel } from '../lib/measure-presentation.mjs';
@@ -22,7 +23,7 @@
 <section class="card hearing-detail fact-detail" aria-label="Detalle de decision cautelar">
   <div class="section-heading">
     <h2 tabindex="-1" bind:this={heading}>Decisi&#243;n cautelar declarada</h2>
-    <button class="secondary" onclick={onclose}>Cerrar detalle de decision</button>
+    <Button variant="secondary" onclick={onclose}>Cerrar detalle de decision</Button>
   </div>
   <p><strong>{record.title}</strong> / {record.reference}</p>
   {#if record.administration?.administrative_status === 'closed'}

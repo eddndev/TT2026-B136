@@ -1,5 +1,75 @@
 # Informe de verificación local
 
+## Nombres visibles de cuentas: 6 de noviembre de 2026
+
+Ejecución local fresca sobre la rama `feat/tailwind-v4` en `4eb90750`, con los
+cambios sin confirmar de los nombres visibles de
+[ADR 0087](adr/0087-account-display-names.md) (migraciones `0053`, dominio,
+aplicación, infraestructura, web, scripts y Qadra) y el trabajo de interfaz
+pendiente de la misma rama. `TMPDIR` en disco dentro del checkout
+(`output/tmp`), `CARGO_BUILD_JOBS=1` y `RUST_TEST_THREADS=1`, una sola campaña
+a la vez. Rust 1.94.0 estable salvo clippy; Node 22.22.2. No hay integración,
+CI ni despliegue de este cambio, y nada se confirmó.
+
+- `cargo fmt --all -- --check`: correcto.
+- `cargo +1.99 clippy --workspace --all-targets -- -D warnings`: sin
+  advertencias; sólo el aviso existente de incompatibilidad futura de
+  `redis` 0.25.4.
+- `cargo build --workspace`: correcto.
+- `cargo test --workspace --no-fail-fast` sin servicios, con
+  `TT_TEST_QPDF_LIBRARY` (qpdf 12.4.1), `TT_FFPROBE_PATH` y `TT_FFMPEG_PATH`:
+  6289 aprobadas, 145 fallidas y 6 ignoradas en 393 resultados. Las 145 fallas
+  están en 18 binarios de `infrastructure` y `despacho-cli` y todas son el
+  pánico esperado por falta de `CASE_TEST_DATABASE_URL`,
+  `IDENTITY_TEST_DATABASE_URL`, `IDENTITY_TEST_REDIS_URL` o
+  `CA_TEST_REDIS_URL`.
+- `scripts/test-backends.sh cargo test --workspace --no-fail-fast`, con
+  PostgreSQL 18.6 y Valkey 8.1.10 (como `redis-server`) desechables en
+  puertos libres y las mismas variables:
+  6434 aprobadas, ninguna fallida y 6 ignoradas en 393 resultados, en 3 h 40
+  min. Las 6 ignoradas son las campañas manuales de siempre (aceptación HTTP de
+  informes, latencia del catálogo de acceso, calibración y validación de
+  tiempos de informes, el sandbox real y el rendimiento de despacho de plazos).
+- En `web/apps/qadra`: `npm test`, 1062 aprobadas, ninguna fallida;
+  `npx prettier --check src tests`, correcto; `npm run build`, correcto.
+- `npx playwright test tests/browser --workers=1`: 766 aprobadas y 2 fallidas
+  en 42,4 min. Las dos fallas son violaciones del modo estricto de
+  localizadores, ajenas a los nombres visibles: en
+  `session-notification-drafts.spec.mjs:149`,
+  `getByRole('dialog', { name: 'Subir documento', exact: true })` encuentra 2
+  diálogos, y en `session-typed-supports.spec.mjs:10` el mismo diálogo con
+  `getByLabel('Nueva etiqueta')` encuentra 2 campos. Vienen del trabajo
+  pendiente de ventanas modales y carga de documentos y no se corrigieron.
+- Revisión de los 491 archivos modificados o nuevos (y 3 eliminados): el
+  código, las pruebas, los scripts y las migraciones son ASCII. Sólo tienen caracteres no
+  ASCII documentos que ya eran UTF-8 (`http-api.md`, `database-operations.md`,
+  `deployment.md`, `user-guide.md`, `member-enrollment-recovery.md`,
+  `product-completion.md` y el `README.md` de Qadra). Sólo pasan de 400 líneas
+  archivos que ya las pasaban (`AGENTS.md`, `crates/infrastructure/Cargo.toml`,
+  esos documentos y este informe).
+
+Límites: no se ejecutaron `scripts/api-demo.sh`, `scripts/web-demo.sh`, las
+especificaciones `tests/live` y `tests/session-live`, ni ninguna prueba contra
+servicios reales, ni el ensayo de las migraciones `0053` sobre un respaldo.
+
+Correcciones de revisión, 7 de noviembre de 2026, sólo con pruebas enfocadas:
+
+- El inventario de arranque rechaza también los nombres de invitación no
+  canónicos (`invitation_schema::validate_inventory`, llamado tras el de
+  cuentas). La prueba nueva
+  `startup_rejects_a_stored_invitation_name_that_is_not_canonical` falló antes
+  del cambio y pasa después. `scripts/test-backends.sh cargo test -p
+  infrastructure` de `member_invitations` (11), `member_invitation_restore`
+  (5), `member_invitation_boundaries` (7), `member_invitation_clients` (2),
+  `user_display_names` (2) e `identity_backends` (4): aprobadas.
+- El formulario de acceso inicial valida el nombre antes de enviar y conserva
+  la contraseña. La prueba nueva de `workflow.spec.mjs` falló antes del cambio
+  (contraseña vaciada) y la especificación completa pasa (13 de 13, un
+  trabajador). `npm test`: 1062 aprobadas.
+- `cargo fmt --all -- --check` y `cargo +1.99 clippy --workspace --all-targets
+  -- -D warnings`: correctos. No se repitió la campaña completa de navegador
+  ni la del espacio de trabajo.
+
 ## Despliegue de `v0.1.16` y firma bilateral en producción: 4 de noviembre de 2026
 
 Ensayo, ventana y ceremonia en el servidor productivo con `v0.1.16`

@@ -19,7 +19,7 @@ def enroll(role, route):
     email = 'document-content-' + role + '@example.com'
     password = 'synthetic content fixture password'
     enrollment = request('POST', '/api/v1/users', {
-        'email': email, 'password': password, 'role': role,
+        'email': email, 'name': 'Document content ' + role, 'password': password, 'role': role,
     }, 201)
     challenge = request('POST', '/api/v1/auth/login', {'email': email, 'password': password})
     session = request('POST', '/api/v1/auth/mfa/recovery', {

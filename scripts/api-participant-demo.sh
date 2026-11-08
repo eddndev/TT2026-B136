@@ -20,7 +20,7 @@ participant_demo_enroll() {
   curl -fsS -X POST "$BASE_URL/api/v1/users" \
     -H "Authorization: Bearer $RECOVERY_TOKEN" -H 'Content-Type: application/json' \
     --data "$(jq -nc --arg role "$role" \
-      '{email:("participant-"+$role+"@example.com"),role:$role,password:"participant demo password"}')" \
+      '{email:("participant-"+$role+"@example.com"),name:("Participant "+$role),role:$role,password:"participant demo password"}')" \
     >"$enrollment"
   challenge="$(curl -fsS -X POST "$BASE_URL/api/v1/auth/login" \
     -H 'Content-Type: application/json' \

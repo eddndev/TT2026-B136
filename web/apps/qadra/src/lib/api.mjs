@@ -19,6 +19,14 @@ import {
 } from './owner-login-values.mjs';
 import { messages } from './api-messages.mjs';
 
+// Account creation takes one named object so a positional call written for the
+// former (email, password) signature fails instead of sending the password as the name.
+function accountInput(input) {
+  if (!input || typeof input !== 'object' || Object.getPrototypeOf(input) !== Object.prototype)
+    throw new TypeError('Account creation expects one object with email, name and password.');
+  return input;
+}
+
 export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
   let token = '';
   let principalId = null;
@@ -235,8 +243,10 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
         },
       );
     },
-    bootstrap: (email, password) =>
-      authenticate('/auth/bootstrap', { email, password }, invalidateAuthentication()),
+    bootstrap(input) {
+      const { email, name, password } = accountInput(input);
+      return authenticate('/auth/bootstrap', { email, name, password }, invalidateAuthentication());
+    },
     async mfa(challenge_token, code, mode) {
       if (!['totp', 'recovery'].includes(mode))
         throw new Error('M\u00e9todo de verificaci\u00f3n no v\u00e1lido.');
@@ -278,7 +288,10 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       invalidateSession();
       return result;
     },
-    createUser: (email, password, role) => post('/users', { email, password, role }),
+    createUser(input) {
+      const { email, name, password, role } = accountInput(input);
+      return post('/users', { email, name, password, role });
+    },
     ...caseApi(request),
     dashboard: () => dashboardApi(request),
     auditEvents: () => auditEventsApi(request),

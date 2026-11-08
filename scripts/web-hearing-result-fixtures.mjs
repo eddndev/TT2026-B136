@@ -12,6 +12,7 @@ export async function provisionHearingResults(call) {
       "POST",
       "/users",
       {
+        name: `Hearing result ${role}`,
         email: `hearing-results.${role}@example.com`,
         password,
         role,

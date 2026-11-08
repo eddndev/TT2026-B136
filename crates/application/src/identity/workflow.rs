@@ -3,8 +3,8 @@
 use domain::identity::{Permission, Role};
 
 use super::{
-    EnrollmentResult, IdentityService, IdentityWorkflow, LoginChallenge, Principal, SessionResult,
-    SessionStatus,
+    CurrentAccount, EnrollmentResult, IdentityService, IdentityWorkflow, LoginChallenge, Principal,
+    SessionResult, SessionStatus,
 };
 use crate::ApplicationError;
 
@@ -18,19 +18,21 @@ impl IdentityWorkflow for IdentityService {
     fn bootstrap_owner(
         &self,
         email: &str,
+        display_name: &str,
         password: &str,
     ) -> Result<EnrollmentResult, ApplicationError> {
-        Self::bootstrap_owner(self, email, password)
+        Self::bootstrap_owner(self, email, display_name, password)
     }
 
     fn create_user(
         &self,
         access_token: &str,
         email: &str,
+        display_name: &str,
         password: &str,
         role: Role,
     ) -> Result<EnrollmentResult, ApplicationError> {
-        Self::create_user(self, access_token, email, password, role)
+        Self::create_user(self, access_token, email, display_name, password, role)
     }
 
     fn start_login(&self, email: &str, password: &str) -> Result<LoginChallenge, ApplicationError> {
@@ -63,6 +65,10 @@ impl IdentityWorkflow for IdentityService {
 
     fn record_activity(&self, access_token: &str) -> Result<SessionStatus, ApplicationError> {
         Self::record_activity(self, access_token)
+    }
+
+    fn current_account(&self, access_token: &str) -> Result<CurrentAccount, ApplicationError> {
+        Self::current_account(self, access_token)
     }
 
     fn authorize(

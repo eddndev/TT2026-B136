@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import ParticipantSubjectFields from './ParticipantSubjectFields.svelte';
   import ParticipantRoleFields from './ParticipantRoleFields.svelte';
   import ParticipantSubjectPicker from './ParticipantSubjectPicker.svelte';
@@ -41,22 +42,22 @@
 
 <div class="stack">
   {#if !fixedSubject}<div class="action-row">
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || pending}
-        onclick={() => (picking = true)}>Elegir identidad existente</button
+        onclick={() => (picking = true)}>Elegir identidad existente</Button
       >
-      {#if selected}<button
+      {#if selected}<Button
           type="button"
-          class="text-button"
+          variant="text"
           disabled={disabled || pending}
           onclick={() => {
             if (canApply()) {
               discardPath(['subject']);
               selected = null;
             }
-          }}>Registrar otra identidad</button
+          }}>Registrar otra identidad</Button
         >{/if}
     </div>{/if}
   {#if picking}<ParticipantSubjectPicker

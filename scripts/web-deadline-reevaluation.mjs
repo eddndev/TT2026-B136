@@ -33,6 +33,7 @@ async function account(call, label, role) {
     "POST",
     "/users",
     {
+      name: `Deadline follow ${label} ${role}`,
       email: `deadline-follow.${label}.${role}@example.com`,
       password,
       role,

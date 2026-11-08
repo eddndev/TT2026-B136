@@ -227,6 +227,7 @@ pub(crate) fn validate_runtime(client: &mut Client) -> Result<(), ApplicationErr
     crate::hearing_derived_deadline_schema::validate_inventory(client)?;
     crate::document_integrity_schema::validate_inventory(client)?;
     crate::member_schema::validate_inventory(client)?;
+    crate::invitation_schema::validate_inventory(client)?;
     crate::case_report_schema::validate_inventory(client)?;
     crate::audit_query_schema::validate_inventory(client)?;
     crate::password_reset_schema::validate_inventory(client)?;

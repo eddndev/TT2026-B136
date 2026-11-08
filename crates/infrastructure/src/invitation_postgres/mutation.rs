@@ -13,8 +13,8 @@ impl PostgresInvitationStore {
         let mut client = self.lock()?;
         let mut tx = begin_audited(&mut client)?;
         authority(&mut tx, &actor)?;
-        let command =
-            json!({"action":"issue","email":c.request.email,"role":c.request.role.as_str()});
+        let command = json!({"action":"issue","email":c.request.email,
+            "display_name":c.request.display_name,"role":c.request.role.as_str()});
         if let Some(receipt) = replay(&mut tx, &actor, c.request.operation_id, &command)? {
             return Ok(receipt);
         }
@@ -45,7 +45,7 @@ impl PostgresInvitationStore {
             seconds(at)?,
         )?;
         let seq = i64::try_from(audit.event.sequence).map_err(|_| storage())?;
-        let row=tx.query_one("INSERT INTO member_invitations(id,email,role,revision,operation_id,issued_at,expires_at,token_digest,protected_token,delivery_state,audit_sequence) VALUES($1,$2,$3,1,$1,$4,$5,$6,$7,'pending',$8) RETURNING *",&[&id,&c.request.email,&c.request.role.as_str(),&at,&until,&&c.token_digest.as_bytes()[..],&c.protected_token,&seq]).map_err(|_|storage())?;
+        let row=tx.query_one("INSERT INTO member_invitations(id,email,role,revision,operation_id,issued_at,expires_at,token_digest,protected_token,delivery_state,audit_sequence,display_name) VALUES($1,$2,$3,1,$1,$4,$5,$6,$7,'pending',$8,$9) RETURNING *",&[&id,&c.request.email,&c.request.role.as_str(),&at,&until,&&c.token_digest.as_bytes()[..],&c.protected_token,&seq,&c.request.display_name]).map_err(|_|storage())?;
         let result = summary(&row, at)?;
         save_receipt(&mut tx, &actor, &result, command, seq)?;
         tx.commit().map_err(|_| storage())?;
@@ -150,6 +150,7 @@ impl PostgresInvitationStore {
         if p.operation_id != c.pending_operation_id
             || c.user.email != row.get::<_, String>("email")
             || c.user.role.as_str() != row.get::<_, String>("role")
+            || c.user.display_name.as_str() != row.get::<_, &str>("display_name")
             || !c.user.active
             || c.user.revision != 0
             || c.user.auth_generation != 0
@@ -168,7 +169,11 @@ impl PostgresInvitationStore {
             seconds(at)?,
         )?;
         let seq = i64::try_from(audit.event.sequence).map_err(|_| storage())?;
-        crate::identity::postgres::insert_user(&mut tx, &c.user)?;
+        crate::identity::postgres::insert_user(
+            &mut tx,
+            &c.user,
+            crate::identity::postgres::UserColumns::Office,
+        )?;
         let receipt = InvitationReceipt {
             id: c.id,
             revision: c.revision,

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import DocumentIntegrityIncidentCard from './DocumentIntegrityIncidentCard.svelte';
   import { basicCase } from '../lib/case-administration.mjs';
@@ -103,8 +104,8 @@
       Versiones de documentos cuyo contenido no pas&#243; la comprobaci&#243;n de integridad al
       abrirse. Un incidente no indica la causa ni a un responsable.
     </p>
-    <button class="secondary" disabled={denied || busy || opening} onclick={() => load()}
-      >Actualizar</button
+    <Button variant="secondary" disabled={denied || busy || opening} onclick={() => load()}
+      >Actualizar</Button
     >
   </div>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
@@ -116,9 +117,9 @@
   {#if loaded && !busy && !error && !rows.length}<p class="card">
       No hay incidentes registrados.
     </p>{/if}
-  {#if more}<button
-      class="secondary"
+  {#if more}<Button
+      variant="secondary"
       disabled={denied || busy || opening}
-      onclick={() => load(true)}>Cargar m&#225;s</button
+      onclick={() => load(true)}>Cargar m&#225;s</Button
     >{/if}
 </section>

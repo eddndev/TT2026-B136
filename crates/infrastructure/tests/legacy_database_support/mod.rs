@@ -165,8 +165,8 @@ impl Database {
     pub fn seed_case(&mut self, id: CaseId) {
         let owner = Uuid::new_v4();
         self.client.execute(
-            "INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes)
-             VALUES($1,$2,'fixture','owner','\\x00','{}')",
+            "INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes,display_name)
+             VALUES($1,$2,'fixture','owner','\\x00','{}','Fixture')",
             &[&owner, &format!("{owner}@example.test")],
         ).unwrap();
         self.client.execute(

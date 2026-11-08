@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import ResourceFields from './ResourceFields.svelte';
   import ResourceActFields from './ResourceActFields.svelte';
   import ResourceValues from './ResourceValues.svelte';
@@ -52,22 +53,22 @@
     plazos.
   </p>
   <CaseClosedNotice />
-  {#if blocked || restoredClosed}<button class="secondary" disabled={pending} onclick={retry}
-      >Volver a consultar el contexto</button
+  {#if blocked || restoredClosed}<Button variant="secondary" disabled={pending} onclick={retry}
+      >Volver a consultar el contexto</Button
     >{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if !blocked && mode === 'uncertain'}
     <div class="case-comparison">
       <h3>Resultado incierto</h3>
       <p>Consulta el recibo del env&#237;o. Una ausencia temporal no confirma que fall&#243;.</p>
-      <button class="primary" disabled={pending} onclick={check}>Consultar envio exacto</button>
+      <Button variant="primary" disabled={pending} onclick={check}>Consultar envio exacto</Button>
     </div>
   {:else if !blocked && mode === 'conflict'}
     <div class="case-comparison">
       <h3>El registro cambi&#243;</h3>
       <p>Tu borrador se conserva. Consulta la base actual antes de decidir.</p>
-      <button class="secondary" disabled={pending} onclick={compare}
-        >Comparar con registro actual</button
+      <Button variant="secondary" disabled={pending} onclick={compare}
+        >Comparar con registro actual</Button
       >
       {#if candidate}<p>
           Revisi&#243;n {candidate.revision} / {candidate.status === 'active'
@@ -79,12 +80,12 @@
             Consulta en la historia la &#250;ltima revisi&#243;n del acto y abre su correcci&#243;n.
             Este borrador permanece visible hasta cerrar el formulario.
           </p>
-        {:else}<button
-            class="primary"
+        {:else}<Button
+            variant="primary"
             disabled={frozen ||
               action === 'register' ||
               (action === 'reactivate') !== (candidate.status === 'archived')}
-            onclick={accept}>Usar base actual y conservar borrador</button
+            onclick={accept}>Usar base actual y conservar borrador</Button
           >{/if}
       {/if}
     </div>
@@ -96,8 +97,8 @@
     <ResourceSources sources={prepared.sources} act={prepared.act} />
     {#if draft.reason}<p class="case-multiline">Motivo: {draft.reason}</p>{/if}
     <div class="action-row">
-      <button class="primary" disabled={frozen} onclick={submit}>Confirmar registro</button>
-      <button class="secondary" disabled={pending} onclick={back}>Volver al borrador</button>
+      <Button variant="primary" disabled={frozen} onclick={submit}>Confirmar registro</Button>
+      <Button variant="secondary" disabled={pending} onclick={back}>Volver al borrador</Button>
     </div>
   {/if}
   {#if (mode !== 'review' && mode !== 'confirmed') || blocked}
@@ -158,9 +159,9 @@
           >{/if}
       {/if}
     </fieldset>
-    {#if mode === 'draft' || blocked}<button class="primary" disabled={frozen} onclick={prepare}
-        >Preparar registro</button
+    {#if mode === 'draft' || blocked}<Button variant="primary" disabled={frozen} onclick={prepare}
+        >Preparar registro</Button
       >{/if}
   {/if}
-  <button class="text-button" disabled={pending} onclick={close}>Cerrar formulario</button>
+  <Button variant="text" disabled={pending} onclick={close}>Cerrar formulario</Button>
 </section>

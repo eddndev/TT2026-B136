@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import FactValues from './FactValues.svelte';
   import FactSources from './FactSources.svelte';
@@ -61,8 +62,8 @@
       ? 'Registrado'
       : 'Retirado'}.
   </p>
-  <button class="secondary" disabled={busy} onclick={load}
-    >{busy ? 'Consultando...' : `Consultar ${label.toLowerCase()}`}</button
+  <Button variant="secondary" disabled={busy} onclick={load}
+    >{busy ? 'Consultando...' : `Consultar ${label.toLowerCase()}`}</Button
   >
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if value}{#if kind === 'calendar'}<CalendarValues values={value.values} />

@@ -8,12 +8,14 @@ import {
   holdEnrollmentRequest,
   principalPath,
   submittedEmail,
+  submittedName,
 } from './session-member-enrollment-fixtures.mjs';
 import {
   enterEnrollment,
   fillEnrollment,
   expectBlankEnrollment,
   expectNoEnrollmentMaterial,
+  name,
   email,
   role,
   create,
@@ -61,6 +63,7 @@ for (const restored of [false, true]) {
     );
     await expect(create(page)).toBeDisabled();
     fresh.release();
+    await expect(name(page)).toHaveValue(submittedName);
     await expect(email(page)).toHaveValue(submittedEmail);
     await expect(role(page)).toHaveValue('litigator');
     await expect(consult(page)).toBeEnabled();

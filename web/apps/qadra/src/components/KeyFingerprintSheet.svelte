@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // The printable fingerprint sheet of a locally generated key: the SHA-256
   // of its public key (SPKI), the account e-mail and the pinned root, to be
   // signed by hand in two copies. Printing uses the browser only; nothing is
@@ -21,8 +22,8 @@
   <p class="fingerprint-value" data-testid="spki-sha256">
     <code>{fingerprintGroups(spkiSha256)}</code>
   </p>
-  <button class="secondary" type="button" onclick={() => window.print()}
-    >Imprimir hoja de huella</button
+  <Button variant="secondary" type="button" onclick={() => window.print()}
+    >Imprimir hoja de huella</Button
   >
   <p class="hint">
     Imprime y firma a mano dos ejemplares. La hoja ata a la persona con su clave fuera del sistema;

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { pendingFactDrafts } from '../lib/fact-draft.mjs';
   import FactEditor from './FactEditor.svelte';
@@ -176,10 +177,10 @@
 <section class="fact-collection" aria-label={plural}>
   <div class="section-heading">
     <h2>{plural}</h2>
-    {#if canFacts(user.role, 'manage')}<button
-        class="primary"
+    {#if canFacts(user.role, 'manage')}<Button
+        variant="primary"
         disabled={disabled || pending || !manage}
-        onclick={() => edit('record')}>Registrar {singular}</button
+        onclick={() => edit('record')}>Registrar {singular}</Button
       >{/if}
   </div>
   {#if family === 'notification'}<p class="hint">
@@ -202,16 +203,16 @@
         oncancel={closedEditor}
         bind:pending={editorBusy}
       />{/key}{/if}
-  {#if !action}{#each drafts as saved (saved.key)}<button
-        class="secondary"
+  {#if !action}{#each drafts as saved (saved.key)}<Button
+        variant="secondary"
         disabled={disabled || pending}
-        onclick={() => resume(saved)}>Retomar borrador de {singular}</button
+        onclick={() => resume(saved)}>Retomar borrador de {singular}</Button
       >{/each}{/if}
   <section class="card" aria-label={`${plural} registradas`} aria-busy={busy || opening}>
     <div class="section-heading">
       <h3>Registros disponibles</h3>
-      <button class="secondary" disabled={disabled || pending} onclick={reset}
-        >Actualizar registros</button
+      <Button variant="secondary" disabled={disabled || pending} onclick={reset}
+        >Actualizar registros</Button
       >
     </div>
     <div class="action-row">
@@ -222,13 +223,13 @@
           ></select
         ></label
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={disabled || pending}
         onclick={() => {
           applied = status;
           reset();
-        }}>Aplicar estado</button
+        }}>Aplicar estado</Button
       >
     </div>
     <p class="hint">Orden por identificador; no indica el orden procesal de los actos.</p>
@@ -250,24 +251,24 @@
     {#if !rows.length && !busy && !error}<p>No hay registros en esta consulta.</p>{/if}
     {#if busy}<p role="status">Consultando registros...</p>{/if}
     <div class="action-row">
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={disabled || pending || !index}
         onclick={() => {
           selected = null;
           detailGeneration++;
           load(index - 1);
-        }}>Registros anteriores</button
+        }}>Registros anteriores</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={disabled || pending || !more}
         onclick={() => {
           selected = null;
           detailGeneration++;
           cursors = [...cursors.slice(0, index + 1), next];
           load(index + 1);
-        }}>Siguientes registros</button
+        }}>Siguientes registros</Button
       >
     </div>
   </section>
@@ -282,12 +283,13 @@
         onedit={edit}
         onselect={open}
       />{/key}
-    {#if family === 'resolution'}<button
-        class="secondary fact-notification-toggle"
+    {#if family === 'resolution'}<Button
+        variant="secondary"
+        class="fact-notification-toggle"
         disabled={disabled || pending}
         aria-expanded={notices}
         onclick={() => (notices = !notices)}
-        >{notices ? 'Ocultar notificaciones' : 'Ver notificaciones'}</button
+        >{notices ? 'Ocultar notificaciones' : 'Ver notificaciones'}</Button
       >
       {#if notices}{#key `${selected.id}:${selected.revision}`}<svelte:self
             {api}

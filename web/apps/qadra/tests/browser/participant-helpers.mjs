@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { setup, login, caseId } from './helpers.mjs';
+import { setup, login, caseId, openSection } from './helpers.mjs';
 export const participantId = '11111111-1111-4111-8111-111111111111';
 export const otherParticipantId = '22222222-2222-4222-8222-222222222222';
 export const participant = {
@@ -102,7 +102,6 @@ export async function participantSetup(page, role = 'owner', initial = [particip
     return route.fulfill({ json: current });
   });
   await login(page, false, role !== 'client');
-  if (role !== 'client')
-    await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+  if (role !== 'client') await openSection(page, 'Participantes');
   return state;
 }

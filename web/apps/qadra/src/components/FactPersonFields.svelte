@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import HistoricalParticipantPicker from './HistoricalParticipantPicker.svelte';
   import ParticipantSummary from './ParticipantSummary.svelte';
@@ -105,8 +106,8 @@
         <summary>Referencia de la ficha</summary><code>{person.id}</code>
         <p>Revision {person.revision}</p>
       </details>{/if}
-    <button type="button" class="secondary" disabled={pending} onclick={() => (choosing = true)}
-      >Elegir ficha: {label}</button
+    <Button type="button" variant="secondary" disabled={pending} onclick={() => (choosing = true)}
+      >Elegir ficha: {label}</Button
     >
     {#if choosing}<HistoricalParticipantPicker
         api={participants}

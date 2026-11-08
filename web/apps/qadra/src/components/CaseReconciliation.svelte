@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   export let api, submitted, onselect;
   let rows = [],
@@ -74,8 +75,8 @@
   <p class="hint">
     NUC enviado: {submitted.nuc} / Carpeta enviada: {submitted.judicial_case_number}
   </p>
-  <button type="button" class="secondary" disabled={busy} onclick={() => search()}
-    >Consultar expedientes guardados</button
+  <Button type="button" variant="secondary" disabled={busy} onclick={() => search()}
+    >Consultar expedientes guardados</Button
   >
   {#if queried}<div class="case-reconciliation-results">
       {#each rows as record}<button
@@ -94,8 +95,11 @@
         No hay coincidencias en esta consulta. Esto no demuestra que el env&#237;o anterior se haya
         rechazado.
       </p>{/if}{/if}
-  {#if hasMore}<button type="button" class="secondary" disabled={busy} onclick={() => search(true)}
-      >Cargar m&#225;s coincidencias</button
+  {#if hasMore}<Button
+      type="button"
+      variant="secondary"
+      disabled={busy}
+      onclick={() => search(true)}>Cargar m&#225;s coincidencias</Button
     >{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 </section>

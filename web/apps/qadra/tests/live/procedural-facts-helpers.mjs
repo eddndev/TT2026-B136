@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { fixture } from './helpers.mjs';
+import { fixture, openSection } from './helpers.mjs';
 import { openCase } from '../case-administration-workflow.mjs';
 export {
   factEditor,
@@ -13,7 +13,7 @@ import { factEditor, factDetail, factList } from '../browser/procedural-facts-he
 export const accounts = fixture.proceduralFacts;
 export async function openFacts(page, record = accounts.case) {
   await openCase(page, record);
-  await page.getByRole('link', { name: 'Resoluciones', exact: true }).click();
+  await openSection(page, 'Resoluciones');
   await expect(factList(page)).toHaveAttribute('aria-busy', 'false');
 }
 export async function openResolution(page, row) {

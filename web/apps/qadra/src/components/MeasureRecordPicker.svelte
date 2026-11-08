@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import MeasureRecordSummary from './MeasureRecordSummary.svelte';
   import { measureKinds } from '../lib/measure-presentation.mjs';
@@ -78,39 +79,41 @@
       </p>
       <p>Revisi&#243;n {row.reference.revision}</p>
       {#if row.validity === 'entered_in_error'}<p>Captura registrada por error</p>{/if}
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={disabled || busy}
         aria-label={`Consultar medida ${row.reference.id}`}
-        onclick={() => open(row)}>Consultar medida</button
+        onclick={() => open(row)}>Consultar medida</Button
       >
     </div>
   {/each}
   {#if !rows.length && !busy && !error}<p>No hay medidas en esta consulta.</p>{/if}
   <div class="action-row">
-    <button class="secondary" disabled={disabled || busy || !index} onclick={() => load(index - 1)}
-      >Medidas anteriores</button
+    <Button
+      variant="secondary"
+      disabled={disabled || busy || !index}
+      onclick={() => load(index - 1)}>Medidas anteriores</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={disabled || busy || !more}
       onclick={() => {
         cursors = [...cursors.slice(0, index + 1), nextId];
         load(index + 1);
-      }}>Siguientes medidas</button
+      }}>Siguientes medidas</Button
     >
   </div>
   {#if exact}<MeasureRecordSummary value={exact} />
-    <button
-      class="primary"
+    <Button
+      variant="primary"
       disabled={disabled ||
         busy ||
         exact.validity !== 'valid' ||
         selectedIds.includes(exact.reference.id)}
       onclick={() => {
         if (canApply()) onselected(exact);
-      }}>Vincular esta revision</button
+      }}>Vincular esta revision</Button
     >
   {/if}
-  <button class="text-button" disabled={busy} onclick={oncancel}>Cerrar selector de medidas</button>
+  <Button variant="text" disabled={busy} onclick={oncancel}>Cerrar selector de medidas</Button>
 </section>

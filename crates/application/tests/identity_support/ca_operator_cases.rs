@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use application::ca_access::{CaOperatorAccess, OperatorIdentity};
-use application::identity::UserRepository;
+use application::identity::{ca_operator_display_name, UserRepository, CA_OPERATOR_DISPLAY_NAME};
 use application::ApplicationError;
 use domain::identity::{Permission, Role, UserId};
 use time::OffsetDateTime;
@@ -13,7 +13,11 @@ fn preparation_keeps_office_accounts_unchanged_and_grants_no_office_authority() 
     let users = Arc::new(MemoryUsers::default());
     let identity = service(users.clone(), Arc::new(MemorySessions::default()));
     let owner = identity
-        .bootstrap_owner("owner@example.test", "existing owner password")
+        .bootstrap_owner(
+            "owner@example.test",
+            "Test Account",
+            "existing owner password",
+        )
         .unwrap();
     let (record, enrollment) = identity
         .prepare_ca_operator(" CA@Example.TEST ", "separate ca password")
@@ -21,6 +25,9 @@ fn preparation_keeps_office_accounts_unchanged_and_grants_no_office_authority() 
     assert_eq!(record.email, "ca@example.test");
     assert_eq!(record.id, enrollment.principal.id);
     assert_eq!(record.role, Role::Client);
+    assert_eq!(record.display_name, ca_operator_display_name());
+    assert_eq!(enrollment.display_name, ca_operator_display_name());
+    assert_eq!(CA_OPERATOR_DISPLAY_NAME, "CA operator");
     assert_ne!(record.id, owner.principal.id);
     assert_eq!(enrollment.recovery_codes.len(), 8);
     assert!(!record.role.allows(Permission::CreateUser));
@@ -46,7 +53,11 @@ fn ca_access_requires_the_configured_identity_after_mfa_and_rejects_an_office_ow
     let users = Arc::new(MemoryUsers::default());
     let identity = Arc::new(service(users.clone(), Arc::new(MemorySessions::default())));
     let owner = identity
-        .bootstrap_owner("owner@example.test", "existing owner password")
+        .bootstrap_owner(
+            "owner@example.test",
+            "Test Account",
+            "existing owner password",
+        )
         .unwrap();
     let (record, enrollment) = identity
         .prepare_ca_operator("ca@example.test", "separate ca password")

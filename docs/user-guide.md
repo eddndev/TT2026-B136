@@ -18,6 +18,11 @@ la preparación de esa instalación corresponde al administrador del servicio.
 
 ### Primera configuración del segundo factor
 
+Quien crea la cuenta escribe también su nombre visible: el administrador inicial
+completa **Nombre completo** al dar de alta el despacho, y el administrador lo
+escribe para cada integrante o invitado. El nombre queda fijo; si necesitas
+corregirlo, pídeselo al administrador del servicio.
+
 Al crear una cuenta, Qadra muestra **Configura el segundo factor**. Registra la
 **Clave de configuración** en una aplicación de autenticación compatible con
 códigos temporales. También puedes usar la URI de configuración manual mostrada
@@ -34,7 +39,8 @@ para soporte, presentaciones o expedientes.
 2. Cuando aparezca **Un paso más.**, abre tu aplicación de autenticación e
    introduce el **Código de 6 dígitos** vigente.
 3. Selecciona **Verificar y entrar**. El acceso correcto muestra **Tu mesa de
-   trabajo**, el correo y el rol de la sesión.
+   trabajo** con un saludo por tu nombre. El menú de cuenta muestra el nombre,
+   el correo y el rol de la sesión.
 
 El OTP es el código temporal generado por la aplicación que configuraste durante
 el alta; no es una contraseña fija ni un código enviado automáticamente por correo.
@@ -171,9 +177,11 @@ El administrador abre **Equipo** para consultar el directorio, crear una cuenta
 o usar **Invitaciones al despacho**. El alta directa conserva la entrega privada
 de la configuración inicial del segundo factor.
 
-Para invitar, completa **Correo de la invitacion**, elige **Rol de la invitacion**
+Para invitar, escribe el **Nombre de la persona invitada**, completa **Correo de
+la invitacion**, elige **Rol de la invitacion**
 (Asistente, Litigante o Cliente) y pulsa **Enviar invitacion**. Una cuenta
-Cliente es la contraparte de un contrato y nunca se asigna a un expediente. El enlace vence en 24 horas.
+Cliente es la contraparte de un contrato y nunca se asigna a un expediente. El
+invitado no escribe ni cambia su nombre: la cuenta toma el que escribiste. El enlace vence en 24 horas.
 **Reenviar a…** seguido de **Confirmar reenvio** invalida el enlace y la preparación
 MFA anteriores. Si no llega una respuesta, usa **Comprobar invitacion** antes de
 **Reintentar el mismo envio**; **Retomar invitacion** conserva la intención
@@ -189,13 +197,18 @@ perdida, **Comprobar resultado**. Véase el [contrato de invitaciones](member-in
 
 Si vence tu sesión mientras completas **Nuevo integrante**, vuelve a entrar con
 la misma cuenta y MFA y pulsa **Retomar alta de integrante**. Qadra comprueba de
-nuevo tu permiso Owner y recupera sólo correo y rol; debes escribir otra vez
+nuevo tu permiso Owner y recupera sólo nombre, correo y rol; debes escribir otra vez
 la contraseña inicial. Si el envío quedó incierto, **Crear usuario** permanece
 bloqueado incluso al salir de Equipo y volver. **Consultar directorio para esta
 cuenta** informa si existe el correo exacto: ni presencia ni ausencia confirman
 tu envío o permiten repetirlo. Usa **Descartar alta y volver al directorio**
 para cerrar esa intención. No se recuperan claves ni códigos del nuevo
 integrante. Véase [alcance y límites de recuperación](member-enrollment-recovery.md).
+
+Al crear una cuenta directa escribe el **Nombre del nuevo usuario** antes del
+correo. El nombre sólo aparece en el saludo y en el menú de cuenta de esa
+persona; el directorio, las asignaciones y los informes siguen mostrando el
+correo.
 
 El directorio permite filtrar por correo, rol y estado. Revisa la cuenta antes de
 confirmar cambios de acceso. Cambiar rol o estado invalida el acceso anterior;

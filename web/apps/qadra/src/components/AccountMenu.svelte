@@ -2,12 +2,15 @@
   import HeroIcon from './HeroIcon.svelte';
   import { dismissable } from '../lib/dismissable.mjs';
   import { roles } from '../lib/documents.mjs';
+  import { accountInitials } from '../lib/account-name.mjs';
   export let user;
   export let onlogout;
   export let busy = false;
   let open = false,
     trigger;
-  const initials = user.email.slice(0, 2).toUpperCase();
+  // The account name leads; the email stays as the secondary line.
+  $: initials = accountInitials(user);
+  $: label = user.name || user.email;
   function close(event) {
     open = false;
     if (event?.key === 'Escape') trigger.focus();
@@ -31,7 +34,7 @@
     >
     <span class="hidden lg:flex lg:items-center">
       <span aria-hidden="true" class="ml-4 max-w-56 truncate text-sm/6 font-semibold text-ink"
-        >{user.email}</span
+        >{label}</span
       >
       <HeroIcon name="chevron" class="ml-2 size-4 text-slate-400" />
     </span>
@@ -42,7 +45,10 @@
       class="absolute right-0 z-50 mt-2.5 w-64 origin-top-right rounded-md bg-white py-2 shadow-lg outline-1 outline-slate-900/5"
     >
       <div class="border-b border-line px-3 pb-3">
-        <p class="truncate text-sm font-semibold text-ink" title={user.email}>{user.email}</p>
+        <p class="truncate text-sm font-semibold text-ink" title={label}>{label}</p>
+        {#if user.name}<p class="truncate text-xs text-muted" title={user.email}>
+            {user.email}
+          </p>{/if}
         <p class="text-xs text-muted">{roles[user.role] || user.role}</p>
       </div>
       <button

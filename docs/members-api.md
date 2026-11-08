@@ -22,9 +22,14 @@ Client permissions on documents and other case resources remain unchanged.
 | `DELETE /cases/{case}/members/{user}` | Existing empty body | Existing removal operation |
 
 `POST /users` remains the existing direct account enrollment operation. It is not
-an invitation, acceptance link or password recovery flow. The directory never
+an invitation, acceptance link or password recovery flow. Its body requires
+`email`, `name`, `password` and `role`; `name` is the account display name the
+Owner writes, fixed at creation
+([ADR 0087](adr/0087-account-display-names.md)), and an invalid one answers
+`422 invalid_display_name`. The directory never
 returns password hashes, MFA enrollment material, recovery codes, tokens or the
-internal authentication generation.
+internal authentication generation. Directory, case member and access summaries
+do not expose the display name either; only the session user object does.
 
 User summary:
 

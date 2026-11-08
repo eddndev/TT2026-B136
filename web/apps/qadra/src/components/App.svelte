@@ -31,12 +31,9 @@
   import { createSessionDialogs } from '../lib/session-dialogs.mjs';
   import { alertReturnViews, normalizeView } from '../lib/workspace.mjs';
   import { loadCaseRecord } from '../lib/open-case.mjs';
-  import { recentCases } from '../lib/shell-search.mjs';
   let user = null;
   let pendingUser = null;
   let selectedCase = null;
-  let recent = [];
-  $: recent = recentCases(recent, selectedCase);
   let hearingIntent = null,
     deadlineIntent = null,
     agendaFilters = null;
@@ -58,7 +55,6 @@
     user = null;
     pendingUser = null;
     selectedCase = null;
-    recent = [];
     hearingIntent = null;
     deadlineIntent = null;
     agendaFilters = null;
@@ -189,7 +185,6 @@
       navigate('case-summary');
     } catch (failure) {
       if ([403, 404].includes(failure.status)) drafts.denyContext(record.id);
-      recent = recent.filter((row) => row.id !== record.id);
       error = failure.message;
     }
   }
@@ -258,14 +253,7 @@
     bind:this={appLayout}
     inert={sessionState.phase !== 'active'}
   >
-    <Sidebar
-      bind:this={sidebar}
-      {user}
-      {view}
-      {recent}
-      onopencase={openCase}
-      onnavigate={navigate}
-    />
+    <Sidebar bind:this={sidebar} {user} {view} onnavigate={navigate} />
     <div
       class="transition-[padding] duration-200 lg:pl-64 lg:group-has-data-collapsed/app:pl-[4.0625rem]"
     >

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import {
     activityReport,
     reportPeriod,
@@ -31,8 +32,8 @@
       <h2>Detalle del informe</h2>
       <p>Estado y archivos de la solicitud seleccionada.</p>
     </div>
-    <button class="secondary" disabled={busy || downloading || reading} onclick={onrefresh}
-      >Actualizar informe</button
+    <Button variant="secondary" disabled={busy || downloading || reading} onclick={onrefresh}
+      >Actualizar informe</Button
     >
   </div>
   {#if busy}<p role="status">Consultando el informe...</p>{/if}
@@ -128,11 +129,11 @@
                 >{artifact.bytes.toLocaleString('es-MX')} bytes</small
               >
             </div>
-            <button
-              class="secondary"
+            <Button
+              variant="secondary"
               disabled={!!downloading || reading}
               onclick={() => ondownload(artifact.format)}
-              >Descargar {artifact.format.toUpperCase()}</button
+              >Descargar {artifact.format.toUpperCase()}</Button
             >
           </div>{/each}
       </div>
@@ -144,10 +145,10 @@
         los registros del expediente.
       </p>
     {/if}
-    {#if value.notice && !value.notice.read_at}<button
-        class="secondary"
+    {#if value.notice && !value.notice.read_at}<Button
+        variant="secondary"
         disabled={reading || !!downloading}
-        onclick={onread}>{reading ? 'Guardando lectura...' : 'Marcar aviso como le\u00eddo'}</button
+        onclick={onread}>{reading ? 'Guardando lectura...' : 'Marcar aviso como le\u00eddo'}</Button
       >{/if}
     {#if value.notice?.read_at}<p class="hint">
         Lectura registrada: <time datetime={value.notice.read_at}>{value.notice.read_at}</time>.

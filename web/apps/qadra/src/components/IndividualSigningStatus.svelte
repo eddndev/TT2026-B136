@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import SigningConsentDetails from './SigningConsentDetails.svelte';
   export let api,
@@ -32,8 +33,8 @@
   onDestroy(() => (alive = false));
 </script>
 
-<button class="secondary" disabled={!!busy || disabled} onclick={verify}
-  >Consultar estado de la firma</button
+<Button variant="secondary" disabled={!!busy || disabled} onclick={verify}
+  >Consultar estado de la firma</Button
 >
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 {#if result}<section class="card stack">

@@ -28,7 +28,7 @@ pub fn user(url: &str, role: Role) -> UserId {
     )
     .unwrap();
     Client::connect(url, NoTls).unwrap().execute(
-        "INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,$3,$4,$5,$6)",
+        "INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes,display_name) VALUES($1,$2,$3,$4,$5,$6,'Fixture')",
         &[&id.as_uuid(), &format!("{id}@example.com"), &"$argon2id$test", &role.as_str(), &vec![7u8;48], &serde_json::to_value(codes).unwrap()],
     ).unwrap();
     id

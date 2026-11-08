@@ -1,6 +1,8 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
+  import OverviewHeading from './OverviewHeading.svelte';
   export let api, user, onnavigate;
   let mounted = false,
     alive = true,
@@ -53,6 +55,15 @@
       detail: 'Sin vencimiento operativo vigente',
     },
   ];
+  // These three lead the page heading; the grid shows the rest.
+  const leading = ['active_cases', 'deadlines_overdue', 'deadlines_due_48h'];
+  $: scope = user?.role === 'owner' ? 'Todo el despacho' : 'Tus expedientes asignados';
+  $: stats = value
+    ? leading.map((key) => {
+        const item = metrics.find((row) => row.key === key);
+        return { key, label: item.label, value: value[key], urgent: item.urgent };
+      })
+    : null;
   function open(current) {
     seen = current;
     generation++;
@@ -100,12 +111,12 @@
 
 {#if allowed}
   <section class="dashboard-panel" aria-label="Indicadores operativos" aria-busy={busy}>
+    <OverviewHeading {user} {scope} {stats} {onnavigate} />
     <div class="section-heading dashboard-heading">
       <div>
         <h2>Indicadores operativos</h2>
-        <p>{user.role === 'owner' ? 'Todo el despacho' : 'Tus expedientes asignados'}</p>
       </div>
-      <button class="secondary" disabled={busy} onclick={load}>Actualizar indicadores</button>
+      <Button variant="secondary" disabled={busy} onclick={load}>Actualizar indicadores</Button>
     </div>
     {#if busy}
       <div class="card dashboard-status" role="status">Consultando los indicadores actuales...</div>
@@ -117,7 +128,7 @@
         Actualiza para incorporar cambios posteriores.
       </p>
       <div class="stats-grid dashboard-metrics">
-        {#each metrics as item}
+        {#each metrics.filter((row) => !leading.includes(row.key)) as item}
           <article
             class="stat-card dashboard-metric"
             class:dashboard-urgent={item.urgent && value[item.key] > 0}
@@ -163,11 +174,11 @@
         {:else}<p class="hint">No hay carga asignada a litigantes activos.</p>{/if}
       </section>
       <div class="action-row dashboard-actions">
-        <button class="text-button" onclick={() => onnavigate('cases')}
-          >Ver expedientes<Icon name="arrow" size={15} /></button
+        <Button variant="text" onclick={() => onnavigate('cases')}
+          >Ver expedientes<Icon name="arrow" size={15} /></Button
         >
-        <button class="text-button" onclick={() => onnavigate('agenda')}
-          >Consultar agenda<Icon name="calendar" size={15} /></button
+        <Button variant="text" onclick={() => onnavigate('agenda')}
+          >Consultar agenda<Icon name="calendar" size={15} /></Button
         >
       </div>
     {/if}

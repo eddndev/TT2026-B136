@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // One contract of a case for its staff: state, timeline of events,
   // signature requests with their downloads, a notice when a later document
   // version exists, cancellation, abandonment and new requests. An assigned
@@ -123,15 +124,15 @@
             Firm&#243; el despacho: {row.firm_signed_at}
           </p>{/if}
         <div class="action-row">
-          {#if actions.partial}<button
-              class="secondary"
+          {#if actions.partial}<Button
+              variant="secondary"
               disabled={busy}
-              onclick={() => evidence(row, 'partial')}>Descargar acuse parcial</button
+              onclick={() => evidence(row, 'partial')}>Descargar acuse parcial</Button
             >{/if}
-          {#if actions.final}<button
-              class="secondary"
+          {#if actions.final}<Button
+              variant="secondary"
               disabled={busy}
-              onclick={() => evidence(row, 'final')}>Descargar contrato firmado</button
+              onclick={() => evidence(row, 'final')}>Descargar contrato firmado</Button
             >{/if}
           {#if manage && actions.cancel}<ContractCloseAction
               outcome="cancel"

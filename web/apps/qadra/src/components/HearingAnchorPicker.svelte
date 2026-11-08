@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import {
     hearingKinds,
@@ -78,8 +79,8 @@
 >
   <h3>Elegir programaci&#243;n hist&#243;rica</h3>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" disabled={busy} onclick={() => list()}
-      >Consultar programaciones de nuevo</button
+    <Button variant="secondary" disabled={busy} onclick={() => list()}
+      >Consultar programaciones de nuevo</Button
     >{/if}
   {#each roots as row}<div class="hearing-result-picker-row">
       <p>
@@ -88,17 +89,17 @@
         ]}
       </p>
       <details><summary>Referencia de audiencia</summary><code>{row.id}</code></details>
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={busy || disabled}
         aria-label={`Consultar programaci\u00f3n ${row.id}`}
-        onclick={() => history(row.id)}>Consultar revisiones de esta programaci&#243;n</button
+        onclick={() => history(row.id)}>Consultar revisiones de esta programaci&#243;n</Button
       >
     </div>{/each}
-  {#if rootMore}<button
-      class="secondary"
+  {#if rootMore}<Button
+      variant="secondary"
       disabled={busy || disabled}
-      onclick={() => list(rootCursor)}>Siguientes programaciones</button
+      onclick={() => list(rootCursor)}>Siguientes programaciones</Button
     >{/if}
   {#if selected}<h4>Revisiones disponibles</h4>
     {#each revisions as row}<div class="hearing-result-picker-row">
@@ -107,17 +108,17 @@
             row.values.scheduled_at,
           )}
         </p>
-        <button class="primary" disabled={busy || disabled} onclick={() => select(row)}
-          >Usar programaci&#243;n revisi&#243;n {row.revision}</button
+        <Button variant="primary" disabled={busy || disabled} onclick={() => select(row)}
+          >Usar programaci&#243;n revisi&#243;n {row.revision}</Button
         >
       </div>{/each}
-    {#if historyMore}<button
-        class="secondary"
+    {#if historyMore}<Button
+        variant="secondary"
         disabled={busy || disabled}
-        onclick={() => history(selected, historyCursor)}>Programaciones anteriores</button
+        onclick={() => history(selected, historyCursor)}>Programaciones anteriores</Button
       >{/if}
   {/if}
-  <button class="text-button" disabled={busy} onclick={oncancel}
-    >Cerrar selector de programaci&#243;n</button
+  <Button variant="text" disabled={busy} onclick={oncancel}
+    >Cerrar selector de programaci&#243;n</Button
   >
 </section>

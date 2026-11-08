@@ -36,7 +36,7 @@ def login(account, index):
 
 
 def enroll(label, role, case_id, member=True):
-    account = {'email': 'resource-hearings-' + label + '@example.com',
+    account = {'email': 'resource-hearings-' + label + '@example.com', 'name': 'Resource hearing ' + label,
                'password': 'synthetic resource hearing fixture password', 'role': role}
     result = request('POST', '/api/v1/users', account, expected=201)
     account.update(id=result['user']['id'], recovery_codes=result['recovery_codes'])

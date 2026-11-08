@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { download } from '../lib/documents.mjs';
   import { signingStatementDownload } from '../lib/individual-signing-values.mjs';
   import SigningPublicFile from './SigningPublicFile.svelte';
@@ -19,10 +20,10 @@
       Confirmo retirar el vinculo para futuras firmas</label
     >
     <div class="action-row">
-      <button class="primary" disabled={busy || !confirmed} onclick={onwithdraw}
-        >Confirmar retiro</button
+      <Button variant="primary" disabled={busy || !confirmed} onclick={onwithdraw}
+        >Confirmar retiro</Button
       >
-      <button class="secondary" disabled={busy} onclick={ondiscard}>Cancelar retiro</button>
+      <Button variant="secondary" disabled={busy} onclick={ondiscard}>Cancelar retiro</Button>
     </div>
   </section>
 {:else}<section class="card stack">
@@ -34,8 +35,8 @@
       onvalue={oncertificate}
       {onerror}
     />
-    <button class="secondary" disabled={busy || !certificate} onclick={onprepare}
-      >Preparar vinculo</button
+    <Button variant="secondary" disabled={busy || !certificate} onclick={onprepare}
+      >Preparar vinculo</Button
     >
     {#if state.prepared}<SigningBindingDetails value={state.prepared} />
       {#key localContext}<LocalSignature
@@ -50,14 +51,14 @@
         />{/key}
       <details open>
         <summary>Usar una firma externa</summary>
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={busy}
           onclick={() =>
             download(
               signingStatementDownload(state.prepared.statement_base64, 'binding'),
               'certificate-binding.bin',
-            )}>Descargar declaracion del vinculo</button
+            )}>Descargar declaracion del vinculo</Button
         >
         <SigningExternalInstructions kind="binding" />
         <SigningPublicFile
@@ -74,8 +75,8 @@
           disabled={busy || !state.signature}
         />Confirmo vincular este certificado a mi cuenta</label
       >
-      <button class="primary" disabled={busy || !confirmed || !state.signature} onclick={onsubmit}
-        >Registrar vinculo</button
+      <Button variant="primary" disabled={busy || !confirmed || !state.signature} onclick={onsubmit}
+        >Registrar vinculo</Button
       >
     {/if}
   </section>{/if}

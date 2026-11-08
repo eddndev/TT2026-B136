@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import HearingAnchorPicker from './HearingAnchorPicker.svelte';
   import PrecautionaryAnchorPicker from './PrecautionaryAnchorPicker.svelte';
@@ -67,10 +68,10 @@
       )}
     </p>
   {/if}
-  {#if kind !== 'independent'}<button
-      class="secondary"
+  {#if kind !== 'independent'}<Button
+      variant="secondary"
       disabled={disabled || pending}
-      onclick={() => (choosing = true)}>Elegir audiencia de origen</button
+      onclick={() => (choosing = true)}>Elegir audiencia de origen</Button
     >{/if}
   {#if choosing && kind === 'initial'}<HearingAnchorPicker
       api={initial}

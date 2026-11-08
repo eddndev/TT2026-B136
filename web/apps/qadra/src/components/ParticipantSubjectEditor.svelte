@@ -1,4 +1,8 @@
 <script>
+  import Modal from './Modal.svelte';
+  import ModalHeading from './ModalHeading.svelte';
+  import ModalActions from './ModalActions.svelte';
+  import Button from './Button.svelte';
   import { getContext, onDestroy } from 'svelte';
   import { caseState } from '../lib/case-state.mjs';
   import {
@@ -292,25 +296,24 @@
   });
 </script>
 
-<dialog
-  class="upload-dialog participant-dialog"
+<Modal
+  class="modal participant-dialog"
   aria-busy={pending}
-  bind:this={dialog}
+  bind:element={dialog}
   aria-labelledby="participant-subject-editor"
   oncancel={(event) => {
     event.preventDefault();
     close();
   }}
 >
-  <div class="dialog-heading">
-    <h2 id="participant-subject-editor">Editar identidad del expediente</h2>
-    <button class="text-button" disabled={pending} onclick={close}>Cerrar identidad</button>
-  </div>
+  <ModalHeading title="Editar identidad del expediente" id="participant-subject-editor">
+    <Button variant="text" disabled={pending} onclick={close}>Cerrar identidad</Button>
+  </ModalHeading>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if restoreBlocked && original}<button
-      class="secondary"
+  {#if restoreBlocked && original}<Button
+      variant="secondary"
       disabled={pending}
-      onclick={() => open(original)}>Volver a consultar el contexto</button
+      onclick={() => open(original)}>Volver a consultar el contexto</Button
     >{/if}
   {#if original}<div class="stack">
       <p>
@@ -327,10 +330,10 @@
           disabled={busy || candidatesBusy || readonly}
           bind:pending={fieldsBusy}
         />{/key}
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={pending || uncertain || conflict || exhausted || readonly}
-        onclick={review}>Revisar coincidencias de identidad</button
+        onclick={review}>Revisar coincidencias de identidad</Button
       >
       {#if reviewed}<ParticipantCandidates
           result={reviewed}
@@ -372,15 +375,15 @@
         {useCurrent}
       />
       <CaseClosedNotice />
-      <div class="dialog-actions">
-        <button class="secondary" disabled={pending} onclick={close}>Cancelar</button>
-        <button
-          class="primary"
+      <ModalActions>
+        <Button variant="secondary" disabled={pending} onclick={close}>Cancelar</Button>
+        <Button
+          variant="primary"
           disabled={pending || !reviewed || uncertain || conflict || exhausted || readonly}
-          onclick={save}>Guardar revisi&#243;n de identidad</button
+          onclick={save}>Guardar revisi&#243;n de identidad</Button
         >
-      </div>
+      </ModalActions>
     </div>
   {:else}<p role="status">Consultando la identidad y el expediente actuales...</p>
-    <button class="secondary" disabled={pending} onclick={close}>Cancelar</button>{/if}
-</dialog>
+    <Button variant="secondary" disabled={pending} onclick={close}>Cancelar</Button>{/if}
+</Modal>

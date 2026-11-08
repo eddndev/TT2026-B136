@@ -22,7 +22,7 @@ export async function provisionIndividualSigning(request) {
       ? await provisionLocalSigningKey(privateKeyPath) : null;
     const password = randomBytes(24).toString("hex");
     const enrollment = await request("POST", "/users", {
-      email: `web-individual-${name}@example.com`, password, role: "litigator",
+      name: `Individual signing ${name}`, email: `web-individual-${name}@example.com`, password, role: "litigator",
     }, 201);
     const record = await request("POST", "/cases", {
       title: `Individual signing ${name}`, reference: `INDIVIDUAL-${name.toUpperCase()}`,

@@ -128,6 +128,10 @@ pub enum DomainError {
     #[error("unknown role: {0}")]
     InvalidRole(String),
 
+    /// An account display name has control or format characters, or is outside 1..=120 scalars.
+    #[error("invalid display name: {0}")]
+    InvalidDisplayName(&'static str),
+
     /// A digest was built from a byte slice of the wrong length.
     #[error("digest must be {expected} bytes, got {actual}")]
     InvalidDigestLength { expected: usize, actual: usize },

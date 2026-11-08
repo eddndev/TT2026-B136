@@ -26,8 +26,13 @@ fn real_password_reset_revokes_old_redis_credentials_and_preserves_mfa() {
     let old_password = Zeroizing::new("initial password for isolated acceptance".to_string());
     let new_password = Zeroizing::new("changed password for isolated acceptance".to_string());
     let enrolled = ok(
-        flow.identity
-            .create_user(&owner, &email, &old_password, Role::Litigator),
+        flow.identity.create_user(
+            &owner,
+            &email,
+            "Test Account",
+            &old_password,
+            Role::Litigator,
+        ),
         "enroll target with real password and MFA adapters",
     );
     let id = enrolled.principal.id;

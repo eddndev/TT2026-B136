@@ -9,6 +9,7 @@ export const initialPassword = 'synthetic-initial-password';
 export const enrollmentSecret = 'JBSWY3DPEHPK3PXP';
 export const enrollmentCode = 'synthetic-enrollment-code';
 export const submittedEmail = 'Later.Member@Example.Test';
+export const submittedName = 'Laura Medina';
 const states = new WeakMap();
 
 export function holdEnrollmentRequest(state, method, path) {
@@ -139,7 +140,12 @@ export async function enrollmentSetup(page) {
     if (path !== usersPath || call.method !== 'POST' || call.search || !plan) return unexpected();
     expect(call.headers['content-type']).toBe('application/json');
     const input = request.postDataJSON();
-    expect(input).toEqual({ email: plan.email, password: initialPassword, role: 'litigator' });
+    expect(input).toEqual({
+      email: plan.email,
+      name: submittedName,
+      password: initialPassword,
+      role: 'litigator',
+    });
     state.enrollmentWrite = null;
     state.enrollmentWrites.push({ ...call, input: { email: input.email, role: input.role } });
     const row = memberRecord(99, {
@@ -153,7 +159,7 @@ export async function enrollmentSetup(page) {
     if (!plan.applied) return failure(503, 'server_busy');
     return reply(
       {
-        user: { id: row.id, email: row.email, role: row.role },
+        user: { id: row.id, email: row.email, name: input.name, role: row.role },
         totp_secret_base32: enrollmentSecret,
         otpauth_uri: 'otpauth://totp/synthetic-member',
         recovery_codes: [enrollmentCode],

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { setupHearings } from './hearing-helpers.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, openSection } from './helpers.mjs';
 
 test('opens resolution capture with explicit declarations and no inferred event precision', async ({
   page,
@@ -14,7 +14,7 @@ test('opens resolution capture with explicit declarations and no inferred event 
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Resoluciones', exact: true }).click();
+  await openSection(page, 'Resoluciones');
   await expect(
     page.getByRole('heading', { name: 'Resoluciones y notificaciones', exact: true }),
   ).toBeVisible();

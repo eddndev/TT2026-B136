@@ -87,7 +87,7 @@ for (const mode of ['edit', 'archive']) {
       try {
         await modal.getByRole('button', { name: 'Consultar datos actuales', exact: true }).click();
         await held.ready();
-        const submit = modal.locator('.dialog-actions button.primary');
+        const submit = modal.locator('.dialog-actions button.btn-primary');
         await expect(submit).toBeDisabled();
         if (editing)
           await expect(modal.getByLabel('Nombre del participante', { exact: true })).toHaveValue(
@@ -131,10 +131,10 @@ test('a confirmed edit keeps its dialog busy until list and open history are ref
     await modal.getByRole('button', { name: 'Guardar participante', exact: true }).click();
     await held.ready();
     await expect(modal).toBeVisible();
-    await expect(modal.locator('.dialog-actions button.primary')).toBeDisabled();
+    await expect(modal.locator('.dialog-actions button.btn-primary')).toBeDisabled();
     await held.release('list');
     await expect(modal).toBeVisible();
-    await expect(modal.locator('.dialog-actions button.primary')).toBeDisabled();
+    await expect(modal.locator('.dialog-actions button.btn-primary')).toBeDisabled();
     await held.release('history');
     await expect(modal).not.toBeVisible();
     await expect(detail(page).getByRole('heading', { name: 'Nombre confirmado' })).toBeVisible();

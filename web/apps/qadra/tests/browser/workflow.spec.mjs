@@ -90,16 +90,39 @@ test('mobile menu supports Escape and password visibility is explicit', async ({
 });
 
 test('initial enrollment is acknowledged before returning to login', async ({ page }) => {
-  await setup(page);
+  const requests = await setup(page);
   await page.getByRole('button', { name: 'Configurar acceso inicial' }).click();
+  await page.getByLabel('Nombre completo').fill(' Hatziel Ortega ');
   await page.getByLabel('Correo electr\u00f3nico').fill('hatz@example.com');
   await page.getByLabel('Contrase\u00f1a', { exact: true }).fill('long-test-password');
   await page.getByRole('button', { name: 'Crear administrador' }).click();
   await expect(page.getByRole('button', { name: 'Finalizar' })).toBeDisabled();
+  expect(
+    requests
+      .filter((request) => request.path === '/api/v1/auth/bootstrap')
+      .map((request) => JSON.parse(request.body)),
+  ).toEqual([
+    { email: 'hatz@example.com', name: 'Hatziel Ortega', password: 'long-test-password' },
+  ]);
   await page.getByLabel('Ya guard\u00e9 la clave y los c\u00f3digos').check();
   await page.getByRole('button', { name: 'Finalizar' }).click();
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   expect(await page.evaluate(() => document.body.textContent.includes('TESTSECRET'))).toBe(false);
+});
+
+test('initial enrollment refuses a blank name locally and keeps the password', async ({ page }) => {
+  const requests = await setup(page);
+  await page.getByRole('button', { name: 'Configurar acceso inicial' }).click();
+  await page.getByLabel('Nombre completo').fill('   ');
+  await page.getByLabel('Correo electr\u00f3nico').fill('hatz@example.com');
+  await page.getByLabel('Contrase\u00f1a', { exact: true }).fill('long-test-password');
+  await page.getByRole('button', { name: 'Crear administrador' }).click();
+  await expect(page.getByRole('alert')).toContainText('Escribe un nombre de 1 a 120 caracteres');
+  await expect(page.getByLabel('Contrase\u00f1a', { exact: true })).toHaveValue(
+    'long-test-password',
+  );
+  await expect(page.getByRole('button', { name: 'Crear administrador' })).toBeEnabled();
+  expect(requests.filter((request) => request.path === '/api/v1/auth/bootstrap')).toEqual([]);
 });
 
 test('failed verification clears a previous verdict and reopening detail resets it', async ({
@@ -240,6 +263,7 @@ test('owner enrollment and audit work in a mobile viewport', async ({ page }) =>
   await page.screenshot({ path: 'test-results/login-mobile.png', fullPage: true });
   await login(page, false, false);
   await navigate(page, 'Equipo');
+  await page.getByLabel('Nombre del nuevo usuario').fill('Nuevo Integrante');
   await page.getByLabel('Correo del nuevo usuario').fill('new@example.com');
   await page.getByLabel('Contrase\u00f1a inicial').fill('long-test-password');
   await page.getByRole('button', { name: 'Crear usuario' }).click();

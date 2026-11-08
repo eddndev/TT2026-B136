@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import StageEntry from './StageEntry.svelte';
   export let api,
@@ -47,14 +48,14 @@
     Registros ordenados por revisi&#243;n del sistema. Las fechas declaradas pueden ser anteriores.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" disabled={busy || disabled} onclick={() => load()}
-      >Consultar historial de nuevo</button
+    <Button variant="secondary" disabled={busy || disabled} onclick={() => load()}
+      >Consultar historial de nuevo</Button
     >{/if}
   {#if busy}<p role="status">Consultando historial de etapas...</p>{/if}
   {#each entries as record (record.stage_revision)}<StageEntry {record} />{/each}
   {#if !busy && !entries.length && !error}<p>A&#250;n no hay registros de etapa.</p>{/if}
   <p class="hint">{entries.length} registros consultados.</p>
-  {#if more}<button class="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
-      >Cargar etapas anteriores</button
+  {#if more}<Button variant="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
+      >Cargar etapas anteriores</Button
     >{/if}
 </section>

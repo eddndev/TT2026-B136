@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import StageFields from './StageFields.svelte';
   import StageValues from './StageValues.svelte';
   import StageEntry from './StageEntry.svelte';
@@ -22,10 +23,10 @@
     jur&#237;dica del cambio.
   </p>
   {#if state.error}<p class="notice error" role="alert">{state.error}</p>{/if}
-  {#if state.blocked || state.restoredClosed || state.incomplete}<button
-      class="secondary"
+  {#if state.blocked || state.restoredClosed || state.incomplete}<Button
+      variant="secondary"
       disabled={pending || readBlocked}
-      onclick={retry}>Volver a consultar la etapa y sus soportes</button
+      onclick={retry}>Volver a consultar la etapa y sus soportes</Button
     >{/if}
   {#if state.restoredClosed || state.incomplete}<p class="notice" role="status">
       Este borrador se conserva para lectura. El expediente requiere estado activo y ficha penal
@@ -36,10 +37,10 @@
       cargar&#225;n archivos de nuevo autom&#225;ticamente.
     </p>{/if}
   {#if state.needsReview}
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={pending || readBlocked || state.blocked}
-      onclick={actions.reconcile}>Consultar etapa e historial</button
+      onclick={actions.reconcile}>Consultar etapa e historial</Button
     >
     {#if state.lastPayload}<details class="stage-last-request">
         <summary>Consultar el &#250;ltimo env&#237;o</summary>
@@ -55,10 +56,10 @@
             Una coincidencia no confirma que este env&#237;o se guard&#243;. Revisa los registros
             antes de decidir otro intento.
           </p>{/if}
-        {#if stageAction(state.candidate) === state.action}<button
-            class="secondary"
+        {#if stageAction(state.candidate) === state.action}<Button
+            variant="secondary"
             disabled={pending || disabled || !state.historyComplete}
-            onclick={actions.accept}>Usar etapa consultada y revisar borrador</button
+            onclick={actions.accept}>Usar etapa consultada y revisar borrador</Button
           >
         {:else}<p class="notice">
             El avance del borrador ya no corresponde a la etapa consultada. Conserva estos datos
@@ -81,17 +82,17 @@
       <StageValues values={state.preview} supports={stageReferences(state.draft)} />
       <p>El registro quedar&#225; en el historial. Revisa los datos antes de confirmarlo.</p>
       <div class="action-row">
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={pending || disabled}
-          onclick={() => (state.preview = null)}>Volver al borrador</button
+          onclick={() => (state.preview = null)}>Volver al borrador</Button
         >
-        <button class="primary" disabled={pending || disabled} onclick={actions.submit}
+        <Button variant="primary" disabled={pending || disabled} onclick={actions.submit}
           >{state.busy
             ? 'Registrando etapa...'
             : state.action === 'adoption'
               ? 'Registrar etapa actual'
-              : 'Registrar transici\u00f3n'}</button
+              : 'Registrar transici\u00f3n'}</Button
         >
       </div>
     </div>
@@ -108,12 +109,12 @@
         bind:pending={fieldsBusy}
       />{/key}
     <div class="action-row">
-      <button
-        class="primary"
+      <Button
+        variant="primary"
         disabled={disabled || pending || state.needsReview || state.exhausted || supportUnreviewed}
-        onclick={actions.review}>Revisar registro</button
+        onclick={actions.review}>Revisar registro</Button
       >
     </div>
   {/if}
-  <button class="text-button" disabled={pending} onclick={close}>Cerrar formulario de etapa</button>
+  <Button variant="text" disabled={pending} onclick={close}>Cerrar formulario de etapa</Button>
 </section>

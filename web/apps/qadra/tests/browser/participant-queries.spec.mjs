@@ -106,7 +106,10 @@ test('mobile directory and editor keep long literal values and controls visible 
       return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
     }),
   );
-  expect(actions[0].right <= actions[1].left || actions[0].bottom <= actions[1].top).toBe(true);
+  // Phone actions stack in reverse (main action on top), so check both orders.
+  const [a, b] = actions;
+  const apart = a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top;
+  expect(apart).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.keyboard.press('Escape');
   await expect(modal).not.toBeVisible();

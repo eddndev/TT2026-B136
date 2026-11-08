@@ -205,3 +205,16 @@ fn pending_ciphertext_failure_does_not_regenerate_or_overwrite_secrets() {
     assert_eq!(state.enrollments, 1);
     assert!(state.finish_commands.is_empty());
 }
+
+#[test]
+fn a_reinspected_invitation_with_another_name_does_not_return_mfa_material() {
+    let harness = Harness::new();
+    let state = harness.state.clone();
+    state.lock().unwrap().rename_candidate_on_protect = true;
+    let service = harness.service();
+    assert!(matches!(
+        service.prepare(&RAW_TOKEN, operation(20), PASSWORD),
+        Err(ApplicationError::InvalidCredentials)
+    ));
+    assert!(state.lock().unwrap().user.is_none());
+}

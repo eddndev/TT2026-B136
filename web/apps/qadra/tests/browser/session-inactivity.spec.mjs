@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { document, login, navigate, selectCase, signOut } from './helpers.mjs';
+import { document, login, navigate, selectCase, signOut, openSection } from './helpers.mjs';
 import { requestCompletion } from './request-completion.mjs';
 import {
   sessionSetup,
@@ -84,7 +84,7 @@ test('expiry unmounts an open editor and same-account recovery waits for fresh c
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   const editor = await openEditor(page);
   await expect(editor.getByLabel(classificationLabel, { exact: true })).toHaveValue(classification);
   await expect(editor.getByLabel('Nueva etiqueta', { exact: true })).toHaveValue(pendingTag);

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { download } from '../lib/documents.mjs';
   import { signingStatementDownload } from '../lib/individual-signing-values.mjs';
   import SigningPublicFile from './SigningPublicFile.svelte';
@@ -27,8 +28,8 @@
 <section class="card stack personal-signing">
   <h3>Firma personal de esta version</h3>
   <p>Revisa el PDF exacto y firma el documento y su consentimiento en tu equipo.</p>
-  <button class="secondary" disabled={busy || !!state.prepared} onclick={onreview}
-    >Revisar PDF</button
+  <Button variant="secondary" disabled={busy || !!state.prepared} onclick={onreview}
+    >Revisar PDF</Button
   >
   {#if pdfUrl}
     <iframe src={pdfUrl} title="PDF exacto de esta version"></iframe>
@@ -46,16 +47,16 @@
           onsignature={onlocalpdfsignature}
           oninvalidate={onlocalpdfinvalidate}
         />{/key}{/if}
-    {#if !state.prepared}<button
-        class="secondary"
+    {#if !state.prepared}<Button
+        variant="secondary"
         disabled={busy || !reviewed || !state.pdfSignature}
-        onclick={onprepare}>Preparar consentimiento</button
+        onclick={onprepare}>Preparar consentimiento</Button
       >{/if}
   {/if}
   <details open>
     <summary>Usar una firma externa del PDF</summary>
-    <button class="secondary" disabled={busy || !!state.prepared} onclick={ondownload}
-      >Descargar PDF para firmar</button
+    <Button variant="secondary" disabled={busy || !!state.prepared} onclick={ondownload}
+      >Descargar PDF para firmar</Button
     >
     {#if pdfUrl}
       <SigningExternalInstructions kind="pdf" />
@@ -85,14 +86,14 @@
       />{/key}
     <details open>
       <summary>Usar una firma externa del consentimiento</summary>
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={busy}
         onclick={() =>
           download(
             signingStatementDownload(state.prepared.consent_base64, 'consent'),
             'document-consent.bin',
-          )}>Descargar consentimiento</button
+          )}>Descargar consentimiento</Button
       >
       <SigningExternalInstructions kind="consent" />
       <SigningPublicFile
@@ -102,13 +103,13 @@
         {onerror}
       />
     </details>
-    <button
-      class="primary"
+    <Button
+      variant="primary"
       disabled={busy || !reviewed || !confirmed || !state.consentSignature}
-      onclick={onsubmit}>Enviar firma personal</button
+      onclick={onsubmit}>Enviar firma personal</Button
     >
   {/if}
-  <button class="secondary" disabled={busy} onclick={oncancel}>Cancelar firma personal</button>
+  <Button variant="secondary" disabled={busy} onclick={oncancel}>Cancelar firma personal</Button>
 </section>
 
 <style>

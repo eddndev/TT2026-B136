@@ -56,7 +56,7 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
       body: request.postData(),
       search: url.search,
     });
-    const user = { id: 'user', email: 'hatz@example.com', role };
+    const user = { id: 'user', email: 'hatz@example.com', name: 'Hatziel Ortega', role };
     if (path.endsWith('/login'))
       return route.fulfill({ json: { challenge_token: 'challenge', expires_in_seconds: 300 } });
     if (/\/mfa\//.test(path))
@@ -130,7 +130,7 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
     if (path.endsWith('/users') || path.endsWith('/bootstrap'))
       return route.fulfill({
         json: {
-          user,
+          user: { ...user, name: request.postDataJSON()?.name },
           totp_secret_base32: 'TESTSECRET',
           otpauth_uri: 'otpauth://totp/test',
           recovery_codes: ['recovery-one', 'recovery-two'],
@@ -221,13 +221,23 @@ export async function navigate(page, name) {
   await page.getByRole('navigation').getByRole('button', { name, exact: true }).click();
 }
 
+// Sections of a page are links on wide screens and a select on phones.
+export async function openSection(page, name) {
+  const link = page.getByRole('link', { name, exact: true }).filter({ visible: true });
+  const select = page.getByRole('combobox', { name: /^Secciones / }).filter({ visible: true });
+  // Wait until the page shows one of the two before choosing.
+  await expect(link.or(select).first()).toBeVisible();
+  if (await link.count()) return link.first().click();
+  await select.selectOption({ label: name });
+}
+
 export async function selectCase(page, title = 'Defensa inicial') {
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: new RegExp(title) }).click();
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
 }
 
 // Logout lives in the account menu of the top bar.

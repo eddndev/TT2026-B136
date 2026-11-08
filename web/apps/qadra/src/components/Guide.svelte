@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   export let onnavigate;
 </script>
@@ -212,7 +213,7 @@
       c&oacute;digo funciona una sola vez. Si no conservas ninguno, contacta al administrador.
     </p>
   </details>
-  <button class="primary" onclick={() => onnavigate('documents')}
-    >Ir a documentos<Icon name="arrow" size={16} /></button
+  <Button variant="primary" onclick={() => onnavigate('documents')}
+    >Ir a documentos<Icon name="arrow" size={16} /></Button
   >
 </section>

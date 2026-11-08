@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { resourceActivityFailure, resourceDenied } from '../lib/resource-activity-errors.mjs';
   import { resourceActivityStatuses } from '../lib/resource-activity-values.mjs';
@@ -62,16 +63,18 @@
   {/each}
   {#if busy}<p role="status">Consultando historia...</p>{/if}
   <div class="action-row">
-    <button class="secondary" disabled={disabled || busy || !index} onclick={() => load(index - 1)}
-      >Revisiones posteriores</button
+    <Button
+      variant="secondary"
+      disabled={disabled || busy || !index}
+      onclick={() => load(index - 1)}>Revisiones posteriores</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={disabled || busy || !more}
       onclick={() => {
         cursors = [...cursors.slice(0, index + 1), next];
         load(index + 1);
-      }}>Revisiones anteriores</button
+      }}>Revisiones anteriores</Button
     >
   </div>
 </section>

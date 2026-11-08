@@ -55,7 +55,11 @@ fn captured_service() -> (IdentityService, Arc<Mutex<Vec<ChainedEvent>>>) {
 fn assert_second_factor_binds_identity(recovery: bool) {
     let (service, records) = captured_service();
     let owner = service
-        .bootstrap_owner("owner@example.test", "correct horse battery")
+        .bootstrap_owner(
+            "owner@example.test",
+            "Test Account",
+            "correct horse battery",
+        )
         .unwrap();
     let challenge = service
         .start_login("owner@example.test", "correct horse battery")
@@ -106,7 +110,11 @@ fn invalid_factors_and_unknown_challenges_leave_http_identity_unavailable() {
         for unknown in [false, true] {
             let (service, records) = captured_service();
             service
-                .bootstrap_owner("owner@example.test", "correct horse battery")
+                .bootstrap_owner(
+                    "owner@example.test",
+                    "Test Account",
+                    "correct horse battery",
+                )
                 .unwrap();
             let challenge = service
                 .start_login("owner@example.test", "correct horse battery")
