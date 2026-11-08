@@ -255,7 +255,7 @@
   >
     <Sidebar bind:this={sidebar} {user} {view} onnavigate={navigate} />
     <div
-      class="transition-[padding] duration-200 lg:pl-64 lg:group-has-data-collapsed/app:pl-[4.0625rem]"
+      class="lg:pl-64 lg:transition-[padding] lg:duration-200 lg:group-has-data-collapsed/app:pl-[4.0625rem] motion-reduce:transition-none"
     >
       <Topbar
         {api}
