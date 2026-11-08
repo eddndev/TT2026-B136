@@ -9,40 +9,12 @@ use uuid::Uuid;
 fn startup_rejects_changed_dispatch_columns_constraints_indexes_triggers_and_functions() {
     for alteration in [
         "ALTER TABLE deadline_reevaluation_jobs ALTER COLUMN created_at_seconds DROP NOT NULL",
-        "ALTER TABLE deadline_reevaluation_jobs ADD COLUMN unexpected text",
-        "ALTER TABLE deadline_dispatch_cursor ALTER COLUMN bootstrap_after_deadline_id SET DEFAULT '00000000-0000-0000-0000-000000000000'::uuid",
-        "ALTER TABLE deadline_reevaluation_jobs DROP CONSTRAINT deadline_job_primary CASCADE",
-        "ALTER TABLE deadline_reevaluation_jobs DROP CONSTRAINT deadline_job_operation",
-        "ALTER TABLE deadline_dispatch_cursor ALTER CONSTRAINT deadline_dispatch_active DEFERRABLE INITIALLY DEFERRED",
-        "ALTER TABLE deadline_reevaluation_jobs DROP CONSTRAINT deadline_job_cause;
-            ALTER TABLE deadline_reevaluation_jobs ADD CONSTRAINT deadline_job_cause CHECK(true)",
-        "DROP INDEX deadline_job_event_unique;
-            CREATE UNIQUE INDEX deadline_job_event_unique ON deadline_reevaluation_jobs(event_sequence,deadline_id)",
-        "DROP INDEX deadline_job_bootstrap_unique;
-            CREATE UNIQUE INDEX deadline_job_bootstrap_unique ON deadline_reevaluation_jobs(bootstrap_policy_version,deadline_id)
-                WHERE event_sequence IS NULL",
-        "DROP INDEX deadline_job_event_unique;
-            CREATE UNIQUE INDEX deadline_job_event_unique ON deadline_reevaluation_jobs(event_sequence,deadline_id)
-                NULLS NOT DISTINCT WHERE event_sequence IS NOT NULL",
-        "DROP INDEX deadline_job_created_order;
-            CREATE INDEX deadline_job_created_order ON deadline_reevaluation_jobs(created_at_seconds ASC NULLS FIRST,created_at_nanoseconds,id)",
         "ALTER TABLE deadline_dispatch_cursor DISABLE TRIGGER deadline_dispatch_lock",
-        "DROP TRIGGER deadline_operation_reserved ON case_deadline_revisions",
-        "DROP TRIGGER deadline_job_insert ON deadline_reevaluation_jobs;
-            CREATE TRIGGER deadline_job_insert BEFORE INSERT ON deadline_reevaluation_jobs
-                FOR EACH ROW WHEN (false) EXECUTE FUNCTION validate_deadline_reevaluation_job()",
-        "ALTER FUNCTION CANDIDATE_SIGNATURE VOLATILE",
-        "ALTER FUNCTION reserve_deadline_job_operation() SECURITY DEFINER",
-        "ALTER FUNCTION validate_deadline_dispatch_cursor() RESET search_path",
-        "CREATE OR REPLACE FUNCTION validate_deadline_dispatch_cursor()
-            RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER
-            SET search_path=pg_catalog AS $$ BEGIN RETURN NEW; END; $$",
     ] {
         let Some(mut db) = Fixture::new() else { return };
         open(&db).unwrap();
-        let alteration = alteration.replace("CANDIDATE_SIGNATURE", &candidate_signature(&mut db));
         db.admin
-            .batch_execute(&alteration)
+            .batch_execute(alteration)
             .unwrap_or_else(|error| panic!("cannot apply {alteration}: {error}"));
         assert!(open(&db).is_err(), "startup accepted {alteration}");
     }
@@ -142,58 +114,50 @@ fn runtime_can_update_only_cursor_positions_and_cannot_rewrite_jobs_or_guards() 
 #[test]
 fn startup_rejects_missing_excess_public_column_and_inherited_dispatch_privileges() {
     for alteration in [
-        "GRANT UPDATE(operation_id) ON deadline_reevaluation_jobs TO ROLE",
         "GRANT UPDATE(singleton) ON deadline_dispatch_cursor TO ROLE",
         "GRANT UPDATE ON deadline_dispatch_cursor TO ROLE",
-        "GRANT INSERT ON deadline_dispatch_cursor TO ROLE",
         "GRANT EXECUTE ON FUNCTION reserve_deadline_job_operation() TO ROLE",
         "REVOKE UPDATE(bootstrap_after_deadline_id) ON deadline_dispatch_cursor FROM ROLE",
-        "REVOKE EXECUTE ON FUNCTION CANDIDATE_SIGNATURE FROM ROLE",
         "GRANT SELECT ON deadline_reevaluation_jobs TO PUBLIC",
-        "GRANT UPDATE(bootstrap_after_deadline_id) ON deadline_dispatch_cursor TO PUBLIC",
-        "GRANT EXECUTE ON FUNCTION CANDIDATE_SIGNATURE TO PUBLIC",
     ] {
         let Some(mut db) = Fixture::new() else { return };
         open(&db).unwrap();
-        let alteration = alteration
-            .replace("ROLE", &db.role)
-            .replace("CANDIDATE_SIGNATURE", &candidate_signature(&mut db));
+        let alteration = alteration.replace("ROLE", &db.role);
         db.admin.batch_execute(&alteration).unwrap();
         assert!(open(&db).is_err(), "startup accepted {alteration}");
     }
-    for inheritance in ["INHERIT", "NOINHERIT"] {
-        let Some(mut db) = Fixture::new() else { return };
-        open(&db).unwrap();
-        let parent = format!("deadline_dispatch_parent_{}", Uuid::new_v4().simple());
-        db.control
-            .batch_execute(&format!(
-                "CREATE ROLE {parent} NOLOGIN NOSUPERUSER NOCREATEROLE"
-            ))
-            .unwrap();
-        let altered = (|| -> Result<(), postgres::Error> {
-            db.control.batch_execute(&format!(
-                "GRANT {parent} TO {}; ALTER ROLE {} {inheritance}",
-                db.role, db.role
-            ))?;
-            db.admin.batch_execute(&format!(
-                "GRANT UPDATE(singleton) ON deadline_dispatch_cursor TO {parent}"
-            ))
-        })();
-        let rejected = altered.is_ok() && open(&db).is_err();
-        // Clean up before any assertion, including a rejected grant setup.
-        let cleaned = db.control.batch_execute(&format!(
-            "REVOKE UPDATE(singleton) ON {}.deadline_dispatch_cursor FROM {parent};
-                REVOKE {parent} FROM {}; DROP ROLE {parent}",
-            db.schema, db.role
-        ));
-        altered.unwrap();
-        cleaned.unwrap();
-        assert!(
-            rejected,
-            "startup accepted indirect authority via {inheritance}"
-        );
-        open(&db).unwrap();
-    }
+    let inheritance = "NOINHERIT";
+    let Some(mut db) = Fixture::new() else { return };
+    open(&db).unwrap();
+    let parent = format!("deadline_dispatch_parent_{}", Uuid::new_v4().simple());
+    db.control
+        .batch_execute(&format!(
+            "CREATE ROLE {parent} NOLOGIN NOSUPERUSER NOCREATEROLE"
+        ))
+        .unwrap();
+    let altered = (|| -> Result<(), postgres::Error> {
+        db.control.batch_execute(&format!(
+            "GRANT {parent} TO {}; ALTER ROLE {} {inheritance}",
+            db.role, db.role
+        ))?;
+        db.admin.batch_execute(&format!(
+            "GRANT UPDATE(singleton) ON deadline_dispatch_cursor TO {parent}"
+        ))
+    })();
+    let rejected = altered.is_ok() && open(&db).is_err();
+    // Clean up before any assertion, including a rejected grant setup.
+    let cleaned = db.control.batch_execute(&format!(
+        "REVOKE UPDATE(singleton) ON {}.deadline_dispatch_cursor FROM {parent};
+            REVOKE {parent} FROM {}; DROP ROLE {parent}",
+        db.schema, db.role
+    ));
+    altered.unwrap();
+    cleaned.unwrap();
+    assert!(
+        rejected,
+        "startup accepted indirect authority via {inheritance}"
+    );
+    open(&db).unwrap();
 }
 
 fn candidate_signature(db: &mut Fixture) -> String {

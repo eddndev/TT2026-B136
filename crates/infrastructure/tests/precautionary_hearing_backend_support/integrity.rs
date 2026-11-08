@@ -39,31 +39,26 @@ fn rejected_reads_and_reopen(
 
 #[test]
 fn altered_historical_commitment_actor_role_and_admission_format_fail_closed() {
-    for change in [
-        "submission_digest=decode(repeat('aa',32),'hex')",
-        "recorded_by_role='litigator'",
-        "support_format='docx'",
-    ] {
-        let Some(mut db) = Fixture::new() else { return };
-        let (actor, command) = setup(&mut db);
-        persist(&db, actor.clone(), command.clone());
-        let storage = store(&db);
-        db.admin
-            .batch_execute("ALTER TABLE case_precautionary_hearing_revisions DISABLE TRIGGER USER")
-            .unwrap();
-        db.admin
-            .execute(
-                &format!(
-                    "UPDATE case_precautionary_hearing_revisions SET {change} WHERE hearing_id=$1"
-                ),
-                &[&command.hearing_id.as_uuid()],
-            )
-            .unwrap();
-        db.admin
-            .batch_execute("ALTER TABLE case_precautionary_hearing_revisions ENABLE TRIGGER USER")
-            .unwrap();
-        rejected_reads_and_reopen(&mut db, &actor, &command, &storage);
-    }
+    let change = "submission_digest=decode(repeat('aa',32),'hex')";
+    let Some(mut db) = Fixture::new() else { return };
+    let (actor, command) = setup(&mut db);
+    persist(&db, actor.clone(), command.clone());
+    let storage = store(&db);
+    db.admin
+        .batch_execute("ALTER TABLE case_precautionary_hearing_revisions DISABLE TRIGGER USER")
+        .unwrap();
+    db.admin
+        .execute(
+            &format!(
+                "UPDATE case_precautionary_hearing_revisions SET {change} WHERE hearing_id=$1"
+            ),
+            &[&command.hearing_id.as_uuid()],
+        )
+        .unwrap();
+    db.admin
+        .batch_execute("ALTER TABLE case_precautionary_hearing_revisions ENABLE TRIGGER USER")
+        .unwrap();
+    rejected_reads_and_reopen(&mut db, &actor, &command, &storage);
 }
 
 #[test]

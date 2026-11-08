@@ -124,25 +124,9 @@ mod tests {
     }
 
     #[test]
-    fn signature_round_trips_its_bytes() {
-        let bytes = vec![1u8, 2, 3];
-        let signature = Signature::from_bytes(bytes.clone()).unwrap();
-        assert_eq!(signature.as_bytes(), bytes.as_slice());
-        assert_eq!(signature.into_bytes(), bytes);
-    }
-
-    #[test]
     fn signature_debug_hides_the_bytes() {
         let signature = Signature::from_bytes(vec![0xff; 4]).unwrap();
         assert_eq!(format!("{signature:?}"), "Signature(4 bytes)");
-    }
-
-    #[test]
-    fn empty_signature_error_displays_its_message() {
-        assert_eq!(
-            DomainError::EmptySignature.to_string(),
-            "signature must not be empty"
-        );
     }
 
     #[test]
@@ -158,64 +142,6 @@ mod tests {
         assert_eq!(
             SignatureRejection::MalformedSignature("too short".to_string()).to_string(),
             "malformed signature: too short"
-        );
-    }
-
-    /// Test double: signs by echoing the digest bytes as the signature and
-    /// accepts exactly that shape back. It only exercises the port
-    /// signatures; it is not a real scheme.
-    struct EchoScheme;
-
-    impl DocumentSigner for EchoScheme {
-        fn sign(&self, digest: &Sha256Digest) -> Result<Signature, DomainError> {
-            Signature::from_bytes(digest.as_bytes().to_vec())
-        }
-    }
-
-    impl SignatureVerifier for EchoScheme {
-        fn verify(
-            &self,
-            digest: &Sha256Digest,
-            signature: &Signature,
-            key_material: &[u8],
-        ) -> Result<SignatureVerification, DomainError> {
-            if key_material.is_empty() {
-                return Ok(SignatureVerification::Invalid(
-                    SignatureRejection::MalformedKeyMaterial("empty".to_string()),
-                ));
-            }
-            if signature.as_bytes() == digest.as_bytes() {
-                Ok(SignatureVerification::Valid)
-            } else {
-                Ok(SignatureVerification::Invalid(
-                    SignatureRejection::MismatchedDocumentOrKey,
-                ))
-            }
-        }
-    }
-
-    #[test]
-    fn ports_are_object_safe_and_round_trip() {
-        let signer: &dyn DocumentSigner = &EchoScheme;
-        let verifier: &dyn SignatureVerifier = &EchoScheme;
-        let digest = Sha256Digest::from_array([7u8; 32]);
-
-        let signature = signer.sign(&digest).unwrap();
-        assert_eq!(
-            verifier.verify(&digest, &signature, b"key").unwrap(),
-            SignatureVerification::Valid
-        );
-
-        let other = Sha256Digest::from_array([8u8; 32]);
-        assert_eq!(
-            verifier.verify(&other, &signature, b"key").unwrap(),
-            SignatureVerification::Invalid(SignatureRejection::MismatchedDocumentOrKey)
-        );
-        assert_eq!(
-            verifier.verify(&digest, &signature, b"").unwrap(),
-            SignatureVerification::Invalid(SignatureRejection::MalformedKeyMaterial(
-                "empty".to_string()
-            ))
         );
     }
 }

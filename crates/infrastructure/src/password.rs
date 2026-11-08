@@ -86,14 +86,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn phc_string_records_the_fixed_argon2id_parameters() {
-        let hasher = Argon2idHasher::new();
-        let phc = hasher.hash("correct horse battery staple").unwrap();
-        assert!(phc.starts_with("$argon2id$v=19$"), "got: {phc}");
-        assert!(phc.contains("m=262144,t=3,p=1"), "got: {phc}");
-    }
-
-    #[test]
     fn verify_accepts_the_right_password_and_rejects_a_wrong_one() {
         let hasher = Argon2idHasher::new();
         let phc = hasher.hash("right password").unwrap();

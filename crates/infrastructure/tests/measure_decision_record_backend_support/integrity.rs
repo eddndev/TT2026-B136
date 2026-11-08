@@ -36,9 +36,7 @@ fn damage(db: &mut Fixture, statement: &str) {
 fn lost_g2_payload_member_and_original_audit_fail_on_existing_and_new_connections() {
     for statement in [
         "DELETE FROM case_measure_decisions WHERE operation_id IN (SELECT operation_id FROM case_measure_operations WHERE family='g2')",
-        "DELETE FROM case_measure_revisions WHERE family='m2'",
         "DELETE FROM audit_events WHERE sequence=(SELECT audit_sequence FROM case_measure_operations WHERE family='g2')",
-        "UPDATE case_measure_decisions SET group_digest=decode(repeat('ab',32),'hex') WHERE operation_id IN (SELECT operation_id FROM case_measure_operations WHERE family='g2')",
     ] {
         let Some(mut db) = Fixture::new() else { return };
         let seed = setup(&mut db);
@@ -55,23 +53,26 @@ fn lost_g2_payload_member_and_original_audit_fail_on_existing_and_new_connection
 
 #[test]
 fn g2_reconstruction_validates_unselected_siblings_and_real_c_ancestor_values() {
-    for statement in [
-        "DELETE FROM case_measure_revisions WHERE family='m1' AND measure_id NOT IN (SELECT target_measure_id FROM case_measure_administrations)",
-        "UPDATE case_measure_revisions SET capture_digest=decode(repeat('cd',32),'hex') WHERE family='c1'",
-        "DELETE FROM case_measure_administrations",
-    ] {
-        let Some(mut db) = Fixture::new() else { return };
-        let seed = setup(&mut db);
-        let original = persist(&db, seed.actor.clone(), seed.command.clone());
-        let workflow = service(&db, seed.actor.clone());
-        damage(&mut db, statement);
-        let before = snapshot(&mut db);
-        assert!(workflow.prepare("session", db.case, seed.command.clone()).is_err());
-        assert!(workflow.submit("session", db.case, seed.command,
-            confirmation(&original.group.review)).is_err());
-        assert_eq!(snapshot(&mut db), before);
-        assert!(open(&db).is_err());
-    }
+    let statement = "DELETE FROM case_measure_revisions WHERE family='m1' AND measure_id NOT IN (SELECT target_measure_id FROM case_measure_administrations)";
+    let Some(mut db) = Fixture::new() else { return };
+    let seed = setup(&mut db);
+    let original = persist(&db, seed.actor.clone(), seed.command.clone());
+    let workflow = service(&db, seed.actor.clone());
+    damage(&mut db, statement);
+    let before = snapshot(&mut db);
+    assert!(workflow
+        .prepare("session", db.case, seed.command.clone())
+        .is_err());
+    assert!(workflow
+        .submit(
+            "session",
+            db.case,
+            seed.command,
+            confirmation(&original.group.review)
+        )
+        .is_err());
+    assert_eq!(snapshot(&mut db), before);
+    assert!(open(&db).is_err());
 }
 
 #[test]

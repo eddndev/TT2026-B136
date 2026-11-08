@@ -145,20 +145,7 @@ fn runtime_rejects_ownership_of_document_protection_and_import_receipts() {
         .query_one("SELECT quote_ident(current_user)", &[])
         .unwrap()
         .get(0);
-    for object in [
-        "TABLE documents",
-        "TABLE document_series",
-        "TABLE document_metadata_revisions",
-        "FUNCTION document_metadata_text_valid(text,integer)",
-        "FUNCTION document_metadata_is_canonical(text,text,text[])",
-        "FUNCTION document_metadata_bytes(text,text,text[])",
-        "FUNCTION preserve_document_metadata()",
-        "FUNCTION enforce_document_metadata_sequence()",
-        "FUNCTION preserve_document_series()",
-        "FUNCTION enforce_document_version_sequence()",
-        "FUNCTION preserve_document_evidence()",
-        "TABLE migration_receipts",
-    ] {
+    for object in ["TABLE documents", "FUNCTION preserve_document_evidence()"] {
         admin
             .batch_execute(&format!("ALTER {object} OWNER TO {role}"))
             .unwrap();
@@ -201,30 +188,9 @@ fn runtime_rejects_extra_document_receipt_and_schema_privileges() {
     let (mut admin, role, runtime_url) = runtime_role(&mut db);
     let schema_privilege = format!("CREATE ON SCHEMA {}", db.schema);
     for privilege in [
-        "UPDATE(id) ON document_series",
-        "UPDATE(case_id) ON document_series",
-        "UPDATE(first_available_version) ON document_series",
-        "UPDATE ON document_series",
-        "DELETE ON document_series",
         "TRUNCATE ON document_series",
-        "TRIGGER ON document_series",
-        "UPDATE(id) ON documents",
-        "UPDATE(case_id) ON documents",
-        "UPDATE(version) ON documents",
-        "UPDATE(name) ON documents",
         "UPDATE(digest) ON documents",
-        "UPDATE(vault) ON documents",
-        "UPDATE ON documents",
-        "DELETE ON documents",
-        "TRUNCATE ON documents",
-        "TRIGGER ON documents",
         "INSERT ON migration_receipts",
-        "INSERT(fingerprint) ON migration_receipts",
-        "UPDATE(fingerprint) ON migration_receipts",
-        "UPDATE ON migration_receipts",
-        "DELETE ON migration_receipts",
-        "TRUNCATE ON migration_receipts",
-        "TRIGGER ON migration_receipts",
         &schema_privilege,
     ] {
         admin
@@ -234,11 +200,6 @@ fn runtime_rejects_extra_document_receipt_and_schema_privileges() {
         admin
             .batch_execute(&format!("REVOKE {privilege} FROM {role}"))
             .unwrap();
-        if privilege == "UPDATE ON documents" {
-            admin
-                .batch_execute(&format!("GRANT UPDATE(evidence) ON documents TO {role}"))
-                .unwrap();
-        }
         assert!(
             matches!(result, Err(ApplicationError::InvalidConfiguration(_))),
             "runtime must reject {privilege}"

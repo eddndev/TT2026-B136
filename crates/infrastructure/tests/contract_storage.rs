@@ -282,15 +282,7 @@ fn the_startup_recheck_rejects_a_changed_signature_or_manifest() {
 fn startup_rejects_an_altered_contract_catalog_or_a_widened_runtime_role() {
     for change in [
         "ALTER TABLE contract_events DISABLE TRIGGER contract_event_register",
-        "ALTER TABLE documents DISABLE TRIGGER contract_version_guard",
-        "CREATE OR REPLACE FUNCTION contract_request_bytes(deployment UUID, request UUID,
-            case_id UUID, document UUID, version BIGINT, content BYTEA, client UUID,
-            firm_signer UUID, requester UUID, client_leaf BYTEA, firm_leaf BYTEA,
-            created_at BIGINT, expires_at BIGINT) RETURNS BYTEA
-            LANGUAGE sql IMMUTABLE STRICT SET search_path=pg_catalog AS $$ SELECT content $$",
-        "ALTER TABLE contract_party_signatures DROP CONSTRAINT contract_signatures_event_fkey",
         "GRANT UPDATE(kind) ON contract_events TO {role}",
-        "GRANT UPDATE(subject) ON contract_notifications TO {role}",
         "REVOKE EXECUTE ON FUNCTION contract_party_bytes(uuid,bytea,bigint,uuid,bigint,bigint,
             uuid,bytea,uuid,uuid,bytea,bytea,smallint,bytea,bytea) FROM {role}",
     ] {

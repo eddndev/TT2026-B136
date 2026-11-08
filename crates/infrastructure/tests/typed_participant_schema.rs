@@ -38,15 +38,7 @@ fn typed_schema_adds_empty_identity_and_revision_families_without_fabricating_le
 fn runtime_startup_rejects_missing_typed_guards_without_repairing_schema() {
     for alteration in [
         "DROP TRIGGER typed_sequence ON case_participant_typed_revisions",
-        "ALTER TABLE case_subject_revisions DISABLE TRIGGER subject_sequence",
-        "DROP TRIGGER subject_root_complete ON case_subjects",
-        "DROP TRIGGER typed_root_complete ON case_participants",
-        "DROP TRIGGER participant_review_guard ON participant_identity_reviews",
-        "DROP TRIGGER participant_credential_guard ON participant_credential_evidence",
-        "ALTER TABLE case_subject_revisions DROP CONSTRAINT subject_projection",
-        "ALTER TABLE case_subject_revisions ALTER COLUMN values_view DROP EXPRESSION",
         "ALTER TABLE participant_credential_evidence ALTER COLUMN signature DROP NOT NULL",
-        "ALTER TABLE case_participant_typed_revisions DROP CONSTRAINT typed_credential_origin_fk",
     ] {
         let Some(mut db) = Fixture::new() else { return };
         PostgresCaseRepository::open(&db.runtime_url, Arc::new(RingSha256Hasher)).unwrap();

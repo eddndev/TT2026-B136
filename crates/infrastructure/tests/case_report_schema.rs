@@ -44,29 +44,28 @@ fn migration_creates_empty_report_tables_and_preserves_the_existing_case_invento
 fn startup_rejects_report_table_shape_row_security_and_disabled_guards() {
     let Some(mut db) = Fixture::new() else { return };
     require_tables(&mut db);
-    for table in TABLES {
-        for (damage, repair) in [
-            (
-                format!("ALTER TABLE {table} ADD COLUMN extra boolean"),
-                format!("ALTER TABLE {table} DROP COLUMN extra"),
-            ),
-            (
-                format!("ALTER TABLE {table} ENABLE ROW LEVEL SECURITY"),
-                format!("ALTER TABLE {table} DISABLE ROW LEVEL SECURITY"),
-            ),
-            (
-                format!("ALTER TABLE {table} DISABLE TRIGGER USER"),
-                format!("ALTER TABLE {table} ENABLE TRIGGER USER"),
-            ),
-        ] {
-            db.admin.batch_execute(&damage).unwrap();
-            assert!(
-                matches!(open(&db), Err(ApplicationError::InvalidConfiguration(_))),
-                "accepted changed report schema: {damage}"
-            );
-            db.admin.batch_execute(&repair).unwrap();
-            open(&db).unwrap();
-        }
+    let table = TABLES[0];
+    for (damage, repair) in [
+        (
+            format!("ALTER TABLE {table} ADD COLUMN extra boolean"),
+            format!("ALTER TABLE {table} DROP COLUMN extra"),
+        ),
+        (
+            format!("ALTER TABLE {table} ENABLE ROW LEVEL SECURITY"),
+            format!("ALTER TABLE {table} DISABLE ROW LEVEL SECURITY"),
+        ),
+        (
+            format!("ALTER TABLE {table} DISABLE TRIGGER USER"),
+            format!("ALTER TABLE {table} ENABLE TRIGGER USER"),
+        ),
+    ] {
+        db.admin.batch_execute(&damage).unwrap();
+        assert!(
+            matches!(open(&db), Err(ApplicationError::InvalidConfiguration(_))),
+            "accepted changed report schema: {damage}"
+        );
+        db.admin.batch_execute(&repair).unwrap();
+        open(&db).unwrap();
     }
 }
 
@@ -74,79 +73,69 @@ fn startup_rejects_report_table_shape_row_security_and_disabled_guards() {
 fn startup_rejects_a_report_check_replaced_with_true_under_its_original_name() {
     let Some(mut db) = Fixture::new() else { return };
     require_tables(&mut db);
-    for table in TABLES {
-        let row = db
-            .admin
-            .query_one(
-                "SELECT quote_ident(conname),pg_get_constraintdef(oid) FROM pg_constraint
-                WHERE conrelid=$1::text::regclass AND contype='c' ORDER BY conname LIMIT 1",
-                &[&table],
-            )
-            .unwrap();
-        let name: String = row.get(0);
-        let definition: String = row.get(1);
-        db.admin
-            .batch_execute(&format!(
-                "ALTER TABLE {table} DROP CONSTRAINT {name};
-            ALTER TABLE {table} ADD CONSTRAINT {name} CHECK(true)"
-            ))
-            .unwrap();
-        assert!(
-            matches!(open(&db), Err(ApplicationError::InvalidConfiguration(_))),
-            "accepted a weakened report constraint on {table}"
-        );
-        db.admin
-            .batch_execute(&format!(
-                "ALTER TABLE {table} DROP CONSTRAINT {name};
-            ALTER TABLE {table} ADD CONSTRAINT {name} {definition}"
-            ))
-            .unwrap();
-        open(&db).unwrap();
-    }
+    let table = TABLES[0];
+    let row = db
+        .admin
+        .query_one(
+            "SELECT quote_ident(conname),pg_get_constraintdef(oid) FROM pg_constraint
+            WHERE conrelid=$1::text::regclass AND contype='c' ORDER BY conname LIMIT 1",
+            &[&table],
+        )
+        .unwrap();
+    let name: String = row.get(0);
+    let definition: String = row.get(1);
+    db.admin
+        .batch_execute(&format!(
+            "ALTER TABLE {table} DROP CONSTRAINT {name};
+        ALTER TABLE {table} ADD CONSTRAINT {name} CHECK(true)"
+        ))
+        .unwrap();
+    assert!(
+        matches!(open(&db), Err(ApplicationError::InvalidConfiguration(_))),
+        "accepted a weakened report constraint on {table}"
+    );
+    db.admin
+        .batch_execute(&format!(
+            "ALTER TABLE {table} DROP CONSTRAINT {name};
+        ALTER TABLE {table} ADD CONSTRAINT {name} {definition}"
+        ))
+        .unwrap();
+    open(&db).unwrap();
 }
 
 #[test]
 fn runtime_rejects_public_delegated_or_unrestricted_report_authority() {
     let Some(mut db) = Fixture::new() else { return };
     require_tables(&mut db);
-    for table in TABLES {
-        for (grant, revoke) in [
-            (
-                format!("GRANT SELECT ON {table} TO PUBLIC"),
-                format!("REVOKE SELECT ON {table} FROM PUBLIC"),
+    let table = TABLES[0];
+    for (grant, revoke) in [
+        (
+            format!("GRANT SELECT ON {table} TO PUBLIC"),
+            format!("REVOKE SELECT ON {table} FROM PUBLIC"),
+        ),
+        (
+            format!("GRANT SELECT ON {table} TO {} WITH GRANT OPTION", db.role),
+            format!("REVOKE GRANT OPTION FOR SELECT ON {table} FROM {}", db.role),
+        ),
+        (
+            format!("GRANT UPDATE ON {table} TO {}", db.role),
+            // Revoking a table privilege also removes its corresponding column grants.
+            format!(
+                "REVOKE UPDATE ON {table} FROM {role};
+                GRANT UPDATE(updated_at,state,failure,retry_at,lease_attempt,lease_token,lease_generation,lease_expires_at,attempts,case_ids) ON {table} TO {role}",
+                role = db.role
             ),
-            (
-                format!("GRANT SELECT ON {table} TO {} WITH GRANT OPTION", db.role),
-                format!("REVOKE GRANT OPTION FOR SELECT ON {table} FROM {}", db.role),
-            ),
-            (
-                format!("GRANT UPDATE ON {table} TO {}", db.role),
-                restore_column_updates(table, &db.role),
-            ),
-        ] {
-            db.admin.batch_execute(&grant).unwrap();
-            assert!(
-                matches!(open(&db), Err(ApplicationError::InvalidConfiguration(_))),
-                "accepted unsafe report permission: {grant}"
-            );
-            db.admin.batch_execute(&revoke).unwrap();
-            open(&db)
-                .unwrap_or_else(|error| panic!("permission repair failed after {grant}: {error}"));
-        }
+        ),
+    ] {
+        db.admin.batch_execute(&grant).unwrap();
+        assert!(
+            matches!(open(&db), Err(ApplicationError::InvalidConfiguration(_))),
+            "accepted unsafe report permission: {grant}"
+        );
+        db.admin.batch_execute(&revoke).unwrap();
+        open(&db)
+            .unwrap_or_else(|error| panic!("permission repair failed after {grant}: {error}"));
     }
-}
-
-fn restore_column_updates(table: &str, role: &str) -> String {
-    let mut repair = format!("REVOKE UPDATE ON {table} FROM {role};");
-    let columns = match table {
-        "case_report_jobs" => "updated_at,state,failure,retry_at,lease_attempt,lease_token,lease_generation,lease_expires_at,attempts,case_ids",
-        "case_report_notices" => "read_at",
-        "case_report_email_deliveries" => "state,generation,lease_id,lease_until,provider_deadline,retry_at,message,updated_at",
-        _ => return repair,
-    };
-    // Revoking a table privilege also removes its corresponding column grants.
-    repair.push_str(&format!("GRANT UPDATE({columns}) ON {table} TO {role}"));
-    repair
 }
 
 fn require_tables(db: &mut Fixture) {

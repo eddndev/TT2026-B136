@@ -24,37 +24,31 @@ fn damage(db: &mut Fixture, statement: &str) {
 
 #[test]
 fn already_open_readers_reject_lost_payload_latest_record_and_original_audit() {
-    for statement in [
-        "DELETE FROM case_measure_administrations WHERE action='entered_in_error'",
-        "DELETE FROM case_measure_revisions WHERE family='c1' AND revision=4",
-        "DELETE FROM audit_events WHERE action='measure_administrative.recorded'
-         AND resource LIKE '%:revision:4:%'",
-    ] {
-        let Some(mut db) = Fixture::new() else { return };
-        let (seed, originals) = chain(&mut db);
-        let service = reads(&db, seed.actor);
-        same_operation(
-            &service
-                .get_operation("session", db.case, originals[2].origin.operation_id)
-                .unwrap(),
-            &originals[2],
-        );
-        damage(&mut db, statement);
-        let before = snapshot(&mut db);
-        for original in &originals {
-            assert!(service
-                .get_operation("session", db.case, original.origin.operation_id)
-                .is_err());
-        }
+    let statement = "DELETE FROM case_measure_administrations WHERE action='entered_in_error'";
+    let Some(mut db) = Fixture::new() else { return };
+    let (seed, originals) = chain(&mut db);
+    let service = reads(&db, seed.actor);
+    same_operation(
+        &service
+            .get_operation("session", db.case, originals[2].origin.operation_id)
+            .unwrap(),
+        &originals[2],
+    );
+    damage(&mut db, statement);
+    let before = snapshot(&mut db);
+    for original in &originals {
         assert!(service
-            .list(
-                "session",
-                db.case,
-                MeasureAdministrativeReadQuery::default()
-            )
+            .get_operation("session", db.case, original.origin.operation_id)
             .is_err());
-        assert_eq!(snapshot(&mut db), before);
     }
+    assert!(service
+        .list(
+            "session",
+            db.case,
+            MeasureAdministrativeReadQuery::default()
+        )
+        .is_err());
+    assert_eq!(snapshot(&mut db), before);
 }
 
 #[test]

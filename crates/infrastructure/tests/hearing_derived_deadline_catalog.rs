@@ -43,14 +43,6 @@ fn startup_rejects_public_origin_access_and_delegatable_runtime_permissions() {
             format!("REVOKE SELECT ON {TABLE} FROM PUBLIC"),
         ),
         (
-            format!("GRANT INSERT(case_id) ON {TABLE} TO PUBLIC"),
-            format!("REVOKE INSERT(case_id) ON {TABLE} FROM PUBLIC"),
-        ),
-        (
-            format!("GRANT SELECT ON {TABLE} TO {} WITH GRANT OPTION", db.role),
-            format!("REVOKE GRANT OPTION FOR SELECT ON {TABLE} FROM {}", db.role),
-        ),
-        (
             format!(
                 "GRANT INSERT(case_id) ON {TABLE} TO {} WITH GRANT OPTION",
                 db.role

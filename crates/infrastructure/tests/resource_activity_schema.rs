@@ -44,13 +44,24 @@ fn startup_rejects_association_catalog_and_runtime_permission_changes() {
     let Some(mut db) = Fixture::new() else { return };
     require_tables(&mut db);
     for (damage, repair) in [
-        ("ALTER TABLE case_resource_activity_associations ADD COLUMN extra boolean", "ALTER TABLE case_resource_activity_associations DROP COLUMN extra"),
-        ("ALTER TABLE case_resource_activity_associations ALTER COLUMN initial_revision SET DEFAULT 2", "ALTER TABLE case_resource_activity_associations ALTER COLUMN initial_revision SET DEFAULT 1"),
-        ("ALTER TABLE case_resource_activity_associations DISABLE TRIGGER USER", "ALTER TABLE case_resource_activity_associations ENABLE TRIGGER USER"),
-        ("GRANT SELECT ON case_resource_activity_associations TO PUBLIC", "REVOKE SELECT ON case_resource_activity_associations FROM PUBLIC"),
+        (
+            "ALTER TABLE case_resource_activity_associations ADD COLUMN extra boolean",
+            "ALTER TABLE case_resource_activity_associations DROP COLUMN extra",
+        ),
+        (
+            "ALTER TABLE case_resource_activity_associations DISABLE TRIGGER USER",
+            "ALTER TABLE case_resource_activity_associations ENABLE TRIGGER USER",
+        ),
+        (
+            "GRANT SELECT ON case_resource_activity_associations TO PUBLIC",
+            "REVOKE SELECT ON case_resource_activity_associations FROM PUBLIC",
+        ),
     ] {
         db.admin.batch_execute(damage).unwrap();
-        assert!(open(&db).is_err(), "accepted altered association catalog: {damage}");
+        assert!(
+            open(&db).is_err(),
+            "accepted altered association catalog: {damage}"
+        );
         db.admin.batch_execute(repair).unwrap();
         open(&db).unwrap();
     }

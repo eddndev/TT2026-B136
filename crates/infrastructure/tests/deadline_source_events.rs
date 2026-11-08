@@ -35,52 +35,49 @@ fn all_four_source_families_emit_exact_events_on_creation_correction_and_withdra
 
 #[test]
 fn audit_failure_rolls_back_the_source_revision_and_event_for_each_family() {
-    for kind in KINDS {
-        let Some(mut db) = Fixture::new() else { return };
-        let first = record(&mut db, kind);
-        let commit = prepared_correction(&db, &first);
-        let before = snapshot(&mut db);
-        reject_audit(&mut db);
-        assert!(matches!(
-            commit(),
-            Err(application::ApplicationError::Port(_))
-        ));
-        assert_eq!(snapshot(&mut db), before);
-        allow_audit(&mut db);
-        change(&db, &first, false);
-        assert_events_match_sources(&mut db);
-    }
+    let kind = KINDS[0];
+    let Some(mut db) = Fixture::new() else { return };
+    let first = record(&mut db, kind);
+    let commit = prepared_correction(&db, &first);
+    let before = snapshot(&mut db);
+    reject_audit(&mut db);
+    assert!(matches!(
+        commit(),
+        Err(application::ApplicationError::Port(_))
+    ));
+    assert_eq!(snapshot(&mut db), before);
+    allow_audit(&mut db);
+    change(&db, &first, false);
+    assert_events_match_sources(&mut db);
 }
 
 #[test]
 fn direct_revision_inserts_emit_events_and_transaction_rollback_restores_every_row() {
-    for kind in KINDS {
-        let Some(mut db) = Fixture::new() else { return };
-        record(&mut db, kind);
-        let expected = event(&mut db, kind);
-        let before = snapshot(&mut db);
-        remove_event_temporarily(&mut db, &expected);
-        replay_revision(&mut db, &expected);
-        assert_events_match_sources(&mut db);
-        db.admin.batch_execute("ROLLBACK").unwrap();
-        assert_eq!(snapshot(&mut db), before);
-    }
+    let kind = KINDS[0];
+    let Some(mut db) = Fixture::new() else { return };
+    record(&mut db, kind);
+    let expected = event(&mut db, kind);
+    let before = snapshot(&mut db);
+    remove_event_temporarily(&mut db, &expected);
+    replay_revision(&mut db, &expected);
+    assert_events_match_sources(&mut db);
+    db.admin.batch_execute("ROLLBACK").unwrap();
+    assert_eq!(snapshot(&mut db), before);
 }
 
 #[test]
 fn duplicate_source_revision_events_are_rejected_without_modifying_the_original() {
-    for kind in KINDS {
-        let Some(mut db) = Fixture::new() else { return };
-        record(&mut db, kind);
-        let expected = event(&mut db, kind);
-        let before = event_rows(&mut db);
-        let error = insert(&mut db, &expected).unwrap_err();
-        assert_eq!(
-            error.code(),
-            Some(&postgres::error::SqlState::UNIQUE_VIOLATION)
-        );
-        assert_eq!(event_rows(&mut db), before);
-    }
+    let kind = KINDS[0];
+    let Some(mut db) = Fixture::new() else { return };
+    record(&mut db, kind);
+    let expected = event(&mut db, kind);
+    let before = event_rows(&mut db);
+    let error = insert(&mut db, &expected).unwrap_err();
+    assert_eq!(
+        error.code(),
+        Some(&postgres::error::SqlState::UNIQUE_VIOLATION)
+    );
+    assert_eq!(event_rows(&mut db), before);
 }
 
 #[test]

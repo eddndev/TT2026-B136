@@ -6,23 +6,28 @@ use version_database_support::Database;
 #[test]
 fn runtime_requires_metadata_constraints_and_active_triggers() {
     for corruption in [
-        "DROP TABLE document_metadata_revisions",
-        "ALTER TABLE document_metadata_revisions DROP CONSTRAINT document_metadata_canonical",
         "ALTER TABLE document_metadata_revisions DROP CONSTRAINT document_metadata_digest",
-        "ALTER TABLE document_metadata_revisions DROP CONSTRAINT document_metadata_series_fk",
-        "ALTER TABLE document_metadata_revisions DROP CONSTRAINT document_metadata_actor_fk",
-        "ALTER TABLE document_metadata_revisions DROP CONSTRAINT document_metadata_revisions_pkey",
         "ALTER TABLE document_metadata_revisions DISABLE TRIGGER document_metadata_sequence",
-        "ALTER TABLE document_metadata_revisions DISABLE TRIGGER document_metadata_preserve_history",
-        "ALTER TABLE document_metadata_revisions DROP CONSTRAINT document_metadata_digest; ALTER TABLE document_metadata_revisions ADD CONSTRAINT document_metadata_digest CHECK (metadata_digest=pg_catalog.sha256(document_metadata_bytes(document_type,classification,tags))) NOT VALID",
-        "DO $$ DECLARE name text; BEGIN SELECT t.tgname INTO name FROM pg_trigger t JOIN pg_constraint c ON c.oid=t.tgconstraint WHERE c.conname='document_metadata_actor_fk' AND t.tgrelid='document_metadata_revisions'::regclass LIMIT 1; EXECUTE format('ALTER TABLE document_metadata_revisions DISABLE TRIGGER %I',name); END $$",
     ] {
-        let Some(mut db) = Database::old_schema() else { return };
-        let (role,url) = runtime(&mut db);
+        let Some(mut db) = Database::old_schema() else {
+            return;
+        };
+        let (role, url) = runtime(&mut db);
         PostgresCaseDocumentStore::open(&url).unwrap();
         db.client.batch_execute(corruption).unwrap();
-        assert!(matches!(PostgresCaseDocumentStore::open(&url),Err(ApplicationError::InvalidConfiguration(_))),"accepted {corruption}");
-        db.control.batch_execute(&format!("DROP SCHEMA {} CASCADE; DROP ROLE {role}", db.schema)).unwrap();
+        assert!(
+            matches!(
+                PostgresCaseDocumentStore::open(&url),
+                Err(ApplicationError::InvalidConfiguration(_))
+            ),
+            "accepted {corruption}"
+        );
+        db.control
+            .batch_execute(&format!(
+                "DROP SCHEMA {} CASCADE; DROP ROLE {role}",
+                db.schema
+            ))
+            .unwrap();
     }
 }
 

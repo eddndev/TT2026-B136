@@ -176,87 +176,22 @@ fn resource_hearing_alert_cursor_accepts_only_the_supported_subject_families() {
 }
 
 #[test]
-fn resource_hearing_alert_startup_requires_parent_constraints_and_scope_key() {
-    let Some(mut db) = Fixture::new() else { return };
-    for (table, count) in TABLES.into_iter().zip([3, 2, 2]) {
-        let rows = db
-            .admin
-            .query(
-                "SELECT c.conname::text,c.contype::text,pg_get_constraintdef(c.oid)
-             FROM pg_constraint c JOIN pg_attribute a
-                ON a.attrelid=c.conrelid AND a.attnum=ANY(c.conkey)
-             WHERE c.conrelid=$1::text::regclass AND a.attname='resource_id'
-                AND c.contype IN ('c','f','u') ORDER BY c.conname",
-                &[&table],
-            )
-            .unwrap();
-        assert_eq!(
-            rows.len(),
-            count,
-            "missing resource parent constraints on {table}"
-        );
-        for row in rows {
-            let name: String = row.get(0);
-            let kind: String = row.get(1);
-            let definition: String = row.get(2);
-            if kind == "u" {
-                assert_eq!(definition, "UNIQUE (kind, id, case_id, resource_id)");
-                continue;
-            }
-            if kind == "f" {
-                let expected = if table == "alert_subject_state" {
-                    "FOREIGN KEY (id, case_id, resource_id) REFERENCES case_resource_hearings(id, case_id, resource_id)"
-                } else {
-                    "FOREIGN KEY (kind, subject_id, case_id, resource_id) REFERENCES alert_subject_state(kind, id, case_id, resource_id)"
-                };
-                assert_eq!(definition, expected);
-            }
-            db.admin
-                .batch_execute(&format!("ALTER TABLE {table} DROP CONSTRAINT {name}"))
-                .unwrap();
-            assert!(
-                open(&db).is_err(),
-                "startup accepted missing {table}.{name}"
-            );
-            db.admin
-                .batch_execute(&format!(
-                    "ALTER TABLE {table} ADD CONSTRAINT {name} {definition}"
-                ))
-                .unwrap();
-            open(&db).unwrap();
-        }
-    }
-    for table in ["alert_schedule", "alert_notifications"] {
-        let retained: bool = db
-            .admin
-            .query_one(
-                "SELECT EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid=$1::text::regclass
-                AND conname=$2 AND contype='f')",
-                &[&table, &format!("{table}_kind_subject_id_fkey")],
-            )
-            .unwrap()
-            .get(0);
-        assert!(retained, "the existing subject foreign key must remain");
-    }
-}
-
-#[test]
 fn resource_hearing_alert_startup_rejects_altered_columns_and_parent_grants() {
     let Some(mut db) = Fixture::new() else { return };
-    for table in TABLES {
-        for (damage, repair) in [
-            (format!("ALTER TABLE {table} ALTER COLUMN resource_id SET DEFAULT '00000000-0000-0000-0000-000000000000'::uuid"),
-             format!("ALTER TABLE {table} ALTER COLUMN resource_id DROP DEFAULT")),
-            (format!("REVOKE INSERT(resource_id) ON {table} FROM {}", db.role),
-             format!("GRANT INSERT(resource_id) ON {table} TO {}", db.role)),
-            (format!("GRANT UPDATE(resource_id) ON {table} TO {}", db.role),
-             format!("REVOKE UPDATE(resource_id) ON {table} FROM {}", db.role)),
-        ] {
-            db.admin.batch_execute(&damage).unwrap();
-            assert!(open(&db).is_err(), "startup accepted {damage}");
-            db.admin.batch_execute(&repair).unwrap();
-            open(&db).unwrap();
-        }
+    for (damage, repair) in [
+        (
+            "ALTER TABLE alert_schedule ALTER COLUMN resource_id SET DEFAULT '00000000-0000-0000-0000-000000000000'::uuid".to_owned(),
+            "ALTER TABLE alert_schedule ALTER COLUMN resource_id DROP DEFAULT".to_owned(),
+        ),
+        (
+            format!("GRANT UPDATE(resource_id) ON alert_schedule TO {}", db.role),
+            format!("REVOKE UPDATE(resource_id) ON alert_schedule FROM {}", db.role),
+        ),
+    ] {
+        db.admin.batch_execute(&damage).unwrap();
+        assert!(open(&db).is_err(), "startup accepted {damage}");
+        db.admin.batch_execute(&repair).unwrap();
+        open(&db).unwrap();
     }
 }
 

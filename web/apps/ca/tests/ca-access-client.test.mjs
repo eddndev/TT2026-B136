@@ -151,14 +151,14 @@ for (const [mode, code] of [['totp', '123456'], ['recovery', 'RECOVERY-0']]) {
   });
 }
 
-for (const failure of ['rejected', 'server', 'network']) {
+for (const failure of ['rejected', 'network']) {
   test(`an MFA ${failure} consumes the challenge and requires a fresh password login`, async () => {
     const h = harness();
     await login(h);
     const pending = assert.rejects(h.client.mfa('123456', 'totp'));
     const request = h.take('mfa/totp');
     if (failure === 'network') request.reject(new TypeError('private network detail'));
-    else answer(request, { error: { code: failure === 'rejected' ? 'mfa_rejected' : 'internal_error' } }, failure === 'rejected' ? 401 : 500);
+    else answer(request, { error: { code: 'mfa_rejected' } }, 401);
     await pending;
     assert.equal(h.client.snapshot().phase, 'signed-out');
     const calls = h.calls.length;

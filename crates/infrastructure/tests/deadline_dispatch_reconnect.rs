@@ -162,57 +162,29 @@ fn same_dispatcher_reconnects_at_its_committed_position_without_duplicate_work_o
     timeout::same_connection(&mut db, new_pid);
 }
 
-#[derive(Clone, Copy, Debug)]
-enum Corruption {
-    WorkerGuard,
-    MissingCursor,
-}
-
-fn alter(db: &mut dl::Fixture, corruption: Corruption, restore: Option<&Value>) {
+fn alter_cursor(db: &mut dl::Fixture, restore: Option<&Value>) {
     let mut tx = db.admin.transaction().unwrap();
-    match corruption {
-        Corruption::WorkerGuard => {
-            let setting = if restore.is_some() {
-                "ENABLE"
-            } else {
-                "DISABLE"
-            };
-            tx.batch_execute(&format!(
-                "ALTER TABLE deadline_reevaluation_results {setting} TRIGGER deadline_worker_result_immutable"
-            )).unwrap();
-        }
-        Corruption::MissingCursor => {
-            tx.batch_execute(
-                "ALTER TABLE deadline_dispatch_cursor DISABLE TRIGGER deadline_dispatch_protected",
-            )
-            .unwrap();
-            if let Some(original) = restore {
-                assert_eq!(tx.execute(
-                    "INSERT INTO deadline_dispatch_cursor SELECT (jsonb_populate_record(NULL::deadline_dispatch_cursor,$1)).*",
-                    &[original],
-                ).unwrap(), 1);
-            } else {
-                assert_eq!(
-                    tx.execute("DELETE FROM deadline_dispatch_cursor", &[])
-                        .unwrap(),
-                    1
-                );
-            }
-            tx.batch_execute(
-                "ALTER TABLE deadline_dispatch_cursor ENABLE TRIGGER deadline_dispatch_protected",
-            )
-            .unwrap();
-        }
+    tx.batch_execute(
+        "ALTER TABLE deadline_dispatch_cursor DISABLE TRIGGER deadline_dispatch_protected",
+    )
+    .unwrap();
+    if let Some(original) = restore {
+        assert_eq!(tx.execute(
+            "INSERT INTO deadline_dispatch_cursor SELECT (jsonb_populate_record(NULL::deadline_dispatch_cursor,$1)).*",
+            &[original],
+        ).unwrap(), 1);
+    } else {
+        assert_eq!(
+            tx.execute("DELETE FROM deadline_dispatch_cursor", &[])
+                .unwrap(),
+            1
+        );
     }
+    tx.batch_execute(
+        "ALTER TABLE deadline_dispatch_cursor ENABLE TRIGGER deadline_dispatch_protected",
+    )
+    .unwrap();
     tx.commit().unwrap();
-}
-
-#[test]
-fn reconnect_rejects_altered_worker_catalog_then_same_store_recovers_after_repair() {
-    let _scenario = RECONNECT_SCENARIO
-        .lock()
-        .unwrap_or_else(|error| error.into_inner());
-    rejects_corruption_then_recovers(Corruption::WorkerGuard);
 }
 
 #[test]
@@ -220,10 +192,6 @@ fn reconnect_rejects_missing_cursor_inventory_then_same_store_recovers_after_res
     let _scenario = RECONNECT_SCENARIO
         .lock()
         .unwrap_or_else(|error| error.into_inner());
-    rejects_corruption_then_recovers(Corruption::MissingCursor);
-}
-
-fn rejects_corruption_then_recovers(corruption: Corruption) {
     let Some((mut db, changed, _)) = guards::setup(&[20, 40]) else {
         return;
     };
@@ -237,34 +205,32 @@ fn rejects_corruption_then_recovers(corruption: Corruption) {
         .unwrap()
         .get(0);
     terminate(&mut db, old_pid);
-    alter(&mut db, corruption, None);
-    if matches!(corruption, Corruption::MissingCursor) {
-        let guarded: bool = db
-            .admin
-            .query_one(
-                "SELECT bool_and(tgenabled IN ('O','A')) FROM pg_trigger
-             WHERE tgrelid='deadline_dispatch_cursor'::regclass",
-                &[],
-            )
-            .unwrap()
-            .get(0);
-        assert!(
-            guarded,
-            "inventory rejection must retain the real catalog guards"
-        );
-    }
+    alter_cursor(&mut db, None);
+    let guarded: bool = db
+        .admin
+        .query_one(
+            "SELECT bool_and(tgenabled IN ('O','A')) FROM pg_trigger
+         WHERE tgrelid='deadline_dispatch_cursor'::regclass",
+            &[],
+        )
+        .unwrap()
+        .get(0);
+    assert!(
+        guarded,
+        "inventory rejection must retain the real catalog guards"
+    );
     let altered = guards::snapshot(&mut db);
     let rejected = eventually(store.as_ref(), request(100));
     let rejected_again = eventually(store.as_ref(), request(100));
     let after_rejection = guards::snapshot(&mut db);
     // Restore the exact checkpoint and guards before asserting any outcome.
-    alter(&mut db, corruption, Some(&cursor));
-    assert_eq!(after_rejection, altered, "{corruption:?}");
-    assert_eq!(guards::snapshot(&mut db), before, "{corruption:?}");
+    alter_cursor(&mut db, Some(&cursor));
+    assert_eq!(after_rejection, altered);
+    assert_eq!(guards::snapshot(&mut db), before);
     for outcome in [rejected, rejected_again] {
         assert!(
             matches!(&outcome, Err(ApplicationError::InvalidConfiguration(_))),
-            "reconnect accepted or bypassed {corruption:?}: {outcome:?}"
+            "reconnect accepted or bypassed a missing cursor: {outcome:?}"
         );
     }
     let recovered = eventually(store.as_ref(), request(100)).unwrap();

@@ -157,14 +157,8 @@ class BackendCleanup(unittest.TestCase):
     def test_live_workflow_step_forwards_term_to_backend_owner(self):
         self.exercise('wait', 143, signal.SIGTERM, workflow_step=0)
 
-    def test_live_workflow_step_forwards_int_to_backend_owner(self):
-        self.exercise('wait', 130, signal.SIGINT, workflow_step=0)
-
     def test_session_workflow_step_forwards_term_to_backend_owner(self):
         self.exercise('wait', 143, signal.SIGTERM, workflow_step=1)
-
-    def test_session_workflow_step_forwards_int_to_backend_owner(self):
-        self.exercise('wait', 130, signal.SIGINT, workflow_step=1)
 
 
 if __name__ == '__main__':

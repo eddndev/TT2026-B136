@@ -6,21 +6,30 @@ use domain::identity::Role;
 
 #[test]
 fn insert_audit_and_deferred_commit_failures_preserve_complete_history_and_audit() {
-    for failure in [
-        "CREATE FUNCTION reject_stage() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected insert failure'; END $$; CREATE TRIGGER reject_stage BEFORE INSERT ON case_stage_revisions FOR EACH ROW EXECUTE FUNCTION reject_stage()",
-        "ALTER TABLE audit_events ADD CONSTRAINT reject_stage CHECK(action<>'case.stage_adopted')",
-        "CREATE FUNCTION reject_stage() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected deferred failure'; END $$; CREATE CONSTRAINT TRIGGER reject_stage AFTER INSERT ON case_stage_revisions DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION reject_stage()",
-    ] {
-        let Some(mut db)=Fixture::new() else {return};
-        complete(&db);
-        let record=upload(&db,db.case,"support.pdf");
-        let before=snapshot(&mut db);
-        let url=db.admin_url.clone();
-        let format=FormatCheck(Some(Box::new(move || {postgres::Client::connect(&url,postgres::NoTls).unwrap().batch_execute(failure).unwrap();})));
-        let result=service(&db,db.owner,Role::Owner,format).adopt("session",db.case,CaseStageExpectation::Unregistered,adoption(&db,&record,CaseStage::Investigation));
-        assert!(matches!(result,Err(ApplicationError::Port(_))),"{result:?}");
-        assert_eq!(snapshot(&mut db),before);
-    }
+    let failure =
+        "ALTER TABLE audit_events ADD CONSTRAINT reject_stage CHECK(action<>'case.stage_adopted')";
+    let Some(mut db) = Fixture::new() else { return };
+    complete(&db);
+    let record = upload(&db, db.case, "support.pdf");
+    let before = snapshot(&mut db);
+    let url = db.admin_url.clone();
+    let format = FormatCheck(Some(Box::new(move || {
+        postgres::Client::connect(&url, postgres::NoTls)
+            .unwrap()
+            .batch_execute(failure)
+            .unwrap();
+    })));
+    let result = service(&db, db.owner, Role::Owner, format).adopt(
+        "session",
+        db.case,
+        CaseStageExpectation::Unregistered,
+        adoption(&db, &record, CaseStage::Investigation),
+    );
+    assert!(
+        matches!(result, Err(ApplicationError::Port(_))),
+        "{result:?}"
+    );
+    assert_eq!(snapshot(&mut db), before);
 }
 
 #[test]

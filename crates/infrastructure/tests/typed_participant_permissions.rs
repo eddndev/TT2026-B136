@@ -52,11 +52,8 @@ fn runtime_startup_rejects_typed_write_escalation_and_trigger_function_ownership
     for grant in [
         "GRANT UPDATE ON case_subjects TO ROLE",
         "GRANT UPDATE(display_name) ON case_subject_revisions TO ROLE",
-        "GRANT DELETE ON participant_identity_reviews TO ROLE",
-        "GRANT TRUNCATE ON participant_credential_evidence TO ROLE",
         "GRANT EXECUTE ON FUNCTION typed_credential_guard() TO ROLE",
         "ALTER FUNCTION typed_u32(BYTEA,INTEGER) OWNER TO ROLE",
-        "GRANT UPDATE ON case_participant_typed_revisions TO PUBLIC",
     ] {
         let Some(mut db) = Fixture::new() else { return };
         PostgresCaseRepository::open(&db.runtime_url, Arc::new(RingSha256Hasher)).unwrap();

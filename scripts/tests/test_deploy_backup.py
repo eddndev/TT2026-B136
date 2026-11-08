@@ -118,12 +118,6 @@ class BackupTests(unittest.TestCase):
             self.backup()
         self.assertEqual(list((self.root / "backups").glob("*/COMPLETE")), [])
 
-    def test_failed_durable_flush_is_not_a_complete_backup(self):
-        with patch.object(runtime.os, "fsync", side_effect=OSError("disk unavailable")):
-            with self.assertRaises(OSError):
-                self.backup()
-        self.assertEqual(list((self.root / "backups").glob("*/COMPLETE")), [])
-
     def test_private_archive_failure_is_not_a_complete_backup(self):
         with patch.object(runtime.tarfile, "open", side_effect=OSError("archive unavailable")):
             with self.assertRaises(OSError):

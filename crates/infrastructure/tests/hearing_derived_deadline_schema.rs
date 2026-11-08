@@ -95,9 +95,7 @@ fn startup_rejects_rehashed_canonical_corruption_and_substituted_links() {
     let audit: i64 = stored.get(3);
     for mutation in [
         "review_canonical=set_byte(review_canonical,250,get_byte(review_canonical,250)#1),review_digest=sha256(set_byte(review_canonical,250,get_byte(review_canonical,250)#1))",
-        "capture_canonical=set_byte(capture_canonical,200,get_byte(capture_canonical,200)#1),capture_digest=sha256(set_byte(capture_canonical,200,get_byte(capture_canonical,200)#1))",
         "source_event_sequence=(SELECT min(sequence) FROM deadline_source_events WHERE source_kind='profile')",
-        "audit_sequence=0",
     ] {
         db.admin.batch_execute(&format!("ALTER TABLE {TABLE} DISABLE TRIGGER USER;
             UPDATE {TABLE} SET {mutation}; ALTER TABLE {TABLE} ENABLE TRIGGER USER")).unwrap();

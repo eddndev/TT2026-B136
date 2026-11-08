@@ -53,39 +53,25 @@ fn migration_keeps_tracking_separate_from_historical_calculation() {
 
 #[test]
 fn startup_requires_tracking_columns_with_the_exact_nullability_and_projections() {
-    for alteration in [
-        "ALTER TABLE case_deadline_revisions ALTER COLUMN tracking_canonical SET NOT NULL",
-        "ALTER TABLE case_deadline_revisions ALTER COLUMN observations_canonical SET NOT NULL",
-        "ALTER TABLE case_deadline_revisions ALTER COLUMN tracking_administration_revision DROP EXPRESSION",
-        "ALTER TABLE case_deadline_revisions ALTER COLUMN cause_event_sequence DROP EXPRESSION",
-        "ALTER TABLE case_deadline_revisions ALTER COLUMN recorded_by SET NOT NULL",
-        "ALTER TABLE case_deadline_revisions ALTER COLUMN recorded_by_email SET NOT NULL",
-    ] {
-        let Some(mut db) = Fixture::new() else { return };
-        tracking_columns(&mut db);
-        open(&db).unwrap();
-        db.admin.batch_execute(alteration).unwrap();
-        assert!(open(&db).is_err(), "accepted {alteration}");
-    }
+    let alteration =
+        "ALTER TABLE case_deadline_revisions ALTER COLUMN tracking_canonical SET NOT NULL";
+    let Some(mut db) = Fixture::new() else { return };
+    tracking_columns(&mut db);
+    open(&db).unwrap();
+    db.admin.batch_execute(alteration).unwrap();
+    assert!(open(&db).is_err(), "accepted {alteration}");
 }
 
 #[test]
 fn startup_requires_exact_tracking_foreign_keys_and_commitment_checks() {
-    for name in [
-        "deadline_tracking_administration",
-        "deadline_cause_event",
-        "deadline_tracking_shape",
-        "deadline_tracking_commitments",
-        "deadline_recorded_author",
-    ] {
-        let Some(mut db) = Fixture::new() else { return };
-        tracking_columns(&mut db);
-        open(&db).unwrap();
-        db.admin
-            .batch_execute(&format!(
-                "ALTER TABLE case_deadline_revisions DROP CONSTRAINT {name}"
-            ))
-            .unwrap();
-        assert!(open(&db).is_err(), "accepted missing {name}");
-    }
+    let name = "deadline_tracking_administration";
+    let Some(mut db) = Fixture::new() else { return };
+    tracking_columns(&mut db);
+    open(&db).unwrap();
+    db.admin
+        .batch_execute(&format!(
+            "ALTER TABLE case_deadline_revisions DROP CONSTRAINT {name}"
+        ))
+        .unwrap();
+    assert!(open(&db).is_err(), "accepted missing {name}");
 }

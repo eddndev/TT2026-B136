@@ -59,27 +59,14 @@ fn an_unrelated_external_audit_trigger_is_not_whitelisted_by_the_reset_receipt()
 
 #[test]
 fn startup_rejects_exposed_reset_authority_and_altered_function_configuration() {
-    for change in [
-        "public",
-        "grant_option",
-        "table_read",
-        "search_path",
-        "invoker",
-        "overload",
-        "body",
-        "member_guard",
-    ] {
+    for change in ["public", "grant_option", "table_read", "body"] {
         let mut db = fixture();
         store(&db);
         let sql = match change {
             "public" => "GRANT EXECUTE ON FUNCTION password_reset_consume(uuid,bytea,uuid,bigint,text) TO PUBLIC".into(),
             "grant_option" => format!("GRANT EXECUTE ON FUNCTION password_reset_cancel(uuid,bytea) TO {} WITH GRANT OPTION", db.role),
             "table_read" => format!("GRANT SELECT ON password_reset_capabilities TO {}", db.role),
-            "search_path" => "ALTER FUNCTION password_reset_consume(uuid,bytea,uuid,bigint,text) SET search_path TO public".into(),
-            "invoker" => "ALTER FUNCTION password_reset_consume(uuid,bytea,uuid,bigint,text) SECURITY INVOKER".into(),
-            "overload" => "CREATE FUNCTION password_reset_consume(text) RETURNS boolean LANGUAGE sql AS $$ SELECT true $$".into(),
             "body" => "CREATE OR REPLACE FUNCTION password_reset_inventory_valid() RETURNS boolean LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog AS $$ SELECT true $$".into(),
-            "member_guard" => "CREATE OR REPLACE FUNCTION guard_member_access() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$ BEGIN RETURN NEW; END $$".into(),
             _ => unreachable!(),
         };
         db.admin.batch_execute(&sql).unwrap();

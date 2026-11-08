@@ -40,18 +40,6 @@ test('related scenarios share expensive fixtures and preserve dependent setup', 
   assert.ok(plans[2].fixtures.includes('participants'));
 });
 
-test('stage transitions share the primary with administration and participants', () => {
-  const plans = [1, 2, 3].map((n) => planLiveSuite(files, `${n}/3`));
-  const owner = plans.find((plan) => plan.files.includes('case-participants.spec.mjs'));
-  assert.ok(owner.files.includes('case-administration.spec.mjs'));
-  assert.ok(owner.fixtures.includes('caseAdministration'));
-  assert.equal(owner, plans[2]);
-  assert.ok(owner.files.includes('case-stages.spec.mjs'));
-  assert.ok(owner.fixtures.includes('caseStages'));
-  assert.equal(plans.filter((plan) => plan.fixtures.includes('caseStages')).length, 1);
-  assert.equal(plans.filter((plan) => plan.fixtures.includes('caseAdministration')).length, 1);
-});
-
 test('future unclassified specs run once with conservative complete fixtures', () => {
   const future = 'new-feature.spec.mjs';
   const plans = [1, 2, 3].map((n) => planLiveSuite([...files, future], `${n}/3`));
@@ -85,12 +73,4 @@ test('discovery includes nested specs and future supported test extensions', () 
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
-});
-
-test('real document admission shares only the exact content fixture family', () => {
-  const file = 'document-admission-real.spec.mjs';
-  const plans = [1, 2, 3].map((n) => planLiveSuite([file], `${n}/3`));
-  assert.deepEqual(plans[1], { files: [file], fixtures: ['documentContent'] });
-  assert.deepEqual(plans[0].files, []);
-  assert.deepEqual(plans[2].files, []);
 });

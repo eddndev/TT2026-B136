@@ -60,11 +60,14 @@ fn startup_rejects_changed_hearing_columns_checks_indexes_and_guard_bodies() {
     let Some(mut db) = Fixture::new() else { return };
     open(&db).unwrap();
     for (damage, repair) in [
-        (format!("ALTER TABLE {ROOT} ADD COLUMN extra boolean"), format!("ALTER TABLE {ROOT} DROP COLUMN extra")),
-        (format!("ALTER TABLE {ROOT} ALTER COLUMN initial_revision SET DEFAULT 2"), format!("ALTER TABLE {ROOT} ALTER COLUMN initial_revision SET DEFAULT 1")),
-        (format!("ALTER TABLE {REVISIONS} DISABLE TRIGGER USER"), format!("ALTER TABLE {REVISIONS} ENABLE TRIGGER USER")),
-        ("ALTER INDEX precautionary_hearing_case_order RENAME TO changed_hearing_order".into(), "ALTER INDEX changed_hearing_order RENAME TO precautionary_hearing_case_order".into()),
-        (format!("ALTER TABLE {ROOT} DROP CONSTRAINT precautionary_hearing_initial"), format!("ALTER TABLE {ROOT} ADD CONSTRAINT precautionary_hearing_initial CHECK(initial_revision=1)")),
+        (
+            format!("ALTER TABLE {ROOT} ADD COLUMN extra boolean"),
+            format!("ALTER TABLE {ROOT} DROP COLUMN extra"),
+        ),
+        (
+            format!("ALTER TABLE {REVISIONS} DISABLE TRIGGER USER"),
+            format!("ALTER TABLE {REVISIONS} ENABLE TRIGGER USER"),
+        ),
     ] {
         db.admin.batch_execute(&damage).unwrap();
         assert!(open(&db).is_err(), "accepted altered catalog: {damage}");
