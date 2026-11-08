@@ -1,7 +1,7 @@
 import { prepareFact } from '../fixtures/procedural-facts-sources.mjs';
 import { expect } from '@playwright/test';
 import { setupResults } from './hearing-result-helpers.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, openSection } from './helpers.mjs';
 import {
   factCaseId,
   factKey,
@@ -144,7 +144,7 @@ export async function openFacts(page) {
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Resoluciones', exact: true }).click();
+  await openSection(page, 'Resoluciones');
   await expect(
     page.getByRole('heading', { name: 'Resoluciones y notificaciones', exact: true }),
   ).toBeVisible();

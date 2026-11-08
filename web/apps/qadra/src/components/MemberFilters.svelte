@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { roles } from '../lib/documents.mjs';
   import { memberQuery } from '../lib/members-query.mjs';
   export let caseScope = false,
@@ -49,9 +50,9 @@
       </select>
     </label>
     <div class="case-filter-action">
-      <button class="secondary" {disabled}>
+      <Button variant="secondary" {disabled}>
         {caseScope ? 'Buscar asignaciones' : 'Buscar cuentas'}
-      </button>
+      </Button>
     </div>
   </div>
   <p class="hint">

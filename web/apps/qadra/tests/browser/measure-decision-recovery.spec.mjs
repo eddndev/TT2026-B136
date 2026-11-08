@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openSection } from './helpers.mjs';
 import {
   setupMeasureDecisions,
   openMeasures,
@@ -14,12 +15,12 @@ import {
 } from './measure-decision-helpers.mjs';
 
 async function leaveAndResume(page) {
-  await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+  await openSection(page, 'Resumen');
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
   await expect(decisionEditor(page)).toHaveCount(0);
-  await page.getByRole('link', { name: 'Medidas cautelares', exact: true }).click();
+  await openSection(page, 'Medidas cautelares');
   await expect(decisionPanel(page)).toBeVisible();
   const resume = decisionPanel(page).getByRole('button', {
     name: 'Retomar decision cautelar',

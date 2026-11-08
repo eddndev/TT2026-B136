@@ -85,11 +85,54 @@ test('API preserves stable error codes and explains pending documents and duplic
   const duplicate = createApi(async () =>
     Response.json({ error: { code: 'user_already_exists' } }, { status: 409 }),
   );
-  await assert.rejects(duplicate.createUser('a@example.com', 'password', 'client'), (error) => {
-    assert.equal(error.code, 'user_already_exists');
-    assert.match(error.message, /cuenta.*correo/);
-    return true;
+  await assert.rejects(
+    duplicate.createUser({
+      email: 'a@example.com',
+      name: 'Ana',
+      password: 'password',
+      role: 'client',
+    }),
+    (error) => {
+      assert.equal(error.code, 'user_already_exists');
+      assert.match(error.message, /cuenta.*correo/);
+      return true;
+    },
+  );
+});
+
+test('bootstrap and enrollment send the account name and refuse positional calls', async () => {
+  const requests = [];
+  const api = createApi(async (url, options) => {
+    requests.push({ url, body: JSON.parse(options.body) });
+    if (url.endsWith('/users') && requests.length > 2)
+      return Response.json({ error: { code: 'invalid_display_name' } }, { status: 422 });
+    return Response.json({ user: {} }, { status: 201 });
   });
+  await api.bootstrap({ email: 'o@example.com', name: 'Ana Garc\u00eda', password: 'secret' });
+  await api.createUser({
+    email: 'l@example.com',
+    name: 'Luis',
+    password: 'secret',
+    role: 'client',
+  });
+  assert.deepEqual(requests, [
+    {
+      url: '/api/v1/auth/bootstrap',
+      body: { email: 'o@example.com', name: 'Ana Garc\u00eda', password: 'secret' },
+    },
+    {
+      url: '/api/v1/users',
+      body: { email: 'l@example.com', name: 'Luis', password: 'secret', role: 'client' },
+    },
+  ]);
+  await assert.rejects(
+    api.createUser({ email: 'x@example.com', name: 'X', password: 'secret', role: 'client' }),
+    (error) => error.code === 'invalid_display_name' && /nombre/i.test(error.message),
+  );
+  assert.throws(() => api.bootstrap('o@example.com', 'secret'), TypeError);
+  assert.throws(() => api.createUser('l@example.com', 'secret', 'client'), TypeError);
+  assert.throws(() => api.createUser(Object.create({ email: 'x' })), TypeError);
+  assert.equal(requests.length, 3);
 });
 
 test('evidence returns a ZIP blob and the digest header', async () => {

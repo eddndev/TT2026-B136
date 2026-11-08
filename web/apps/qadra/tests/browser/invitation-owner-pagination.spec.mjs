@@ -51,6 +51,7 @@ test('creating an invitation before loading the next page keeps each row once', 
   await enterDirectory(page);
   const panel = region(page);
   await expect(panel.getByRole('listitem')).toHaveCount(20);
+  await panel.getByLabel('Nombre de la persona invitada', { exact: true }).fill('Nueva Persona');
   await panel
     .getByLabel('Correo de la invitacion', { exact: true })
     .fill('new-member@example.test');

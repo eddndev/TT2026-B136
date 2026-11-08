@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setup, login, navigate, caseId, id } from './helpers.mjs';
+import { setup, login, caseId, id, openSection } from './helpers.mjs';
 import { versionSetup } from './version-helpers.mjs';
 import {
   admissionRejections,
@@ -27,7 +27,7 @@ for (const rejection of admissionRejections)
       else {
         await setup(page);
         await login(page);
-        await navigate(page, 'Documentos');
+        await openSection(page, 'Documentos');
       }
       const writes = [];
       const suffix = append ? `/${id}/versions?expected_version=*` : '/with-metadata';

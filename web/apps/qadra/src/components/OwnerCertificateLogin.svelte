@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import { download } from '../lib/documents.mjs';
@@ -209,7 +210,9 @@
       >Recibo p&uacute;blico del v&iacute;nculo
       <input type="file" accept=".json,application/json" disabled={busy} onchange={receipt} />
     </label>
-    <small>Selecciona el JSON descargado de Mi certificado. No selecciones una clave privada.</small
+    <small
+      >Selecciona el JSON descargado en Mi firma digital, Acceso con certificado. No selecciones una
+      clave privada.</small
     >
     {#if selected}
       <dl class="selected-receipt">
@@ -244,8 +247,8 @@
           Descarga estos 182 bytes y f&iacute;rmalos fuera de Qadra con la clave del certificado
           vinculado. La firma s&oacute;lo sirve para este intento de acceso.
         </p>
-        <button class="secondary" type="button" disabled={busy} onclick={statement}
-          >Descargar bytes de acceso</button
+        <Button variant="secondary" type="button" disabled={busy} onclick={statement}
+          >Descargar bytes de acceso</Button
         >
         <details>
           <summary>Firmar externamente con OpenSSL</summary>
@@ -270,21 +273,21 @@
             : 'Selecciona la firma binaria externa de exactamente 384 bytes.'}</small
         >
       </details>
-      <button class="primary" type="button" disabled={busy || !signatureBase64} onclick={prove}
-        >Comprobar firma</button
+      <Button variant="primary" type="button" disabled={busy || !signatureBase64} onclick={prove}
+        >Comprobar firma</Button
       >
     {:else if busy}
       <p role="status">Procesando el intento...</p>
     {:else}
-      <button class="primary" type="button" disabled={!selected} onclick={prepare}
-        >{retry ? 'Preparar otro intento' : 'Preparar acceso'}</button
+      <Button variant="primary" type="button" disabled={!selected} onclick={prepare}
+        >{retry ? 'Preparar otro intento' : 'Preparar acceso'}</Button
       >
     {/if}
     <small
       >La firma no abre una sesi&oacute;n. Despu&eacute;s debes confirmar el segundo factor.</small
     >
   {/if}
-  <button class="text-button" type="button" onclick={close}>Volver a contrase&ntilde;a</button>
+  <Button variant="text" type="button" onclick={close}>Volver a contrase&ntilde;a</Button>
 </section>
 
 <style>

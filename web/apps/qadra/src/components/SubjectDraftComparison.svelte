@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import ParticipantSubjectSummary from './ParticipantSubjectSummary.svelte';
   import ParticipantSummary from './ParticipantSummary.svelte';
   export let comparison, current, uncertain, conflict, pending, readonly;
@@ -14,16 +15,16 @@
       con soporte si corresponde; las identidades no se fusionan.
     </p>
   </section>{/if}
-{#if conflict || uncertain}<button
-    class="secondary"
+{#if conflict || uncertain}<Button
+    variant="secondary"
     disabled={pending}
     onclick={() => refresh(false)}
     >{uncertain
       ? 'Consultar revisi\u00f3n enviada de identidad'
-      : 'Consultar identidad actual para comparar'}</button
+      : 'Consultar identidad actual para comparar'}</Button
   >{/if}
-{#if uncertain}<button class="secondary" disabled={pending} onclick={() => refresh(true)}
-    >Consultar identidad actual antes de decidir</button
+{#if uncertain}<Button variant="secondary" disabled={pending} onclick={() => refresh(true)}
+    >Consultar identidad actual antes de decidir</Button
   >{/if}
 {#if current}<section
     class="participant-comparison"
@@ -35,7 +36,7 @@
       Esta consulta no atribuye el registro a tu env&#237;o. Compara los datos con tu formulario
       conservado antes de otra edici&#243;n.
     </p>
-    <button class="secondary" disabled={pending || readonly} onclick={useCurrent}
-      >Usar esta base y conservar el formulario de identidad</button
+    <Button variant="secondary" disabled={pending || readonly} onclick={useCurrent}
+      >Usar esta base y conservar el formulario de identidad</Button
     >
   </section>{/if}

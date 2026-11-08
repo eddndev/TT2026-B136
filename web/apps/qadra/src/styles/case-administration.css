@@ -112,12 +112,6 @@
     width: 100%;
     align-items: stretch;
   }
-  .case-status-dialog .dialog-actions {
-    flex-wrap: wrap;
-  }
-  .case-status-dialog .dialog-actions > button {
-    flex: 1;
-  }
 }
 
 .case-reconciliation-results {

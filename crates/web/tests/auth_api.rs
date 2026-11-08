@@ -1,6 +1,8 @@
 #[path = "auth_support/access_log_cases.rs"]
 mod access_log_cases;
 mod auth_support;
+#[path = "auth_support/display_name_cases.rs"]
+mod display_name_cases;
 #[path = "auth_support/session_cases.rs"]
 mod session_cases;
 use auth_support::UnusedDocuments;
@@ -11,13 +13,13 @@ use std::sync::{
 };
 
 use application::identity::{
-    EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionPolicy, SessionResult,
-    SessionStatus,
+    CurrentAccount, EnrollmentResult, IdentityWorkflow, LoginChallenge, Principal, SessionPolicy,
+    SessionResult, SessionStatus,
 };
 use application::ApplicationError;
 use axum::body::{to_bytes, Body};
 use axum::http::{Request, StatusCode};
-use domain::identity::{Permission, Role, UserId};
+use domain::identity::{DisplayName, Permission, Role, UserId};
 use serde_json::Value;
 use tower::ServiceExt;
 use uuid::Uuid;
@@ -34,11 +36,16 @@ impl StubIdentity {
     fn status(principal: Principal) -> SessionStatus {
         SessionStatus {
             principal,
+            display_name: Self::display_name(),
             policy: SessionPolicy::default(),
             server_now_unix_ms: 100_000,
             absolute_expires_at_unix_ms: 86_500_000,
             idle_expires_at_unix_ms: None,
         }
+    }
+
+    fn display_name() -> DisplayName {
+        DisplayName::new("Owner Example").unwrap()
     }
 
     fn principal(role: Role) -> Principal {
@@ -49,13 +56,14 @@ impl StubIdentity {
         }
     }
 
-    fn enrollment(role: Role) -> EnrollmentResult {
-        EnrollmentResult {
+    fn enrollment(role: Role, display_name: &str) -> Result<EnrollmentResult, ApplicationError> {
+        Ok(EnrollmentResult {
             principal: Self::principal(role),
+            display_name: DisplayName::new(display_name)?,
             totp_secret_base32: Zeroizing::new("BASE32SECRET".to_string()),
             otpauth_uri: Zeroizing::new("otpauth://totp/app:owner".to_string()),
             recovery_codes: vec![Zeroizing::new("RECOVERY-0".to_string())],
-        }
+        })
     }
 }
 
@@ -63,22 +71,24 @@ impl IdentityWorkflow for StubIdentity {
     fn bootstrap_owner(
         &self,
         email: &str,
+        display_name: &str,
         password: &str,
     ) -> Result<EnrollmentResult, ApplicationError> {
         assert_eq!(email, "owner@example.com");
         assert_eq!(password, "correct horse battery");
-        Ok(Self::enrollment(Role::Owner))
+        Self::enrollment(Role::Owner, display_name)
     }
 
     fn create_user(
         &self,
         token: &str,
         _email: &str,
+        display_name: &str,
         _password: &str,
         role: Role,
     ) -> Result<EnrollmentResult, ApplicationError> {
         self.authorize(token, Permission::CreateUser)?;
-        Ok(Self::enrollment(role))
+        Self::enrollment(role, display_name)
     }
 
     fn start_login(&self, email: &str, password: &str) -> Result<LoginChallenge, ApplicationError> {
@@ -158,6 +168,14 @@ impl IdentityWorkflow for StubIdentity {
     fn logout(&self, access_token: &str) -> Result<(), ApplicationError> {
         self.authenticate(access_token).map(|_| ())
     }
+
+    fn current_account(&self, access_token: &str) -> Result<CurrentAccount, ApplicationError> {
+        self.authenticate(access_token)
+            .map(|principal| CurrentAccount {
+                principal,
+                display_name: Self::display_name(),
+            })
+    }
 }
 
 fn router() -> axum::Router {
@@ -176,7 +194,7 @@ async fn enrollment_login_totp_me_and_logout_have_stable_contracts() {
             Request::post("/api/v1/auth/bootstrap")
                 .header("content-type", "application/json")
                 .body(Body::from(
-                    r#"{"email":"owner@example.com","password":"correct horse battery"}"#,
+                    r#"{"email":"owner@example.com","name":"Owner Example","password":"correct horse battery"}"#,
                 ))
                 .unwrap(),
         )

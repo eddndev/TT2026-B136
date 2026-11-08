@@ -2,8 +2,9 @@
 
 use super::AppState;
 use crate::dto::{
-    ChallengeCodeRequest, CreateUserRequest, CredentialsRequest, EnrollmentResponse,
-    LoginChallengeResponse, PrincipalResponse, SessionResponse, SessionStatusResponse,
+    BootstrapRequest, ChallengeCodeRequest, CreateUserRequest, CredentialsRequest,
+    EnrollmentResponse, LoginChallengeResponse, SessionResponse, SessionStatusResponse,
+    SessionUserResponse,
 };
 use crate::{error::ApiError, request::bearer_token};
 use application::ApplicationError;
@@ -18,12 +19,12 @@ use std::str::FromStr;
 
 pub(super) async fn bootstrap_owner(
     State(state): State<AppState>,
-    Json(request): Json<CredentialsRequest>,
+    Json(request): Json<BootstrapRequest>,
 ) -> Result<(StatusCode, Json<EnrollmentResponse>), ApiError> {
     let identity = state.identity.clone();
     let result = state
         .runtime
-        .run(move || identity.bootstrap_owner(&request.email, &request.password))
+        .run(move || identity.bootstrap_owner(&request.email, &request.name, &request.password))
         .await?;
     Ok((StatusCode::CREATED, Json(result.into())))
 }
@@ -39,7 +40,15 @@ pub(super) async fn create_user(
     let identity = state.identity.clone();
     let result = state
         .runtime
-        .run(move || identity.create_user(&token, &request.email, &request.password, role))
+        .run(move || {
+            identity.create_user(
+                &token,
+                &request.email,
+                &request.name,
+                &request.password,
+                role,
+            )
+        })
         .await?;
     Ok((StatusCode::CREATED, Json(result.into())))
 }
@@ -111,13 +120,13 @@ pub(super) async fn logout(
 pub(super) async fn current_user(
     State(state): State<AppState>,
     headers: HeaderMap,
-) -> Result<Json<PrincipalResponse>, ApiError> {
+) -> Result<Json<SessionUserResponse>, ApiError> {
     let token = bearer_token(&headers)?;
     let identity = state.identity.clone();
     Ok(Json(
         state
             .runtime
-            .run(move || identity.authenticate(&token))
+            .run(move || identity.current_account(&token))
             .await?
             .into(),
     ))

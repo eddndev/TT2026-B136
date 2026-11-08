@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { readable } from 'svelte/store';
   import { watchLocalVisibility } from '../lib/local-crypto-visibility.mjs';
@@ -147,11 +148,11 @@
     />
   </label>
   <div class="action-row">
-    <button type="button" class="secondary" disabled={blocked || busy || !password} onclick={sign}
-      >Firmar localmente</button
+    <Button type="button" variant="secondary" disabled={blocked || busy || !password} onclick={sign}
+      >Firmar localmente</Button
     >
-    <button type="button" class="text-button" disabled={blocked} onclick={cancel}
-      >Limpiar firma local</button
+    <Button type="button" variant="text" disabled={blocked} onclick={cancel}
+      >Limpiar firma local</Button
     >
   </div>
   {#if busy}<p role="status">Firmando en este dispositivo...</p>{/if}

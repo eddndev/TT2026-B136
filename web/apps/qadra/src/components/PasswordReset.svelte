@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import { createPasswordResetApi } from '../lib/password-reset-api.mjs';
   export let link = null;
@@ -69,7 +70,8 @@
         disabled={busy}
       /></label
     >
-    <button class="primary" disabled={busy}>{busy ? 'Solicitando...' : 'Solicitar enlace'}</button>
+    <Button variant="primary" disabled={busy}>{busy ? 'Solicitando...' : 'Solicitar enlace'}</Button
+    >
   </form>
 {:else if mode === 'complete'}
   <p>El cambio conserva tu segundo factor de autenticaci&oacute;n.</p>
@@ -94,8 +96,8 @@
       /></label
     >
     <small>Usa entre 12 y 1024 bytes. No reutilices tu contrase&ntilde;a anterior.</small>
-    <button class="primary" disabled={busy}
-      >{busy ? 'Cambiando...' : 'Cambiar contrase\u00f1a'}</button
+    <Button variant="primary" disabled={busy}
+      >{busy ? 'Cambiando...' : 'Cambiar contrase\u00f1a'}</Button
     >
   </form>
 {:else if mode === 'accepted'}
@@ -122,6 +124,6 @@
     El enlace no es v&aacute;lido o no se pudo abrir de forma segura. Solicita otro enlace.
   </div>
 {/if}
-<button class="text-button" type="button" disabled={busy} onclick={onclose}
-  >Volver al inicio de sesi&oacute;n</button
+<Button variant="text" type="button" disabled={busy} onclick={onclose}
+  >Volver al inicio de sesi&oacute;n</Button
 >

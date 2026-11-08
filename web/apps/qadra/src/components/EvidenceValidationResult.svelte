@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // The result of one evidence validation: the overall result, each
   // component, the instants with their sources, the roots and rules applied,
   // the comparison with the server, the informational current status and
@@ -135,8 +136,8 @@
         </p>{/each}{/each}
   </details>
   <div class="evidence-result-actions">
-    <button class="secondary" onclick={save}
-      ><Icon name="download" size={17} />Descargar informe JSON</button
+    <Button variant="secondary" onclick={save}
+      ><Icon name="download" size={17} />Descargar informe JSON</Button
     >
     <p class="hint">El informe describe esta revisi&#243;n; no es una firma ni un sello nuevo.</p>
   </div>

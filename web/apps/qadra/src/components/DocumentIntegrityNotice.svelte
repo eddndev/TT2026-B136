@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   export let api, onopen;
@@ -42,8 +43,8 @@
   <section class="notice" aria-label="Avisos de integridad" aria-busy={busy}>
     {#if error}<p role="alert">No se pudo consultar el aviso de integridad. {error}</p>
     {:else}<p><strong>Hay incidentes de integridad registrados.</strong></p>{/if}
-    <button class="text-button" onclick={onopen}>
+    <Button variant="text" onclick={onopen}>
       <Icon name="shield" size={17} />Consultar incidentes
-    </button>
+    </Button>
   </section>
 {/if}

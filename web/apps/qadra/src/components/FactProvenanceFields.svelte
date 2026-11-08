@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import FactSupportFields from './FactSupportFields.svelte';
   import FactResultPicker from './FactResultPicker.svelte';
   export let value,
@@ -91,8 +92,8 @@
           </p>{/if}
       </details>
     {/if}
-    <button type="button" class="secondary" disabled={pending} onclick={() => (picking = true)}
-      >Elegir resultado: {label}</button
+    <Button type="button" variant="secondary" disabled={pending} onclick={() => (picking = true)}
+      >Elegir resultado: {label}</Button
     >
     {#if picking}<FactResultPicker
         {api}

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { profileKinds } from '../lib/typed-participant-fields.mjs';
   let kind = '',
     profile = 'all';
@@ -64,10 +65,10 @@
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   <div class="action-row">
-    <button class="secondary" disabled={busy}>Aplicar filtros</button><button
+    <Button variant="secondary" disabled={busy}>Aplicar filtros</Button><Button
       type="button"
-      class="text-button"
-      onclick={clear}>Limpiar filtros</button
+      variant="text"
+      onclick={clear}>Limpiar filtros</Button
     >
   </div>
 </form>

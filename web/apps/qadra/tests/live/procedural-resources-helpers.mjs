@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { fixture } from './helpers.mjs';
+import { fixture, openSection } from './helpers.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 export { accountAction } from './hearing-result-helpers.mjs';
 export const accounts = fixture.proceduralResources;
@@ -32,7 +32,7 @@ export async function openCase(page, record) {
 }
 export async function openResource(page, scenario) {
   await openCase(page, scenario.case);
-  await page.getByRole('link', { name: 'Recursos', exact: true }).click();
+  await openSection(page, 'Recursos');
   await expect(collection(page)).toHaveAttribute('aria-busy', 'false');
   const pending = responseTo(
     page,

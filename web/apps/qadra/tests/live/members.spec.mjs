@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, openSection } from './helpers.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 import {
   accounts,
@@ -39,7 +39,7 @@ for (const [name, width] of [
       const inactive = await changeAccess(page, scenario.subject, 'litigator', false);
       await expect(card(page, scenario.subject.id)).toContainText('Inactiva');
       await openCase(page, scenario.case);
-      await page.getByRole('link', { name: 'Asignaciones', exact: true }).click();
+      await openSection(page, 'Asignaciones');
       await expect(assignments(page)).toHaveAttribute('aria-busy', 'false');
       await searchAssignments(page, scenario.subject.email);
       await expect(assignments(page)).toContainText('Inactiva');
@@ -63,7 +63,7 @@ for (const [name, width] of [
       await capture(page, testInfo, `${name}-reactivated-directory`);
       await openCase(page, scenario.case);
       if (scenario.closed) await expect(page.locator('.case-summary')).toContainText('Cerrado');
-      await page.getByRole('link', { name: 'Asignaciones', exact: true }).click();
+      await openSection(page, 'Asignaciones');
       await expect(assignments(page)).toHaveAttribute('aria-busy', 'false');
       await searchAssignments(page, scenario.available.email, 'available');
       await assignments(page)

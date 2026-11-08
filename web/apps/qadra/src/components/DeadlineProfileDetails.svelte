@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import CalendarSources from './CalendarSources.svelte';
   import CalendarValues from './CalendarValues.svelte';
@@ -48,8 +49,8 @@
 </script>
 
 <section aria-label="Perfil exacto del plazo">
-  <button class="secondary" disabled={busy} onclick={load}
-    >{busy ? 'Consultando perfil...' : 'Consultar perfil capturado'}</button
+  <Button variant="secondary" disabled={busy} onclick={load}
+    >{busy ? 'Consultando perfil...' : 'Consultar perfil capturado'}</Button
   >
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if value}{@const d = value.definition}

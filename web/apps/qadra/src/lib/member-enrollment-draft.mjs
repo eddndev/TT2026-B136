@@ -3,12 +3,32 @@ import { memberObject, memberRole } from './members-values.mjs';
 
 const contextId = 'member-enrollment';
 
+const fields = ['name', 'email', 'role', 'uncertain'];
+// Schema 2 keeps the account name as typed; it may still be empty while typing.
+const schemaVersion = 2;
+
 function value(input) {
-  memberObject(input, ['email', 'role', 'uncertain']);
-  if (typeof input.email !== 'string' || typeof input.uncertain !== 'boolean')
+  memberObject(input, fields);
+  if (
+    typeof input.name !== 'string' ||
+    typeof input.email !== 'string' ||
+    typeof input.uncertain !== 'boolean'
+  )
     throw new Error('El borrador del alta no es compatible.');
   memberRole(input.role);
-  return { email: input.email, role: input.role, uncertain: input.uncertain };
+  return { name: input.name, email: input.email, role: input.role, uncertain: input.uncertain };
+}
+
+// Whether a saved entry of this editor can be offered again. An entry of another
+// schema version is discarded, because a saved snapshot would otherwise keep the
+// registry from capturing the current editor under the same key.
+export function pendingAtSchema(registry, key, schemaVersion) {
+  const entry = registry.pending().find((value) => value.key === key);
+  if (entry && entry.schemaVersion !== schemaVersion) {
+    registry.closeEditor(key);
+    return false;
+  }
+  return !!entry;
 }
 
 export async function authorizeEnrollment(api, principalId, admitted) {
@@ -63,7 +83,7 @@ export function createMemberEnrollmentDraft({ session, principalId, capture }) {
     ownerDraftKey: null,
     fieldPath: [],
     rowId: null,
-    schemaVersion: 1,
+    schemaVersion,
     baseRevision: null,
   };
   const key = descriptorKey(descriptor);
@@ -77,7 +97,7 @@ export function createMemberEnrollmentDraft({ session, principalId, capture }) {
   function register() {
     if (!admitted()) throw new Error('La sesion no admite este borrador de alta.');
     registration ??= session.registry.register(descriptor, {
-      fields: ['email', 'role', 'uncertain'],
+      fields,
       capture: () => value(capture()),
     });
   }
@@ -93,14 +113,14 @@ export function createMemberEnrollmentDraft({ session, principalId, capture }) {
     retain() {
       return admitted() && registration ? registration.capture() : { status: 'stale' };
     },
-    pending: () => session.registry.pending().some((entry) => entry.key === key),
+    pending: () => pendingAtSchema(session.registry, key, schemaVersion),
     async restore(authorize, apply) {
       let failure;
       const result = await session.registry.restore(key, {
         authorize: async (entry) => {
           try {
             return (
-              entry.schemaVersion === 1 &&
+              entry.schemaVersion === schemaVersion &&
               entry.baseRevision === null &&
               (await authorize()) &&
               admitted()

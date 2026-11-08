@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onDestroy } from 'svelte';
   import StagePicker from './StagePicker.svelte';
   import UploadDocument from './UploadDocument.svelte';
@@ -134,20 +135,20 @@
     versiones documentales distintas por registro.
   </p>
   <div class="action-row">
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       type="button"
       disabled={disabled || pending}
       onclick={() =>
         prepare(() => {
           picking = true;
-        })}>Seleccionar documento</button
+        })}>Seleccionar documento</Button
     >
-    <button
-      class="text-button"
+    <Button
+      variant="text"
       type="button"
       disabled={disabled || pending}
-      onclick={() => prepare(() => uploader.open())}>Cargar soporte</button
+      onclick={() => prepare(() => uploader.open())}>Cargar soporte</Button
     >
   </div>
   {#if picking}<StagePicker

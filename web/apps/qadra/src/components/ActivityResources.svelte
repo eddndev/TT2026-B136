@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { resourceActivityFailure, resourceDenied } from '../lib/resource-activity-errors.mjs';
   import { resourceActivityStatuses } from '../lib/resource-activity-values.mjs';
@@ -97,14 +98,14 @@
         <option value="all">Todos</option>
       </select></label
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={busy || disabled}
       onclick={() => {
         applied = status;
         cursors = [undefined];
         load();
-      }}>Consultar recursos relacionados</button
+      }}>Consultar recursos relacionados</Button
     >
   </div>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
@@ -131,26 +132,28 @@
           Acto del recurso: revisi&#243;n {association.selection.act.revision}
         </p>{/if}
       {#if association.reason}<p class="case-multiline">Motivo: {association.reason}</p>{/if}
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={busy || disabled}
         aria-label={`Abrir recurso vinculado ${association.id}`}
-        onclick={() => open(row)}>Abrir recurso y v&#237;nculo exactos</button
+        onclick={() => open(row)}>Abrir recurso y v&#237;nculo exactos</Button
       >
     </article>
   {/each}
   {#if !rows.length && !busy && !error}<p>No hay recursos relacionados en esta consulta.</p>{/if}
   <div class="action-row">
-    <button class="secondary" disabled={busy || disabled || !index} onclick={() => load(index - 1)}
-      >Recursos relacionados anteriores</button
+    <Button
+      variant="secondary"
+      disabled={busy || disabled || !index}
+      onclick={() => load(index - 1)}>Recursos relacionados anteriores</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={busy || disabled || !more}
       onclick={() => {
         cursors = [...cursors.slice(0, index + 1), next];
         load(index + 1);
-      }}>Siguientes recursos relacionados</button
+      }}>Siguientes recursos relacionados</Button
     >
   </div>
 </section>

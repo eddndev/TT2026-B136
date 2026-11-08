@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import HearingReference from './HearingReference.svelte';
   import { profileLabel } from '../lib/typed-participant-fields.mjs';
   export let rows = [],
@@ -28,12 +29,12 @@
             : 'Activo en esta revisi\u00f3n'}</small
         >
       </div>
-      {#if onremove}<button
+      {#if onremove}<Button
           type="button"
-          class="text-button"
+          variant="text"
           {disabled}
           onclick={() => onremove(row.id)}
-          aria-label={`Quitar participante ${row.display_name}`}>Quitar</button
+          aria-label={`Quitar participante ${row.display_name}`}>Quitar</Button
         >{/if}
     </div>
   {/each}

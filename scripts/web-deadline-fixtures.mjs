@@ -24,7 +24,7 @@ export async function provisionDeadlines(call) {
   const fixture = {};
   for (const role of ['owner', 'litigator', 'paralegal', 'client']) {
     const password = `deadline browser ${role} password`;
-    const row = await call('POST', '/users', { email: `deadlines.${role}@example.com`, password, role }, 201);
+    const row = await call('POST', '/users', { name: `Deadline ${role}`, email: `deadlines.${role}@example.com`, password, role }, 201);
     fixture[role] = { id: row.user.id, email: row.user.email, password, recoveryCodes: row.recovery_codes };
   }
   for (const [key, title, reference] of [

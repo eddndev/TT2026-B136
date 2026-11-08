@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
   import { onMount, onDestroy } from 'svelte';
@@ -79,10 +80,10 @@
       <span class="eyebrow">ORGANIZACI&#211;N DEL DOCUMENTO</span>
       <h2>Clasificaci&#243;n actual del documento</h2>
     </div>
-    {#if can(user.role, 'classify')}<button
-        class="secondary"
+    {#if can(user.role, 'classify')}<Button
+        variant="secondary"
         disabled={disabled || pending || ($administration.closed && !editor?.hasSuspendedDraft())}
-        onclick={() => editor.open()}>Editar clasificaci&#243;n</button
+        onclick={() => editor.open()}>Editar clasificaci&#243;n</Button
       >{/if}
   </div>
   <p class="hint">
@@ -95,16 +96,16 @@
   <MetadataSummary metadata={current} />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   <div class="action-row">
-    <button class="secondary" disabled={disabled || pending} onclick={load}
-      >Actualizar clasificaci&#243;n</button
-    ><button
-      class="text-button"
+    <Button variant="secondary" disabled={disabled || pending} onclick={load}
+      >Actualizar clasificaci&#243;n</Button
+    ><Button
+      variant="text"
       disabled={disabled || pending}
       aria-expanded={showHistory}
       onclick={() => (showHistory = !showHistory)}
       >{showHistory
         ? 'Ocultar historial de clasificaci\u00f3n'
-        : 'Ver historial de clasificaci\u00f3n'}</button
+        : 'Ver historial de clasificaci\u00f3n'}</Button
     >
   </div>
   {#if showHistory}{#key current.metadata_revision}<MetadataHistory

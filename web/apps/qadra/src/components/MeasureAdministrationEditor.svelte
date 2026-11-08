@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy, afterUpdate } from 'svelte';
   import MeasureRecordSummary from './MeasureRecordSummary.svelte';
   import MeasureAdministrationFields from './MeasureAdministrationFields.svelte';
@@ -271,37 +272,37 @@
   {#if closed}<p class="notice">
       Expediente cerrado administrativamente. Puedes consultar el resultado de un envio anterior.
     </p>{/if}
-  {#if blocked || closed}<button
-      class="secondary"
+  {#if blocked || closed}<Button
+      variant="secondary"
       disabled={pending || disabled}
-      onclick={initialize}>Volver a consultar el contexto</button
+      onclick={initialize}>Volver a consultar el contexto</Button
     >{/if}
   {#if mode === 'uncertain'}
     <h3>Resultado incierto</h3>
     <p>Consulta la operacion original antes de decidir un reintento.</p>
-    <button class="primary" disabled={pending || disabled || blocked} onclick={actions.check}
-      >Consultar resultado</button
+    <Button variant="primary" disabled={pending || disabled || blocked} onclick={actions.check}
+      >Consultar resultado</Button
     >
-    {#if retryAvailable}<button
-        class="secondary"
+    {#if retryAvailable}<Button
+        variant="secondary"
         disabled={pending || disabled || blocked || closed}
-        onclick={actions.retry}>Reintentar envio exacto</button
+        onclick={actions.retry}>Reintentar envio exacto</Button
       >{/if}
     <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
   {:else if mode === 'review' && prepared}
     <MeasureAdministrationReview value={prepared} bind:confirmed={acknowledged} disabled={frozen} />
     <div class="action-row">
-      <button class="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
-        >Confirmar rectificacion</button
+      <Button variant="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
+        >Confirmar rectificacion</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={frozen}
         onclick={() => {
           mode = 'draft';
           prepared = null;
           acknowledged = false;
-        }}>Volver al borrador</button
+        }}>Volver al borrador</Button
       >
     </div>
   {/if}
@@ -320,11 +321,9 @@
       bind:pending={fieldsBusy}
       disabled={frozen || mode !== 'draft'}
     />
-    <button class="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
-      >Revisar rectificacion</button
+    <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
+      >Revisar rectificacion</Button
     >
   {/if}
-  <button class="text-button" disabled={pending || disabled} onclick={close}
-    >Cerrar formulario</button
-  >
+  <Button variant="text" disabled={pending || disabled} onclick={close}>Cerrar formulario</Button>
 </section>

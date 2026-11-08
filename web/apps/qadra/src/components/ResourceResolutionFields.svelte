@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import FactResolutionPicker from './FactResolutionPicker.svelte';
   import { factTimeLabel } from '../lib/procedural-fact-time.mjs';
@@ -88,9 +89,9 @@
   {:else}<p class="hint">
       Selecciona una resoluci&#243;n y consulta la revisi&#243;n que deseas vincular.
     </p>{/if}
-  <button type="button" class="secondary" disabled={disabled || busy} onclick={() => list()}>
+  <Button type="button" variant="secondary" disabled={disabled || busy} onclick={() => list()}>
     Elegir resoluci&#243;n hist&#243;rica
-  </button>
+  </Button>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if choosing}
     {#if !selectedId}
@@ -100,26 +101,26 @@
           <p>
             Revisi&#243;n {row.revision} / {row.status === 'withdrawn' ? 'Retirada' : 'Registrada'}
           </p>
-          <button
+          <Button
             type="button"
-            class="secondary"
+            variant="secondary"
             disabled={disabled || busy}
             aria-label={`Consultar revisiones de resoluci\u00f3n ${row.id}`}
             onclick={() => {
               if (canApply()) selectedId = row.id;
-            }}>Consultar revisiones de la resoluci&#243;n</button
+            }}>Consultar revisiones de la resoluci&#243;n</Button
           >
         </div>
       {/each}
       {#if !roots.length && !pending && !error}<p>No hay resoluciones en esta consulta.</p>{/if}
-      {#if more}<button
+      {#if more}<Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || busy}
-          onclick={() => list(cursor)}>Siguientes resoluciones</button
+          onclick={() => list(cursor)}>Siguientes resoluciones</Button
         >{/if}
-      <button type="button" class="text-button" disabled={busy} onclick={() => (choosing = false)}
-        >Cerrar lista de resoluciones</button
+      <Button type="button" variant="text" disabled={busy} onclick={() => (choosing = false)}
+        >Cerrar lista de resoluciones</Button
       >
     {:else}
       <FactResolutionPicker

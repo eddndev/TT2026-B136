@@ -9,7 +9,7 @@ import {
   document,
   entry,
 } from './stage-helpers.mjs';
-import { navigate, login, otherCaseId, caseRecord } from './helpers.mjs';
+import { navigate, login, otherCaseId, caseRecord, openSection } from './helpers.mjs';
 import { administration, overview, profile } from './case-administration-helpers.mjs';
 const time = { precision: 'date', date: '2026-09-01', offset: '-06:00' };
 const intermediate = () =>
@@ -159,11 +159,11 @@ test('late stage head cannot resurrect a previous case after navigation', async 
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Etapas', exact: true }).click();
+  await openSection(page, 'Etapas');
   await expect.poll(() => !!release).toBe(true);
   await page.getByRole('button', { name: 'Cambiar expediente' }).click();
   await page.getByRole('button', { name: /Otro expediente/ }).click();
-  await page.getByRole('link', { name: 'Etapas', exact: true }).click();
+  await openSection(page, 'Etapas');
   await expect(page.locator('.stage-current')).toContainText('Sin etapa registrada');
   release();
   await expect(page.getByText('old-case@example.com')).toHaveCount(0);

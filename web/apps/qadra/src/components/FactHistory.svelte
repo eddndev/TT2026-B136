@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { factDenied, factFailure } from '../lib/procedural-fact-errors.mjs';
   export let api,
@@ -47,8 +48,8 @@
   <h3>Historial del registro</h3>
   <p class="hint">Consulta una revisi&#243;n para leer sus valores y fuentes exactos.</p>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" disabled={busy || disabled} onclick={() => load()}
-      >Consultar historial de nuevo</button
+    <Button variant="secondary" disabled={busy || disabled} onclick={() => load()}
+      >Consultar historial de nuevo</Button
     >{/if}
   {#each rows as row (row.revision)}<div class="fact-history-row">
       <p>
@@ -57,14 +58,14 @@
       </p>
       <p><time datetime={row.recorded_at}>{row.recorded_at}</time></p>
       {#if row.reason}<p class="case-multiline">{row.reason}</p>{/if}
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={busy || disabled}
         onclick={() => onselect(id, row.revision)}
-        >Consultar {singular} revisi&#243;n {row.revision}</button
+        >Consultar {singular} revisi&#243;n {row.revision}</Button
       >
     </div>{/each}
-  {#if more}<button class="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
-      >Cargar cambios anteriores</button
+  {#if more}<Button variant="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
+      >Cargar cambios anteriores</Button
     >{/if}
 </section>

@@ -17,6 +17,7 @@ mod document_signing;
 mod document_upload;
 mod hearing;
 mod hearing_result;
+mod identity;
 mod judicial_calendar;
 mod members;
 mod owner_certificate;
@@ -143,6 +144,7 @@ impl From<ApplicationError> for ApiError {
             .or_else(document_signing::map)
             .or_else(contract::map)
             .or_else(members::map)
+            .or_else(identity::map)
             .or_else(document_content::map)
             .or_else(document_upload::map)
             .or_else(alerts::map)

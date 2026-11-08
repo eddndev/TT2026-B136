@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onDestroy } from 'svelte';
   import StagePicker from './StagePicker.svelte';
   import StageSupportSummary from './StageSupportSummary.svelte';
@@ -139,26 +140,26 @@
     registrar la etapa.
   </p>
   <div class="action-row">
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       type="button"
       disabled={disabled || pending}
       onclick={() =>
         prepare(() => {
           picking = true;
-        })}>Elegir documento</button
+        })}>Elegir documento</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       type="button"
       disabled={disabled || pending}
-      onclick={() => prepare(() => uploader.open())}>Cargar soporte</button
+      onclick={() => prepare(() => uploader.open())}>Cargar soporte</Button
     >
-    {#if optional && value}<button
-        class="text-button"
+    {#if optional && value}<Button
+        variant="text"
         type="button"
         disabled={disabled || pending}
-        onclick={remove}>Quitar soporte opcional</button
+        onclick={remove}>Quitar soporte opcional</Button
       >{/if}
   </div>
   {#if picking}<StagePicker

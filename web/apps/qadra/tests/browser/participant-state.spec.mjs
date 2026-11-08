@@ -8,7 +8,7 @@ import {
   detail,
   openParticipant,
 } from './participant-helpers.mjs';
-import { caseId, otherCaseId, navigate } from './helpers.mjs';
+import { caseId, otherCaseId, navigate, openSection } from './helpers.mjs';
 const endpoint = `**/cases/${caseId}/participants/${participantId}`;
 const unchangedReplacement = {
   expected_revision: participant.revision,
@@ -186,7 +186,7 @@ test('history from an abandoned case cannot enter another case or show an old er
   );
   await page.getByRole('button', { name: 'Cambiar expediente', exact: true }).click();
   await page.getByRole('button', { name: /Otro expediente/ }).click();
-  await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+  await openSection(page, 'Participantes');
   await expect(
     directory(page).getByRole('button', { name: 'Abrir Otra persona', exact: true }),
   ).toBeVisible();

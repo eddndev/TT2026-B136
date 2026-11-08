@@ -28,7 +28,7 @@ administration_demo_enroll() {
   local role="$1" enrollment="$WORK_DIR/administration-$1-enrollment.json" challenge code
   curl -fsS -X POST "$BASE_URL/api/v1/users" -H "Authorization: Bearer $RECOVERY_TOKEN" \
     -H 'Content-Type: application/json' --data "$(jq -nc --arg role "$role" \
-      '{email:("administration-"+$role+"@example.com"),role:$role,password:"administration demo password"}')" \
+      '{email:("administration-"+$role+"@example.com"),name:("Administration "+$role),role:$role,password:"administration demo password"}')" \
     >"$enrollment"
   challenge="$(curl -fsS -X POST "$BASE_URL/api/v1/auth/login" -H 'Content-Type: application/json' \
     --data "$(jq -nc --arg role "$role" \

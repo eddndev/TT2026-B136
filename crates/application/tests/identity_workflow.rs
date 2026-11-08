@@ -1,3 +1,5 @@
+#[path = "identity_support/display_name_cases.rs"]
+mod display_name_cases;
 #[path = "identity_support/generation_cases.rs"]
 mod generation_cases;
 mod identity_support;
@@ -23,7 +25,11 @@ fn owner_bootstrap_login_totp_authorization_and_logout_form_one_flow() {
     let sessions = Arc::new(MemorySessions::default());
     let service = service(users, sessions.clone());
     let enrollment = service
-        .bootstrap_owner(" OWNER@Example.COM ", "correct horse battery")
+        .bootstrap_owner(
+            " OWNER@Example.COM ",
+            "Test Account",
+            "correct horse battery",
+        )
         .unwrap();
     assert_eq!(enrollment.principal.email, "owner@example.com");
     assert_eq!(enrollment.principal.role, Role::Owner);
@@ -55,13 +61,14 @@ fn recovery_codes_are_single_use_and_non_owner_creation_is_denied() {
     let sessions = Arc::new(MemorySessions::default());
     let service = service(users, sessions.clone());
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let owner_token = login_with_recovery(&service, &owner, "correct horse battery");
     let paralegal = service
         .create_user(
             &owner_token,
             "helper@example.com",
+            "Test Account",
             "another safe password",
             Role::Paralegal,
         )
@@ -93,6 +100,7 @@ fn recovery_codes_are_single_use_and_non_owner_creation_is_denied() {
         service.create_user(
             &paralegal_session.access_token,
             "forbidden@example.com",
+            "Test Account",
             "another safe password",
             Role::Client,
         ),
@@ -106,7 +114,7 @@ fn repeated_bad_passwords_lock_the_login_window() {
     let sessions = Arc::new(MemorySessions::default());
     let service = service(users, sessions);
     service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
 
     for _ in 0..5 {
@@ -160,7 +168,7 @@ fn assert_shared_challenge_is_consumed_once(totp_code: &str, totp_should_succeed
         }),
     );
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let challenge = service
         .start_login("owner@example.com", "correct horse battery")
@@ -206,7 +214,7 @@ fn create_user_rejects_an_owner_after_role_downgrade() {
     let users = Arc::new(MemoryUsers::default());
     let service = service(users.clone(), Arc::new(MemorySessions::default()));
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let owner_token = login_with_recovery(&service, &owner, "correct horse battery");
     users.set_role(owner.principal.id, Role::Paralegal);
@@ -215,6 +223,7 @@ fn create_user_rejects_an_owner_after_role_downgrade() {
         service.create_user(
             &owner_token,
             "forbidden@example.com",
+            "Test Account",
             "another safe password",
             Role::Client
         ),
@@ -227,7 +236,7 @@ fn create_user_rejects_an_inactive_owner() {
     let users = Arc::new(MemoryUsers::default());
     let service = service(users.clone(), Arc::new(MemorySessions::default()));
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let owner_token = login_with_recovery(&service, &owner, "correct horse battery");
     users.deactivate(owner.principal.id);
@@ -236,6 +245,7 @@ fn create_user_rejects_an_inactive_owner() {
         service.create_user(
             &owner_token,
             "forbidden@example.com",
+            "Test Account",
             "another safe password",
             Role::Client
         ),
@@ -250,7 +260,7 @@ fn create_user_requires_a_live_session() {
         Arc::new(MemorySessions::default()),
     );
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let owner_token = login_with_recovery(&service, &owner, "correct horse battery");
     service.logout(&owner_token).unwrap();
@@ -260,6 +270,7 @@ fn create_user_requires_a_live_session() {
             service.create_user(
                 token,
                 "forbidden@example.com",
+                "Test Account",
                 "another safe password",
                 Role::Client
             ),
@@ -295,7 +306,7 @@ fn bootstrap_rejects_control_bytes_before_enrollment() {
         "owner@example.com\t",
     ] {
         assert!(matches!(
-            service.bootstrap_owner(email, "correct horse battery"),
+            service.bootstrap_owner(email, "Test Account", "correct horse battery"),
             Err(ApplicationError::InvalidInput(_))
         ));
     }
@@ -307,7 +318,7 @@ fn login_and_user_creation_reject_control_bytes_before_email_io() {
     let sessions = Arc::new(MemorySessions::default());
     let enrollment_service = service(users.clone(), sessions.clone());
     let owner = enrollment_service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let owner_token = login_with_recovery(&enrollment_service, &owner, "correct horse battery");
     let service = guarded_service(users, sessions);
@@ -323,7 +334,13 @@ fn login_and_user_creation_reject_control_bytes_before_email_io() {
             Err(ApplicationError::InvalidInput(_))
         ));
         assert!(matches!(
-            service.create_user(&owner_token, email, "correct horse battery", Role::Client),
+            service.create_user(
+                &owner_token,
+                email,
+                "Test Account",
+                "correct horse battery",
+                Role::Client
+            ),
             Err(ApplicationError::InvalidInput(_))
         ));
     }

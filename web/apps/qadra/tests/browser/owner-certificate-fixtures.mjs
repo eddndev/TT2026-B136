@@ -47,6 +47,13 @@ export async function ownerCertificateSetup(page) {
     [...state.ownerRecords.values()].find(
       (row) => row.owner_id === owner && row.withdrawal === null,
     ) ?? null;
+  // Mi firma digital opens on its document signing tab, which reads the signing
+  // binding of the session account before the Owner switches tabs.
+  await page.route('**/api/v1/identity/signing-certificates/current', (route) =>
+    state.current && route.request().headers().authorization === `Bearer ${state.current.token}`
+      ? route.fulfill({ json: { binding: null }, headers: { 'Cache-Control': 'no-store' } })
+      : route.fulfill({ status: 401, json: { error: { code: 'invalid_session' } } }),
+  );
   await page.route(/\/api\/v1\/auth\/(me|certificate-bindings(?:[/?]|$))/, async (route) => {
     const request = route.request(),
       url = new URL(request.url());

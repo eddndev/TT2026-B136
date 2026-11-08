@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import CaseValues from './CaseValues.svelte';
   export let api, ondenied;
@@ -43,8 +44,8 @@
 <section class="case-history" aria-label="Historial administrativo" aria-busy={busy}>
   <div class="section-heading">
     <h3>Historial administrativo</h3>
-    <button class="secondary" disabled={busy} onclick={() => load()}
-      >Actualizar historial administrativo</button
+    <Button variant="secondary" disabled={busy} onclick={() => load()}
+      >Actualizar historial administrativo</Button
     >
   </div>
   {#each revisions as record}<details class="participant-revision">
@@ -64,7 +65,7 @@
       Todav&#237;a no hay revisiones administrativas registradas.
     </p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if hasMore}<button class="secondary" disabled={busy} onclick={() => load(true)}
-      >Cargar revisiones anteriores</button
+  {#if hasMore}<Button variant="secondary" disabled={busy} onclick={() => load(true)}
+      >Cargar revisiones anteriores</Button
     >{/if}
 </section>

@@ -188,7 +188,9 @@ def stored_origin(saved, token, certificate):
     fields = {decoded(k).decode("ascii"): decoded(v) for k, v in value["fields"]}
     assert fields["version"] == (b"2" if certificate else b"1"), "Session origin downgraded"
     identity = json.loads(fields["identity_json"])
-    assert identity["principal"] == saved["owner"]
+    # The stored principal never carries the HTTP-only display name.
+    principal = {key: saved["owner"][key] for key in ("id", "email", "role")}
+    assert identity["principal"] == principal
     if not certificate:
         assert "authentication_json" not in fields, "Password inherited certificate provenance"
         return
@@ -197,7 +199,7 @@ def stored_origin(saved, token, certificate):
     leaf = saved["receipt"]["registration"]["certificate"]
     assert origin["kind"] == "certificate"
     assert origin["provenance"] == {
-        "principal": saved["owner"], "auth_generation": identity["auth_generation"],
+        "principal": principal, "auth_generation": identity["auth_generation"],
         "binding_id": saved["binding"], "deployment_id": trust["deployment_id"],
         "trust_revision": trust["revision"], "root_fingerprint": trust["root_fingerprint"],
         "leaf_fingerprint": leaf["fingerprint"], "crl_digest": trust["crl_digest"],

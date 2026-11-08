@@ -2,7 +2,7 @@ use crate::{
     identity::{normalize_email, Principal},
     ApplicationError,
 };
-use domain::identity::Role;
+use domain::identity::{DisplayName, Role};
 
 use super::super::*;
 use super::{validation, InvitationService};
@@ -67,6 +67,7 @@ impl InvitationService {
         validation::operation(request.operation_id)?;
         validation::role(request.role)?;
         request.email = normalize_email(&request.email)?;
+        request.display_name = DisplayName::new(&request.display_name)?.into_string();
         let expected = request.clone();
         let id = InvitationId::from_uuid(request.operation_id);
         let (token_digest, protected_token) = self.delivery_token(id, 1)?;
@@ -85,6 +86,7 @@ impl InvitationService {
             || result.revision != 1
             || result.operation_id != expected.operation_id
             || result.email != expected.email
+            || result.display_name.as_str() != expected.display_name
             || result.role != expected.role
         {
             return Err(validation::stored());

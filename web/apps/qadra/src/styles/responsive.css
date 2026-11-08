@@ -119,7 +119,7 @@
   .page-heading p {
     font-size: 12px;
   }
-  .page-heading > .primary {
+  .page-heading > .btn-primary {
     width: 100%;
   }
   .today {
@@ -140,10 +140,10 @@
   .welcome-card .action-row {
     align-items: stretch;
   }
-  .welcome-card .primary {
+  .welcome-card .btn-primary {
     flex: 1;
   }
-  .welcome-card .text-button {
+  .welcome-card .btn-text {
     font-size: 11px;
   }
   .session-heading {
@@ -247,14 +247,14 @@
     font-size: 9px;
     max-width: 84px;
   }
-  .document-table .text-button {
+  .document-table .btn-text {
     font-size: 10px;
   }
   .document-table th:nth-child(3),
   .document-table td:nth-child(3) {
     display: none;
   }
-  .document-table .text-button svg {
+  .document-table .btn-text svg {
     display: none;
   }
   .list-footer {
@@ -282,18 +282,8 @@
   .reference-panel label {
     width: 100%;
   }
-  .upload-dialog {
-    padding: 22px;
-    max-height: calc(100dvh - 25px);
-  }
   .file-drop {
     padding: 19px 15px;
-  }
-  .dialog-actions {
-    flex-wrap: wrap;
-  }
-  .dialog-actions button {
-    flex: 1;
   }
   .action-row {
     flex-direction: column;

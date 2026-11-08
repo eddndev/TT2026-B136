@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import MemberFilters from './MemberFilters.svelte';
   import MemberCard from './MemberCard.svelte';
@@ -150,10 +151,10 @@
         No hay cuentas para esta selecci&#243;n y filtros.
       </p>{/if}
     {#if more}<div class="action-row">
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={busy || writing || denied || !!choice}
-          onclick={() => load(true)}>Cargar m&#225;s asignaciones</button
+          onclick={() => load(true)}>Cargar m&#225;s asignaciones</Button
         >
       </div>{/if}
     {#if choice}<div class="notice member-confirmation">
@@ -167,21 +168,21 @@
         {#if uncertain}<p>
             No se confirm&#243; el resultado. Consulta la lista antes de realizar otra acci&#243;n.
           </p>
-          <button class="secondary" disabled={busy || writing} onclick={reconcile}
-            >Consultar asignaciones actuales</button
+          <Button variant="secondary" disabled={busy || writing} onclick={reconcile}
+            >Consultar asignaciones actuales</Button
           >
         {:else}<div class="action-row">
-            <button class="primary" disabled={busy || writing} onclick={confirm}>
+            <Button variant="primary" disabled={busy || writing} onclick={confirm}>
               {choice.selection === 'available'
                 ? 'Confirmar asignaci\u00f3n'
-                : 'Confirmar retiro'}</button
+                : 'Confirmar retiro'}</Button
             >
-            <button
-              class="secondary"
+            <Button
+              variant="secondary"
               disabled={busy || writing}
               onclick={() => {
                 choice = null;
-              }}>Cancelar</button
+              }}>Cancelar</Button
             >
           </div>{/if}
       </div>{/if}

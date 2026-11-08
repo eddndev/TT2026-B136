@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import HearingResultSources from './HearingResultSources.svelte';
   import HearingResultFields from './HearingResultFields.svelte';
   import HearingResultValues from './HearingResultValues.svelte';
@@ -70,15 +71,15 @@
     plazos.
   </p>
   <CaseClosedNotice />
-  {#if blocked || restoredClosed}<button class="secondary" disabled={pending} onclick={retry}
-      >Volver a consultar el contexto</button
+  {#if blocked || restoredClosed}<Button variant="secondary" disabled={pending} onclick={retry}
+      >Volver a consultar el contexto</Button
     >{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   <HearingResultSources {anchor} continuation={source} />
-  {#if action === 'record' && mode === 'draft'}<button
-      class="secondary"
+  {#if action === 'record' && mode === 'draft'}<Button
+      variant="secondary"
       disabled={frozen}
-      onclick={() => (picking = true)}>Elegir programaci&#243;n de origen</button
+      onclick={() => (picking = true)}>Elegir programaci&#243;n de origen</Button
     >{/if}
   {#if picking}<HearingAnchorPicker
       api={hearings}
@@ -92,14 +93,15 @@
   {#if mode === 'uncertain'}<div class="case-comparison">
       <h3>Resultado incierto</h3>
       <p>Consulta el recibo del env&#237;o. Una ausencia temporal no confirma que fall&#243;.</p>
-      <button class="primary" disabled={pending} onclick={check}>Consultar env&#237;o exacto</button
+      <Button variant="primary" disabled={pending} onclick={check}
+        >Consultar env&#237;o exacto</Button
       >
       <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
     </div>{/if}
   {#if mode === 'conflict'}<div class="case-comparison">
       <h3>Comparar con el registro actual</h3>
-      <button class="secondary" disabled={pending} onclick={compare}
-        >Consultar base actual del resultado</button
+      <Button variant="secondary" disabled={pending} onclick={compare}
+        >Consultar base actual del resultado</Button
       >
       {#if compared && candidate}<p>
           Base consultada: revisi&#243;n {candidate.revision} / {candidate.status === 'withdrawn'
@@ -111,10 +113,10 @@
           attendees={candidate.attendees}
           support={candidate.support}
         />
-        {#if action !== 'record' && candidate.status === 'recorded'}<button
-            class="primary"
+        {#if action !== 'record' && candidate.status === 'recorded'}<Button
+            variant="primary"
             disabled={frozen}
-            onclick={accept}>Usar esta base y conservar borrador</button
+            onclick={accept}>Usar esta base y conservar borrador</Button
           >{:else}<p>
             Esta captura no permite reenviar el borrador sobre la base consultada. Puedes cerrar y
             revisar sus fuentes.
@@ -133,9 +135,9 @@
           Motivo: {prepared.command.change.reason}
         </p>{/if}
       <div class="action-row">
-        <button class="secondary" disabled={pending} onclick={back}
-          >Volver al borrador del resultado</button
-        ><button class="primary" disabled={frozen} onclick={submit}>Confirmar resultado</button>
+        <Button variant="secondary" disabled={pending} onclick={back}
+          >Volver al borrador del resultado</Button
+        ><Button variant="primary" disabled={frozen} onclick={submit}>Confirmar resultado</Button>
       </div>
     </div>{:else if mode !== 'confirmed'}
     {#if action === 'withdraw'}<HearingResultValues
@@ -165,11 +167,9 @@
     {#if action !== 'record'}<label
         >Motivo<textarea rows="3" bind:value={draft.reason} disabled={frozen}></textarea></label
       >{/if}
-    <button class="primary" disabled={frozen || mode !== 'draft' || picking} onclick={prepare}
-      >Revisar resultado</button
+    <Button variant="primary" disabled={frozen || mode !== 'draft' || picking} onclick={prepare}
+      >Revisar resultado</Button
     >
   {/if}
-  <button class="text-button" disabled={pending} onclick={close}
-    >Cerrar formulario de resultado</button
-  >
+  <Button variant="text" disabled={pending} onclick={close}>Cerrar formulario de resultado</Button>
 </section>

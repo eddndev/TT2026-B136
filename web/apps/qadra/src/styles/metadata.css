@@ -153,10 +153,4 @@
   .document-metadata .section-heading > button {
     width: 100%;
   }
-  .metadata-dialog .dialog-actions {
-    flex-wrap: wrap;
-  }
-  .metadata-dialog .dialog-actions > button {
-    flex: 1;
-  }
 }

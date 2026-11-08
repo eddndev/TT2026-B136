@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import MeasureTimeFields from './MeasureTimeFields.svelte';
   import ParticipantSubjectPicker from './ParticipantSubjectPicker.svelte';
@@ -94,13 +95,13 @@
   {:else if action === 'replace_entered_in_error'}
     {#if subject}<ParticipantSubjectSummary record={subject} />
     {:else}<p>Selecciona la identidad exacta del sujeto para el registro de reemplazo.</p>{/if}
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || pending}
       onclick={() => {
         if (canApply()) choosingSubject = true;
-      }}>Elegir sujeto</button
+      }}>Elegir sujeto</Button
     >
     {#if choosingSubject}<ParticipantSubjectPicker
         api={typed}

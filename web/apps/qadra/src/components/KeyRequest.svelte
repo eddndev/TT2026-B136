@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { readable } from 'svelte/store';
   import { watchLocalVisibility } from '../lib/local-crypto-visibility.mjs';
@@ -279,8 +280,8 @@
         Usa al menos 12 caracteres. Guarda la clave y su contrase&#241;a: Qadra no puede
         recuperarlas.
       </p>
-      <button class="primary" type="submit" disabled={!allowed || busy}
-        >{busy ? 'Generando...' : 'Generar clave y solicitud'}</button
+      <Button variant="primary" type="submit" disabled={!allowed || busy}
+        >{busy ? 'Generando...' : 'Generar clave y solicitud'}</Button
       >
     </form>
   {:else}
@@ -295,8 +296,8 @@
       {country}
       email={accountEmail}
     />
-    <button class="primary" type="button" disabled={!allowed || busy} onclick={saveKey}
-      >Descargar clave cifrada</button
+    <Button variant="primary" type="button" disabled={!allowed || busy} onclick={saveKey}
+      >Descargar clave cifrada</Button
     >
     {#if downloaded}
       <form class="stack" onsubmit={checkSavedKey}>
@@ -321,21 +322,21 @@
             oninput={changeCheckPassword}
           />
         </label>
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           type="submit"
           disabled={!allowed || busy || !selectedFile || !checkPassword}
         >
           {busy ? 'Comprobando...' : 'Comprobar copia guardada'}
-        </button>
+        </Button>
       </form>
     {/if}
     {#if verified}
       <p class="notice success" role="status">
         La copia cifrada se puede abrir y corresponde a esta solicitud.
       </p>
-      <button class="primary" type="button" disabled={!allowed || busy} onclick={saveRequest}
-        >Descargar solicitud CSR</button
+      <Button variant="primary" type="button" disabled={!allowed || busy} onclick={saveRequest}
+        >Descargar solicitud CSR</Button
       >
       <p class="hint">
         Comparte s&#243;lo el CSR con el responsable de la CA. Emitir el certificado no lo vincula a
@@ -343,7 +344,7 @@
       </p>
     {/if}
   {/if}
-  <button class="secondary" type="button" onclick={clear}>Limpiar datos locales</button>
+  <Button variant="secondary" type="button" onclick={clear}>Limpiar datos locales</Button>
 </section>
 
 <style>

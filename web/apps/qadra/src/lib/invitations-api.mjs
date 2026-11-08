@@ -1,4 +1,5 @@
 import { memberUuid, memberRevision, memberInstant } from './members-values.mjs';
+import { canonicalAccountName } from './account-name.mjs';
 const roles = new Set(['litigator', 'paralegal', 'client']);
 const statuses = new Set(['pending', 'pending_mfa', 'accepted', 'expired']);
 const deliveries = new Set(['pending', 'sent', 'uncertain', 'rejected']);
@@ -56,7 +57,7 @@ export function invitationsApi(request) {
     },
     async issue(data) {
       memberUuid(data.operation_id);
-      if (!roles.has(data.role)) invalid();
+      if (!roles.has(data.role) || !canonicalAccountName(data.name)) invalid();
       return summary(await call('', { method: 'POST', data }), data.operation_id);
     },
     async resend(id, data) {

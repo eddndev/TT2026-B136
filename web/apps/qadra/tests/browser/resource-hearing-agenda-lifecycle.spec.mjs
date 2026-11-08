@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, signOut } from './helpers.mjs';
 import { queryAgenda } from './combined-agenda-helpers.mjs';
 import {
   ownCard,
@@ -39,7 +39,7 @@ for (const action of ['refresh', 'filter', 'navigate', 'logout'])
           page.getByRole('heading', { name: 'Tu mesa de trabajo', exact: true }),
         ).toBeVisible();
       } else {
-        await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+        await signOut(page);
         await login(page, false, false);
       }
       const finished = page.waitForEvent(

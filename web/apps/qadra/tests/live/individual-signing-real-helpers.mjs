@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { openSection } from './helpers.mjs';
 import { execFileSync } from 'node:child_process';
 import { createHash, X509Certificate, verify } from 'node:crypto';
 import { expect } from '@playwright/test';
@@ -30,7 +31,7 @@ export async function openSigningDocument(page, scenario) {
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await page
     .locator('.reference-panel')
     .getByLabel('Identificador del documento')
@@ -72,7 +73,7 @@ export async function signedDownload(page, control, scenario, testInfo, name, la
 
 export async function registerSigningCertificate(page, scenario, testInfo) {
   const current = responseTo(page, bindingsPath + '/current');
-  await navigate(page, 'Mi firma documental');
+  await navigate(page, 'Mi firma digital');
   expect(await jsonResponse(current)).toEqual({ binding: null });
   await page
     .getByLabel('Certificado publico PEM', { exact: true })

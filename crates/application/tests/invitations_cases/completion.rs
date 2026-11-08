@@ -19,6 +19,7 @@ fn only_confirmed_totp_creates_one_atomic_account_consumption_and_receipt_comman
     assert_eq!(command.token_digest, token_digest(&state));
     assert_eq!(command.at, now());
     assert_eq!(command.user.email, EMAIL);
+    assert_eq!(command.user.display_name, name());
     assert_eq!(command.user.role, Role::Litigator);
     assert!(command.user.active);
     assert_eq!(command.user.password_hash, password_hash(PASSWORD));
@@ -180,4 +181,26 @@ fn receipt_requires_the_resulting_accounts_current_password_and_never_returns_se
     assert_eq!(state.finish_commands.len(), 1);
     assert_eq!(state.enrollments, 1);
     assert_eq!(state.recoveries, 1);
+}
+
+#[test]
+fn the_accepted_account_takes_the_name_the_owner_wrote_on_the_invitation() {
+    let harness = Harness::new();
+    let state = harness.state.clone();
+    let written = DisplayName::new("Mar\u{ed}a Cliente").unwrap();
+    state
+        .lock()
+        .unwrap()
+        .candidate
+        .as_mut()
+        .unwrap()
+        .display_name = written.clone();
+    let service = harness.service();
+    prepare(&service);
+    service
+        .finish(&RAW_TOKEN, operation(30), PASSWORD, CODE)
+        .unwrap();
+    let state = state.lock().unwrap();
+    assert_eq!(state.finish_commands[0].user.display_name, written);
+    assert_eq!(state.user.as_ref().unwrap().display_name, written);
 }

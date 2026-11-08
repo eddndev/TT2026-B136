@@ -1,5 +1,7 @@
 import { descriptorKey } from './draft-descriptor.mjs';
-import { authorizeEnrollment } from './member-enrollment-draft.mjs';
+import { authorizeEnrollment, pendingAtSchema } from './member-enrollment-draft.mjs';
+// Schema 2: issue intents carry the invitee name written by the Owner.
+const schemaVersion = 2;
 export function invitationOwnerDraft(session, api, principalId, capture) {
   const descriptor = {
     principalId,
@@ -11,7 +13,7 @@ export function invitationOwnerDraft(session, api, principalId, capture) {
     ownerDraftKey: null,
     fieldPath: [],
     rowId: null,
-    schemaVersion: 1,
+    schemaVersion,
     baseRevision: null,
   };
   const key = descriptorKey(descriptor);
@@ -35,10 +37,12 @@ export function invitationOwnerDraft(session, api, principalId, capture) {
     admitted,
     register,
     close,
-    pending: () => session.registry.pending().some((value) => value.key === key),
+    pending: () => pendingAtSchema(session.registry, key, schemaVersion),
     async restore(apply) {
       return session.registry.restore(key, {
-        authorize: () => authorizeEnrollment(api, principalId, admitted),
+        authorize: async (entry) =>
+          entry.schemaVersion === schemaVersion &&
+          (await authorizeEnrollment(api, principalId, admitted)),
         apply(value) {
           if (!admitted()) throw new Error('La sesion termino.');
           apply(value.intent);

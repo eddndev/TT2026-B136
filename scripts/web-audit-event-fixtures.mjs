@@ -9,7 +9,7 @@ export async function provisionAuditEvents(call) {
     const row = await call(
       "POST",
       "/users",
-      { email: `web-audit-query-${role}@example.com`, password, role },
+      { name: `Audit ${role}`, email: `web-audit-query-${role}@example.com`, password, role },
       201,
     );
     fixture[role] = {

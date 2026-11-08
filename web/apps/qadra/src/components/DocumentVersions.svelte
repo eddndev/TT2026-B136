@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
   import { onMount, onDestroy } from 'svelte';
@@ -178,10 +179,10 @@
     <span class="eyebrow">DOCUMENTO Y VERSIONES</span>
     <p class="hint">Cada versi&#243;n conserva su archivo, firma y sello.</p>
   </div>
-  {#if !unavailable && can(user.role, 'documents')}<button
-      class="primary"
+  {#if !unavailable && can(user.role, 'documents')}<Button
+      variant="primary"
       disabled={disabled || pending || ($administration.closed && !append?.hasSuspendedDraft())}
-      onclick={() => append.open()}><Icon name="plus" size={18} />Agregar versi&#243;n</button
+      onclick={() => append.open()}><Icon name="plus" size={18} />Agregar versi&#243;n</Button
     >{/if}
 </div>
 {#if !unavailable}<AppendVersion

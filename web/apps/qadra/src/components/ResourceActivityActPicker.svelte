@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { resourceActKinds } from '../lib/procedural-resource-values.mjs';
   import { resourceDenied } from '../lib/procedural-resource-errors.mjs';
@@ -72,8 +73,8 @@
 
 <section class="case-comparison" aria-label="Seleccionar acto del recurso" aria-busy={busy}>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button type="button" class="secondary" disabled={disabled || busy} onclick={() => history()}
-      >Consultar actos de nuevo</button
+    <Button type="button" variant="secondary" disabled={disabled || busy} onclick={() => history()}
+      >Consultar actos de nuevo</Button
     >{/if}
   <label
     >Acto del recurso
@@ -92,11 +93,11 @@
         : 'No hay actos registrados en el historial consultado.'}
     </p>
   {/if}
-  {#if more}<button
+  {#if more}<Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || busy}
-      onclick={() => history(cursor)}>Cargar actos anteriores</button
+      onclick={() => history(cursor)}>Cargar actos anteriores</Button
     >{/if}
   {#if candidate}
     <p>
@@ -106,14 +107,14 @@
     </p>
     <p class="case-multiline">{candidate.act.values.statement}</p>
     <p>Acto revisi&#243;n {candidate.act.revision} / Recurso revisi&#243;n {candidate.revision}</p>
-    <button
+    <Button
       type="button"
-      class="primary"
+      variant="primary"
       disabled={disabled || busy}
-      onclick={() => onselected(candidate)}>Usar este acto</button
+      onclick={() => onselected(candidate)}>Usar este acto</Button
     >
   {/if}
-  <button type="button" class="text-button" disabled={disabled || busy} onclick={oncancel}
-    >Cerrar selector de acto</button
+  <Button type="button" variant="text" disabled={disabled || busy} onclick={oncancel}
+    >Cerrar selector de acto</Button
   >
 </section>

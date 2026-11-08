@@ -31,7 +31,7 @@
   border-radius: 7px;
   gap: 2px;
 }
-.view-switch .icon-button {
+.view-switch .btn-icon {
   width: 32px;
   background: none;
   color: #7d8da3;
@@ -84,7 +84,7 @@
   font-size: 10px;
   margin-top: 4px;
 }
-.document-table .text-button {
+.document-table .btn-text {
   font-size: 11px;
 }
 .version-cell {
@@ -188,36 +188,7 @@
   outline: 0;
   scroll-margin-top: 24px;
 }
-.upload-dialog {
-  padding: 28px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  width: calc(100% - 32px);
-  max-width: 580px;
-  max-height: calc(100dvh - 40px);
-  color: #1e293b;
-  box-shadow: 0 24px 90px #11134430;
-}
-.upload-dialog::backdrop {
-  background: #11134480;
-  backdrop-filter: blur(3px);
-}
-.dialog-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  margin-bottom: 14px;
-}
-.dialog-heading .eyebrow {
-  font-size: 9px;
-  margin-bottom: 8px;
-}
-.dialog-heading h2 {
-  font-size: 23px;
-  color: var(--navy);
-}
-.upload-dialog > p {
+.modal > p {
   margin-bottom: 22px;
   font-size: 13px;
 }
@@ -258,15 +229,7 @@
 .file-drop small {
   font-size: 10px;
 }
-.upload-dialog .hint {
+.modal .hint {
   font-size: 11px;
   margin-top: -6px;
-}
-.dialog-actions {
-  display: flex;
-  justify-content: end;
-  gap: 10px;
-  border-top: 1px solid var(--line);
-  padding-top: 20px;
-  margin-top: 5px;
 }

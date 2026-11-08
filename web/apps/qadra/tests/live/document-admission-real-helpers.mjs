@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { expect } from '@playwright/test';
-import { fixture } from './helpers.mjs';
+import { fixture, openSection } from './helpers.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 export { accountAction } from './hearing-result-helpers.mjs';
 
@@ -49,7 +49,7 @@ export async function openDocuments(page, record) {
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await expect(page.locator('.document-list')).toHaveAttribute('aria-busy', 'false');
 }
 export async function fillMetadata(modal) {

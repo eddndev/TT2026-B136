@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { caseId } from './helpers.mjs';
+import { caseId, openSection } from './helpers.mjs';
 import { participant, participantId, otherParticipantId } from './participant-helpers.mjs';
 import { sessionSetup, checkSessionRequests } from './session-inactivity-helpers.mjs';
 
@@ -133,7 +133,7 @@ export async function checkParticipantDraftRequests(page) {
 }
 
 export async function openParticipants(page) {
-  await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+  await openSection(page, 'Participantes');
   await expect(page.getByRole('heading', { name: 'Participantes', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Aplicar filtros', exact: true })).toBeEnabled();
 }

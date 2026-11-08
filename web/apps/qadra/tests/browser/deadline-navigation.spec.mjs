@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { setupFacts } from './procedural-facts-helpers.mjs';
 import { factCaseId } from '../fixtures/procedural-facts.mjs';
-import { login, navigate, expectClientWorkspace } from './helpers.mjs';
+import { login, navigate, expectClientWorkspace, openSection } from './helpers.mjs';
 
 test.setTimeout(15000);
 for (const role of ['owner', 'litigator', 'paralegal'])
@@ -17,7 +17,7 @@ for (const role of ['owner', 'litigator', 'paralegal'])
     await login(page, false, false);
     await navigate(page, 'Expedientes');
     await page.getByRole('button', { name: /Defensa inicial/ }).click();
-    await page.getByRole('link', { name: 'Plazos', exact: true }).click();
+    await openSection(page, 'Plazos');
     await expect(
       page.getByRole('heading', { name: 'Plazos del expediente', exact: true }),
     ).toBeVisible();

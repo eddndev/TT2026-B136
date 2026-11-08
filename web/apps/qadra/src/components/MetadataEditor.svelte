@@ -1,4 +1,8 @@
 <script>
+  import Modal from './Modal.svelte';
+  import ModalHeading from './ModalHeading.svelte';
+  import ModalActions from './ModalActions.svelte';
+  import Button from './Button.svelte';
   import CaseClosedNotice from './CaseClosedNotice.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
@@ -277,27 +281,24 @@
   });
 </script>
 
-<dialog
-  class="upload-dialog metadata-dialog"
-  bind:this={dialog}
+<Modal
+  class="modal metadata-dialog"
+  bind:element={dialog}
   aria-labelledby="metadata-edit-title"
   oncancel={(event) => {
     event.preventDefault();
     close();
   }}
 >
-  <div class="dialog-heading">
-    <div>
-      <span class="eyebrow">ORGANIZACI&#211;N DEL DOCUMENTO</span>
-      <h2 id="metadata-edit-title">Editar clasificaci&#243;n</h2>
-    </div>
-    <button
-      class="icon-button"
-      disabled={busy}
-      onclick={close}
-      aria-label="Cerrar clasificaci&#243;n"><Icon name="close" /></button
+  <ModalHeading
+    title="Editar clasificaci&#243;n"
+    id="metadata-edit-title"
+    eyebrow="ORGANIZACI&#211;N DEL DOCUMENTO"
+  >
+    <Button variant="icon" disabled={busy} onclick={close} aria-label="Cerrar clasificaci&#243;n"
+      ><Icon name="close" /></Button
     >
-  </div>
+  </ModalHeading>
   <p>
     Actualiza la organizaci&#243;n del documento. Sus archivos y evidencias conservan sus versiones.
   </p>
@@ -309,14 +310,14 @@
       disabled={busy || restoreBlocked}
     />
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-    {#if restoreBlocked}<button type="button" class="secondary" disabled={busy} onclick={open}
-        >Volver a consultar el contexto</button
+    {#if restoreBlocked}<Button type="button" variant="secondary" disabled={busy} onclick={open}
+        >Volver a consultar el contexto</Button
       >{/if}
-    {#if conflict || restoredClosed}<button
+    {#if conflict || restoredClosed}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
-        onclick={refresh}>Consultar clasificaci&#243;n actual</button
+        onclick={refresh}>Consultar clasificaci&#243;n actual</Button
       >{/if}
     {#if candidate}<section class="metadata-comparison" aria-label="Valores actuales guardados">
         <h3>Valores actuales guardados</h3>
@@ -337,10 +338,10 @@
         estado antes de guardar.
       </p>{/if}
     <CaseClosedNotice />
-    <div class="dialog-actions">
-      <button type="button" class="secondary" disabled={busy} onclick={close}>Cancelar</button>
-      <button
-        class="primary"
+    <ModalActions>
+      <Button type="button" variant="secondary" disabled={busy} onclick={close}>Cancelar</Button>
+      <Button
+        variant="primary"
         disabled={disabled ||
           busy ||
           exhausted ||
@@ -353,8 +354,8 @@
           ? 'Guardando...'
           : candidate
             ? 'Guardar mis cambios'
-            : 'Guardar clasificaci\u00f3n'}</button
+            : 'Guardar clasificaci\u00f3n'}</Button
       >
-    </div>
+    </ModalActions>
   </form>
-</dialog>
+</Modal>

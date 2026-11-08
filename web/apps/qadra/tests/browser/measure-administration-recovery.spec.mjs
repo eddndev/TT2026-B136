@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openSection } from './helpers.mjs';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import {
@@ -14,12 +15,12 @@ import {
 } from './measure-administration-helpers.mjs';
 
 async function leaveAndResume(page) {
-  await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+  await openSection(page, 'Resumen');
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
   await expect(administrationEditor(page)).toHaveCount(0);
-  await page.getByRole('link', { name: 'Medidas cautelares', exact: true }).click();
+  await openSection(page, 'Medidas cautelares');
   await expect(measurePanel(page)).toBeVisible();
   const resume = measurePanel(page).getByRole('button', {
     name: 'Retomar rectificacion de medida',

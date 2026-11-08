@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { calendarStatus, calendarDenied } from '../lib/judicial-calendar-labels.mjs';
   export let api,
@@ -46,20 +47,20 @@
     Revisiones inmutables. Consulta una revisi&#243;n exacta para leer sus fuentes y reglas.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" disabled={busy || disabled} onclick={() => load()}
-      >Consultar historial de nuevo</button
+    <Button variant="secondary" disabled={busy || disabled} onclick={() => load()}
+      >Consultar historial de nuevo</Button
     >{/if}
   {#each rows as row (row.revision)}<article class="calendar-source-row">
       <h4>Revisi&#243;n {row.revision} / {calendarStatus[row.status]}</h4>
       <p>{row.recorded_by.email} / <time datetime={row.recorded_at}>{row.recorded_at}</time></p>
-      {#if row.reason}<p class="case-multiline">{row.reason}</p>{/if}<button
-        class="secondary"
+      {#if row.reason}<p class="case-multiline">{row.reason}</p>{/if}<Button
+        variant="secondary"
         disabled={busy || disabled}
         onclick={() => onselect(id, row.revision)}
-        >Consultar calendario revisi&#243;n {row.revision}</button
+        >Consultar calendario revisi&#243;n {row.revision}</Button
       >
     </article>{/each}
-  {#if more}<button class="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
-      >Cargar revisiones anteriores del calendario</button
+  {#if more}<Button variant="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
+      >Cargar revisiones anteriores del calendario</Button
     >{/if}
 </section>

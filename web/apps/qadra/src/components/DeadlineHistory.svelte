@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { deadlineDenied, deadlineFailure } from '../lib/deadline-errors.mjs';
   import DeadlineReceipt from './DeadlineReceipt.svelte';
@@ -50,21 +51,21 @@
   <h3>Historial del plazo</h3>
   <p class="hint">Cada revisi&#243;n conserva sus datos y su c&#225;lculo original.</p>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" disabled={busy || disabled} onclick={() => load()}
-      >Consultar historial de nuevo</button
+    <Button variant="secondary" disabled={busy || disabled} onclick={() => load()}
+      >Consultar historial de nuevo</Button
     >{/if}
   {#each rows as row (row.revision)}<div class="fact-history-row">
       <p><strong>Revisi&#243;n {row.revision}</strong> / {deadlineActions[row.receipt.action]}</p>
       <DeadlineReceipt value={row} compact />
       {#if row.reason}<p class="case-multiline">{row.reason}</p>{/if}
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={busy || disabled}
         onclick={() => onselect(id, row.revision)}
-        >Consultar plazo revisi&#243;n {row.revision}</button
+        >Consultar plazo revisi&#243;n {row.revision}</Button
       >
     </div>{/each}
-  {#if more}<button class="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
-      >Cargar cambios anteriores</button
+  {#if more}<Button variant="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
+      >Cargar cambios anteriores</Button
     >{/if}
 </section>

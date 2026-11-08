@@ -15,9 +15,12 @@
   },
   "dependencies": {
     "@astrojs/svelte": "^9.0.1",
+    "@qadra/ui": "0.0.0",
+    "@tailwindcss/vite": "4.3.4",
     "astro": "^7.3.2",
+    "heroicons": "2.2.0",
     "svelte": "^5.57.0",
-    "@qadra/ui": "0.0.0"
+    "tailwindcss": "4.3.4"
   },
   "version": "0.0.0"
 }

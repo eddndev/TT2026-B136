@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import HearingValues from './HearingValues.svelte';
   import HearingHistory from './HearingHistory.svelte';
   import { hearingKinds, hearingStatus } from '../lib/hearings.mjs';
@@ -34,8 +35,8 @@
   {#if historical}<p class="notice">
       Esta vista conserva la revisi&#243;n seleccionada. Puede existir una posterior.
     </p>
-    <button class="secondary" disabled={disabled || historyBusy} onclick={oncurrent}
-      >Consultar registro actual</button
+    <Button variant="secondary" disabled={disabled || historyBusy} onclick={oncurrent}
+      >Consultar registro actual</Button
     >{/if}
   {#if record.reason}<p class="case-multiline">Motivo: {record.reason}</p>{/if}
   <HearingValues
@@ -63,19 +64,21 @@
   </details>
   <div class="action-row">
     {#if canManage && record.status === 'scheduled' && !historical}
-      <button class="primary" disabled={disabled || historyBusy} onclick={() => onedit('replace')}
-        >Corregir o reprogramar</button
+      <Button variant="primary" disabled={disabled || historyBusy} onclick={() => onedit('replace')}
+        >Corregir o reprogramar</Button
       >
-      <button class="secondary" disabled={disabled || historyBusy} onclick={() => onedit('cancel')}
-        >Cancelar audiencia</button
+      <Button
+        variant="secondary"
+        disabled={disabled || historyBusy}
+        onclick={() => onedit('cancel')}>Cancelar audiencia</Button
       >
     {/if}
-    <button
-      class="text-button"
+    <Button
+      variant="text"
       disabled={disabled || historyBusy}
       aria-expanded={history}
       onclick={() => (history = !history)}
-      >{history ? 'Ocultar historial de audiencias' : 'Ver historial de audiencias'}</button
+      >{history ? 'Ocultar historial de audiencias' : 'Ver historial de audiencias'}</Button
     >
   </div>
   {#if history}<HearingHistory

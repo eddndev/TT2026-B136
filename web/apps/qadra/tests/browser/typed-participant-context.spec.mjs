@@ -9,7 +9,7 @@ import {
   pickSupport,
 } from './typed-participant-helpers.mjs';
 import { detail, participant, openParticipant } from './participant-helpers.mjs';
-import { navigate } from './helpers.mjs';
+import { navigate, openSection } from './helpers.mjs';
 test('completes a manual participant at its next revision without replacing historical manual fields', async ({
   page,
 }) => {
@@ -68,7 +68,7 @@ test('ignores a delayed current-identity response after leaving participants', a
     .getByRole('button', { name: 'Consultar identidad actual', exact: true })
     .click();
   await pending;
-  await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+  await openSection(page, 'Resumen');
   release();
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),

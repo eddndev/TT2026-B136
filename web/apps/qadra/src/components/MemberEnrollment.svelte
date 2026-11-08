@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import Enrollment from './Enrollment.svelte';
   import Icon from '@qadra/ui/Icon.svelte';
@@ -8,11 +9,13 @@
     createMemberEnrollmentDraft,
     findEnrollmentAccount,
   } from '../lib/member-enrollment-draft.mjs';
+  import { accountName } from '../lib/account-name.mjs';
   export let api, user, oncomplete, onreturn;
   const session = getContext('session-drafts'),
     principalId = user.id;
   const members = api.members();
-  let email = '',
+  let name = '',
+    email = '',
     role = 'paralegal',
     password = '',
     enrollment = null;
@@ -28,11 +31,12 @@
   const recovery = createMemberEnrollmentDraft({
     session,
     principalId,
-    capture: () => ({ email, role, uncertain }),
+    capture: () => ({ name, email, role, uncertain }),
   });
   const admitted = () => alive && recovery.admitted();
   const active = (request) => request === generation && admitted();
   function reset() {
+    name = '';
     email = '';
     role = 'paralegal';
     password = '';
@@ -81,6 +85,7 @@
       const result = await recovery.restore(
         () => authorizeEnrollment(api, principalId, () => active(request)),
         (value) => {
+          name = value.name;
           email = value.email;
           role = value.role;
           uncertain = value.uncertain;
@@ -101,6 +106,13 @@
   async function submit(event) {
     event.preventDefault();
     if (!ready || busy || pending || uncertain || enrollment || !admitted()) return;
+    let checkedName;
+    try {
+      checkedName = accountName(name);
+    } catch (failure) {
+      error = failure.message;
+      return;
+    }
     const request = ++generation;
     busy = true;
     error = '';
@@ -110,7 +122,7 @@
       recovery.register();
       uncertain = true;
       writing = true;
-      const response = api.createUser(email.trim(), password, role);
+      const response = api.createUser({ email: email.trim(), name: checkedName, password, role });
       password = '';
       const value = await response;
       if (!active(request)) return;
@@ -188,14 +200,15 @@
       Entr&#233;galos de forma segura al nuevo integrante.
     </p>
     {#if pending}<p class="notice">
-        Hay un alta pendiente de esta cuenta. S&#243;lo se conserva correo, rol e intenci&#243;n;
-        nunca contrase&#241;a ni material MFA.
+        Hay un alta pendiente de esta cuenta. S&#243;lo se conserva nombre, correo, rol e
+        intenci&#243;n; nunca contrase&#241;a ni material MFA.
       </p>
-      <button class="secondary" disabled={busy} onclick={restore}>Retomar alta de integrante</button
+      <Button variant="secondary" disabled={busy} onclick={restore}
+        >Retomar alta de integrante</Button
       >
     {:else if !ready}
       <p role="status">Comprobando permiso de alta...</p>
-      {#if !busy}<button class="secondary" onclick={authorize}>Volver a consultar acceso</button
+      {#if !busy}<Button variant="secondary" onclick={authorize}>Volver a consultar acceso</Button
         >{/if}
     {/if}
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
@@ -212,25 +225,26 @@
       <p class="hint">
         La consulta del directorio no confirma este envio ni recupera el segundo factor.
       </p>
-      <button class="secondary" disabled={busy || !ready} onclick={consult}
-        >Consultar directorio para esta cuenta</button
+      <Button variant="secondary" disabled={busy || !ready} onclick={consult}
+        >Consultar directorio para esta cuenta</Button
       >
     {/if}
     <form class="stack" onsubmit={submit}>
       <MemberEnrollmentFields
+        bind:name
         bind:email
         bind:password
         bind:role
         disabled={!ready || busy || pending || uncertain}
         onchanged={changed}
       />
-      <button class="primary" disabled={!ready || busy || pending || uncertain}
-        >{writing ? 'Creando...' : 'Crear usuario'}</button
+      <Button variant="primary" disabled={!ready || busy || pending || uncertain}
+        >{writing ? 'Creando...' : 'Crear usuario'}</Button
       >
     </form>
-    {#if pending || uncertain || email || role !== 'paralegal'}<div class="action-row">
-        <button class="secondary" disabled={busy} onclick={discard}
-          >Descartar alta y volver al directorio</button
+    {#if pending || uncertain || name || email || role !== 'paralegal'}<div class="action-row">
+        <Button variant="secondary" disabled={busy} onclick={discard}
+          >Descartar alta y volver al directorio</Button
         >
       </div>{/if}
   {/if}

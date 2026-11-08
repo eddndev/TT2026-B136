@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import HearingValues from './HearingValues.svelte';
   import { hearingStatus } from '../lib/hearings.mjs';
   import { stageLabels } from '../lib/case-stages.mjs';
@@ -10,13 +11,13 @@
     <p>
       Conservamos el env&#237;o. Consulta su revisi&#243;n exacta; no se repetir&#225; la escritura.
     </p>
-    <button class="secondary" disabled={busy} onclick={oncheck}
-      >Consultar resultado del env&#237;o</button
+    <Button variant="secondary" disabled={busy} onclick={oncheck}
+      >Consultar resultado del env&#237;o</Button
     >
   {:else}<h3>Compara antes de preparar otro registro</h3>
     <p>Tu borrador se conserva. Consulta los datos actuales y revisa las diferencias.</p>
-    <button class="secondary" disabled={busy} onclick={onrefresh}
-      >Consultar audiencia y contexto actuales</button
+    <Button variant="secondary" disabled={busy} onclick={onrefresh}
+      >Consultar audiencia y contexto actuales</Button
     >
   {/if}
   {#if last}<details>
@@ -40,8 +41,8 @@
           Contexto actual: {stageLabels[context.stage] || 'Sin etapa'} / Administraci&#243;n {context.case_revision}
           / Etapa {context.stage_revision || 'sin registro'}.
         </p>{/if}
-      {#if canAccept}<button class="secondary" disabled={busy} onclick={onaccept}
-          >Usar base consultada y revisar borrador</button
+      {#if canAccept}<Button variant="secondary" disabled={busy} onclick={onaccept}
+          >Usar base consultada y revisar borrador</Button
         >
       {:else}<p class="hint">
           Este resultado no permite volver a preparar la misma operaci&#243;n.

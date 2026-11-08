@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import { chooseSupport, fillDate } from './stage-helpers.mjs';
 import { openChildUpload } from './session-subject-draft-ui.mjs';
 import { casePath, stagePath } from './session-stage-draft-fixtures.mjs';
+import { openSection } from './helpers.mjs';
 
 export { chooseSupport, fillDate, openChildUpload };
 export const stageForm = (page) => page.locator('.stage-form');
@@ -17,7 +18,7 @@ export const reviewStage = (form) =>
   form.getByRole('button', { name: 'Revisar registro', exact: true });
 
 export async function enterStages(page) {
-  await page.getByRole('link', { name: 'Etapas', exact: true }).click();
+  await openSection(page, 'Etapas');
   await expect(
     page.getByRole('heading', { name: 'Etapas del expediente', exact: true }),
   ).toBeVisible();

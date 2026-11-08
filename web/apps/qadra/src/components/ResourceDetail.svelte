@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import ResourceValues from './ResourceValues.svelte';
   import ResourceSources from './ResourceSources.svelte';
   import ResourceHistory from './ResourceHistory.svelte';
@@ -31,8 +32,10 @@
   {#if historical}<p class="notice">
       Esta vista conserva la revisi&#243;n seleccionada. Puede existir una posterior.
     </p>
-    <button class="secondary" disabled={disabled || historyBusy} onclick={() => onselect(record.id)}
-      >Consultar recurso actual</button
+    <Button
+      variant="secondary"
+      disabled={disabled || historyBusy}
+      onclick={() => onselect(record.id)}>Consultar recurso actual</Button
     >{/if}
   <ResourceValues values={record.values} />
   {#if record.act}<h3>Acto de esta revisi&#243;n</h3>
@@ -62,38 +65,38 @@
   <div class="action-row">
     {#if canManage && !historical}
       {#if record.status === 'active'}
-        <button
-          class="primary"
+        <Button
+          variant="primary"
           disabled={disabled || historyBusy}
-          onclick={() => onedit('record_act')}>Registrar acto</button
+          onclick={() => onedit('record_act')}>Registrar acto</Button
         >
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={disabled || historyBusy}
-          onclick={() => onedit('correct')}>Corregir recurso</button
+          onclick={() => onedit('correct')}>Corregir recurso</Button
         >
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={disabled || historyBusy}
-          onclick={() => onedit('archive')}>Archivar recurso</button
+          onclick={() => onedit('archive')}>Archivar recurso</Button
         >
-      {:else}<button
-          class="primary"
+      {:else}<Button
+          variant="primary"
           disabled={disabled || historyBusy}
-          onclick={() => onedit('reactivate')}>Reactivar recurso</button
+          onclick={() => onedit('reactivate')}>Reactivar recurso</Button
         >{/if}
     {/if}
-    {#if canManage && record.act}<button
-        class="secondary"
+    {#if canManage && record.act}<Button
+        variant="secondary"
         disabled={disabled || historyBusy}
-        onclick={() => onedit('correct_act')}>Corregir este acto</button
+        onclick={() => onedit('correct_act')}>Corregir este acto</Button
       >{/if}
-    <button
-      class="text-button"
+    <Button
+      variant="text"
       disabled={disabled || historyBusy}
       aria-expanded={history}
       onclick={() => (history = !history)}
-      >{history ? 'Ocultar' : 'Ver'} historial de recurso</button
+      >{history ? 'Ocultar' : 'Ver'} historial de recurso</Button
     >
   </div>
   {#if history}<ResourceHistory

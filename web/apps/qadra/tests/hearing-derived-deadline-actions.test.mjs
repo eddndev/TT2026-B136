@@ -280,3 +280,25 @@ test('pending fields, denied admission and busy state prevent duplicate operatio
     assert.equal(s.calls.length, 0, field);
   }
 });
+
+test('every action sends the session account without its display name', async () => {
+  const named = { ...principal(), name: 'Staff Example' };
+  const draft = setup();
+  draft.state.user = clone(named);
+  await draft.actions.prepare();
+  const review = setup('review');
+  review.state.user = clone(named);
+  review.state.acknowledged = true;
+  await review.actions.submit();
+  const checked = setup('uncertain');
+  checked.state.user = clone(named);
+  await checked.actions.check();
+  const retried = setup('uncertain');
+  retried.state.user = clone(named);
+  retried.state.retryAvailable = true;
+  await retried.actions.retry();
+  for (const s of [draft, review, checked, retried]) {
+    assert.equal(s.calls.length, 1);
+    assert.deepEqual(s.calls[0][2], principal());
+  }
+});

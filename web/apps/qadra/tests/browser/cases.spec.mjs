@@ -8,6 +8,7 @@ import {
   id,
   document,
   expectClientWorkspace,
+  openSection,
 } from './helpers.mjs';
 
 test('persistent case selection lists metadata and GET detail without verifying', async ({
@@ -22,7 +23,7 @@ test('persistent case selection lists metadata and GET detail without verifying'
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await page.getByRole('button', { name: `Abrir ${document.name}`, exact: true }).click();
   await expect(page.getByRole('heading', { name: document.name, exact: true })).toBeVisible();
   expect(requests.some((r) => r.path.endsWith(`/documents/${id}`) && r.method === 'GET')).toBe(

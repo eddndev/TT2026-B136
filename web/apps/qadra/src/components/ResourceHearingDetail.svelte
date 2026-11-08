@@ -1,11 +1,10 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount } from 'svelte';
   import ResourceHearingValues from './ResourceHearingValues.svelte';
   import ResourceHearingSources from './ResourceHearingSources.svelte';
   import FactAdministrativeCapture from './FactAdministrativeCapture.svelte';
   import { resourceHearingKinds } from '../lib/resource-hearing-values.mjs';
-  import '../styles/hearings.css';
-  import '../styles/procedural-facts.css';
   export let value, caseRecord, onclose;
   let heading;
   $: hearing = value.hearing;
@@ -15,7 +14,7 @@
 <section class="card hearing-detail fact-detail" aria-label="Detalle de audiencia de recurso">
   <div class="section-heading">
     <h2 tabindex="-1" bind:this={heading}>{resourceHearingKinds[hearing.values.kind]}</h2>
-    <button class="secondary" onclick={onclose}>Cerrar detalle de audiencia</button>
+    <Button variant="secondary" onclick={onclose}>Cerrar detalle de audiencia</Button>
   </div>
   <p><strong>{caseRecord.title}</strong> / {caseRecord.reference}</p>
   {#if caseRecord.administration?.administrative_status === 'closed'}

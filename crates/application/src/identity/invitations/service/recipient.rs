@@ -99,7 +99,7 @@ impl InvitationService {
             operation_id: operation,
             request_digest,
             token_digest: digest,
-            user: material.user(protected)?,
+            user: material.user(protected, candidate.display_name.clone())?,
             at: self.ports.clock.now(),
         })?;
         validation::receipt(&receipt, operation, self.ports.clock.now())?;

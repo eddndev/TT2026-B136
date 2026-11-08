@@ -8,7 +8,7 @@ export async function provisionHearings(request, pdf) {
     const enrollment = await request(
       "POST",
       "/users",
-      { email: `hearings.${role}@example.com`, password, role },
+      { name: `Hearing ${role}`, email: `hearings.${role}@example.com`, password, role },
       201,
     );
     hearings[role] = {

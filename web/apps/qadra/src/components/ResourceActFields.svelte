@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import FactDeclarationFields from './FactDeclarationFields.svelte';
   import FactTimeFields from './FactTimeFields.svelte';
@@ -91,19 +92,19 @@
       disabled={disabled || supportBusy.some((v, i) => v && i !== index)}
       bind:pending={supportBusy[index]}
     />
-    {#if index > 0}<button
+    {#if index > 0}<Button
         type="button"
-        class="text-button"
+        variant="text"
         disabled={disabled || busy}
-        onclick={() => remove(index)}>Quitar soporte adicional {index + 1}</button
+        onclick={() => remove(index)}>Quitar soporte adicional {index + 1}</Button
       >{/if}
   {/each}
 {/key}
-<button
+<Button
   type="button"
-  class="secondary"
+  variant="secondary"
   disabled={disabled || busy || values.evidence.length >= 2}
-  onclick={add}>Agregar soporte del acto</button
+  onclick={add}>Agregar soporte del acto</Button
 >
 <p class="hint">
   Declara el acto y su constancia exacta. Modalidad oral no equivale a ausencia de soporte; el

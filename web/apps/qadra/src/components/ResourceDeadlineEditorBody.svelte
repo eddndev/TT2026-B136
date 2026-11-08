@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import DeadlineFields from './DeadlineFields.svelte';
   import ResourceDeadlineContext from './ResourceDeadlineContext.svelte';
   import ResourceDeadlineReview from './ResourceDeadlineReview.svelte';
@@ -45,29 +46,29 @@
   <h2>Crear plazo desde el recurso</h2>
   <CaseClosedNotice />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if blocked || closed}<button
-      class="secondary"
+  {#if blocked || closed}<Button
+      variant="secondary"
       disabled={pending || disabled}
-      onclick={initialize}>Volver a consultar el contexto</button
+      onclick={initialize}>Volver a consultar el contexto</Button
     >{/if}
   {#if mode === 'uncertain'}
     <h3>Resultado incierto</h3>
     <p>Consulta las revisiones exactas del plazo y del v&#237;nculo antes de decidir.</p>
-    <button class="primary" disabled={pending || disabled || blocked} onclick={actions.check}
-      >Consultar resultado</button
+    <Button variant="primary" disabled={pending || disabled || blocked} onclick={actions.check}
+      >Consultar resultado</Button
     >
     <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
-    {#if retryAvailable}<button
-        class="secondary"
+    {#if retryAvailable}<Button
+        variant="secondary"
         disabled={pending || disabled || blocked || (closed && !paired)}
         onclick={actions.retry}
-        >{paired ? 'Confirmar origen del env\u00edo' : 'Reintentar envio exacto'}</button
+        >{paired ? 'Confirmar origen del env\u00edo' : 'Reintentar envio exacto'}</Button
       >{/if}
   {:else if mode === 'conflict'}
     <h3>El registro cambi&#243;</h3>
     <p>La declaraci&#243;n del plazo y las capturas seleccionadas se conservan.</p>
-    <button class="secondary" disabled={pending || disabled || blocked} onclick={actions.compare}
-      >Comparar con registro actual</button
+    <Button variant="secondary" disabled={pending || disabled || blocked} onclick={actions.compare}
+      >Comparar con registro actual</Button
     >
     {#if candidate}
       <p>
@@ -77,10 +78,10 @@
           : 'Archivado'}
       </p>
       <ResourceValues values={candidate.values} />
-      <button
-        class="primary"
+      <Button
+        variant="primary"
         disabled={frozen || candidate.status !== 'active'}
-        onclick={actions.accept}>Usar base actual y conservar borrador</button
+        onclick={actions.accept}>Usar base actual y conservar borrador</Button
       >
     {/if}
   {:else if mode === 'review' && prepared}
@@ -90,23 +91,23 @@
       y las capturas seleccionadas</label
     >
     <div class="action-row">
-      <button class="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
-        >Confirmar plazo y vinculo</button
+      <Button variant="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
+        >Confirmar plazo y vinculo</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={frozen}
         onclick={() => {
           mode = 'draft';
           prepared = null;
           acknowledged = false;
-        }}>Volver al borrador</button
+        }}>Volver al borrador</Button
       >
     </div>
   {/if}
   {#if blocked}
     <label>T&#237;tulo del plazo<input disabled value="" /></label>
-    <button class="primary" disabled>Preparar plazo y vinculo</button>
+    <Button variant="primary" disabled>Preparar plazo y vinculo</Button>
   {:else if mode !== 'review' && mode !== 'confirmed'}
     <ResourceDeadlineContext
       bind:this={context}
@@ -133,11 +134,9 @@
       bind:pending={fieldsBusy}
       disabled={frozen || mode !== 'draft'}
     />
-    <button class="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
-      >Preparar plazo y vinculo</button
+    <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
+      >Preparar plazo y vinculo</Button
     >
   {/if}
-  <button class="text-button" disabled={pending || disabled} onclick={close}
-    >Cerrar formulario</button
-  >
+  <Button variant="text" disabled={pending || disabled} onclick={close}>Cerrar formulario</Button>
 </section>

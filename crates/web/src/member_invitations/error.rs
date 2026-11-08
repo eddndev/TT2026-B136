@@ -4,6 +4,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use domain::DomainError;
 use serde_json::json;
 
 use crate::error::ApiError;
@@ -22,7 +23,8 @@ pub(super) enum InvitationError {
 impl InvitationError {
     pub(super) fn owner(error: ApplicationError) -> Self {
         match error {
-            ApplicationError::InvalidInput(_) => Self::Invalid,
+            ApplicationError::InvalidInput(_)
+            | ApplicationError::Domain(DomainError::InvalidDisplayName(_)) => Self::Invalid,
             other => Self::Api(other.into()),
         }
     }

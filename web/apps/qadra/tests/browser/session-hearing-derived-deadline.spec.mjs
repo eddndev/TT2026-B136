@@ -30,7 +30,7 @@ async function installShortSession(page) {
     if (path.endsWith('/login')) return route.fallback();
     if (/\/mfa\/(totp|recovery)$/.test(path)) {
       state.current = {
-        user: principal(),
+        user: { ...principal(), name: 'Staff Example' },
         token: `compound-session-${state.grants.length + 1}`,
         deadline: state.now + 60000,
       };

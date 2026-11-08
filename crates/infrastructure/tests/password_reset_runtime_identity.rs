@@ -73,8 +73,13 @@ fn operating_system_tokens_and_redis_budgets_complete_an_audited_password_and_mf
     let old_password = Zeroizing::new("initial password for runtime reset acceptance".to_string());
     let new_password = Zeroizing::new("changed password for runtime reset acceptance".to_string());
     let enrolled = ok(
-        flow.identity
-            .create_user(&owner, &email, &old_password, Role::Litigator),
+        flow.identity.create_user(
+            &owner,
+            &email,
+            "Test Account",
+            &old_password,
+            Role::Litigator,
+        ),
         "enroll with real Argon2id and MFA",
     );
     let id = enrolled.principal.id;

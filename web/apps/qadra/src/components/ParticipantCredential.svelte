@@ -1,4 +1,6 @@
 <script>
+  import { buttonClass } from '../lib/button-styles.mjs';
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import { download } from '../lib/documents.mjs';
@@ -62,7 +64,7 @@
         disabled={disabled || pending || !$selection.available}
         onchange={(event) => selection.selectCertificate(event.currentTarget.files[0])}
       />
-      <span class="secondary" aria-hidden="true"
+      <span class={buttonClass('secondary')} aria-hidden="true"
         ><Icon name="upload" size={17} />Elegir certificado</span
       >
     </span></label
@@ -73,11 +75,11 @@
   {#if $selection.certificate}<p class="hint participant-provenance">
       {$selection.certificate.name} / {$selection.certificate.blob.size} bytes seleccionados
     </p>
-    <button
-      class="text-button"
+    <Button
+      variant="text"
       type="button"
       disabled={disabled || pending || !$selection.available}
-      onclick={() => selection.selectCertificate(null)}>Quitar certificado</button
+      onclick={() => selection.selectCertificate(null)}>Quitar certificado</Button
     >{/if}
   <p class="hint">
     El servidor comprobar&#225; el certificado y la firma al registrar. Seleccionar archivos no
@@ -90,19 +92,19 @@
       <h3>Declaraci&#243;n preparada</h3>
       <p>Descarga los bytes exactos para firmar y el recibo para revisar los datos.</p>
       <div class="action-row">
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           type="button"
           disabled={disabled || pending || !$selection.available}
           onclick={() => download($selection.prepared.statement, 'declaracion-participante.bin')}
-          ><Icon name="download" size={17} />Descargar declaraci&#243;n binaria</button
+          ><Icon name="download" size={17} />Descargar declaraci&#243;n binaria</Button
         >
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           type="button"
           disabled={disabled || pending || !$selection.available}
           onclick={() => download($selection.prepared.receipt, 'recibo-participante.json')}
-          >Descargar recibo</button
+          >Descargar recibo</Button
         >
       </div>
       <label
@@ -115,7 +117,7 @@
             disabled={disabled || pending || !$selection.available}
             onchange={(event) => selection.selectSignature(event.currentTarget.files[0])}
           />
-          <span class="secondary" aria-hidden="true"
+          <span class={buttonClass('secondary')} aria-hidden="true"
             ><Icon name="upload" size={17} />Elegir firma</span
           >
         </span></label
@@ -124,11 +126,11 @@
       {#if $selection.signature}<p class="hint participant-provenance">
           {$selection.signature.name} / 384 bytes seleccionados
         </p>
-        <button
-          class="text-button"
+        <Button
+          variant="text"
           type="button"
           disabled={disabled || pending || !$selection.available}
-          onclick={() => selection.selectSignature(null)}>Quitar firma seleccionada</button
+          onclick={() => selection.selectSignature(null)}>Quitar firma seleccionada</Button
         >{/if}
     </section>
   {:else}<p class="hint">
@@ -151,27 +153,27 @@
           {$selection.retained.signature.name} / {$selection.retained.signature.blob.size} bytes
         </p>{/if}
       <div class="action-row">
-        {#if $selection.retained.statement}<button
-            class="secondary"
+        {#if $selection.retained.statement}<Button
+            variant="secondary"
             type="button"
             disabled={disabled || pending || !$selection.available}
             onclick={() => download($selection.retained.statement, 'declaracion-anterior.bin')}
-            >Descargar declaraci&#243;n anterior</button
+            >Descargar declaraci&#243;n anterior</Button
           >{/if}
-        {#if $selection.retained.signature}<button
-            class="secondary"
+        {#if $selection.retained.signature}<Button
+            variant="secondary"
             type="button"
             disabled={disabled || pending || !$selection.available}
             onclick={() =>
               download($selection.retained.signature.blob, $selection.retained.signature.name)}
-            >Descargar firma anterior</button
+            >Descargar firma anterior</Button
           >{/if}
-        {#if $selection.retained.receipt}<button
-            class="secondary"
+        {#if $selection.retained.receipt}<Button
+            variant="secondary"
             type="button"
             disabled={disabled || pending || !$selection.available}
             onclick={() => download($selection.retained.receipt, 'recibo-anterior.json')}
-            >Descargar recibo anterior</button
+            >Descargar recibo anterior</Button
           >{/if}
       </div>
     </section>{/if}

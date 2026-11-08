@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { document, login, selectCase } from './helpers.mjs';
+import { document, login, selectCase, signOut } from './helpers.mjs';
 import { expire, signInOther, casePath } from './session-inactivity-helpers.mjs';
 import {
   versionDraftSetup,
@@ -133,7 +133,7 @@ test('cancelling and changing account discard the recovered version file across 
   modal = await openAppend(page);
   await expectBlankAppend(modal);
   await modal.getByRole('button', { name: 'Cancelar', exact: true }).click();
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await login(page);
   await openCurrentDocument(page, state);
   await expectBlankAppend(await openAppend(page));

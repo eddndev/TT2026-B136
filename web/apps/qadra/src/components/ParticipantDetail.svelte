@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
   import ParticipantSummary from './ParticipantSummary.svelte';
@@ -38,34 +39,34 @@
       <h2>{record.display_name}</h2>
     </div>
     {#if canParticipants(user.role, 'manage')}<div class="action-row">
-        {#if manualDraft && ($administration.closed || record.profile)}<button
-            class="secondary"
+        {#if manualDraft && ($administration.closed || record.profile)}<Button
+            variant="secondary"
             disabled={disabled || historyBusy || identityBusy || credentialBusy}
-            onclick={() => onmanual(record)}>Retomar borrador manual</button
+            onclick={() => onmanual(record)}>Retomar borrador manual</Button
           >{/if}
-        {#if typedDraft}<button
-            class="secondary"
+        {#if typedDraft}<Button
+            variant="secondary"
             disabled={disabled || historyBusy || identityBusy || credentialBusy}
-            onclick={() => ontyped(record)}>Retomar borrador tipificado</button
+            onclick={() => ontyped(record)}>Retomar borrador tipificado</Button
           >{/if}
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={$administration.closed ||
             disabled ||
             historyBusy ||
             identityBusy ||
             credentialBusy}
-          onclick={() => onedit(record)}>Editar participante</button
-        >{#if !record.profile}<button
-            class="secondary"
+          onclick={() => onedit(record)}>Editar participante</Button
+        >{#if !record.profile}<Button
+            variant="secondary"
             disabled={$administration.closed ||
               disabled ||
               historyBusy ||
               identityBusy ||
               credentialBusy}
-            onclick={() => oncomplete(record)}>Completar perfil</button
-          >{/if}<button
-          class="text-button"
+            onclick={() => oncomplete(record)}>Completar perfil</Button
+          >{/if}<Button
+          variant="text"
           disabled={$administration.closed ||
             disabled ||
             historyBusy ||
@@ -74,7 +75,7 @@
           onclick={() => statusDialog.open()}
           >{record.directory_status === 'active'
             ? 'Archivar participante'
-            : 'Reactivar participante'}</button
+            : 'Reactivar participante'}</Button
         >
       </div>{/if}
   </div>
@@ -85,12 +86,12 @@
       title={record.changed_at}>{new Date(record.changed_at).toLocaleString('es-MX')}</time
     >
   </p>
-  <button
-    class="text-button"
+  <Button
+    variant="text"
     aria-expanded={showHistory}
     disabled={disabled || historyBusy || identityBusy || credentialBusy}
     onclick={() => (showHistory = !showHistory)}
-    >{showHistory ? 'Ocultar historial de cambios' : 'Ver historial de cambios'}</button
+    >{showHistory ? 'Ocultar historial de cambios' : 'Ver historial de cambios'}</Button
   >
   {#if record.subject}{#key record.subject.id}<ParticipantSubjectReader
         api={typedApi}

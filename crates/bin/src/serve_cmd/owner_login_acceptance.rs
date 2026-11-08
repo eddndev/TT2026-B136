@@ -37,7 +37,7 @@ fn composed_owner_login_requires_real_rsa_mfa_and_current_binding_authority() {
     let password = Zeroizing::new("native owner login password".to_owned());
     let enrolled = ok(
         flow.identity
-            .create_user(&seed, &email, &password, Role::Owner),
+            .create_user(&seed, &email, "Test Account", &password, Role::Owner),
         "enroll actual login Owner",
     );
     let principal = enrolled.principal.clone();

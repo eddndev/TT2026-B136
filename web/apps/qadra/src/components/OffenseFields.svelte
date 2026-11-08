@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { offenseValue } from '../lib/case-administration.mjs';
   export let offenses = [];
   export let disabled = false;
@@ -54,8 +55,8 @@
         }}
       /></label
     >
-    <button type="button" class="secondary" {disabled} onclick={add}
-      >Agregar descripci&#243;n</button
+    <Button type="button" variant="secondary" {disabled} onclick={add}
+      >Agregar descripci&#243;n</Button
     >
   </div>
   <p class="hint">
@@ -64,12 +65,12 @@
   </p>
   <ol class="case-offense-list">
     {#each offenses as value, index}<li>
-        <span>{value}</span><button
+        <span>{value}</span><Button
           type="button"
-          class="text-button"
+          variant="text"
           {disabled}
           aria-label={`Quitar descripci\u00f3n: ${value}`}
-          onclick={() => (offenses = offenses.filter((_, i) => i !== index))}>Quitar</button
+          onclick={() => (offenses = offenses.filter((_, i) => i !== index))}>Quitar</Button
         >
       </li>{/each}
   </ol>

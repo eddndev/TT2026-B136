@@ -67,8 +67,8 @@ def login(account, index):
 
 def bootstrap():
     account = {"email": "owner@contracts.example.test"}
-    result = call("POST", "/api/v1/auth/bootstrap", {"email": account["email"], "password": PASSWORD},
-                  expected=201)
+    result = call("POST", "/api/v1/auth/bootstrap", {"email": account["email"], "name": "Contract owner",
+                  "password": PASSWORD}, expected=201)
     account.update(recovery_codes=result["recovery_codes"], role="owner")
     account["token"] = login(account, 0)
     account["id"] = call("GET", "/api/v1/auth/me", token=account["token"])["id"]
@@ -77,8 +77,8 @@ def bootstrap():
 
 def staff(owner, label, role):
     account = {"email": label + "@contracts.example.test", "role": role}
-    result = call("POST", "/api/v1/users", {"email": account["email"], "password": PASSWORD, "role": role},
-                  token=owner["token"], expected=201)
+    result = call("POST", "/api/v1/users", {"email": account["email"], "name": "Contract " + label,
+                  "password": PASSWORD, "role": role}, token=owner["token"], expected=201)
     account.update(id=result["user"]["id"], recovery_codes=result["recovery_codes"])
     account["token"] = login(account, 0)
     return account
@@ -113,7 +113,8 @@ def delivered_token(email):
 def invite_client(owner):
     account = {"email": "client@contracts.example.test", "role": "client"}
     issued = call("POST", "/api/v1/member-invitations", {"operation_id": str(uuid4()),
-                  "email": account["email"], "role": "client"}, token=owner["token"], expected=201)
+                  "email": account["email"], "name": "Contract client", "role": "client"},
+                  token=owner["token"], expected=201)
     assert issued["role"] == "client" and issued["status"] == "pending"
     token = delivered_token(account["email"])
     body = {"token": token, "operation_id": str(uuid4()), "password": PASSWORD}

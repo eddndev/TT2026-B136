@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { fixture, loginAs } from './helpers.mjs';
+import { fixture, loginAs, signOut } from './helpers.mjs';
 
 const accounts = fixture.auditEvents;
 if (!accounts) throw new Error('Audit event fixtures must be provisioned by web-demo.sh');
-const panel = (page) => page.getByRole('region', { name: 'Actividad registrada', exact: true });
+const panel = (page) => page.getByRole('region', { name: 'Movimientos registrados', exact: true });
+const previousDay = (value) =>
+  new Date(Date.parse(`${value}T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
 const query = () =>
   new URLSearchParams({
     from: `${accounts.from}T00:00:00Z`,
@@ -71,15 +73,15 @@ test('real Owner reads exact historical events with stable pages and separate ch
   const token = await enter(page, accounts.owner);
   await page
     .getByRole('navigation', { name: 'Navegaci\u00f3n principal' })
-    .getByRole('button', { name: 'Auditor\u00eda', exact: true })
+    .getByRole('button', { name: 'Bit\u00e1cora', exact: true })
     .click();
   await expect(panel(page)).toBeVisible();
-  await panel(page).getByLabel('Desde (UTC, incluido)', { exact: true }).fill(accounts.from);
-  await panel(page).getByLabel('Hasta (UTC, excluido)', { exact: true }).fill(accounts.until);
-  await panel(page).getByLabel('Actor registrado', { exact: true }).fill(accounts.owner.email);
-  await panel(page).getByLabel('Operaci\u00f3n registrada', { exact: true }).fill('case.read');
-  await panel(page).getByLabel('Recurso registrado', { exact: true }).fill(accounts.resource);
-  const first = await load(page, 'Consultar actividad');
+  await panel(page).getByLabel('Desde', { exact: true }).fill(accounts.from);
+  await panel(page).getByLabel('Hasta', { exact: true }).fill(previousDay(accounts.until));
+  await panel(page).getByLabel('Actor', { exact: true }).fill(accounts.owner.email);
+  await panel(page).getByLabel('Operaci\u00f3n', { exact: true }).fill('case.read');
+  await panel(page).getByLabel('Recurso', { exact: true }).fill(accounts.resource);
+  const first = await load(page, 'Consultar');
   expect(first.events).toEqual(accounts.events.slice(0, 20));
   expect(first.has_more).toBe(true);
   await visibleEvents(page, first.events);
@@ -92,7 +94,7 @@ test('real Owner reads exact historical events with stable pages and separate ch
     },
   );
   expect(appended.status()).toBe(200);
-  const second = await load(page, 'Cargar siguiente p\u00e1gina');
+  const second = await load(page, 'Siguiente p\u00e1gina');
   expect(second.snapshot_max_sequence).toBe(first.snapshot_max_sequence);
   expect(second.events).toEqual(accounts.events.slice(20));
   expect(second.has_more).toBe(false);
@@ -102,12 +104,12 @@ test('real Owner reads exact historical events with stable pages and separate ch
   await page.screenshot({ path: testInfo.outputPath('audit-events-mobile.png'), fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
 
-  const refreshed = await load(page, 'Actualizar actividad');
+  const refreshed = await load(page, 'Actualizar');
   expect(BigInt(refreshed.snapshot_max_sequence)).toBeGreaterThan(
     BigInt(first.snapshot_max_sequence),
   );
   expect(refreshed.events).toEqual(accounts.events.slice(0, 20));
-  const final = await load(page, 'Cargar siguiente p\u00e1gina');
+  const final = await load(page, 'Siguiente p\u00e1gina');
   expect(final.events).toHaveLength(2);
   expect(final.events[0]).toEqual(accounts.events[20]);
   expect(BigInt(final.events[1].sequence)).toBeGreaterThan(BigInt(first.snapshot_max_sequence));
@@ -118,19 +120,21 @@ test('real Owner reads exact historical events with stable pages and separate ch
   });
   await visibleEvents(page, final.events);
 
-  await panel(page)
-    .getByLabel('Recurso registrado', { exact: true })
-    .fill(`${accounts.resource}:absent`);
+  await panel(page).getByLabel('Recurso', { exact: true }).fill(`${accounts.resource}:absent`);
   await expect(panel(page).locator('[data-sequence]')).toHaveCount(0);
-  expect((await load(page, 'Consultar actividad')).events).toEqual([]);
+  expect((await load(page, 'Consultar')).events).toEqual([]);
   await expect(
-    panel(page).getByText('No hay eventos que coincidan con estos filtros.'),
+    panel(page).getByText('Ning\u00fan movimiento coincide con estos filtros.'),
   ).toBeVisible();
   const verified = responseTo(page, '/audit/verify');
   await page.getByRole('button', { name: 'Verificar cadena', exact: true }).click();
   expect((await (await verified).json()).valid).toBe(true);
-  await expect(page.getByRole('heading', { name: 'Cadena \u00edntegra' })).toBeVisible();
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await expect(
+    page
+      .getByRole('region', { name: 'Integridad de la cadena', exact: true })
+      .getByText('Cadena \u00edntegra', { exact: true }),
+  ).toBeVisible();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await expect(panel(page)).toHaveCount(0);
 });
@@ -140,7 +144,7 @@ test('real Litigator cannot read global audit through API or forced navigation',
 }) => {
   const token = await enter(page, accounts.litigator);
   await expect(
-    page.getByRole('navigation').getByRole('button', { name: 'Auditor\u00eda', exact: true }),
+    page.getByRole('navigation').getByRole('button', { name: 'Bit\u00e1cora', exact: true }),
   ).toHaveCount(0);
   await page.evaluate(() => {
     location.hash = '#audit';

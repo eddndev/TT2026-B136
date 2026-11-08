@@ -1,4 +1,8 @@
 <script>
+  import Modal from './Modal.svelte';
+  import ModalHeading from './ModalHeading.svelte';
+  import ModalActions from './ModalActions.svelte';
+  import Button from './Button.svelte';
   import { uploadOutcomeUncertain } from '../lib/document-upload-outcome.mjs';
   import CaseClosedNotice from './CaseClosedNotice.svelte';
   import { caseState } from '../lib/case-state.mjs';
@@ -200,24 +204,20 @@
   });
 </script>
 
-<dialog
-  class="upload-dialog"
-  bind:this={dialog}
+<Modal
+  class="modal"
+  bind:element={dialog}
   aria-labelledby="upload-title"
   oncancel={(event) => {
     event.preventDefault();
     close();
   }}
 >
-  <div class="dialog-heading">
-    <div>
-      <span class="eyebrow">NUEVO ARCHIVO</span>
-      <h2 id="upload-title">Subir documento</h2>
-    </div>
-    <button class="icon-button" disabled={busy} onclick={close} aria-label="Cerrar carga"
-      ><Icon name="close" /></button
+  <ModalHeading title="Subir documento" id="upload-title" eyebrow="NUEVO ARCHIVO">
+    <Button variant="icon" disabled={busy} onclick={close} aria-label="Cerrar carga"
+      ><Icon name="close" /></Button
     >
-  </div>
+  </ModalHeading>
   <p>Agrega un archivo para comenzar su registro y proteger su evidencia.</p>
   <form class="stack" onsubmit={submit}>
     <div
@@ -276,8 +276,8 @@
     {#if restoreBlocked && !restoredClosed}<p class="notice" role="status">
         Confirma el expediente actual antes de recuperar o editar el borrador.
       </p>
-      <button class="secondary" type="button" disabled={busy} onclick={openRoot}
-        >Volver a consultar el expediente</button
+      <Button variant="secondary" type="button" disabled={busy} onclick={openRoot}
+        >Volver a consultar el expediente</Button
       >{/if}
     {#if restoredClosed}<p class="notice" role="status">
         El expediente est&#225; cerrado. Puedes consultar el borrador, pero no cargarlo.
@@ -287,14 +287,14 @@
           No se pudo confirmar la carga anterior. Consulta los documentos actuales antes de decidir
           si iniciar otra carga.
         </p>
-        {#if !reviewComplete}<button
-            class="secondary"
+        {#if !reviewComplete}<Button
+            variant="secondary"
             type="button"
             disabled={busy}
             onclick={reviewDocuments}
             >{reviewStarted
               ? 'Consultar siguientes documentos'
-              : 'Consultar documentos actuales'}</button
+              : 'Consultar documentos actuales'}</Button
           >{/if}
         {#if reviewStarted}<ul aria-label="Documentos actuales">
             {#each reviewedNames as documentName}<li>{documentName}</li>{/each}
@@ -309,14 +309,14 @@
       </section>{/if}
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
     <CaseClosedNotice />
-    <div class="dialog-actions">
-      <button class="secondary" type="button" disabled={busy} onclick={close}>Cancelar</button
-      ><button class="primary" disabled={submitBlocked}
+    <ModalActions>
+      <Button variant="secondary" type="button" disabled={busy} onclick={close}>Cancelar</Button
+      ><Button variant="primary" disabled={submitBlocked}
         >{busy ? 'Cargando documento...' : 'Cargar documento'}<Icon
           name="arrow"
           size={17}
-        /></button
+        /></Button
       >
-    </div>
+    </ModalActions>
   </form>
-</dialog>
+</Modal>

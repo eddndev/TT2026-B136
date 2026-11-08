@@ -1,9 +1,7 @@
 <script>
+  import Button from './Button.svelte';
   import DeadlineCollection from './DeadlineCollection.svelte';
   import { canDeadlines } from '../lib/deadline-errors.mjs';
-  import '../styles/procedural-facts.css';
-  import '../styles/judicial-calendars.css';
-  import '../styles/deadlines.css';
   export let api, user, record, ondenied, onnavigate;
   export let onresource = () => {};
   export let intent = null,
@@ -19,5 +17,5 @@
     </div>
   </div>
   <DeadlineCollection {api} {user} caseId={record.id} {ondenied} {intent} {onintent} {onresource} />
-  <button class="text-button" onclick={() => onnavigate('agenda')}>Ir a Agenda</button>
+  <Button variant="text" onclick={() => onnavigate('agenda')}>Ir a Agenda</Button>
 {/if}

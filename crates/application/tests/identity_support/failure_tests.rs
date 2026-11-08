@@ -55,7 +55,7 @@ fn audit_failure_discards_a_new_password_verified_challenge() {
     let sessions = Arc::new(MemorySessions::default());
     let service = service(users, sessions.clone(), Arc::new(AtomicBool::new(true)));
     service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
 
     let error = service
@@ -79,7 +79,7 @@ fn audit_failure_discards_sessions_created_by_either_second_factor() {
         let fail = Arc::new(AtomicBool::new(false));
         let service = service(users, sessions.clone(), fail.clone());
         let owner = service
-            .bootstrap_owner("owner@example.com", "correct horse battery")
+            .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
             .unwrap();
         let challenge = service
             .start_login("owner@example.com", "correct horse battery")
@@ -115,7 +115,7 @@ fn logout_audit_failure_keeps_the_session_revoked() {
     let fail = Arc::new(AtomicBool::new(false));
     let service = service(users, sessions.clone(), fail.clone());
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let token = crate::login_with_recovery(&service, &owner, "correct horse battery");
     fail.store(true, Ordering::SeqCst);
@@ -143,7 +143,7 @@ fn deactivation_during_totp_verification_prevents_session_creation() {
         }),
     );
     let owner = service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let challenge = service
         .start_login("owner@example.com", "correct horse battery")
@@ -170,7 +170,7 @@ fn failed_challenge_compensation_does_not_expose_its_token_in_the_error() {
         .store(true, Ordering::SeqCst);
     let service = service(users, sessions.clone(), Arc::new(AtomicBool::new(true)));
     service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let error = service
         .start_login("owner@example.com", "correct horse battery")
@@ -189,7 +189,7 @@ fn failed_session_compensation_does_not_expose_its_token_in_the_error() {
     let fail = Arc::new(AtomicBool::new(false));
     let service = service(users, sessions.clone(), fail.clone());
     service
-        .bootstrap_owner("owner@example.com", "correct horse battery")
+        .bootstrap_owner("owner@example.com", "Test Account", "correct horse battery")
         .unwrap();
     let challenge = service
         .start_login("owner@example.com", "correct horse battery")

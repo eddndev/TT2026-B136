@@ -4,11 +4,13 @@ import { caseId, id, document, setup, openDocument } from './helpers.mjs';
 const owner = {
   id: '11111111-1111-4111-8111-111111111111',
   email: 'hatz@example.com',
+  name: 'Hatziel Ortega',
   role: 'owner',
 };
 const other = {
   id: '22222222-2222-4222-8222-222222222222',
   email: 'other@example.test',
+  name: 'Otra Cuenta',
   role: 'owner',
 };
 const epoch = Date.UTC(2026, 9, 2, 18);
@@ -145,6 +147,18 @@ export async function sessionSetup(page) {
       state.writes.push(call);
       return reply({ error: { code: 'unexpected_business_write' } }, 501);
     }
+    // The top bar counts unread alerts for staff accounts on every screen.
+    if (call.path === '/api/v1/alerts')
+      return reply({
+        checked_at: {
+          unix_seconds: Math.floor(state.now / 1000),
+          nanosecond: 0,
+          offset_seconds: 0,
+        },
+        alerts: [],
+        has_more: false,
+        next_cursor: null,
+      });
     if (!reads.has(call.path)) {
       state.unexpected.push(call);
       return reply({ error: { code: 'unimplemented_test_request' } }, 501);

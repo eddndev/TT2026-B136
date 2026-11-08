@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, selectCase } from './helpers.mjs';
+import { login, selectCase, signOut } from './helpers.mjs';
 import { detail } from './participant-helpers.mjs';
 import { expire, signInOther } from './session-inactivity-helpers.mjs';
 import {
@@ -183,7 +183,7 @@ test('closed identity drafts remain readonly while fresh denial and a different 
     subject.values.name.value,
   );
   await modal.getByRole('button', { name: 'Cancelar', exact: true }).click();
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await login(page);
   modal = await openIdentity(page);
   await expect(modal.getByLabel('Nombre de la persona', { exact: true })).toHaveValue(

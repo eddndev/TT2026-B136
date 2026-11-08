@@ -6,6 +6,8 @@ import {
   otherCaseId,
   expectClientWorkspace,
   expectLanding,
+  signOut,
+  openSection,
 } from './helpers.mjs';
 import { memberRecord, memberPage, assignedMember, caseMemberPage } from '../fixtures/members.mjs';
 import { requestCompletion } from './request-completion.mjs';
@@ -34,7 +36,7 @@ test('late member rows cannot enter another case after changing the selected exp
   };
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Asignaciones', exact: true }).click();
+  await openSection(page, 'Asignaciones');
   await expect.poll(() => typeof release).toBe('function');
   await openAssignments(page, 'Otro expediente');
   await expect(assignments(page)).toContainText('person6@example.test');
@@ -74,7 +76,7 @@ test('late directory response cannot repopulate data after session changes', asy
   );
   await directory(page).getByRole('button', { name: 'Buscar cuentas', exact: true }).click();
   await expect.poll(() => typeof release).toBe('function');
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await release();
   expect((await received).status()).toBe(200);

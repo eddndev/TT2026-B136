@@ -25,6 +25,7 @@ export async function provisionProceduralFacts(call) {
       "POST",
       "/users",
       {
+        name: `Procedural fact ${role}`,
         email: `procedural-facts.${role}@example.com`,
         password,
         role,

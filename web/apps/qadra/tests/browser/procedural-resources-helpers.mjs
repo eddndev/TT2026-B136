@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { expect } from '@playwright/test';
 import { setupFacts, failFact } from './procedural-facts-helpers.mjs';
-import { login, navigate, caseId, document } from './helpers.mjs';
+import { login, navigate, caseId, document, openSection } from './helpers.mjs';
 import { absoluteSession } from '../fixtures/session.mjs';
 import {
   factRecord,
@@ -55,7 +55,7 @@ export function browserResource() {
 export async function setupProceduralResources(page, { resources = [], ...options } = {}) {
   const facts = await setupFacts(page, { ...options, facts: options.facts || [factRecord()] });
   const role = options.role || 'owner',
-    user = { ...resourceActor, role };
+    user = { ...resourceActor, name: 'Captured Example', role };
   await page.route(/\/api\/v1\/auth\/(me|mfa\/.*)$/, (route) => {
     const path = new URL(route.request().url()).pathname;
     return route.fulfill({
@@ -224,7 +224,7 @@ export async function openResources(page) {
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Recursos', exact: true }).click();
+  await openSection(page, 'Recursos');
   await expect(
     page.getByRole('heading', { name: 'Recursos procesales', exact: true }),
   ).toBeVisible();

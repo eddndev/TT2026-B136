@@ -14,8 +14,8 @@ fn litigator(f: &mut Fixture) -> UserId {
     let id = UserId::new();
     f.db.client
         .execute(
-            "INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes)
-             VALUES($1,$2,'fixture','litigator','\\x00','{}')",
+            "INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes,display_name)
+             VALUES($1,$2,'fixture','litigator','\\x00','{}','Fixture')",
             &[&id.as_uuid(), &format!("{id}@example.test")],
         )
         .unwrap();

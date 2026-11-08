@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import svelte from '@astrojs/svelte';
+import tailwindcss from '@tailwindcss/vite';
 import { pinnedRootsSource } from './src/lib/evidence/pinned-roots-schema.mjs';
 
 const proxy = { '/api': { target: process.env.API_PROXY_TARGET || 'http://127.0.0.1:3000' } };
@@ -20,6 +21,7 @@ export default defineConfig({
   integrations: [svelte()],
   devToolbar: { enabled: false },
   vite: {
+    plugins: [tailwindcss()],
     resolve: { alias: { '@qadra/pinned-roots': pinnedRoots } },
     server: { proxy },
     preview: { proxy },

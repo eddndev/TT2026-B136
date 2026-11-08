@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { setupPrecautionaryScheduling } from './precautionary-hearing-scheduling-helpers.mjs';
-import { login, navigate, caseId, document } from './helpers.mjs';
+import { login, navigate, caseId, document, openSection } from './helpers.mjs';
 import { measureRecord } from '../fixtures/measure-records.mjs';
 import {
   inMeasureCase,
@@ -208,7 +208,7 @@ export async function openMeasures(page) {
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Medidas cautelares', exact: true }).click();
+  await openSection(page, 'Medidas cautelares');
   await expect(decisionPanel(page)).toBeVisible();
 }
 export async function newDecision(page) {

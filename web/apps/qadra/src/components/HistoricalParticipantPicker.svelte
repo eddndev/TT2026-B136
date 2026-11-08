@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import ParticipantSummary from './ParticipantSummary.svelte';
   import HearingReference from './HearingReference.svelte';
@@ -92,13 +93,13 @@
       {#each candidates as row}<div class="hearing-result-picker-row">
           <p>{row.display_name} / Revisi&#243;n {row.revision}</p>
           <HearingReference {row} />
-          <button
+          <Button
             type="button"
-            class="secondary"
+            variant="secondary"
             disabled={busy || disabled || selectedIds.includes(row.id)}
             onclick={() => read(row.id, row.revision)}
             aria-label={`Consultar participante de origen ${row.id}`}
-            >Consultar esta ficha de origen</button
+            >Consultar esta ficha de origen</Button
           >
         </div>{/each}
     </details>{/if}
@@ -108,14 +109,14 @@
       disabled={busy || disabled}
     /></label
   >
-  <button
-    class="secondary"
+  <Button
+    variant="secondary"
     type="button"
     disabled={busy || disabled}
     onclick={() => {
       applied = name.trim();
       list();
-    }}>Buscar ficha hist&#243;rica</button
+    }}>Buscar ficha hist&#243;rica</Button
   >
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#each roots as row}<div class="hearing-result-picker-row">
@@ -123,48 +124,48 @@
         {row.display_name} / {row.directory_status === 'archived' ? 'Archivada' : 'Activa'} actualmente
       </p>
       <HearingReference {row} />
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={busy || disabled || selectedIds.includes(row.id)}
         onclick={() => history(row.id)}
         aria-label={`Consultar historia de ficha ${row.id}`}
-        >Consultar revisiones de la ficha</button
+        >Consultar revisiones de la ficha</Button
       >
     </div>{/each}
   {#if !roots.length && !busy && !error}<p>No hay fichas en esta consulta.</p>{/if}
-  {#if rootMore}<button
+  {#if rootMore}<Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={busy || disabled}
-      onclick={() => list(rootCursor)}>Siguientes fichas</button
+      onclick={() => list(rootCursor)}>Siguientes fichas</Button
     >{/if}
   {#if selectedId}<h4>Revisiones de la ficha</h4>
     {#each revisions as row}<div class="hearing-result-picker-row">
         <p>{row.display_name} / Revisi&#243;n {row.revision}</p>
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={busy || disabled}
           onclick={() => read(row.id, row.revision)}
-          >Consultar ficha revisi&#243;n {row.revision}</button
+          >Consultar ficha revisi&#243;n {row.revision}</Button
         >
       </div>{/each}
-    {#if historyMore}<button
+    {#if historyMore}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={busy || disabled}
-        onclick={() => history(selectedId, historyCursor)}>Revisiones anteriores de ficha</button
+        onclick={() => history(selectedId, historyCursor)}>Revisiones anteriores de ficha</Button
       >{/if}
   {/if}
   {#if exact}<ParticipantSummary record={exact} /><HearingReference row={exact} />
-    <button
+    <Button
       type="button"
-      class="primary"
+      variant="primary"
       disabled={busy || disabled || selectedIds.includes(exact.id)}
-      onclick={() => onselected(exact)}>{selectLabel}</button
+      onclick={() => onselected(exact)}>{selectLabel}</Button
     >{/if}
-  <button type="button" class="text-button" disabled={busy} onclick={oncancel}
-    >Cerrar selector hist&#243;rico</button
+  <Button type="button" variant="text" disabled={busy} onclick={oncancel}
+    >Cerrar selector hist&#243;rico</Button
   >
 </section>

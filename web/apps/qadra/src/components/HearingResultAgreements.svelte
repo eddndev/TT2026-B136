@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   export let draft,
     disabled = false;
   function move(index, step) {
@@ -22,33 +23,33 @@
       >
       <details><summary>Identificador del acuerdo</summary><code>{item.id}</code></details>
       <div class="action-row">
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || index === 0}
-          onclick={() => move(index, -1)}>Subir acuerdo {index + 1}</button
+          onclick={() => move(index, -1)}>Subir acuerdo {index + 1}</Button
         >
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || index === draft.agreements.length - 1}
-          onclick={() => move(index, 1)}>Bajar acuerdo {index + 1}</button
+          onclick={() => move(index, 1)}>Bajar acuerdo {index + 1}</Button
         >
-        <button
+        <Button
           type="button"
-          class="text-button"
+          variant="text"
           {disabled}
           onclick={() => (draft.agreements = draft.agreements.filter((row) => row.id !== item.id))}
-          >Quitar acuerdo {index + 1}</button
+          >Quitar acuerdo {index + 1}</Button
         >
       </div>
     </div>{/each}
-  <button
+  <Button
     type="button"
-    class="secondary"
+    variant="secondary"
     disabled={disabled || draft.agreements.length >= 16}
     onclick={() =>
       (draft.agreements = [...draft.agreements, { id: crypto.randomUUID(), text: '' }])}
-    >Agregar acuerdo declarado</button
+    >Agregar acuerdo declarado</Button
   >
 </details>

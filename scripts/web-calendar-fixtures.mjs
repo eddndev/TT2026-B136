@@ -8,6 +8,7 @@ export async function provisionCalendars(request) {
       "POST",
       "/users",
       {
+        name: `Calendar ${role}`,
         email: `calendars.${role}@example.com`,
         password,
         role,

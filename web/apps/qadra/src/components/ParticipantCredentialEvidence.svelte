@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import { download } from '../lib/documents.mjs';
   import { base64Bytes } from '../lib/typed-participant-preparation.mjs';
@@ -51,8 +52,8 @@
 </script>
 
 <div class="participant-history">
-  <button class="text-button" disabled={disabled || busy} onclick={load}
-    >Consultar evidencia de firma personal</button
+  <Button variant="text" disabled={disabled || busy} onclick={load}
+    >Consultar evidencia de firma personal</Button
   >
   {#if evidence}<section class="participant-comparison" aria-label="Evidencia de firma personal">
       <h3>Firma comprobada con CA interna</h3>
@@ -89,18 +90,18 @@
         declaraci&#243;n: {evidence.statement_digest}
       </p>
       <div class="action-row">
-        <button class="secondary" disabled={disabled || busy} onclick={json}
-          >Descargar evidencia p&#250;blica</button
-        ><button
-          class="secondary"
+        <Button variant="secondary" disabled={disabled || busy} onclick={json}
+          >Descargar evidencia p&#250;blica</Button
+        ><Button
+          variant="secondary"
           disabled={disabled || busy}
           onclick={() => binary(evidence.declaration_base64, 'declaracion-participante.bin')}
-          >Descargar declaraci&#243;n comprobada</button
-        ><button
-          class="secondary"
+          >Descargar declaraci&#243;n comprobada</Button
+        ><Button
+          variant="secondary"
           disabled={disabled || busy}
           onclick={() => binary(evidence.signature_base64, 'declaracion-participante.sig')}
-          >Descargar firma comprobada</button
+          >Descargar firma comprobada</Button
         >
       </div>
     </section>{/if}

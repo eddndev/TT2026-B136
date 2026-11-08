@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy, setContext, getContext } from 'svelte';
   import { writable } from 'svelte/store';
   import CaseStages from './CaseStages.svelte';
@@ -95,7 +96,7 @@
 {#if denied}<section class="card empty-state">
     <h1>Expediente no disponible</h1>
     <p class="notice error" role="alert">{error}</p>
-    <button class="secondary" onclick={onchange}>Volver a expedientes</button>
+    <Button variant="secondary" onclick={onchange}>Volver a expedientes</Button>
   </section>
 {:else}
   <CaseContext record={current} {user} {view} {onnavigate} {onchange} />

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, openDocument } from './helpers.mjs';
+import { login, openDocument, openSection } from './helpers.mjs';
 import { expire } from './session-inactivity-helpers.mjs';
 import { assignments } from './members-helpers.mjs';
 import {
@@ -26,7 +26,7 @@ test('an applied membership removal is read fresh after MFA and its late result 
   const state = await confirmationSetup(page);
   await login(page, false, false);
   await enterConfirmationCase(page);
-  await page.getByRole('link', { name: 'Asignaciones', exact: true }).click();
+  await openSection(page, 'Asignaciones');
   const panel = assignments(page);
   await expect(panel).toHaveAttribute('aria-busy', 'false');
   await panel.getByLabel('Buscar por correo', { exact: true }).fill(' PERSON2 ');
@@ -53,7 +53,7 @@ test('an applied membership removal is read fresh after MFA and its late result 
     state.calls.slice(afterExpiry).some((call) => call.path === casePath && call.method === 'GET'),
   ).toBe(true);
   const fresh = holdConfirmationRequest(state, 'GET', membersPath);
-  await page.getByRole('link', { name: 'Asignaciones', exact: true }).click();
+  await openSection(page, 'Asignaciones');
   await expect.poll(() => fresh.entered).toBe(true);
   await expect(panel.locator('.member-confirmation')).toHaveCount(0);
   await expect(panel.getByRole('button', { name: /^(Retirar|Asignar) person2/ })).toHaveCount(0);

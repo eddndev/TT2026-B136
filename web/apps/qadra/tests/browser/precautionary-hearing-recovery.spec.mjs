@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openSection } from './helpers.mjs';
 import {
   setupPrecautionaryScheduling,
   openPrecautionaryForm,
@@ -12,12 +13,12 @@ import {
 } from './precautionary-hearing-scheduling-helpers.mjs';
 
 async function leaveAndReturn(page) {
-  await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+  await openSection(page, 'Resumen');
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
   await expect(precautionaryEditor(page)).toHaveCount(0);
-  await page.getByRole('link', { name: 'Audiencias', exact: true }).click();
+  await openSection(page, 'Audiencias');
   await expect(precautionaryPanel(page)).toBeVisible();
   const resume = precautionaryPanel(page).getByRole('button', {
     name: 'Retomar convocatoria cautelar',

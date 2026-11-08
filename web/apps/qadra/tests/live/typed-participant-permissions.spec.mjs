@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs, expectClientWorkspace } from './helpers.mjs';
+import { loginAs, expectClientWorkspace, openSection } from './helpers.mjs';
 import { openCase } from '../case-administration-workflow.mjs';
 import { createPenal } from './case-administration-helpers.mjs';
 import {
@@ -137,7 +137,7 @@ test('institutional participants retain staff read policy, closed-case gates and
         }
       }
     }
-    await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+    await openSection(page, 'Resumen');
     await page.getByRole('button', { name: 'Cerrar administrativamente', exact: true }).click();
     await page
       .getByRole('button', { name: 'Confirmar cierre administrativo', exact: true })

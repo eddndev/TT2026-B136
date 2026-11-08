@@ -11,7 +11,12 @@ import {
 
 export { publicReceipt, selection, signature };
 export const loginPath = '/api/v1/auth/certificate-login';
-export const owner = { id: selection.ownerId, email: 'owner@example.test', role: 'owner' };
+export const owner = {
+  id: selection.ownerId,
+  email: 'owner@example.test',
+  name: 'Owner Example',
+  role: 'owner',
+};
 const states = new WeakMap();
 const workspaceReads = new Set([
   '/api/v1/dashboard',
@@ -163,6 +168,23 @@ export async function ownerLoginSetup(page) {
       call.headers.authorization === `Bearer ${state.current.access_token}`
     )
       return route.fallback();
+    // The top bar counts unread alerts once the Owner session is admitted.
+    if (
+      call.method === 'GET' &&
+      call.path === '/api/v1/alerts' &&
+      state.current &&
+      call.headers.authorization === `Bearer ${state.current.access_token}`
+    )
+      return reply({
+        checked_at: {
+          unix_seconds: Math.floor(Date.now() / 1000),
+          nanosecond: 0,
+          offset_seconds: 0,
+        },
+        alerts: [],
+        has_more: false,
+        next_cursor: null,
+      });
     return unexpected();
   });
   return state;

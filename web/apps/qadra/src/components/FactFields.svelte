@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import FactDeclarationFields from './FactDeclarationFields.svelte';
   import FactTimeFields from './FactTimeFields.svelte';
   import FactPersonFields from './FactPersonFields.svelte';
@@ -94,11 +95,11 @@
       <details>
         <summary>Identidad fija de la resoluci&#243;n</summary><code>{values.resolution.id}</code>
       </details>
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={locked}
-        onclick={() => (choosingParent = true)}>Elegir revisi&#243;n de la resoluci&#243;n</button
+        onclick={() => (choosingParent = true)}>Elegir revisi&#243;n de la resoluci&#243;n</Button
       >
       {#if choosingParent}<FactResolutionPicker
           {api}

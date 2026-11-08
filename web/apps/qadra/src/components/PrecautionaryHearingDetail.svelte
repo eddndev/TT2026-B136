@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount } from 'svelte';
   import FactSources from './FactSources.svelte';
   import { hearingModalities, hearingStatus, hearingTimeLabel } from '../lib/hearings.mjs';
@@ -6,8 +7,6 @@
     precautionaryHearingPurposes,
     precautionaryHearingActions,
   } from '../lib/precautionary-hearing-presentation.mjs';
-  import '../styles/hearings.css';
-  import '../styles/procedural-facts.css';
   export let value, caseRecord, onclose;
   let heading;
   $: capture = value.capture;
@@ -19,7 +18,7 @@
 <section class="card hearing-detail fact-detail" aria-label="Detalle de audiencia cautelar">
   <div class="section-heading">
     <h2 tabindex="-1" bind:this={heading}>{precautionaryHearingPurposes[values.purpose]}</h2>
-    <button class="secondary" onclick={onclose}>Cerrar detalle de audiencia</button>
+    <Button variant="secondary" onclick={onclose}>Cerrar detalle de audiencia</Button>
   </div>
   <p><strong>{caseRecord.title}</strong> / {caseRecord.reference}</p>
   {#if caseRecord.administration?.administrative_status === 'closed'}

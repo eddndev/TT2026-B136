@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import DocumentIntegrityIncidentCard from './DocumentIntegrityIncidentCard.svelte';
   import { basicCase } from '../lib/case-administration.mjs';
@@ -98,33 +99,27 @@
 </script>
 
 <section aria-label="Incidentes de integridad" aria-busy={busy || opening}>
-  <div class="page-heading">
-    <div>
-      <span class="eyebrow">ADMINISTRACI&#211;N DEL DESPACHO</span>
-      <h1>Incidentes de integridad</h1>
-      <p>Observaciones persistentes de validaci&#243;n documental fallida.</p>
-    </div>
-    <button class="secondary" disabled={denied || busy || opening} onclick={() => load()}
-      >Actualizar incidentes</button
+  <div class="mb-4 flex flex-wrap items-start justify-between gap-4">
+    <p class="max-w-2xl">
+      Versiones de documentos cuyo contenido no pas&#243; la comprobaci&#243;n de integridad al
+      abrirse. Un incidente no indica la causa ni a un responsable.
+    </p>
+    <Button variant="secondary" disabled={denied || busy || opening} onclick={() => load()}
+      >Actualizar</Button
     >
   </div>
-  <p class="notice">
-    Cada observaci&#243;n registra una validaci&#243;n fallida. No determina su causa ni atribuye
-    responsabilidad a una persona.
-  </p>
-  <p class="hint">Orden por identificador; las fechas describen cada observaci&#243;n.</p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if busy}<p role="status">Consultando incidentes...</p>{/if}
-  {#if opening}<p role="status">Consultando el expediente y la referencia exacta...</p>{/if}
+  {#if opening}<p role="status">Abriendo la versi&#243;n del documento...</p>{/if}
   {#each rows as incident (incident.id)}
     <DocumentIntegrityIncidentCard {incident} onopen={open} disabled={denied || busy || opening} />
   {/each}
   {#if loaded && !busy && !error && !rows.length}<p class="card">
       No hay incidentes registrados.
     </p>{/if}
-  {#if more}<button
-      class="secondary"
+  {#if more}<Button
+      variant="secondary"
       disabled={denied || busy || opening}
-      onclick={() => load(true)}>Cargar m&#225;s incidentes</button
+      onclick={() => load(true)}>Cargar m&#225;s</Button
     >{/if}
 </section>

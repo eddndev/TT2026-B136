@@ -40,7 +40,8 @@ def request(method, path, body=None, expected=200, token=TOKEN, code=None):
 def enroll(role):
     email = 'calendar-' + role + '@example.com'
     password = 'synthetic calendar fixture password'
-    enrollment = request('POST', '/api/v1/users', {'email': email, 'password': password, 'role': role}, 201)
+    enrollment = request('POST', '/api/v1/users', {'email': email, 'name': 'Calendar ' + role,
+                                                   'password': password, 'role': role}, 201)
     challenge = request('POST', '/api/v1/auth/login', {'email': email, 'password': password})
     session = request('POST', '/api/v1/auth/mfa/recovery', {
         'challenge_token': challenge['challenge_token'], 'code': enrollment['recovery_codes'][0],

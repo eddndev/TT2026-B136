@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // Requests the signatures of one contract: the Client by the exact e-mail
   // of its account (the server resolves it), the firm signer, the exact
   // version, the validity and the fingerprint sheet reference. A refusal
@@ -108,8 +109,8 @@
       <p class="hint">No se cre&#243; la solicitud y su vigencia no ha empezado.</p>
     </section>{/if}
   {#if error && !blockers.length}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if pending}<button type="button" class="secondary" disabled={busy} onclick={reconcile}
-      >Consultar recibo de la solicitud</button
+  {#if pending}<Button type="button" variant="secondary" disabled={busy} onclick={reconcile}
+      >Consultar recibo de la solicitud</Button
     >{/if}
-  <button class="primary" type="submit" disabled={busy || !!pending}>Solicitar firmas</button>
+  <Button variant="primary" type="submit" disabled={busy || !!pending}>Solicitar firmas</Button>
 </form>

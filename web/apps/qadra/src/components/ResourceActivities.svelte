@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { pendingActivityDrafts } from '../lib/resource-activity-draft.mjs';
   import { pendingResourceDeadlineDrafts } from '../lib/resource-deadline-draft.mjs';
@@ -215,15 +216,15 @@
 <section class="fact-collection" aria-label="Actividades del recurso">
   <div class="section-heading">
     <h2>Actividades del recurso</h2>
-    {#if canResources(user.role, 'manage')}<button
-        class="primary"
+    {#if canResources(user.role, 'manage')}<Button
+        variant="primary"
         disabled={disabled || pending || !manage}
-        onclick={() => edit()}>Vincular actividad</button
+        onclick={() => edit()}>Vincular actividad</Button
       >{/if}
-    {#if canResources(user.role, 'manage')}<button
-        class="primary"
+    {#if canResources(user.role, 'manage')}<Button
+        variant="primary"
         disabled={disabled || pending || !manage}
-        onclick={() => edit(null, true)}>Crear plazo</button
+        onclick={() => edit(null, true)}>Crear plazo</Button
       >{/if}
   </div>
   <p class="hint">
@@ -242,13 +243,13 @@
   />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
-  {#if !action}{#each drafts as saved (saved.key)}<button
-        class="secondary"
+  {#if !action}{#each drafts as saved (saved.key)}<Button
+        variant="secondary"
         disabled={pending || disabled}
         onclick={() => resume(saved)}
         >{saved.editorKind === 'resource-deadline'
           ? 'Retomar borrador de plazo'
-          : 'Retomar borrador de actividad'}</button
+          : 'Retomar borrador de actividad'}</Button
       >{/each}{/if}
   {#if action === 'create-deadline'}{#key editorKey}<ResourceDeadlineEditor
         {api}
@@ -280,8 +281,8 @@
   <section class="card" aria-label="Vinculos registrados" aria-busy={busy || opening}>
     <div class="section-heading">
       <h3>V&#237;nculos registrados</h3>
-      <button class="secondary" disabled={disabled || pending} onclick={reset}
-        >Actualizar actividades</button
+      <Button variant="secondary" disabled={disabled || pending} onclick={reset}
+        >Actualizar actividades</Button
       >
     </div>
     <div class="action-row">
@@ -301,13 +302,13 @@
             >{/each}</select
         ></label
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={disabled || pending}
         onclick={() => {
           applied = { kind, status };
           reset();
-        }}>Filtrar actividades</button
+        }}>Filtrar actividades</Button
       >
     </div>
     {#each rows as row (row.association.id)}
@@ -328,22 +329,22 @@
     {#if !rows.length && !busy && !error}<p>No hay actividades en esta consulta.</p>{/if}
     {#if busy || opening}<p role="status">Consultando actividades...</p>{/if}
     <div class="action-row">
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={disabled || pending || !index}
         onclick={() => {
           selected = null;
           load(index - 1);
-        }}>Actividades anteriores</button
+        }}>Actividades anteriores</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={disabled || pending || !more}
         onclick={() => {
           selected = null;
           cursors = [...cursors.slice(0, index + 1), next];
           load(index + 1);
-        }}>Siguientes actividades</button
+        }}>Siguientes actividades</Button
       >
     </div>
   </section>

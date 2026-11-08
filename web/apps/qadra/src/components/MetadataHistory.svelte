@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import MetadataSummary from './MetadataSummary.svelte';
   export let api;
@@ -55,10 +56,10 @@
       A&#250;n no hay cambios de clasificaci&#243;n registrados.
     </p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" disabled={disabled || busy} onclick={load}
-      >Volver a consultar historial</button
+    <Button variant="secondary" disabled={disabled || busy} onclick={load}
+      >Volver a consultar historial</Button
     >{/if}
-  {#if hasMore}<button class="secondary" disabled={disabled || busy} onclick={load}
-      >Cargar cambios anteriores</button
+  {#if hasMore}<Button variant="secondary" disabled={disabled || busy} onclick={load}
+      >Cargar cambios anteriores</Button
     >{/if}
 </section>

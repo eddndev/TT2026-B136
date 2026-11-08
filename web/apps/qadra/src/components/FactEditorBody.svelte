@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import FactFields from './FactFields.svelte';
   import FactValues from './FactValues.svelte';
   import FactSources from './FactSources.svelte';
@@ -58,22 +59,22 @@
     plazos.
   </p>
   <CaseClosedNotice />
-  {#if blocked || restoredClosed}<button class="secondary" disabled={pending} onclick={retry}
-      >Volver a consultar el contexto</button
+  {#if blocked || restoredClosed}<Button variant="secondary" disabled={pending} onclick={retry}
+      >Volver a consultar el contexto</Button
     >{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if mode === 'uncertain'}<div class="case-comparison">
       <h3>Resultado incierto</h3>
       <p>Consulta el recibo del env&#237;o. Una ausencia temporal no confirma que fall&#243;.</p>
-      <button class="primary" disabled={pending || blocked} onclick={check}
-        >Consultar env&#237;o exacto</button
+      <Button variant="primary" disabled={pending || blocked} onclick={check}
+        >Consultar env&#237;o exacto</Button
       >
       <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
     </div>{/if}
   {#if mode === 'conflict'}<div class="case-comparison">
       <h3>Comparar con el registro actual</h3>
-      <button class="secondary" disabled={pending || blocked} onclick={compare}
-        >Consultar base actual</button
+      <Button variant="secondary" disabled={pending || blocked} onclick={compare}
+        >Consultar base actual</Button
       >
       {#if compared && candidate}<p>
           Base consultada: revisi&#243;n {candidate.revision} / {candidate.status === 'withdrawn'
@@ -81,10 +82,10 @@
             : 'Registrado'}
         </p>
         <FactValues values={candidate.values} {family} /><FactSources sources={candidate.sources} />
-        {#if action !== 'record' && candidate.status === 'recorded'}<button
-            class="primary"
+        {#if action !== 'record' && candidate.status === 'recorded'}<Button
+            variant="primary"
             disabled={frozen}
-            onclick={accept}>Usar esta base y conservar borrador</button
+            onclick={accept}>Usar esta base y conservar borrador</Button
           >
         {:else}<p>
             Esta captura no permite reenviar sobre la base consultada. Puedes cerrar y revisar sus
@@ -102,8 +103,8 @@
           Motivo: {prepared.command.change.reason}
         </p>{/if}
       <div class="action-row">
-        <button class="secondary" disabled={pending} onclick={back}>Volver al borrador</button
-        ><button class="primary" disabled={frozen} onclick={submit}>Confirmar registro</button>
+        <Button variant="secondary" disabled={pending} onclick={back}>Volver al borrador</Button
+        ><Button variant="primary" disabled={frozen} onclick={submit}>Confirmar registro</Button>
       </div>
     </div>{:else if mode !== 'confirmed'}
     {#if action === 'withdraw'}<FactValues values={base.values} {family} /><FactSources
@@ -130,9 +131,9 @@
     {#if action !== 'record'}<label
         >Motivo<textarea rows="3" bind:value={draft.reason} disabled={frozen}></textarea></label
       >{/if}
-    <button class="primary" disabled={frozen || mode !== 'draft'} onclick={prepare}
-      >Preparar registro</button
+    <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={prepare}
+      >Preparar registro</Button
     >
   {/if}
-  <button class="text-button" disabled={pending} onclick={close}>Cerrar formulario</button>
+  <Button variant="text" disabled={pending} onclick={close}>Cerrar formulario</Button>
 </section>

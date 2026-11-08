@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import ParticipantSummary from './ParticipantSummary.svelte';
   import { profileLabel } from '../lib/typed-participant-fields.mjs';
@@ -80,8 +81,8 @@
           : 'Archivado'}</button
       >{/each}
   </div>
-  {#if more}<button class="secondary" disabled={disabled || busy} onclick={() => load(cursor)}
-      >Consultar m&#225;s participantes</button
+  {#if more}<Button variant="secondary" disabled={disabled || busy} onclick={() => load(cursor)}
+      >Consultar m&#225;s participantes</Button
     >{/if}
   {#if current}<ParticipantSummary record={current} />{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}

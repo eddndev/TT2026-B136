@@ -17,6 +17,7 @@ export async function provisionOwnerCertificates(request) {
     "POST",
     "/users",
     {
+      name: "Owner certificate",
       email: "web-owner-certificate@example.com",
       password,
       role: "owner",

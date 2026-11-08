@@ -1,4 +1,8 @@
 <script>
+  import Modal from './Modal.svelte';
+  import ModalHeading from './ModalHeading.svelte';
+  import ModalActions from './ModalActions.svelte';
+  import Button from './Button.svelte';
   import { uploadOutcomeUncertain } from '../lib/document-upload-outcome.mjs';
   import CaseClosedNotice from './CaseClosedNotice.svelte';
   import { caseState } from '../lib/case-state.mjs';
@@ -219,27 +223,24 @@
   });
 </script>
 
-<dialog
-  class="upload-dialog"
-  bind:this={dialog}
+<Modal
+  class="modal"
+  bind:element={dialog}
   aria-labelledby="append-version-title"
   oncancel={(event) => {
     event.preventDefault();
     close();
   }}
 >
-  <div class="dialog-heading">
-    <div>
-      <span class="eyebrow">HISTORIAL DOCUMENTAL</span>
-      <h2 id="append-version-title">Agregar versi&#243;n</h2>
-    </div>
-    <button
-      class="icon-button"
-      disabled={busy}
-      onclick={close}
-      aria-label="Cerrar nueva versi&#243;n"><Icon name="close" /></button
+  <ModalHeading
+    title="Agregar versi&#243;n"
+    id="append-version-title"
+    eyebrow="HISTORIAL DOCUMENTAL"
+  >
+    <Button variant="icon" disabled={busy} onclick={close} aria-label="Cerrar nueva versi&#243;n"
+      ><Icon name="close" /></Button
     >
-  </div>
+  </ModalHeading>
   <p>
     Agrega un archivo al mismo documento. Las versiones anteriores y su evidencia permanecen
     disponibles.
@@ -284,18 +285,18 @@
     {#if restoreBlocked}<p class="notice" role="status">
         Confirma el expediente y el documento actuales antes de recuperar el borrador.
       </p>
-      <button class="secondary" type="button" disabled={busy} onclick={open}
-        >Volver a consultar el contexto</button
+      <Button variant="secondary" type="button" disabled={busy} onclick={open}
+        >Volver a consultar el contexto</Button
       >{/if}
     {#if unconfirmed && !restoreBlocked}<p class="notice" role="status">
         No se pudo confirmar la versi&#243;n enviada. Revisa la versi&#243;n actual antes de decidir
         si agregar otra.
       </p>{/if}
-    {#if conflict || unconfirmed || restoredClosed}<button
-        class="secondary"
+    {#if conflict || unconfirmed || restoredClosed}<Button
+        variant="secondary"
         type="button"
         disabled={disabled || busy || restoreBlocked}
-        onclick={refresh}>Consultar versi&#243;n actual</button
+        onclick={refresh}>Consultar versi&#243;n actual</Button
       >{/if}
     {#if candidate}<section class="metadata-comparison" aria-label="Versi&#243;n actual guardada">
         <h3>Versi&#243;n actual guardada</h3>
@@ -314,14 +315,14 @@
         El expediente est&#225; cerrado. Puedes consultar el borrador, pero no agregar su archivo.
       </p>{/if}
     <CaseClosedNotice />
-    <div class="dialog-actions">
-      <button class="secondary" type="button" disabled={busy} onclick={close}>Cancelar</button
-      ><button class="primary" disabled={submitBlocked}
+    <ModalActions>
+      <Button variant="secondary" type="button" disabled={busy} onclick={close}>Cancelar</Button
+      ><Button variant="primary" disabled={submitBlocked}
         >{busy && !restoring ? 'Guardando versi\u00f3n...' : 'Guardar nueva versi\u00f3n'}<Icon
           name="arrow"
           size={17}
-        /></button
+        /></Button
       >
-    </div>
+    </ModalActions>
   </form>
-</dialog>
+</Modal>

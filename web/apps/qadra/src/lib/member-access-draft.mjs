@@ -1,5 +1,12 @@
 import { descriptorKey } from './draft-descriptor.mjs';
-import { memberObject, memberSummary, memberRole, memberUuid } from './members-values.mjs';
+import {
+  memberInvalid,
+  memberObject,
+  memberSummary,
+  memberRole,
+  memberUuid,
+} from './members-values.mjs';
+import { canonicalAccountName } from './account-name.mjs';
 
 const contextId = 'member-access';
 
@@ -30,7 +37,8 @@ export async function freshMemberAccess({ api, members, principalId, id, admitte
   if (!admitted()) return null;
   const principal = await api.me();
   if (!admitted()) return null;
-  memberObject(principal, ['id', 'email', 'role']);
+  memberObject(principal, ['id', 'email', 'role', 'name'], ['id', 'email', 'role']);
+  if (Object.hasOwn(principal, 'name') && !canonicalAccountName(principal.name)) memberInvalid();
   memberUuid(principal.id);
   if (principal.id !== principalId || principal.role !== 'owner') {
     const failure = new Error('Ya no tienes permiso para administrar el acceso de cuentas.');

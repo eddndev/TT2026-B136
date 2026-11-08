@@ -53,11 +53,11 @@
   flex-wrap: wrap;
   gap: 12px;
 }
-.stage-current > .text-button {
+.stage-current > .btn-text {
   display: block;
   margin-top: 18px;
 }
-.stage-form > .text-button {
+.stage-form > .btn-text {
   margin-top: 18px;
 }
 .stage-reconciliation,

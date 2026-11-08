@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import FactValues from './FactValues.svelte';
   import FactSources from './FactSources.svelte';
   import FactHistory from './FactHistory.svelte';
@@ -34,8 +35,10 @@
   {#if historical}<p class="notice">
       Esta vista conserva la revisi&#243;n seleccionada. Puede existir una posterior.
     </p>
-    <button class="secondary" disabled={disabled || historyBusy} onclick={() => onselect(record.id)}
-      >Consultar {singular} actual</button
+    <Button
+      variant="secondary"
+      disabled={disabled || historyBusy}
+      onclick={() => onselect(record.id)}>Consultar {singular} actual</Button
     >{/if}
   <FactValues values={record.values} {family} /><FactSources sources={record.sources} />
   {#if record.reason}<p class="case-multiline">Motivo: {record.reason}</p>{/if}
@@ -53,21 +56,21 @@
     <p>Recibo <code>{record.receipt.submission_digest}</code></p>
   </details>
   <div class="action-row">
-    {#if canManage && !historical && record.status === 'recorded'}<button
-        class="primary"
+    {#if canManage && !historical && record.status === 'recorded'}<Button
+        variant="primary"
         disabled={disabled || historyBusy}
-        onclick={() => onedit('correct')}>Corregir {singular}</button
-      ><button
-        class="secondary"
+        onclick={() => onedit('correct')}>Corregir {singular}</Button
+      ><Button
+        variant="secondary"
         disabled={disabled || historyBusy}
-        onclick={() => onedit('withdraw')}>Retirar {singular}</button
+        onclick={() => onedit('withdraw')}>Retirar {singular}</Button
       >{/if}
-    <button
-      class="text-button"
+    <Button
+      variant="text"
       disabled={disabled || historyBusy}
       aria-expanded={history}
       onclick={() => (history = !history)}
-      >{history ? 'Ocultar' : 'Ver'} historial de {singular}</button
+      >{history ? 'Ocultar' : 'Ver'} historial de {singular}</Button
     >
   </div>
   {#if history}<FactHistory

@@ -108,7 +108,7 @@ fn invalid_appends_and_current_role_changes_do_not_mutate_document_history() {
         Err(ApplicationError::InvalidInput(_))
     ));
     let backup_owner = Uuid::new_v4();
-    db.client.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture','owner','\\x00','{}')",
+    db.client.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes,display_name) VALUES($1,$2,'fixture','owner','\\x00','{}','Fixture')",
         &[&backup_owner, &format!("{backup_owner}@example.test")]).unwrap();
     for sql in [
         "UPDATE users SET revision=revision+1,auth_generation=auth_generation+CASE WHEN active IS DISTINCT FROM false THEN 1 ELSE 0 END,active=false WHERE id=$1",

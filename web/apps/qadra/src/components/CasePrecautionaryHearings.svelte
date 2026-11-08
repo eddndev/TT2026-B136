@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import PrecautionaryHearingEditor from './PrecautionaryHearingEditor.svelte';
   import PrecautionaryHearingDetail from './PrecautionaryHearingDetail.svelte';
@@ -125,18 +126,18 @@
 <section class="card hearing-index" aria-label="Audiencias cautelares" aria-busy={busy}>
   <div class="section-heading">
     <h2>Audiencias cautelares</h2>
-    {#if canFacts(user.role, 'manage')}<button
-        class="primary"
+    {#if canFacts(user.role, 'manage')}<Button
+        variant="primary"
         disabled={locked || !manage}
-        onclick={() => edit('schedule')}>Programar audiencia cautelar</button
+        onclick={() => edit('schedule')}>Programar audiencia cautelar</Button
       >{/if}
   </div>
   <p>Convocatorias de imposici&#243;n y revisi&#243;n con soporte declarado.</p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if !action}{#each drafts as saved (saved.key)}<button
-        class="secondary"
+  {#if !action}{#each drafts as saved (saved.key)}<Button
+        variant="secondary"
         disabled={locked}
-        onclick={() => resume(saved)}>Retomar convocatoria cautelar</button
+        onclick={() => resume(saved)}>Retomar convocatoria cautelar</Button
       >{/each}{/if}
   {#if busy}<p role="status">Consultando convocatorias...</p>{/if}
   {#each rows as row (row.capture.review.command.hearing_id)}
@@ -148,35 +149,35 @@
         ]}
       </p>
       <p>{row.capture.review.resolved_values.venue}</p>
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={locked}
         aria-label={`Consultar audiencia cautelar ${row.capture.review.command.hearing_id}`}
         onclick={() => open(row.capture.review.command.hearing_id)}
-        >Consultar audiencia cautelar</button
+        >Consultar audiencia cautelar</Button
       >
     </div>
   {/each}
   {#if !rows.length && !busy && !error}<p>No hay convocatorias cautelares registradas.</p>{/if}
   <div class="pagination action-row">
-    <button class="secondary" disabled={locked || !index} onclick={() => load(index - 1)}
-      >Convocatorias anteriores</button
+    <Button variant="secondary" disabled={locked || !index} onclick={() => load(index - 1)}
+      >Convocatorias anteriores</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={locked || !more}
       onclick={() => {
         cursors = [...cursors.slice(0, index + 1), nextId];
         load(index + 1);
-      }}>Siguientes convocatorias</button
+      }}>Siguientes convocatorias</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={locked}
       onclick={() => {
         cursors = [undefined];
         load();
-      }}>Actualizar convocatorias</button
+      }}>Actualizar convocatorias</Button
     >
   </div>
 </section>
@@ -200,11 +201,11 @@
     onclose={() => (selected = null)}
   />
   {#if canFacts(user.role, 'manage')}<div class="action-row">
-      <button class="secondary" disabled={locked || !editable} onclick={() => edit('replace')}
-        >Reprogramar audiencia cautelar</button
+      <Button variant="secondary" disabled={locked || !editable} onclick={() => edit('replace')}
+        >Reprogramar audiencia cautelar</Button
       >
-      <button class="secondary" disabled={locked || !editable} onclick={() => edit('cancel')}
-        >Cancelar audiencia cautelar</button
+      <Button variant="secondary" disabled={locked || !editable} onclick={() => edit('cancel')}
+        >Cancelar audiencia cautelar</Button
       >
     </div>{/if}
 {/if}

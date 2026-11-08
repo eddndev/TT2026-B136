@@ -1,8 +1,8 @@
 use application::identity::invitations::InvitationService;
 pub use application::identity::{
-    invitations::*, password_reset::ResetTokenSource, EnrollmentResult, IdentityWorkflow,
-    LoginChallenge, Principal, SecretProtector, SessionResult, SessionStatus, UserRecord,
-    UserRepository,
+    invitations::*, password_reset::ResetTokenSource, CurrentAccount, EnrollmentResult,
+    IdentityWorkflow, LoginChallenge, Principal, SecretProtector, SessionResult, SessionStatus,
+    UserRecord, UserRepository,
 };
 pub use application::ApplicationError;
 pub use domain::{
@@ -12,7 +12,7 @@ pub use domain::{
         RecoveryCodeSet, Sha256Digest, TotpEnrollment, TotpProvider, TotpVerification,
         RECOVERY_CODE_COUNT,
     },
-    identity::{Permission, Role, UserId},
+    identity::{DisplayName, Permission, Role, UserId},
     DomainError,
 };
 pub use std::{
@@ -30,6 +30,7 @@ mod crypto;
 mod store;
 
 pub const EMAIL: &str = "recipient@example.test";
+pub const NAME: &str = "Rosa Recipient";
 pub const PASSWORD: &str = "the chosen recipient password";
 pub const RAW_TOKEN: [u8; 32] = [0x5a; 32];
 pub const CODE: &str = "123456";
@@ -50,10 +51,14 @@ pub fn now() -> OffsetDateTime {
 pub fn expiry() -> OffsetDateTime {
     now() + time::Duration::seconds(INVITATION_TTL_SECONDS)
 }
+pub fn name() -> DisplayName {
+    DisplayName::new(NAME).unwrap()
+}
 pub fn owner_record() -> UserRecord {
     UserRecord {
         id: UserId::from_uuid(operation(1)),
         email: "owner@example.test".into(),
+        display_name: DisplayName::new("Owner Example").unwrap(),
         password_hash: "fake:owner password".into(),
         role: Role::Owner,
         active: true,
@@ -76,6 +81,7 @@ pub fn candidate() -> InvitationCandidate {
         id: id(),
         revision: 1,
         email: EMAIL.into(),
+        display_name: name(),
         role: Role::Litigator,
         expires_at: expiry(),
         pending: None,
@@ -87,6 +93,7 @@ pub fn summary() -> InvitationSummary {
         revision: 1,
         operation_id: operation(10),
         email: EMAIL.into(),
+        display_name: name(),
         role: Role::Litigator,
         status: InvitationStatus::Pending,
         delivery: InvitationDeliveryState::Pending,
@@ -99,6 +106,7 @@ pub fn issue_request() -> InvitationIssueRequest {
     InvitationIssueRequest {
         operation_id: operation(10),
         email: EMAIL.into(),
+        display_name: NAME.into(),
         role: Role::Litigator,
     }
 }
@@ -139,6 +147,7 @@ pub struct State {
     pub current_time: OffsetDateTime,
     pub limited: bool,
     pub change_owner_on_protect: bool,
+    pub rename_candidate_on_protect: bool,
     pub finish_error: bool,
     pub lose_finish_response: bool,
     pub corrupt_ciphertext: bool,
@@ -164,6 +173,7 @@ impl Default for State {
             current_time: now(),
             limited: false,
             change_owner_on_protect: false,
+            rename_candidate_on_protect: false,
             finish_error: false,
             lose_finish_response: false,
             corrupt_ciphertext: false,

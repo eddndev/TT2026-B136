@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { roles } from '../lib/documents.mjs';
   export let record,
     onopen,
@@ -28,8 +29,8 @@
         >
       </p>{/if}
   </div>
-  <button class="secondary" {disabled} onclick={() => onopen(record)}
-    >{action} {record.email}</button
+  <Button variant="secondary" {disabled} onclick={() => onopen(record)}
+    >{action} {record.email}</Button
   >
 </article>
 

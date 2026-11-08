@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { hearingRecord, hearingRow } from '../fixtures/hearings.mjs';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, openSection } from './helpers.mjs';
 import {
   agendaPage,
   queryHearingAgenda as query,
@@ -33,9 +33,9 @@ test('agenda queries a single transversal endpoint and opens an exact one-use he
   expect(
     state.calls.some((row) => row.path.endsWith(`/hearings/${record.id}/revisions/1`)),
   ).toBeTruthy();
-  await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+  await openSection(page, 'Resumen');
   const exactReads = state.calls.filter((row) => row.path.includes('/revisions/')).length;
-  await page.getByRole('link', { name: 'Audiencias', exact: true }).click();
+  await openSection(page, 'Audiencias');
   await expect(page.getByRole('region', { name: 'Detalle de audiencia', exact: true })).toHaveCount(
     0,
   );

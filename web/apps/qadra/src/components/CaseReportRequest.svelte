@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { reportPeriod, reportTypeLabel } from '../lib/case-reports-presentation.mjs';
   import { createReportRequestController } from '../lib/case-report-request-controller.mjs';
@@ -54,20 +55,20 @@
   {#if state.saved}
     <div class="notice">
       <p>Hay una solicitud pendiente conservada en esta pestana.</p>
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={pickerBusy || busy}
-        onclick={controller.context}>Retomar solicitud de informe</button
+        onclick={controller.context}>Retomar solicitud de informe</Button
       >
     </div>
   {/if}
   {#if state.saved || state.dirty || state.pending || (state.blocked && !state.denied)}
-    <button
+    <Button
       type="button"
-      class="text-button"
+      variant="text"
       disabled={busy || state.contextBusy}
-      onclick={controller.discard}>Descartar solicitud pendiente</button
+      onclick={controller.discard}>Descartar solicitud pendiente</Button
     >
   {/if}
   <form
@@ -148,27 +149,27 @@
         PDF y CSV incluyen documentos cargados, actuaciones procesales registradas y plazos marcados
         como atendidos, atribuidos a su autor durante el periodo.
       </p>{/if}
-    {#if state.pickerMore}<button
+    {#if state.pickerMore}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={locked || pickerBusy}
-        onclick={() => controller.loadPicker(true)}>Cargar m&#225;s litigantes</button
+        onclick={() => controller.loadPicker(true)}>Cargar m&#225;s litigantes</Button
       >{/if}
     {#if pickerBusy}<p role="status">Consultando litigantes disponibles...</p>{/if}
     {#if state.pickerError}<p class="notice error" role="alert">{state.pickerError}</p>
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={locked || pickerBusy}
-        onclick={() => controller.loadPicker()}>Actualizar litigantes</button
+        onclick={() => controller.loadPicker()}>Actualizar litigantes</Button
       >{/if}
     {#if state.error}<p class="notice error" role="alert">{state.error}</p>{/if}
     {#if state.blocked && !state.denied}
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={busy || pickerBusy}
-        onclick={controller.context}>Volver a consultar el contexto</button
+        onclick={controller.context}>Volver a consultar el contexto</Button
       >
     {/if}
     {#if state.pending}<div class="notice report-retry">
@@ -180,15 +181,15 @@
           {reportTypeLabel(state.pending)}: {pendingPeriod.from.slice(0, 10)} a
           {pendingPeriod.before.slice(0, 10)} (final excluido).
         </p>
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={locked || pickerBusy || !!state.pickerError}
-          onclick={() => controller.request(true)}>Reintentar solicitud</button
+          onclick={() => controller.request(true)}>Reintentar solicitud</Button
         >
       </div>{/if}
-    <button class="primary" type="submit" disabled={locked || pickerBusy || !!state.pickerError}
-      >{busy ? 'Enviando solicitud...' : 'Generar informe'}</button
+    <Button variant="primary" type="submit" disabled={locked || pickerBusy || !!state.pickerError}
+      >{busy ? 'Enviando solicitud...' : 'Generar informe'}</Button
     >
   </form>
   <p class="hint report-request-note">

@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { resourceEditor, resourceDetail } from './procedural-resources-helpers.mjs';
+import { openSection } from './helpers.mjs';
 export { resourceEditor, resourceDetail };
 export const resolutionSupport = 'la resoluci\u00f3n impugnada';
 export const rawResource = {
@@ -13,7 +14,7 @@ export const prepareButton = (form) =>
 export const confirmButton = (form) =>
   form.getByRole('button', { name: 'Confirmar registro', exact: true });
 export async function enterResources(page) {
-  await page.getByRole('link', { name: 'Recursos', exact: true }).click();
+  await openSection(page, 'Recursos');
   await expect(
     page.getByRole('heading', { name: 'Recursos procesales', exact: true }),
   ).toBeVisible();

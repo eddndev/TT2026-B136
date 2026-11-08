@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import { download } from '../lib/documents.mjs';
@@ -50,8 +51,8 @@
   });
 </script>
 
-<button class="secondary" disabled={disabled || !!busy} onclick={run}>
+<Button variant="secondary" disabled={disabled || !!busy} onclick={run}>
   <Icon name="download" size={17} />{busy === 'content'
     ? 'Validando archivo...'
     : 'Descargar archivo'}
-</button>
+</Button>

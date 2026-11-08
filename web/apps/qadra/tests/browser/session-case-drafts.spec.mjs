@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate, caseRecord } from './helpers.mjs';
+import { login, navigate, caseRecord, signOut } from './helpers.mjs';
 import { administration, profile } from './case-administration-helpers.mjs';
 import { expire, signInOther, casePath } from './session-inactivity-helpers.mjs';
 import {
@@ -80,14 +80,14 @@ test('changing account and explicit logout discard suspended case creation draft
   await signInOther(page);
   await expectBlankCase(await createEditor(page));
   await editor(page).getByRole('button', { name: 'Cancelar', exact: true }).click();
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
+  await signOut(page);
   await login(page, false, false);
   const form = await createEditor(page);
   await expectBlankCase(form);
   await expire(page, state, await fillPartialCase(form));
   await login(page, false, false);
   await expect(editor(page)).toHaveCount(0);
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
+  await signOut(page);
   await login(page, false, false);
   await expectBlankCase(await createEditor(page));
   expect(state.confirmedWrites).toEqual([]);

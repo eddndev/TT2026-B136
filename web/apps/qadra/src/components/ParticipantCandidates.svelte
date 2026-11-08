@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import ParticipantSupport from './ParticipantSupport.svelte';
   import { candidateKey } from '../lib/typed-participant-values.mjs';
   export let result,
@@ -46,17 +47,17 @@
       </p>
       <p class="hint">Coincidencias: {row.signals.map((signal) => signals[signal]).join(', ')}</p>
       <div class="action-row">
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || pending}
-          onclick={() => onchoose(row)}>{choiceLabel}</button
+          onclick={() => onchoose(row)}>{choiceLabel}</Button
         >
-        <button
+        <Button
           type="button"
-          class="text-button"
+          variant="text"
           disabled={disabled || pending}
-          onclick={() => declareDifferent(key)}>Declarar persona distinta</button
+          onclick={() => declareDifferent(key)}>Declarar persona distinta</Button
         >
       </div>
       {#if decisions[key]}<label

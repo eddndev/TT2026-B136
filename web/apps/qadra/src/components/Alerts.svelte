@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import AlertCard from './AlertCard.svelte';
@@ -202,8 +203,8 @@
       <h1>Mis alertas</h1>
       <p>Avisos de tus audiencias y plazos, con su origen y estado de lectura.</p>
     </div>
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={denied || preferencesOpen}
       onclick={() => {
         preferencesOpen = true;
@@ -211,7 +212,7 @@
       }}
     >
       Preferencias de alertas
-    </button>
+    </Button>
   </div>
   <p class="notice">
     La fecha capturada no acredita la vigencia actual. Abre la revisi&#243;n de origen para
@@ -253,9 +254,9 @@
             ></select
           ></label
         >
-        <button class="primary" type="submit">Consultar alertas</button>
-        <button class="secondary" type="button" disabled={busy || opening} onclick={() => load()}
-          ><Icon name="clock" size={16} />Actualizar alertas</button
+        <Button variant="primary" type="submit">Consultar alertas</Button>
+        <Button variant="secondary" type="button" disabled={busy || opening} onclick={() => load()}
+          ><Icon name="clock" size={16} />Actualizar alertas</Button
         >
       </form>
       {#if checked}<p class="hint">Consulta comprobada: {alertTimeLabel(checked)}</p>{/if}
@@ -278,8 +279,8 @@
       </div>{/if}
     {#if more}<div class="alerts-continuation">
         <p class="hint">Consulta parcial: faltan alertas por consultar.</p>
-        <button class="secondary" disabled={busy || opening} onclick={() => load(true)}
-          >Cargar m&#225;s alertas</button
+        <Button variant="secondary" disabled={busy || opening} onclick={() => load(true)}
+          >Cargar m&#225;s alertas</Button
         >
       </div>{/if}
   {/if}

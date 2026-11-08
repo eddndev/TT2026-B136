@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login } from './helpers.mjs';
+import { login, signOut } from './helpers.mjs';
 import { expire, signInOther } from './session-inactivity-helpers.mjs';
 import {
   ownerCertificateSetup,
@@ -127,10 +127,7 @@ test('explicit logout discards public draft and another Owner never recovers a l
   await login(page, false, false);
   await openOwnerCertificates(page);
   await prepareOwnerRegistration(page, state);
-  await page
-    .getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true })
-    .filter({ visible: true })
-    .click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await login(page, false, false);
   await openOwnerCertificates(page);

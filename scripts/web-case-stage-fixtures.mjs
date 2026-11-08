@@ -34,7 +34,7 @@ try {
   for (const role of ['owner', 'litigator', 'paralegal', 'client']) {
     const password = `case stages browser ${role} password`;
     const enrollment = await request('POST', '/users', {
-      email: `case-stages.${role}@example.com`, password, role,
+      name: `Case stage ${role}`, email: `case-stages.${role}@example.com`, password, role,
     }, 201);
     stages[role] = {
       id: enrollment.user.id, email: enrollment.user.email, password,

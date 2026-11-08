@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import OwnerCertificateEditor from './OwnerCertificateEditor.svelte';
   import OwnerCertificateReceipt from './OwnerCertificateReceipt.svelte';
@@ -118,23 +119,15 @@
   });
 </script>
 
-<div class="page-heading">
-  <div>
-    <span class="eyebrow">MI CUENTA</span>
-    <h1>Mi certificado</h1>
-    <p>Vincula tu certificado p&#250;blico a tu propia cuenta con una firma personal.</p>
-  </div>
-</div>
-<p class="notice">
-  Perfil interno de demostraci&#243;n. Registrar el v&#237;nculo no abre una sesi&#243;n ni firma
-  documentos. Si el servidor habilita el acceso por certificado, requiere una firma nueva y tu
-  segundo factor.
+<p class="mb-4">
+  Entra a Qadra con tu certificado, adem&#225;s de tu segundo factor. Este certificado no firma
+  documentos.
 </p>
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 {#if !ready}
   <section class="card">
     <p role="status">Consultando tu cuenta y su v&#237;nculo...</p>
-    {#if !busy}<button class="secondary" onclick={load}>Volver a consultar</button>{/if}
+    {#if !busy}<Button variant="secondary" onclick={load}>Volver a consultar</Button>{/if}
   </section>
 {:else}
   <KeyRequest
@@ -147,20 +140,21 @@
     {#each pending as saved (saved.key)}<section class="card retained">
         <h2>Intento pendiente</h2>
         <p>Conservado en memoria para esta cuenta. Reabrir no lo env&#237;a.</p>
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           onclick={() =>
             saved.action === 'register' ? openRegistration(saved) : openWithdrawal(saved)}
         >
           {saved.action === 'register' ? 'Continuar registro' : 'Continuar retiro'}
-        </button>
+        </Button>
       </section>{/each}
     {#if !current && !pending.some((row) => row.action === 'register')}
       <section class="card stack">
         <h2>Registrar mi certificado</h2>
         <p>No hay un v&#237;nculo sin retirar para tu cuenta.</p>
         <div class="action-row">
-          <button class="primary" onclick={() => openRegistration()}>Registrar certificado</button>
+          <Button variant="primary" onclick={() => openRegistration()}>Registrar certificado</Button
+          >
         </div>
       </section>
     {/if}

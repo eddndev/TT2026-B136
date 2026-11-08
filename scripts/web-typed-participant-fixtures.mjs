@@ -7,7 +7,7 @@ export async function seedTypedParticipants(request, token, certificatePath) {
   for (const role of ['owner', 'litigator', 'paralegal', 'client']) {
     const password = `typed participant browser ${role} password`;
     const enrollment = await request('POST', '/api/v1/users', {
-      email: `typed-participants.${role}@example.com`, password, role,
+      name: `Typed participant ${role}`, email: `typed-participants.${role}@example.com`, password, role,
     }, token, 201);
     participants[role] = {
       id: enrollment.user.id, email: enrollment.user.email, password,

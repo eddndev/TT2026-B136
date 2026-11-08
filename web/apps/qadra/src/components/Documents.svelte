@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
   import { onMount, onDestroy, tick } from 'svelte';
@@ -172,10 +173,10 @@
     <h1>Documentos</h1>
     <p>Del archivo original a una evidencia que puedes verificar.</p>
   </div>
-  {#if can(user.role, 'documents')}<button
-      class="primary"
+  {#if can(user.role, 'documents')}<Button
+      variant="primary"
       disabled={$administration.closed && !upload?.hasSuspendedDraft()}
-      onclick={() => upload.open()}><Icon name="plus" size={18} />Subir documento</button
+      onclick={() => upload.open()}><Icon name="plus" size={18} />Subir documento</Button
     >{/if}
 </div>
 {#if !can(user.role, 'documents')}<section class="empty-state card">
@@ -202,7 +203,7 @@
           Documentos guardados en {caseRecord.reference}. B&#250;squeda por nombre en el expediente.
         </p>
       </div>
-      <button class="secondary" disabled={busy} onclick={() => load(offset)}>Actualizar</button>
+      <Button variant="secondary" disabled={busy} onclick={() => load(offset)}>Actualizar</Button>
     </div>
     <DocumentFilters bind:this={filters} bind:layout bind:filter onapply={applySearch} />
     {#if busy}<p class="hint" role="status">Consultando documentos...</p>
@@ -224,15 +225,15 @@
             ? 'Cambia la b\u00fasqueda o el estado para ver otros documentos.'
             : 'Carga un archivo para incorporarlo a este expediente.'}
         </p>
-        {#if hasFilters}<button
-            class="secondary"
+        {#if hasFilters}<Button
+            variant="secondary"
             onclick={() => {
               filters.clear();
-            }}>Limpiar filtros</button
-          >{:else}<button
-            class="secondary"
+            }}>Limpiar filtros</Button
+          >{:else}<Button
+            variant="secondary"
             disabled={$administration.closed && !upload?.hasSuspendedDraft()}
-            onclick={() => upload.open()}>Seleccionar un archivo</button
+            onclick={() => upload.open()}>Seleccionar un archivo</Button
           >{/if}
       </div>{/if}
     <Pagination {offset} count={documents.length} {hasMore} {busy} onchange={load} />
@@ -252,8 +253,8 @@
           placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
           bind:value={reference}
         /></label
-      ><button class="secondary" disabled={opening}
-        >{opening ? 'Consultando...' : 'Abrir documento'}<Icon name="arrow" size={16} /></button
+      ><Button variant="secondary" disabled={opening}
+        >{opening ? 'Consultando...' : 'Abrir documento'}<Icon name="arrow" size={16} /></Button
       >
     </form>
     <p class="hint">

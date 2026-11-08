@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import ParticipantSubjectPicker from './ParticipantSubjectPicker.svelte';
   import ParticipantSubjectSummary from './ParticipantSubjectSummary.svelte';
@@ -109,15 +110,15 @@
   {#if value.subject}<ParticipantSubjectSummary record={value.subject} />
   {:else}<p>Selecciona la identidad exacta del sujeto.</p>{/if}
   {#if !lockedIdentity}
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || pending}
       onclick={() => {
         if (!canApply()) return;
         closeSupervisor();
         choosingSubject = true;
-      }}>Elegir sujeto</button
+      }}>Elegir sujeto</Button
     >
     {#if choosingSubject}<ParticipantSubjectPicker
         api={typed}
@@ -202,15 +203,15 @@
     >
   {:else}
     {#if value.supervisor}<ParticipantSummary record={value.supervisor} />{/if}
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || pending}
       onclick={() => {
         if (!canApply()) return;
         closeSubject();
         choosingSupervisor = true;
-      }}>Elegir supervisor</button
+      }}>Elegir supervisor</Button
     >
     {#if choosingSupervisor}<HistoricalParticipantPicker
         api={directory}

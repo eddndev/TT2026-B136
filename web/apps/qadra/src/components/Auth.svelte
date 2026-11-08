@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import AuthStory from './AuthStory.svelte';
@@ -8,6 +9,7 @@
   import InvitationAccept from './InvitationAccept.svelte';
   import { takeInvitationLink } from '../lib/invitation-link.mjs';
   import { takePasswordResetLink } from '../lib/password-reset-link.mjs';
+  import { accountName } from '../lib/account-name.mjs';
   export let api;
   export let onlogin;
   export let notice = '';
@@ -23,6 +25,7 @@
   let resetGeneration = 0;
   let authGeneration = 0;
   let email = '';
+  let name = '';
   let password = '';
   let code = '';
   let challenge = null;
@@ -41,7 +44,7 @@
     authGeneration++;
     api.cancelAuthentication();
     busy = false;
-    password = code = error = '';
+    password = code = error = name = '';
     challenge = enrollment = null;
     showPassword = recovery = bootstrap = false;
     certificateMode = certificate;
@@ -65,7 +68,7 @@
       authGeneration++;
       api.invalidateSession();
       busy = false;
-      password = code = '';
+      password = code = name = '';
       challenge = enrollment = null;
       showPassword = bootstrap = false;
       certificateMode = false;
@@ -89,6 +92,16 @@
   });
   async function submit(event) {
     event.preventDefault();
+    // A name refused locally never reaches the server, so the typed password stays.
+    let checkedName = '';
+    if (bootstrap && !challenge) {
+      try {
+        checkedName = accountName(name);
+      } catch (failure) {
+        error = failure.message;
+        return;
+      }
+    }
     const generation = authGeneration;
     busy = true;
     error = '';
@@ -105,7 +118,11 @@
         if (generation !== authGeneration) return;
         onlogin(session, { startedAt, receivedAt: performance.now() });
       } else if (bootstrap) {
-        const value = await api.bootstrap(email.trim(), password);
+        const value = await api.bootstrap({
+          email: email.trim(),
+          name: checkedName,
+          password,
+        });
         if (generation !== authGeneration) return;
         enrollment = value;
       } else {
@@ -221,14 +238,14 @@
                 >Tienes {Math.round(challenge.expires_in_seconds / 60)} minutos para completar este paso.
                 Si se rechaza el c&oacute;digo, inicia sesi&oacute;n de nuevo.</small
               >
-              <button class="primary" disabled={busy}
+              <Button variant="primary" disabled={busy}
                 >{busy ? 'Verificando...' : 'Verificar y entrar'}<Icon
                   name="arrow"
                   size={18}
-                /></button
+                /></Button
               >
-              <button
-                class="text-button"
+              <Button
+                variant="text"
                 type="button"
                 disabled={busy}
                 onclick={() => {
@@ -237,15 +254,20 @@
                 }}
                 >{recovery
                   ? 'Usar app de autenticaci\u00f3n'
-                  : 'Usar c\u00f3digo de recuperaci\u00f3n'}</button
+                  : 'Usar c\u00f3digo de recuperaci\u00f3n'}</Button
               >
-              <button
-                class="text-button"
-                type="button"
-                disabled={busy}
-                onclick={() => changeMethod()}>Volver al inicio de sesi&oacute;n</button
+              <Button variant="text" type="button" disabled={busy} onclick={() => changeMethod()}
+                >Volver al inicio de sesi&oacute;n</Button
               >
             {:else}
+              {#if bootstrap}<label
+                  >Nombre completo<input
+                    type="text"
+                    autocomplete="name"
+                    required
+                    bind:value={name}
+                  /></label
+                >{/if}
               <label
                 >Correo electr&oacute;nico<input
                   type="email"
@@ -282,41 +304,41 @@
               </div>
               {#if bootstrap}<small>Usa al menos 12 caracteres (m&aacute;ximo 1024 bytes).</small
                 >{/if}
-              <button class="primary" disabled={busy}
+              <Button variant="primary" disabled={busy}
                 >{busy ? 'Conectando...' : bootstrap ? 'Crear administrador' : 'Continuar'}<Icon
                   name="arrow"
                   size={18}
-                /></button
+                /></Button
               >
               <div class="auth-switch">
                 {bootstrap
                   ? '\u00bfYa tienes una cuenta?'
-                  : '\u00bfPrimera vez en el despacho?'}<button
-                  class="text-button"
+                  : '\u00bfPrimera vez en el despacho?'}<Button
+                  variant="text"
                   type="button"
                   disabled={busy}
                   onclick={() => {
                     const next = !bootstrap;
                     changeMethod();
                     bootstrap = next;
-                  }}>{bootstrap ? 'Iniciar sesi\u00f3n' : 'Configurar acceso inicial'}</button
+                  }}>{bootstrap ? 'Iniciar sesi\u00f3n' : 'Configurar acceso inicial'}</Button
                 >
               </div>
               {#if !bootstrap}
-                <button
-                  class="text-button"
+                <Button
+                  variant="text"
                   type="button"
                   disabled={busy}
-                  onclick={() => changeMethod(true)}>Ingresar con certificado</button
+                  onclick={() => changeMethod(true)}>Ingresar con certificado</Button
                 >
-                <button
-                  class="text-button"
+                <Button
+                  variant="text"
                   type="button"
                   disabled={busy}
                   onclick={() => {
                     changeMethod();
                     resettingPassword = true;
-                  }}>Olvid&eacute; mi contrase&ntilde;a</button
+                  }}>Olvid&eacute; mi contrase&ntilde;a</Button
                 >
               {/if}
             {/if}

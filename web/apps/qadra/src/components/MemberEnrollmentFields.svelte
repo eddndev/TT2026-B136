@@ -1,11 +1,22 @@
 <script>
-  export let email,
+  export let name,
+    email,
     password,
     role,
     disabled = false,
     onchanged;
 </script>
 
+<label
+  >Nombre del nuevo usuario<input
+    type="text"
+    required
+    autocomplete="off"
+    bind:value={name}
+    {disabled}
+    oninput={onchanged}
+  /></label
+>
 <label
   >Correo del nuevo usuario<input
     type="email"

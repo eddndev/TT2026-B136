@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import FactResolutionPicker from './FactResolutionPicker.svelte';
   import FactResultPicker from './FactResultPicker.svelte';
@@ -123,28 +124,28 @@
         <p>
           Revisi&#243;n {row.revision} / {row.status === 'withdrawn' ? 'Retirada' : 'Registrada'}
         </p>
-        <button
+        <Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || busy}
           onclick={() => chooseResolution(row.id)}
           aria-label={`Consultar ${family === 'resolution' ? 'revisiones' : 'notificaciones'} de resolucion ${row.id}`}
         >
           {family === 'resolution'
             ? 'Consultar revisiones de la fuente'
-            : 'Consultar notificaciones de la fuente'}</button
+            : 'Consultar notificaciones de la fuente'}</Button
         >
       </div>{/each}
     {#if !resolutions.length && !busy}<p>No hay resoluciones en esta p&#225;gina.</p>{/if}
     <div class="action-row">
-      <button type="button" class="secondary" disabled={disabled || busy} onclick={() => list()}
-        >Primera p&#225;gina de resoluciones</button
+      <Button type="button" variant="secondary" disabled={disabled || busy} onclick={() => list()}
+        >Primera p&#225;gina de resoluciones</Button
       >
-      {#if more}<button
+      {#if more}<Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || busy}
-          onclick={() => list(cursor)}>Siguientes resoluciones</button
+          onclick={() => list(cursor)}>Siguientes resoluciones</Button
         >{/if}
     </div>
     {#if resolutionId && family === 'resolution'}{#key resolutionId}<FactResolutionPicker
@@ -161,34 +162,34 @@
     {#if resolutionId && family === 'notification'}<h5>Notificaciones de la resoluci&#243;n</h5>
       {#each notifications as row}<div class="hearing-result-picker-row">
           <p>{factTimeLabel(row.practiced_at)} / Revisi&#243;n {row.revision}</p>
-          <button
+          <Button
             type="button"
-            class="secondary"
+            variant="secondary"
             disabled={disabled || busy}
-            onclick={() => history(row.id)}>Revisiones de notificaci&#243;n {row.id}</button
+            onclick={() => history(row.id)}>Revisiones de notificaci&#243;n {row.id}</Button
           >
         </div>{/each}
       {#if !notifications.length && !busy}<p>No hay notificaciones en esta p&#225;gina.</p>{/if}
-      {#if notificationMore}<button
+      {#if notificationMore}<Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || busy}
           onclick={() => chooseResolution(resolutionId, notificationCursor)}
-          >Siguientes notificaciones</button
+          >Siguientes notificaciones</Button
         >{/if}
-      {#each revisions as row}<button
+      {#each revisions as row}<Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || busy}
           onclick={() => read(row.revision)}
-          >Consultar notificaci&#243;n revisi&#243;n {row.revision}</button
+          >Consultar notificaci&#243;n revisi&#243;n {row.revision}</Button
         >{/each}
-      {#if historyMore}<button
+      {#if historyMore}<Button
           type="button"
-          class="secondary"
+          variant="secondary"
           disabled={disabled || busy}
           onclick={() => history(notificationId, historyCursor)}
-          >Revisiones anteriores de notificaci&#243;n</button
+          >Revisiones anteriores de notificaci&#243;n</Button
         >{/if}
       {#if exact}<p>
           Notificaci&#243;n revisi&#243;n {exact.revision} / Resoluci&#243;n vinculada revisi&#243;n {exact
@@ -196,9 +197,9 @@
         </p>
         <p>{factTimeLabel(exact.values.practiced_at)}</p>
         <p class="case-multiline">{exact.values.summary}</p>
-        <button
+        <Button
           type="button"
-          class="primary"
+          variant="primary"
           disabled={disabled || busy}
           onclick={() =>
             onselected({
@@ -209,12 +210,12 @@
                 resolution: { ...exact.values.resolution },
               },
               record: exact,
-            })}>Vincular esta notificaci&#243;n exacta</button
+            })}>Vincular esta notificaci&#243;n exacta</Button
         >
       {/if}
     {/if}
-    <button type="button" class="text-button" disabled={busy} onclick={oncancel}
-      >Cerrar selector de fuente</button
+    <Button type="button" variant="text" disabled={busy} onclick={oncancel}
+      >Cerrar selector de fuente</Button
     >
   {/if}
 </section>

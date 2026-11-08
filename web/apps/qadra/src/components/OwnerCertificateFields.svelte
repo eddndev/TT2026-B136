@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import LocalSignature from './LocalSignature.svelte';
   import { ownerStatementDownload } from '../lib/owner-certificate-files.mjs';
   export let prepared, signatureName, selectedName, selected, busy, mode, blocked;
@@ -21,10 +22,10 @@
 >
 {#if selectedName}<p class="hint">{selectedName}</p>{/if}
 <div class="action-row">
-  <button
-    class="secondary"
+  <Button
+    variant="secondary"
     disabled={busy || !selected || !!prepared || blocked}
-    onclick={onprepare}>Preparar v&#237;nculo</button
+    onclick={onprepare}>Preparar v&#237;nculo</Button
   >
 </div>
 {#if prepared}
@@ -55,8 +56,8 @@
       <summary>Usar una firma externa</summary>
       <p>Firma los 150 bytes exactos con RSA-3072, PKCS#1 v1.5 y SHA-256.</p>
       <div class="action-row">
-        <button class="secondary" disabled={busy} onclick={onstatement}
-          >Descargar bytes para firma</button
+        <Button variant="secondary" disabled={busy} onclick={onstatement}
+          >Descargar bytes para firma</Button
         >
       </div>
       <label

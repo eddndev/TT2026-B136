@@ -7,7 +7,7 @@ import {
 } from './deadline-editor-helpers.mjs';
 import { id } from '../fixtures/deadline-unit.mjs';
 import { v2Record as detail } from '../fixtures/deadline-v2-unit.mjs';
-import { login, navigate, expectClientWorkspace } from './helpers.mjs';
+import { login, navigate, expectClientWorkspace, signOut } from './helpers.mjs';
 import { overview, otherAdministration } from './case-administration-helpers.mjs';
 const panel = (page) => page.getByRole('region', { name: 'Detalle de plazo', exact: true });
 const open = (page, row) =>
@@ -146,7 +146,7 @@ for (const destination of ['case', 'session'])
     if (destination === 'case') {
       await page.getByRole('button', { name: 'Cambiar expediente', exact: true }).click();
       await page.getByRole('button', { name: /Otro expediente/ }).click();
-    } else await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+    } else await signOut(page);
     held.release();
     await expect.poll(() => finished).toBe(true);
     await expect(panel(page)).toHaveCount(0);

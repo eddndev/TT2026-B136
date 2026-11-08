@@ -19,7 +19,7 @@ case_demo_enroll() {
   curl -fsS -X POST "$BASE_URL/api/v1/users" \
     -H "Authorization: Bearer $OWNER_TOKEN" -H 'Content-Type: application/json' \
     --data "$(jq -n --arg email "$email" --arg role "$role" \
-      '{email: $email, role: $role, password: "case demo safe password"}')"
+      '{email: $email, name: ("Case demo " + $role), role: $role, password: "case demo safe password"}')"
 }
 
 case_demo_login() {

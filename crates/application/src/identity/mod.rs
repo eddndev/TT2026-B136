@@ -13,8 +13,9 @@ mod validation;
 mod workflow;
 
 pub use model::{
-    EnrollmentResult, LoginChallenge, LoginChallengeIdentity, Principal, SessionIdentity,
-    SessionResult, UserRecord,
+    ca_operator_display_name, CurrentAccount, EnrollmentResult, LoginChallenge,
+    LoginChallengeIdentity, Principal, SessionIdentity, SessionResult, UserRecord,
+    CA_OPERATOR_DISPLAY_NAME,
 };
 pub use observation::{MfaAttempt, MfaReason};
 pub use port::{IdentityWorkflow, SecretProtector, SessionStore, UserRepository};

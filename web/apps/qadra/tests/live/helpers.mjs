@@ -4,6 +4,14 @@ import { watchApiFailures } from '../api-diagnostics.mjs';
 
 export const fixture = JSON.parse(readFileSync(process.env.TT_WEB_FIXTURES, 'utf8'));
 
+// Logout lives in the account menu of the top bar.
+export async function signOut(page) {
+  const trigger = page
+    .getByRole('button', { name: 'Tu cuenta', exact: true })
+    .filter({ visible: true });
+  if ((await trigger.getAttribute('aria-expanded')) !== 'true') await trigger.click();
+  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+}
 export async function login(page, recoveryCode, account = fixture) {
   watchApiFailures(page, test.info());
   await page.getByLabel('Correo electr\u00f3nico').fill(account.email);
@@ -100,4 +108,18 @@ export async function capture(page, testInfo, name) {
 
 export async function loginAs(page, account, recoveryIndex) {
   return login(page, account.recoveryCodes[recoveryIndex], account);
+}
+
+// Sections of a page are links on wide screens and a select on phones.
+export async function openSection(page, name) {
+  // SectionTabs renders links (nav mode) or tabs (tabs mode), and a select on phones.
+  const link = page
+    .getByRole('link', { name, exact: true })
+    .or(page.getByRole('tab', { name, exact: true }))
+    .filter({ visible: true });
+  const select = page.getByRole('combobox', { name: /^Secciones / }).filter({ visible: true });
+  // Wait until the page shows one of them before choosing.
+  await expect(link.or(select).first()).toBeVisible();
+  if (await link.count()) return link.first().click();
+  await select.selectOption({ label: name });
 }

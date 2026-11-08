@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onDestroy } from 'svelte';
   import { createStageSupportDraft, stageSupportKey } from '../lib/stage-support-draft.mjs';
   import StagePicker from './StagePicker.svelte';
@@ -140,25 +141,25 @@
     {#if uploaded}<p class="notice" role="status">
         El documento se guard&#243;. Falta confirmar este registro.
       </p>{/if}
-    <button type="button" class="text-button" disabled={disabled || pending} onclick={remove}
-      >Quitar soporte: {label}</button
+    <Button type="button" variant="text" disabled={disabled || pending} onclick={remove}
+      >Quitar soporte: {label}</Button
     >
   {/if}
   <div class="action-row">
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || pending}
       onclick={() =>
         prepare(() => {
           choosing = true;
-        })}>Elegir soporte: {label}</button
+        })}>Elegir soporte: {label}</Button
     >
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || pending}
-      onclick={() => prepare(() => uploader.open())}>Cargar soporte: {label}</button
+      onclick={() => prepare(() => uploader.open())}>Cargar soporte: {label}</Button
     >
   </div>
   {#if choosing}<StagePicker

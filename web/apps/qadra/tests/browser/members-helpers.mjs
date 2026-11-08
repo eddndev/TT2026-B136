@@ -1,5 +1,13 @@
 import { expect } from '@playwright/test';
-import { setup, login, navigate, caseId, otherCaseId, caseRecord } from './helpers.mjs';
+import {
+  setup,
+  login,
+  navigate,
+  caseId,
+  otherCaseId,
+  caseRecord,
+  openSection,
+} from './helpers.mjs';
 import { administration, overview, otherAdministration } from './case-administration-helpers.mjs';
 import { absoluteSession } from '../fixtures/session.mjs';
 import {
@@ -16,7 +24,7 @@ export const editor = (page) => page.getByRole('region', { name: 'Acceso de cuen
 export const assignments = (page) =>
   page.getByRole('region', { name: 'Asignaciones', exact: true });
 export const memberCard = (page, id) => directory(page).locator(`[data-user-id="${id}"]`);
-const principal = ({ id, email, role }) => ({ id, email, role });
+const principal = ({ id, email, role }) => ({ id, email, name: 'Cuenta Ejemplo', role });
 const failure = (route, status, code) => route.fulfill({ status, json: { error: { code } } });
 
 export async function setupMembers(page, { role = 'owner', rows, closed = false } = {}) {
@@ -140,7 +148,7 @@ export async function setupMembers(page, { role = 'owner', rows, closed = false 
       return route.fulfill({
         status: 201,
         json: {
-          user: principal(row),
+          user: { ...principal(row), name: call.body.name },
           totp_secret_base32: 'TESTSECRET',
           otpauth_uri: 'otpauth://totp/test',
           recovery_codes: ['recovery-one', 'recovery-two'],
@@ -223,6 +231,6 @@ export async function openAssignments(page, title = 'Defensa inicial') {
   await expect(
     page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Asignaciones', exact: true }).click();
+  await openSection(page, 'Asignaciones');
   await expect(assignments(page)).toHaveAttribute('aria-busy', 'false');
 }

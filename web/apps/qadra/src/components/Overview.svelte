@@ -1,6 +1,8 @@
 <script>
+  import Button from './Button.svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import Dashboard from './Dashboard.svelte';
+  import OverviewHeading from './OverviewHeading.svelte';
   import { can } from '../lib/documents.mjs';
   import { canAlerts } from '../lib/alerts-presentation.mjs';
   export let user;
@@ -8,23 +10,12 @@
   export let selectedCase = null;
   export let onnavigate;
   export let ondocument;
-  const today = new Intl.DateTimeFormat('es-MX', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date());
 </script>
 
-<div class="page-heading">
-  <div>
-    <span class="eyebrow">TU DESPACHO DIGITAL</span>
-    <h1>Tu mesa de trabajo</h1>
-    <p>Todo listo para continuar con tus expedientes.</p>
-  </div>
-  <span class="today"><Icon name="calendar" size={16} />{today}</span>
-</div>
 {#if ['owner', 'litigator'].includes(user.role)}
   <Dashboard {api} {user} {onnavigate} />
+{:else}
+  <OverviewHeading {user} {onnavigate} />
 {/if}
 <section class="welcome-card">
   <div>
@@ -32,10 +23,10 @@
     <h2>Tu trabajo, en un solo lugar.</h2>
     <p>Organiza los documentos de cada expediente y conserva su evidencia.</p>
     <div class="action-row">
-      <button class="primary" onclick={() => onnavigate('cases')}
-        ><Icon name="briefcase" size={18} />Ver expedientes</button
-      ><button class="text-button" onclick={() => onnavigate('guide')}
-        >C&#243;mo funciona<Icon name="arrow" size={16} /></button
+      <Button variant="primary" onclick={() => onnavigate('cases')}
+        ><Icon name="briefcase" size={18} />Ver expedientes</Button
+      ><Button variant="text" onclick={() => onnavigate('guide')}
+        >C&#243;mo funciona<Icon name="arrow" size={16} /></Button
       >
     </div>
   </div>
@@ -92,21 +83,23 @@
   <section class="card recent-panel">
     <div class="section-heading">
       <h2>Tu expediente actual</h2>
-      <button class="text-button" onclick={() => onnavigate('cases')}
-        >Ver expedientes<Icon name="arrow" size={15} /></button
+      <Button variant="text" onclick={() => onnavigate('cases')}
+        >Ver expedientes<Icon name="arrow" size={15} /></Button
       >
     </div>
     {#if selectedCase}<div class="empty-state">
         <span class="empty-icon"><Icon name="briefcase" size={33} /></span>
         <h3>{selectedCase.title}</h3>
         <p>{selectedCase.reference}</p>
-        <button class="secondary" onclick={() => onnavigate('documents')}>Abrir expediente</button>
+        <Button variant="secondary" onclick={() => onnavigate('documents')}>Abrir expediente</Button
+        >
       </div>
     {:else}<div class="empty-state">
         <span class="empty-icon"><Icon name="folder" size={33} /></span>
         <h3>Aqu&#237; empieza tu trabajo</h3>
         <p>Selecciona un expediente para consultar sus datos y documentos.</p>
-        <button class="secondary" onclick={() => onnavigate('cases')}>Seleccionar expediente</button
+        <Button variant="secondary" onclick={() => onnavigate('cases')}
+          >Seleccionar expediente</Button
         >
       </div>{/if}
     <p class="panel-footnote">
@@ -133,10 +126,10 @@
         </div>
       </li>
     </ol>
-    {#if selectedCase && can(user.role, 'documents')}<button
-        class="secondary"
+    {#if selectedCase && can(user.role, 'documents')}<Button
+        variant="secondary"
         onclick={() => ondocument({ type: 'upload' })}
-        >Subir documento<Icon name="plus" size={16} /></button
+        >Subir documento<Icon name="plus" size={16} /></Button
       >{/if}
   </aside>
 </div>

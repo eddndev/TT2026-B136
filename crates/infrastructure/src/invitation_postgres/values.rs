@@ -2,7 +2,7 @@ use application::{identity::invitations::*, ApplicationError};
 use domain::{
     clock::OffsetDateTime,
     crypto::Sha256Digest,
-    identity::{Role, UserId},
+    identity::{DisplayName, Role, UserId},
 };
 use postgres::{GenericClient, Row, Transaction};
 use serde_json::{json, Value};
@@ -71,6 +71,7 @@ pub(super) fn summary(row: &Row, at: i64) -> Result<InvitationSummary, Applicati
         revision: u64::try_from(row.get::<_, i64>("revision")).map_err(|_| storage())?,
         operation_id: row.get("operation_id"),
         email: row.get("email"),
+        display_name: name(row.get("display_name"))?,
         role: Role::from_str(&row.get::<_, String>("role"))?,
         status: if accepted.is_some() {
             InvitationStatus::Accepted
@@ -86,6 +87,10 @@ pub(super) fn summary(row: &Row, at: i64) -> Result<InvitationSummary, Applicati
         expires_at: seconds(expires)?,
         accepted_at: accepted.map(seconds).transpose()?,
     })
+}
+/// Reads a stored invitee name: docs/adr/0087-account-display-names.md.
+pub(super) fn name(value: &str) -> Result<DisplayName, ApplicationError> {
+    DisplayName::from_stored(value).map_err(|_| storage())
 }
 pub(super) fn delivery(value: &str) -> Result<InvitationDeliveryState, ApplicationError> {
     Ok(match value {
@@ -112,7 +117,7 @@ pub(super) fn digest(bytes: Vec<u8>) -> Result<Sha256Digest, ApplicationError> {
     ))
 }
 pub(super) fn encode_summary(s: &InvitationSummary) -> Value {
-    json!({"id":s.id.as_uuid(),"revision":s.revision,"operation_id":s.operation_id,"email":s.email,"role":s.role.as_str(),"issued_at":s.issued_at.unix_timestamp(),"expires_at":s.expires_at.unix_timestamp()})
+    json!({"id":s.id.as_uuid(),"revision":s.revision,"operation_id":s.operation_id,"email":s.email,"display_name":s.display_name.as_str(),"role":s.role.as_str(),"issued_at":s.issued_at.unix_timestamp(),"expires_at":s.expires_at.unix_timestamp()})
 }
 pub(super) fn decode_summary(v: Value) -> Result<InvitationSummary, ApplicationError> {
     Ok(InvitationSummary {
@@ -120,6 +125,7 @@ pub(super) fn decode_summary(v: Value) -> Result<InvitationSummary, ApplicationE
         revision: v["revision"].as_u64().ok_or_else(storage)?,
         operation_id: uuid(&v, "operation_id")?,
         email: string(&v, "email")?,
+        display_name: name(v["display_name"].as_str().ok_or_else(storage)?)?,
         role: Role::from_str(&string(&v, "role")?)?,
         status: InvitationStatus::Pending,
         delivery: InvitationDeliveryState::Pending,

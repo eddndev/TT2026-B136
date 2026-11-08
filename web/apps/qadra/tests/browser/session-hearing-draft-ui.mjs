@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { hearingId } from './session-hearing-draft-fixtures.mjs';
 import { resultId } from '../fixtures/hearing-results.mjs';
+import { openSection } from './helpers.mjs';
 
 export const hearingForm = (page) =>
   page.getByRole('region', { name: 'Formulario de audiencia', exact: true });
@@ -26,7 +27,7 @@ export const rawResult = {
 };
 
 export async function enterHearings(page) {
-  await page.getByRole('link', { name: 'Audiencias', exact: true }).click();
+  await openSection(page, 'Audiencias');
   await expect(
     page.getByRole('heading', { name: 'Audiencias del expediente', exact: true }),
   ).toBeVisible();

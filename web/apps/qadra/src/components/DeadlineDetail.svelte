@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import DeadlineCalculation from './DeadlineCalculation.svelte';
   import DeadlineHistory from './DeadlineHistory.svelte';
   import DeadlineCapturedMaterial from './DeadlineCapturedMaterial.svelte';
@@ -36,8 +37,10 @@
   {#if historical}<p class="notice">
       Esta es la revisi&#243;n seleccionada. Puede existir una posterior.
     </p>
-    <button class="secondary" disabled={disabled || historyBusy} onclick={() => onselect(record.id)}
-      >Consultar plazo actual</button
+    <Button
+      variant="secondary"
+      disabled={disabled || historyBusy}
+      onclick={() => onselect(record.id)}>Consultar plazo actual</Button
     >{/if}
   <p>
     Responsable registrado: <strong>{record.responsible.email}</strong> / {roles[
@@ -57,25 +60,27 @@
   {#if record.reason}<p class="case-multiline">Motivo: {record.reason}</p>{/if}
   <div class="action-row">
     {#if canManage && !historical && record.status === 'active'}
-      <button class="primary" disabled={disabled || historyBusy} onclick={() => onedit('correct')}
+      <Button variant="primary" disabled={disabled || historyBusy} onclick={() => onedit('correct')}
         >{record.tracking?.review.state === 'accepted'
           ? 'Corregir plazo'
-          : 'Revisar seguimiento'}</button
+          : 'Revisar seguimiento'}</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={disabled || historyBusy}
-        onclick={() => onedit('set_attention')}>Declarar atenci&#243;n</button
+        onclick={() => onedit('set_attention')}>Declarar atenci&#243;n</Button
       >
-      <button class="secondary" disabled={disabled || historyBusy} onclick={() => onedit('retire')}
-        >Retirar plazo</button
+      <Button
+        variant="secondary"
+        disabled={disabled || historyBusy}
+        onclick={() => onedit('retire')}>Retirar plazo</Button
       >
     {/if}
-    <button
-      class="text-button"
+    <Button
+      variant="text"
       disabled={disabled || historyBusy}
       aria-expanded={history}
-      onclick={() => (history = !history)}>{history ? 'Ocultar' : 'Ver'} historial de plazo</button
+      onclick={() => (history = !history)}>{history ? 'Ocultar' : 'Ver'} historial de plazo</Button
     >
   </div>
   {#if history}<DeadlineHistory

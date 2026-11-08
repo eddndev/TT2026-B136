@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import { caseState } from '../lib/case-state.mjs';
   import { underContract } from '../lib/contract-presentation.mjs';
@@ -91,12 +92,12 @@
       interfaz.
     </p>
     <div class="action-row">
-      <button
-        class="primary"
+      <Button
+        variant="primary"
         disabled={disabled || !!busy || uncertain || $administration.closed}
-        onclick={seal}>{busy === 'seal' ? 'Sellando...' : 'Confirmar sellado'}</button
-      ><button class="secondary" disabled={!!busy} onclick={() => (confirmation = false)}
-        >Cancelar</button
+        onclick={seal}>{busy === 'seal' ? 'Sellando...' : 'Confirmar sellado'}</Button
+      ><Button variant="secondary" disabled={!!busy} onclick={() => (confirmation = false)}
+        >Cancelar</Button
       >
     </div>
   </div>{/if}
@@ -104,7 +105,7 @@
     <p>
       El resultado del sellado es incierto. Consulta esta versi&#243;n antes de otra decisi&#243;n.
     </p>
-    <button class="secondary" disabled={disabled || !!busy} onclick={refresh}
-      >Consultar estado del sellado</button
+    <Button variant="secondary" disabled={disabled || !!busy} onclick={refresh}
+      >Consultar estado del sellado</Button
     >
   </div>{/if}

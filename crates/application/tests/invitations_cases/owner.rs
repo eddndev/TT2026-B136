@@ -278,3 +278,56 @@ fn owner_pages_return_only_public_metadata_after_current_authorization() {
     assert!(state.sealed.is_empty());
     assert_eq!(state.tokens, 0);
 }
+
+#[test]
+fn owner_writes_the_trimmed_invitee_name_at_issue() {
+    let mut harness = Harness::new();
+    harness.store.expect_issue().returning(|_, command| {
+        assert_eq!(command.request.display_name, NAME);
+        Ok(summary())
+    });
+    let service = harness.service();
+    let mut request = issue_request();
+    request.display_name = format!("  {NAME} ");
+    assert_eq!(
+        service.issue("session", request).unwrap().display_name,
+        name()
+    );
+}
+
+#[test]
+fn invalid_invitee_names_are_rejected_before_any_token_or_store_write() {
+    let long = "r".repeat(121);
+    for value in ["", "  ", "Rosa\u{202e}", "Rosa\n", long.as_str()] {
+        let harness = Harness::new();
+        let state = harness.state.clone();
+        let service = harness.service();
+        let mut request = issue_request();
+        request.display_name = value.to_string();
+        assert!(
+            matches!(
+                service.issue("session", request),
+                Err(ApplicationError::Domain(DomainError::InvalidDisplayName(_)))
+            ),
+            "{value:?}"
+        );
+        let state = state.lock().unwrap();
+        assert_eq!(state.tokens, 0);
+        assert!(!state.calls.contains(&"issue"));
+    }
+}
+
+#[test]
+fn a_stored_summary_with_another_name_is_inconsistent() {
+    let mut harness = Harness::new();
+    harness.store.expect_issue().returning(|_, _| {
+        let mut result = summary();
+        result.display_name = DisplayName::new("Someone Else").unwrap();
+        Ok(result)
+    });
+    let service = harness.service();
+    assert!(matches!(
+        service.issue("session", issue_request()),
+        Err(ApplicationError::Port(_))
+    ));
+}

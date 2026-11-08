@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import MetadataSummary from './MetadataSummary.svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import { documentStatus } from '../lib/workspace.mjs';
@@ -50,10 +51,10 @@
             ><td><span class="badge {status.tone}">{status.label}</span></td><td
               class="version-cell">{item.version ? `v${item.version}` : '--'}</td
             ><td
-              ><button
-                class="text-button"
+              ><Button
+                variant="text"
                 aria-label={`Abrir ${item.name}`}
-                onclick={() => onselect(item)}>Abrir<Icon name="arrow" size={15} /></button
+                onclick={() => onselect(item)}>Abrir<Icon name="arrow" size={15} /></Button
               ></td
             ></tr
           >{/each}</tbody

@@ -31,7 +31,7 @@ try {
   for (const role of ['owner', 'litigator', 'paralegal', 'client']) {
     const password = `participant browser ${role} password`;
     const enrollment = await request('POST', '/api/v1/users', {
-      email: `participants.${role}@example.com`, password, role,
+      name: `Participant ${role}`, email: `participants.${role}@example.com`, password, role,
     }, session.access_token, 201);
     participants[role] = {
       id: enrollment.user.id, email: enrollment.user.email, password,

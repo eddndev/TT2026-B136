@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { document, login } from './helpers.mjs';
+import { document, login, signOut, openAccountMenu } from './helpers.mjs';
 import { requestCompletion } from './request-completion.mjs';
 import {
   sessionSetup,
@@ -180,13 +180,14 @@ test('offline logout clears local access immediately and a late failure cannot r
     page,
     (request) => new URL(request.url()).pathname === logoutPath,
   );
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect.poll(() => gate.calls.length).toBe(1);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeFocused();
   await expect(page.locator('.app-layout')).toHaveCount(0);
   await expect(page.locator('dialog')).toHaveCount(0);
   await login(page);
+  await openAccountMenu(page);
   await expect(page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true })).toBeEnabled();
   await blankEditor(page);
   const token = state.current.token;

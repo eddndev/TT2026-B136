@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { caseState } from '../lib/case-state.mjs';
   const administration = caseState();
   let busy = false;
@@ -15,7 +16,7 @@
 
 {#if $administration.closed}<div class="notice stack">
     <p>El expediente est&#225; cerrado administrativamente. Tu formulario se conserva.</p>
-    <button type="button" class="secondary" disabled={busy} onclick={refresh}
-      >{busy ? 'Consultando estado...' : 'Consultar estado del expediente'}</button
+    <Button type="button" variant="secondary" disabled={busy} onclick={refresh}
+      >{busy ? 'Consultando estado...' : 'Consultar estado del expediente'}</Button
     >
   </div>{/if}

@@ -12,7 +12,7 @@ PREFIX = 'member-http-'
 
 def enroll(role):
     return request('POST', '/api/v1/users', {
-        'email': PREFIX + role + '@example.com', 'password': PASSWORD, 'role': role,
+        'email': PREFIX + role + '@example.com', 'name': 'Member ' + role, 'password': PASSWORD, 'role': role,
     }, 201)
 
 

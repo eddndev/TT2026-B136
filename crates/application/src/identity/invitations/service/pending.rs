@@ -1,6 +1,6 @@
 use domain::{
     crypto::{PasswordVerification, RecoveryCodeSet, RECOVERY_CODE_COUNT},
-    identity::{Role, UserId},
+    identity::{DisplayName, Role, UserId},
 };
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, Zeroizing};
@@ -97,10 +97,12 @@ impl PendingMaterial {
     pub(super) fn user(
         &self,
         protected_totp_secret: Vec<u8>,
+        display_name: DisplayName,
     ) -> Result<UserRecord, ApplicationError> {
         Ok(UserRecord {
             id: self.user_id,
             email: self.email.clone(),
+            display_name,
             role: self.role,
             active: true,
             password_hash: self.password_hash.clone(),
@@ -226,6 +228,7 @@ impl InvitationService {
         if current.id != candidate.id
             || current.revision != candidate.revision
             || current.email != candidate.email
+            || current.display_name != candidate.display_name
             || current.role != candidate.role
             || current.expires_at != candidate.expires_at
             || present.operation_id != pending.operation_id

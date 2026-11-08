@@ -16,7 +16,7 @@ test('a client sees only its contracts, its signature and the evidence validator
   const nav = page.locator('.desktop-sidebar').getByRole('navigation');
   await expect(nav.getByRole('button')).toHaveText([
     'Mis contratos',
-    'Mi firma',
+    'Mi firma digital',
     'Validar evidencia',
   ]);
   await expect(page.getByRole('button', { name: 'Gu\u00eda de uso' })).toHaveCount(0);
@@ -129,7 +129,7 @@ test('a client without a binding is guided to its signature before signing', asy
     region.getByRole('heading', { name: 'Antes de firmar, prepara tu firma' }),
   ).toBeVisible();
   await expect(region.getByRole('button', { name: 'Cargar y comprobar el PDF' })).toHaveCount(0);
-  await region.getByRole('button', { name: 'Ir a Mi firma' }).click();
-  await expect(page.getByRole('heading', { name: 'Mi firma', exact: true })).toBeVisible();
+  await region.getByRole('button', { name: 'Ir a Mi firma digital' }).click();
+  await expect(page.getByRole('heading', { name: 'Mi firma digital', exact: true })).toBeVisible();
   await expect(page.getByLabel('Organizaci\u00f3n (O)')).toHaveAttribute('readonly', '');
 });

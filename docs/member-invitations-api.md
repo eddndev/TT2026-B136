@@ -5,13 +5,15 @@ Este contrato describe las rutas locales de invitacion y su configuracion en
 separado en [el informe de verificacion](verification-report.md). La decision
 de diseno esta en [el ADR de invitaciones](adr/0075-recoverable-member-invitations.md).
 
-Un Owner activo invita a un Litigator, Paralegal o Client mediante correo y
-rol. Client es la contraparte de un contrato bilateral
+Un Owner activo invita a un Litigator, Paralegal o Client mediante correo,
+nombre y rol. Client es la contraparte de un contrato bilateral
 ([ADR 0086](adr/0086-bilateral-contract-signing.md)), que reserva esa parte a
 cuentas creadas al aceptar una invitacion `client`. El
 destinatario elige su contrasena y confirma TOTP antes de que se cree una cuenta
-utilizable. El flujo no tiene cuota de cuentas, planes comerciales ni campos
-personales adicionales. Las cuentas existentes, incluidas las inactivas, se
+utilizable. El Owner escribe el nombre visible de la persona invitada al emitir
+la invitacion; el destinatario no lo escribe ni lo cambia
+([ADR 0087](adr/0087-account-display-names.md)). Fuera de ese nombre, el flujo
+no tiene cuota de cuentas, planes comerciales ni otros campos personales. Las cuentas existentes, incluidas las inactivas, se
 administran mediante [miembros](members-api.md); no se sustituyen con una
 invitacion. El alta directa existente conserva su contrato.
 
@@ -24,7 +26,7 @@ adjunta una sesion de otra cuenta.
 
 | Metodo y ruta | Entrada | Respuesta correcta |
 | --- | --- | --- |
-| `POST /api/v1/member-invitations` | `operation_id`, `email`, `role` | `201`, resumen |
+| `POST /api/v1/member-invitations` | `operation_id`, `email`, `name`, `role` | `201`, resumen |
 | `GET /api/v1/member-invitations` | Consulta `limit`, `after` opcionales | `200`, pagina |
 | `GET /api/v1/member-invitations/{id}` | UUID de invitacion | `200`, resumen actual |
 | `POST /api/v1/member-invitations/{id}/resend` | `operation_id`, `expected_revision` | `200`, resumen del reenvio |
@@ -34,7 +36,7 @@ adjunta una sesion de otra cuenta.
 
 Los POST requieren un solo encabezado de tipo JSON, un objeto JSON de hasta
 16384 bytes y exactamente los campos indicados. Se rechazan campos desconocidos,
-incluidos datos de perfil, cuota o material MFA en las solicitudes de Owner.
+incluidos otros datos de perfil, cuota o material MFA en las solicitudes de Owner.
 No admiten parametros de consulta. Los GET tienen cuerpo vacio; solo el listado
 admite consulta. Se acepta `application/json` y el tipo `application/*+json`.
 
@@ -59,9 +61,19 @@ Ejemplo de solicitud inicial:
 {
   "operation_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
   "email": "integrante@example.test",
+  "name": "Integrante del despacho",
   "role": "litigator"
 }
 ```
+
+`name` es obligatorio y de solo escritura: ningun resumen, pagina, preparacion
+ni recibo lo devuelve. Se rechaza si contiene caracteres de control (Cc), de
+formato (Cf), U+2028 o U+2029; despues se recortan los espacios de los extremos
+y debe quedar entre 1 y 120 caracteres Unicode. Un nombre invalido responde
+`400 invalid_invitation_request` y un cuerpo sin `name`, o con un valor que no
+es cadena, responde `400 invalid_json`. El nombre recortado forma parte de la
+idempotencia de la emision, el reenvio nunca lo cambia y la cuenta creada al
+aceptar la invitacion lo toma de la invitacion.
 
 `role` solo admite `litigator`, `paralegal` o `client`; otro valor responde
 `400 invalid_invitation_request`. Ninguna invitacion crea un Owner. Una cuenta

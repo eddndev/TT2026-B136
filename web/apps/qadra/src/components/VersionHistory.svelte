@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import { contractDocumentStatus } from '../lib/contract-presentation.mjs';
   export let versions = [];
@@ -19,8 +20,8 @@
       <h2>Versiones de contenido</h2>
       <p class="hint">Versi&#243;n actual: {currentVersion}</p>
     </div>
-    <button class="secondary" disabled={disabled || busy} onclick={onrefresh}
-      >Actualizar historial</button
+    <Button variant="secondary" disabled={disabled || busy} onclick={onrefresh}
+      >Actualizar historial</Button
     >
   </div>
   {#if firstAvailableVersion > 1}<p class="notice">
@@ -46,8 +47,8 @@
   </div>
   {#if busy}<p class="hint" role="status">Consultando versiones...</p>{/if}
   {#if hasMore}<div class="action-row">
-      <button class="secondary" disabled={disabled || busy} onclick={onmore}
-        >Cargar versiones anteriores</button
+      <Button variant="secondary" disabled={disabled || busy} onclick={onmore}
+        >Cargar versiones anteriores</Button
       >
     </div>{/if}
 </section>

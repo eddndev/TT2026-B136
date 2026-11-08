@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { pendingHearingDrafts } from '../lib/hearing-draft.mjs';
   import CasePrecautionaryHearings from './CasePrecautionaryHearings.svelte';
@@ -226,10 +227,10 @@
     <h1>Audiencias del expediente</h1>
     <p>Citas declaradas e historial de cambios.</p>
   </div>
-  {#if canHearings(user.role, 'manage')}<button
-      class="primary"
+  {#if canHearings(user.role, 'manage')}<Button
+      variant="primary"
       disabled={locked || !manage || !context?.profile_complete || !context?.stage_revision}
-      onclick={() => edit('schedule')}>Programar audiencia</button
+      onclick={() => edit('schedule')}>Programar audiencia</Button
     >{/if}
 </div>
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
@@ -254,21 +255,21 @@
       oncancel={closedEditor}
       bind:pending={editorBusy}
     />{/key}{/if}
-{#if !action}{#each drafts as saved (saved.key)}<button
-      class="secondary"
+{#if !action}{#each drafts as saved (saved.key)}<Button
+      variant="secondary"
       disabled={locked}
-      onclick={() => resume(saved)}>Retomar borrador de audiencia</button
+      onclick={() => resume(saved)}>Retomar borrador de audiencia</Button
     >{/each}{/if}
 <section class="card hearing-index" aria-label="Audiencias registradas" aria-busy={busy || opening}>
   <div class="section-heading">
     <h2>Audiencias registradas</h2>
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={locked}
       onclick={() => {
         loadContext();
         resetList();
-      }}>Actualizar audiencias</button
+      }}>Actualizar audiencias</Button
     >
   </div>
   <div class="hearing-filter action-row">
@@ -278,7 +279,7 @@
           value="cancelled">Canceladas</option
         ></select
       ></label
-    ><button class="secondary" disabled={locked} onclick={apply}>Aplicar estado</button>
+    ><Button variant="secondary" disabled={locked} onclick={apply}>Aplicar estado</Button>
   </div>
   {#if busy}<p role="status">Consultando audiencias...</p>{/if}
   <HearingList {rows} disabled={locked} onselect={(row) => open(row.id)} />
@@ -286,23 +287,23 @@
   <div class="pagination">
     <span class="hint">{rows.length} registros en esta p&#225;gina</span>
     <div class="action-row">
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={locked || !index}
         onclick={() => {
           detailGeneration++;
           selected = null;
           load(index - 1);
-        }}>Anterior</button
-      ><button
-        class="secondary"
+        }}>Anterior</Button
+      ><Button
+        variant="secondary"
         disabled={locked || !more}
         onclick={() => {
           cursors = [...cursors.slice(0, index + 1), nextId];
           detailGeneration++;
           selected = null;
           load(index + 1);
-        }}>Siguiente</button
+        }}>Siguiente</Button
       >
     </div>
   </div>
@@ -351,4 +352,4 @@
   disabled={busy || opening || editorBusy || resultBusy || !!action}
   bind:pending={precautionaryBusy}
 />
-<button class="text-button" onclick={() => onnavigate('agenda')}>Ir a Agenda</button>
+<Button variant="text" onclick={() => onnavigate('agenda')}>Ir a Agenda</Button>

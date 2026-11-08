@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import HistoricalParticipantPicker from './HistoricalParticipantPicker.svelte';
   import HearingReference from './HearingReference.svelte';
   export let draft,
@@ -67,19 +68,19 @@
           bind:value={item.observation}
           disabled={disabled || pending}></textarea></label
       >
-      <button
+      <Button
         type="button"
-        class="text-button"
+        variant="text"
         disabled={disabled || pending}
-        onclick={() => remove(item.participant_id)}>Quitar comparecencia</button
+        onclick={() => remove(item.participant_id)}>Quitar comparecencia</Button
       >
     </div>
   {/each}
-  <button
+  <Button
     type="button"
-    class="secondary"
+    variant="secondary"
     disabled={disabled || pending || draft.attendees.length >= 32}
-    onclick={() => (picking = true)}>Agregar comparecencia</button
+    onclick={() => (picking = true)}>Agregar comparecencia</Button
   >
   {#if picking}<HistoricalParticipantPicker
       {api}

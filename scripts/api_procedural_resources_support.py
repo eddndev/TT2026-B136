@@ -11,7 +11,7 @@ def enroll(role):
     email = 'procedural-resources-' + role + '@example.com'
     password = 'synthetic procedural resource fixture password'
     enrollment = request('POST', '/api/v1/users', {
-        'email': email, 'password': password, 'role': role,
+        'email': email, 'name': 'Procedural resource ' + role, 'password': password, 'role': role,
     }, 201)
     challenge = request('POST', '/api/v1/auth/login', {'email': email, 'password': password})
     session = request('POST', '/api/v1/auth/mfa/recovery', {

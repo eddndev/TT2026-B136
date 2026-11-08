@@ -112,7 +112,7 @@ impl IdentityService {
                 return Err(error);
             }
         };
-        let session = status(state, self.session_policy);
+        let session = status(state, self.session_policy, current.display_name.clone());
         let deadline = session
             .idle_expires_at_unix_ms
             .unwrap_or(session.absolute_expires_at_unix_ms)

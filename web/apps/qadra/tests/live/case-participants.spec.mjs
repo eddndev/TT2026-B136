@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, signOut, openSection } from './helpers.mjs';
 import {
   accounts,
   directory,
@@ -21,7 +21,7 @@ test('participants persist with concurrent edits, precise archive, history and l
   await page.goto('/');
   await loginAs(page, accounts.owner, 0);
   await openCase(page);
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await page.getByRole('button', { name: 'Subir documento', exact: true }).first().click();
   const upload = page.getByRole('dialog', { name: 'Subir documento', exact: true });
   await upload.getByLabel('Archivo', { exact: true }).setInputFiles({
@@ -33,7 +33,7 @@ test('participants persist with concurrent edits, precise archive, history and l
   await page.getByRole('button', { name: 'Sellar documento', exact: true }).click();
   await page.getByRole('button', { name: 'Confirmar sellado', exact: true }).click();
   const originalZip = await archive(page, testInfo, 'before-participants.zip');
-  await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+  await openSection(page, 'Participantes');
   await page.getByRole('button', { name: 'Registrar ficha pendiente', exact: true }).click();
   let modal = page.getByRole('dialog', { name: 'Agregar participante', exact: true });
   await modal.getByLabel('Nombre del participante', { exact: true }).fill('Ana Mu\u00f1oz');
@@ -54,7 +54,7 @@ test('participants persist with concurrent edits, precise archive, history and l
     await other.goto('/');
     await loginAs(other, accounts.owner, 1);
     await openCase(other);
-    await other.getByRole('link', { name: 'Participantes', exact: true }).click();
+    await openSection(other, 'Participantes');
     await openPerson(other, 'Ana Mu\u00f1oz');
     const otherModal = await edit(other);
     await otherModal
@@ -133,15 +133,15 @@ test('participants persist with concurrent edits, precise archive, history and l
   await page.setViewportSize({ width: 390, height: 844 });
   await capture(page, testInfo, 'participants-current-mobile');
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await page.getByRole('button', { name: /Abrir participant-evidence.txt/ }).click();
   expect(await archive(page, testInfo, 'after-participants.zip')).toEqual(originalZip);
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible();
   await page.reload();
   await loginAs(page, accounts.owner, 2);
   await openCase(page);
-  await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+  await openSection(page, 'Participantes');
   await openPerson(page, 'Ana Mu\u00f1oz revisada');
   await expect(detail(page).getByText('Revisi\u00f3n 7', { exact: true })).toBeVisible();
   await exercisePermissions(browser, testInfo, 'Ana Mu\u00f1oz revisada', errors);

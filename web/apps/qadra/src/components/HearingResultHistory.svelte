@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { resultStatus } from '../lib/hearing-result-errors.mjs';
   import { hearingDenied } from '../lib/hearings.mjs';
@@ -49,21 +50,21 @@
     exactos.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" disabled={busy || disabled} onclick={() => load()}
-      >Consultar historial de resultados de nuevo</button
+    <Button variant="secondary" disabled={busy || disabled} onclick={() => load()}
+      >Consultar historial de resultados de nuevo</Button
     >{/if}
   {#each rows as row (row.revision)}<div class="hearing-result-picker-row">
       <p>Revisi&#243;n {row.revision} / {resultStatus[row.status]} / {row.recorded_by.email}</p>
       <p><time datetime={row.recorded_at}>{row.recorded_at}</time></p>
       {#if row.reason}<p class="case-multiline">{row.reason}</p>{/if}
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={busy || disabled}
         onclick={() => onselect(id, row.revision)}
-        >Consultar resultado revisi&#243;n {row.revision}</button
+        >Consultar resultado revisi&#243;n {row.revision}</Button
       >
     </div>{/each}
-  {#if more}<button class="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
-      >Cargar cambios anteriores del resultado</button
+  {#if more}<Button variant="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
+      >Cargar cambios anteriores del resultado</Button
     >{/if}
 </section>

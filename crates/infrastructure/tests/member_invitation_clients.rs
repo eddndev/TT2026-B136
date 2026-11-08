@@ -44,6 +44,7 @@ fn issue_client(db: &Fixture, store: &PostgresInvitationStore) -> InvitationSumm
                 request: InvitationIssueRequest {
                     operation_id: Uuid::new_v4(),
                     email: EMAIL.into(),
+                    display_name: "Test Invitee".into(),
                     role: Role::Client,
                 },
                 token_digest: digest(1),
@@ -99,6 +100,7 @@ fn a_stored_client_invitation_keeps_startup_open_and_accepts_as_a_client_account
             user: UserRecord {
                 id: user,
                 email: EMAIL.into(),
+                display_name: domain::identity::DisplayName::new("Test Invitee").unwrap(),
                 role: Role::Client,
                 password_hash: "fixture-password".into(),
                 active: true,

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import ResourceActivityFields from './ResourceActivityFields.svelte';
   import ResourceActivitySources from './ResourceActivitySources.svelte';
   import ResourceValues from './ResourceValues.svelte';
@@ -49,10 +50,10 @@
   </p>
   <CaseClosedNotice />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if blocked || closed}<button
-      class="secondary"
+  {#if blocked || closed}<Button
+      variant="secondary"
       disabled={pending || disabled}
-      onclick={initialize}>Volver a consultar el contexto</button
+      onclick={initialize}>Volver a consultar el contexto</Button
     >{/if}
   {#if mode === 'uncertain'}
     <h3>Resultado incierto</h3>
@@ -60,23 +61,25 @@
       Consulta el recibo exacto antes de decidir. Una ausencia temporal no confirma que el
       env&#237;o fall&#243;.
     </p>
-    <button class="primary" disabled={pending || disabled || blocked} onclick={check}
-      >Consultar resultado</button
+    <Button variant="primary" disabled={pending || disabled || blocked} onclick={check}
+      >Consultar resultado</Button
     >
     {#if retryAvailable}
       <p>
         La consulta no encontr&#243; la revisi&#243;n. Puedes repetir el mismo env&#237;o con su
         recibo, sin cambiar el borrador.
       </p>
-      <button class="secondary" disabled={pending || disabled || closed || blocked} onclick={retry}
-        >Reintentar envio exacto</button
+      <Button
+        variant="secondary"
+        disabled={pending || disabled || closed || blocked}
+        onclick={retry}>Reintentar envio exacto</Button
       >
     {/if}
   {:else if mode === 'conflict'}
     <h3>El registro cambi&#243;</h3>
     <p>Tu selecci&#243;n exacta y el motivo se conservan.</p>
-    <button class="secondary" disabled={pending || disabled || blocked} onclick={compare}
-      >Comparar con registro actual</button
+    <Button variant="secondary" disabled={pending || disabled || blocked} onclick={compare}
+      >Comparar con registro actual</Button
     >
     {#if candidate}
       <p>
@@ -90,13 +93,13 @@
           V&#237;nculo: {candidate.association.status === 'linked' ? 'Vinculado' : 'Desvinculado'} / Revisi&#243;n
           {candidate.association.revision}
         </p>{/if}
-      <button
-        class="primary"
+      <Button
+        variant="primary"
         disabled={frozen ||
           (action === 'link'
             ? candidate.resource.status !== 'active'
             : candidate.association.status !== 'linked')}
-        onclick={accept}>Usar base actual y conservar borrador</button
+        onclick={accept}>Usar base actual y conservar borrador</Button
       >
     {/if}
   {:else if mode === 'review' && prepared}
@@ -108,16 +111,16 @@
       </p>{/if}
     <p>Autor: {prepared.recorded_by.email}</p>
     <div class="action-row">
-      <button class="primary" disabled={frozen} onclick={submit}
-        >{action === 'link' ? 'Confirmar v\u00ednculo' : 'Confirmar desvinculaci\u00f3n'}</button
+      <Button variant="primary" disabled={frozen} onclick={submit}
+        >{action === 'link' ? 'Confirmar v\u00ednculo' : 'Confirmar desvinculaci\u00f3n'}</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={frozen}
         onclick={() => {
           mode = 'draft';
           prepared = null;
-        }}>Volver al borrador</button
+        }}>Volver al borrador</Button
       >
     </div>
   {/if}
@@ -128,8 +131,8 @@
         ></label
       >
     {:else}<label>Motivo<textarea disabled /></label>{/if}
-    <button class="primary" disabled
-      >{action === 'link' ? 'Preparar v\u00ednculo' : 'Preparar desvinculaci\u00f3n'}</button
+    <Button variant="primary" disabled
+      >{action === 'link' ? 'Preparar v\u00ednculo' : 'Preparar desvinculaci\u00f3n'}</Button
     >
   {:else if mode !== 'review' && mode !== 'confirmed'}
     {#if action === 'link'}
@@ -154,16 +157,16 @@
       >
       <p>La captura vinculada permanecer&#225; en la historia.</p>
     {/if}
-    <button
-      class="primary"
+    <Button
+      variant="primary"
       disabled={frozen ||
         mode !== 'draft' ||
         (action === 'link' ? !selection.target : !reason.trim())}
       onclick={prepare}
-      >{action === 'link' ? 'Preparar v\u00ednculo' : 'Preparar desvinculaci\u00f3n'}</button
+      >{action === 'link' ? 'Preparar v\u00ednculo' : 'Preparar desvinculaci\u00f3n'}</Button
     >
   {/if}
-  <button class="text-button" disabled={pending || disabled || blocked} onclick={close}
-    >Cerrar formulario</button
+  <Button variant="text" disabled={pending || disabled || blocked} onclick={close}
+    >Cerrar formulario</Button
   >
 </section>

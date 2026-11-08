@@ -220,6 +220,7 @@ export async function provisionActivityCatalogue(owner) {
       '/users',
       {
         email: `activity-catalogue-${randomUUID()}@example.com`,
+        name: 'Activity Catalogue',
         password,
         role: 'litigator',
       },

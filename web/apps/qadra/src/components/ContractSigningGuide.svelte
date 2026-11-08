@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // What a party must do before it can sign: bind a document-signing
   // certificate, renew an expired one, or ask for a request made with its
   // current certificate. Rationale: docs/adr/0086-bilateral-contract-signing.md.
@@ -26,6 +27,7 @@
       solicitud nueva con tu certificado actual.
     </p>
   {/if}
-  <button class="secondary" onclick={() => onnavigate('signing-certificates')}>Ir a Mi firma</button
+  <Button variant="secondary" onclick={() => onnavigate('signing-certificates')}
+    >Ir a Mi firma digital</Button
   >
 </section>

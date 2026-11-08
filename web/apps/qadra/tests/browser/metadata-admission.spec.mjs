@@ -44,7 +44,7 @@ for (const conflict of [false, true]) {
       await expect(
         page.getByRole('button', { name: 'Descargar evidencia', exact: true }),
       ).toBeDisabled();
-      if (conflict) await expect(modal.locator('.dialog-actions .primary')).toBeDisabled();
+      if (conflict) await expect(modal.locator('.dialog-actions .btn-primary')).toBeDisabled();
     } finally {
       release.resolve();
     }

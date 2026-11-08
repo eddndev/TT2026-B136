@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // Validates a local evidence ZIP in a dedicated Web Worker. The file never
   // leaves the browser; only the trust route is read from the server. A
   // newer run, cancel, a version change or closing the panel discards any
@@ -120,8 +121,10 @@
       onchange={select}
     />
     <div class="evidence-validation-actions">
-      <button class="secondary" disabled={!file || running} onclick={start}>Validar paquete</button>
-      {#if running}<button class="secondary" onclick={cancel}>Cancelar</button>{/if}
+      <Button variant="secondary" disabled={!file || running} onclick={start}
+        >Validar paquete</Button
+      >
+      {#if running}<Button variant="secondary" onclick={cancel}>Cancelar</Button>{/if}
     </div>
   </div>
   {#if running}<p class="evidence-validation-live" role="status">

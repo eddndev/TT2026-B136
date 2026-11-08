@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   export let count;
   let visible = 25;
   const classifications = {
@@ -49,7 +50,7 @@
     >
   </table>
 </div>
-{#if visible < count.trace.length}<button class="secondary" onclick={() => (visible += 25)}
+{#if visible < count.trace.length}<Button variant="secondary" onclick={() => (visible += 25)}
     >Mostrar m&#225;s d&#237;as ({Math.min(visible, count.trace.length)} de {count.trace
-      .length})</button
+      .length})</Button
   >{/if}

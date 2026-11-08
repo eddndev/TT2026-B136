@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { fixture, loginAs, expectClientWorkspace } from './helpers.mjs';
+import { fixture, loginAs, expectClientWorkspace, openSection } from './helpers.mjs';
 export const accounts = fixture.participants;
 export const directory = (page) =>
   page.getByRole('region', { name: 'Directorio del expediente', exact: true });
@@ -101,7 +101,7 @@ export async function exercisePermissions(browser, testInfo, name, errors) {
           page.getByRole('button', { name: new RegExp(accounts.hiddenCase.title) }),
         ).toHaveCount(0);
         await listed.click();
-        await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+        await openSection(page, 'Participantes');
         await openPerson(page, name);
         expect(
           paths.some((path) => /^\/api\/v1\/cases\/[^/]+\/participants(?:\/|$)/.test(path)),

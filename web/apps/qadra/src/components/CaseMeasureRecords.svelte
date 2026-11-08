@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import MeasureAdministrationEditor from './MeasureAdministrationEditor.svelte';
   import MeasureAdministrationDetail from './MeasureAdministrationDetail.svelte';
@@ -127,49 +128,49 @@
 <section class="card hearing-index" aria-label="Registros de medidas" aria-busy={busy}>
   <h2>Registros de medidas</h2>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if !editing}{#each drafts as saved (saved.key)}<button
-        class="secondary"
+  {#if !editing}{#each drafts as saved (saved.key)}<Button
+        variant="secondary"
         disabled={locked}
-        onclick={() => edit(saved.action, saved)}>Retomar rectificacion de medida</button
+        onclick={() => edit(saved.action, saved)}>Retomar rectificacion de medida</Button
       >{/each}{/if}
   {#each rows as row (row.reference.id)}<div class="case-comparison">
       <p>
         {measureKinds[row.record.capture.result.values.kind]} / {row.record.capture.result
           .projection.subject.display_name}
       </p>
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={locked}
         aria-label={`Consultar medida ${row.reference.id}`}
-        onclick={() => open(row)}>Consultar medida</button
+        onclick={() => open(row)}>Consultar medida</Button
       >
     </div>{/each}
   {#if !rows.length && !busy && !error}<p>No hay medidas registradas.</p>{/if}
   <div class="pagination action-row">
-    <button class="secondary" disabled={locked || !index} onclick={() => load(index - 1)}
-      >Medidas anteriores</button
+    <Button variant="secondary" disabled={locked || !index} onclick={() => load(index - 1)}
+      >Medidas anteriores</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={locked || !more}
       onclick={() => {
         cursors = [...cursors.slice(0, index + 1), nextId];
         load(index + 1);
-      }}>Siguientes medidas</button
+      }}>Siguientes medidas</Button
     >
   </div>
   {#if selected}<MeasureRecordSummary value={selected} />
     {#if canFacts(user.role, 'manage')}<div class="action-row">
-        {#each Object.entries(actions) as [kind, label]}<button
-            class="secondary"
+        {#each Object.entries(actions) as [kind, label]}<Button
+            variant="secondary"
             disabled={locked || !manage || !current}
-            onclick={() => edit(kind)}>{label}</button
+            onclick={() => edit(kind)}>{label}</Button
           >{/each}
       </div>{/if}
     <details>
       <summary>Historia de la medida</summary>
-      {#each captures as row (row.result.revision)}<button
-          class="secondary"
+      {#each captures as row (row.result.revision)}<Button
+          variant="secondary"
           disabled={locked}
           onclick={() =>
             revision({
@@ -178,20 +179,20 @@
               capture_digest: row.capture_digest,
             })}
         >
-          Consultar medida revision {row.result.revision}</button
+          Consultar medida revision {row.result.revision}</Button
         >{/each}
       {#each head.record_history.records.administrative as row (row.origin.operation_id)}
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={locked}
           onclick={() => original(row.origin.operation_id)}
           aria-label={`Consultar rectificacion ${row.origin.operation_id}`}
-          >Consultar rectificacion</button
+          >Consultar rectificacion</Button
         >
       {/each}
     </details>
-    <button class="text-button" disabled={locked} onclick={() => (selected = head = null)}
-      >Cerrar medida</button
+    <Button variant="text" disabled={locked} onclick={() => (selected = head = null)}
+      >Cerrar medida</Button
     >
   {/if}
 </section>

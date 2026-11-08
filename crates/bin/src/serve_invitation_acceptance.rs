@@ -20,7 +20,7 @@ fn real_invitation_acceptance_survives_reentry_and_resend_without_duplicate_acco
         OWNER_PATH,
         Some(&owner),
         json!({
-            "operation_id":issue_operation,"email":email,"role":"litigator",
+            "operation_id":issue_operation,"email":email,"name":"Test Invitee","role":"litigator",
         }),
     );
     assert_eq!(issued.status, StatusCode::CREATED);
@@ -81,10 +81,10 @@ fn real_invitation_acceptance_survives_reentry_and_resend_without_duplicate_acco
 
     let user_id = UserId::from_uuid(receipt["user_id"].as_str().unwrap().parse().unwrap());
     let session = flow.authenticate(&email, user_id, &secret);
-    assert_eq!(
-        flow.runtime.block_on(me(&flow.router, &session)).status,
-        StatusCode::OK
-    );
+    let current = flow.runtime.block_on(me(&flow.router, &session));
+    assert_eq!(current.status, StatusCode::OK);
+    let current: serde_json::Value = serde_json::from_slice(&current.body).unwrap();
+    assert_eq!(current["name"], "Test Invitee");
 
     let second_email = format!("resent-{}@example.test", Uuid::new_v4().simple());
     let second_id = Uuid::new_v4();
@@ -93,7 +93,7 @@ fn real_invitation_acceptance_survives_reentry_and_resend_without_duplicate_acco
             OWNER_PATH,
             Some(&owner),
             json!({
-                "operation_id":second_id,"email":second_email,"role":"paralegal",
+                "operation_id":second_id,"email":second_email,"name":"Test Invitee","role":"paralegal",
             })
         )
         .status,

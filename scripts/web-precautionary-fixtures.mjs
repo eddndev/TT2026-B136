@@ -8,6 +8,7 @@ async function account(call, role) {
     "POST",
     "/users",
     {
+      name: `Precautionary ${role}`,
       email: `precautionary.${role}@example.com`,
       password,
       role,

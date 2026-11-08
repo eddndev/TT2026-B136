@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { login, navigate, caseId } from './helpers.mjs';
+import { login, navigate, caseId, openSection } from './helpers.mjs';
 import { resourceActor } from '../fixtures/procedural-resource-unit.mjs';
 import { resourceDetail } from './procedural-resources-helpers.mjs';
 import {
@@ -42,8 +42,13 @@ export async function setupHearingSession(page) {
     if (path === '/api/v1/auth/login') {
       const other = request.postDataJSON().email === 'other@example.test';
       state.nextUser = other
-        ? { id: '22222222-2222-4222-8222-222222222222', email: 'other@example.test', role: 'owner' }
-        : { ...resourceActor, role: 'owner' };
+        ? {
+            id: '22222222-2222-4222-8222-222222222222',
+            email: 'other@example.test',
+            name: 'Otra Cuenta',
+            role: 'owner',
+          }
+        : { ...resourceActor, name: 'Captured Example', role: 'owner' };
       return route.fulfill({
         json: { challenge_token: 'hearing-challenge', expires_in_seconds: 300 },
       });
@@ -103,7 +108,7 @@ export function holdHearingAuthority(state) {
 export async function openHearingScope(page, state) {
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Recursos', exact: true }).click();
+  await openSection(page, 'Recursos');
   await page
     .getByRole('button', {
       name: `Consultar recurso ${state.activities.resource.values.title}`,

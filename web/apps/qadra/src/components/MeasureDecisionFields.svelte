@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import MeasureTimeFields from './MeasureTimeFields.svelte';
   import MeasureEffectFields from './MeasureEffectFields.svelte';
@@ -70,8 +71,10 @@
     ></textarea></label
   >
   <StageSupportSummary record={support} />
-  <button class="secondary" disabled={disabled || pending} onclick={() => (choosingSupport = true)}
-    >Elegir soporte</button
+  <Button
+    variant="secondary"
+    disabled={disabled || pending}
+    onclick={() => (choosingSupport = true)}>Elegir soporte</Button
   >
   {#if choosingSupport}<StagePicker
       api={documents}
@@ -130,19 +133,19 @@
         bind:pending={effectBusy[row.key]}
         disabled={disabled || supportBusy || anchorBusy}
       />
-      <button
-        class="text-button"
+      <Button
+        variant="text"
         disabled={disabled || pending}
         onclick={() => {
           effects = effects.filter((item) => item.key !== row.key);
           delete effectBusy[row.key];
-        }}>Quitar efecto {index + 1}</button
+        }}>Quitar efecto {index + 1}</Button
       >
     {/each}
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={disabled || pending || effects.length >= 32}
-      onclick={() => (effects = [...effects, newMeasureEffect()])}>Agregar efecto</button
+      onclick={() => (effects = [...effects, newMeasureEffect()])}>Agregar efecto</Button
     >
     <p class="hint">Hasta 32 identidades entre anteriores y nuevas, confirmadas juntas.</p>
   {/if}

@@ -44,6 +44,7 @@ pub fn issue(db: &Fixture, store: &PostgresInvitationStore, n: u8) -> Invitation
                 request: InvitationIssueRequest {
                     operation_id: Uuid::new_v4(),
                     email: format!("invited-{n}@example.test"),
+                    display_name: "Test Invitee".into(),
                     role: Role::Litigator,
                 },
                 token_digest: digest(n),
@@ -79,6 +80,7 @@ pub fn finish(s: &InvitationSummary, p: &PendingInvitation, n: u8) -> FinishInvi
         user: UserRecord {
             id: UserId::new(),
             email: s.email.clone(),
+            display_name: domain::identity::DisplayName::new("Test Invitee").unwrap(),
             role: s.role,
             password_hash: "fixture-password".into(),
             active: true,

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import MeasureDecisionEditor from './MeasureDecisionEditor.svelte';
   import MeasureDecisionDetail from './MeasureDecisionDetail.svelte';
@@ -8,8 +9,6 @@
   import { decisionEditorFailure } from './measure-decision-editor-values.mjs';
   import { pendingMeasureDecisionDrafts } from '../lib/measure-decision-draft.mjs';
   import { measureTimeLabel } from '../lib/measure-presentation.mjs';
-  import '../styles/hearings.css';
-  import '../styles/procedural-facts.css';
   export let api, user, record, ondenied;
   const scoped = api.caseMeasureDecisions(record.id),
     contextApi = api.casePrecautionaryHearings(record.id),
@@ -123,10 +122,10 @@
 <section class="card hearing-index" aria-label="Medidas cautelares" aria-busy={busy}>
   <div class="section-heading">
     <h2>Decisiones declaradas</h2>
-    {#if canFacts(user.role, 'manage')}<button
-        class="primary"
+    {#if canFacts(user.role, 'manage')}<Button
+        variant="primary"
         disabled={locked || !manage}
-        onclick={() => edit()}>Registrar decision cautelar</button
+        onclick={() => edit()}>Registrar decision cautelar</Button
       >{/if}
   </div>
   <p>
@@ -134,10 +133,10 @@
     la vigencia juridica.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  {#if !editing}{#each drafts as saved (saved.key)}<button
-        class="secondary"
+  {#if !editing}{#each drafts as saved (saved.key)}<Button
+        variant="secondary"
         disabled={locked}
-        onclick={() => edit(saved)}>Retomar decision cautelar</button
+        onclick={() => edit(saved)}>Retomar decision cautelar</Button
       >{/each}{/if}
   {#if busy}<p role="status">Consultando decisiones...</p>{/if}
   {#each rows as row (row.origin.decision_id)}
@@ -145,35 +144,35 @@
       <h3>{row.group.decision.values.authority}</h3>
       <p>{measureTimeLabel(row.group.decision.values.declared_at)}</p>
       <p class="case-multiline">{row.group.decision.values.justification}</p>
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={locked}
         aria-label={`Consultar decision cautelar ${row.origin.decision_id}`}
-        onclick={() => open(row.origin.decision_id)}>Consultar decision cautelar</button
+        onclick={() => open(row.origin.decision_id)}>Consultar decision cautelar</Button
       >
     </div>
   {/each}
   {#if !rows.length && !busy && !error}<p>No hay decisiones cautelares registradas.</p>{/if}
   <div class="pagination action-row">
-    <button class="secondary" disabled={locked || !index} onclick={() => load(index - 1)}
-      >Decisiones anteriores</button
+    <Button variant="secondary" disabled={locked || !index} onclick={() => load(index - 1)}
+      >Decisiones anteriores</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={locked || !more}
       onclick={() => {
         cursors = [...cursors.slice(0, index + 1), nextId];
         load(index + 1);
-      }}>Siguientes decisiones</button
+      }}>Siguientes decisiones</Button
     >
-    <button
-      class="secondary"
+    <Button
+      variant="secondary"
       disabled={locked}
       onclick={() => {
         cursors = [undefined];
         load();
         refreshRecords++;
-      }}>Actualizar decisiones</button
+      }}>Actualizar decisiones</Button
     >
   </div>
 </section>

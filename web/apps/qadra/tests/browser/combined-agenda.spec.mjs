@@ -16,19 +16,29 @@ for (const width of [1440, 390])
     await page.setViewportSize({ width, height: 1000 });
     const state = await setupCombinedAgenda(page);
     await openCombinedAgenda(page);
-    for (const [view, label, days] of [
-      ['day', 'Vista diaria', 1],
-      ['week', 'Vista semanal', 7],
-      ['month', 'Vista mensual', 31],
+    const calendar = page.getByRole('region', { name: 'Calendario de la agenda', exact: true });
+    const list = page.getByRole('region', { name: 'Actividades en el periodo', exact: true });
+    // The calendar opens on the month of the reference date (2026-01-02), so
+    // the week from 2025-12-29 only names its four January days; the three
+    // December days fall in the inert leading cells of January.
+    for (const [view, days, from, until] of [
+      ['day', 1, '2026-01-02T00:00:00Z', '2026-01-03T00:00:00Z'],
+      ['week', 4, '2025-12-29T00:00:00Z', '2026-01-05T00:00:00Z'],
+      ['month', 31, '2026-01-01T00:00:00Z', '2026-02-01T00:00:00Z'],
     ]) {
       await queryAgenda(page, view);
-      const region = page.getByRole('region', { name: label, exact: true });
-      await expect(region).toBeVisible();
-      await expect(region.locator('[data-agenda-day]')).toHaveCount(days);
+      await expect.poll(() => state.calls.at(-1)?.searchParams.get('from')).toBe(from);
+      expect(state.calls.at(-1).searchParams.get('until')).toBe(until);
+      await expect(calendar).toBeVisible();
+      await expect(list).toBeVisible();
+      await expect(
+        calendar.getByRole('button', { name: '2 de enero de 2026: 2 actividades', exact: true }),
+      ).toBeVisible();
+      await expect(calendar.locator('[data-agenda-day]')).toHaveCount(days);
       await expect(activity(page, 'hearing', state.hearing.id)).toBeVisible();
       await expect(activity(page, 'deadline', state.deadline.id)).toBeVisible();
       expect(
-        await region
+        await list
           .locator('[data-agenda-kind]')
           .evaluateAll((rows) => rows.map((row) => row.dataset.agendaKind)),
       ).toEqual(['hearing', 'deadline']);
@@ -49,6 +59,48 @@ for (const width of [1440, 390])
       .toBe('2026-02-01T00:00:00Z');
     expect(state.calls.every((url) => url.searchParams.get('limit') === '20')).toBe(true);
   });
+
+test('the agenda calendar marks the queried day and queries a clicked day', async ({ page }) => {
+  const state = await setupCombinedAgenda(page);
+  await openCombinedAgenda(page);
+  await queryAgenda(page);
+  const calendar = page.getByRole('region', { name: 'Calendario de la agenda', exact: true });
+  const day = (name) => calendar.getByRole('button', { name, exact: true });
+  await expect(day('2 de enero de 2026: 2 actividades')).toHaveAttribute('aria-pressed', 'true');
+  await expect(day('3 de enero de 2026: fuera del periodo consultado')).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  const count = state.calls.length;
+  await calendar.getByRole('button', { name: 'Mes siguiente', exact: true }).click();
+  await expect(calendar.getByRole('heading', { name: 'marzo de 2026', exact: true })).toHaveCount(
+    1,
+  );
+  await expect(calendar.getByRole('heading', { name: 'enero de 2026', exact: true })).toHaveCount(
+    0,
+  );
+  expect(state.calls).toHaveLength(count);
+  await calendar.getByRole('button', { name: 'Mes anterior', exact: true }).click();
+  await expect(calendar.getByRole('heading', { name: 'enero de 2026', exact: true })).toHaveCount(
+    1,
+  );
+  expect(state.calls).toHaveLength(count);
+  await day('5 de enero de 2026: fuera del periodo consultado').click();
+  await expect
+    .poll(() => state.calls.at(-1)?.searchParams.get('from'))
+    .toBe('2026-01-05T00:00:00Z');
+  expect(state.calls.at(-1).searchParams.get('until')).toBe('2026-01-06T00:00:00Z');
+  await expect(page.getByLabel('Fecha de referencia', { exact: true })).toHaveValue('2026-01-05');
+  await expect(page.getByRole('combobox', { name: 'Vista de agenda', exact: true })).toHaveValue(
+    'day',
+  );
+  await expect(day('5 de enero de 2026: sin actividades')).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    page
+      .getByRole('region', { name: 'Actividades en el periodo', exact: true })
+      .getByText('No hay actividades en esta consulta.', { exact: true }),
+  ).toBeVisible();
+});
 
 test('an empty partial page stays pending and later pages accumulate both kinds by newest revision', async ({
   page,

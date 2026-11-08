@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { caseFilters } from '../lib/case-administration.mjs';
   export let busy = false,
     onapply;
@@ -36,7 +37,7 @@
       ></label
     >
     <div class="case-filter-action">
-      <button class="secondary">Buscar expedientes</button>
+      <Button variant="secondary">Buscar expedientes</Button>
     </div>
   </div>
   <p class="hint">

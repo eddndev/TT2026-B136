@@ -14,9 +14,7 @@ test('Client direct calendar location resolves to its contracts without catalog 
   await login(page, false, false);
   await expectClientWorkspace(page, ['judicial-calendars']);
   expect(state.calls).toEqual([]);
-  await expect(
-    page.getByRole('button', { name: 'Calendarios jurisdiccionales', exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Calendarios/ })).toHaveCount(0);
 });
 test('Agenda and administration open the same global catalog without changing selected case', async ({
   page,
@@ -36,7 +34,7 @@ test('Agenda and administration open the same global catalog without changing se
     .click();
   await expect(calendarDetail(page)).toBeVisible();
   expect(common.filter((r) => r.path.includes('/cases/'))).toHaveLength(before);
-  await navigate(page, 'Calendarios jurisdiccionales');
+  await navigate(page, 'Calendarios');
   await expect(calendarPanel(page)).toBeVisible();
 });
 test('revoked permission clears already visible records and editor controls', async ({ page }) => {

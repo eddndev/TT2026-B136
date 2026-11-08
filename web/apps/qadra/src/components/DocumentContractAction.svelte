@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   // "Crear contrato" for the current version of an unsealed PDF: creates the
   // contract and then asks for the signatures of the Client and the firm.
   // The server chooses the contract identifier, so an uncertain creation is
@@ -80,7 +81,7 @@
 </script>
 
 {#if contractable(document, user.role) && !open}
-  <button class="secondary" {disabled} onclick={start}>Crear contrato</button>
+  <Button variant="secondary" {disabled} onclick={start}>Crear contrato</Button>
 {/if}
 {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
 {#if open}<section class="card stack contract-create" aria-label="Crear contrato">
@@ -94,13 +95,15 @@
           >T&#237;tulo del contrato
           <input required maxlength="160" bind:value={title} disabled={busy || uncertain} />
         </label>
-        {#if uncertain}<button type="button" class="secondary" disabled={busy} onclick={reconcile}
-            >Consultar recibo del contrato</button
+        {#if uncertain}<Button type="button" variant="secondary" disabled={busy} onclick={reconcile}
+            >Consultar recibo del contrato</Button
           >{/if}
         <div class="action-row">
-          <button class="primary" type="submit" disabled={busy || uncertain}>Crear contrato</button>
-          <button type="button" class="secondary" disabled={busy} onclick={() => (open = false)}
-            >Cancelar</button
+          <Button variant="primary" type="submit" disabled={busy || uncertain}
+            >Crear contrato</Button
+          >
+          <Button type="button" variant="secondary" disabled={busy} onclick={() => (open = false)}
+            >Cancelar</Button
           >
         </div>
       </form>

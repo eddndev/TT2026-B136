@@ -131,7 +131,7 @@ for (const [name, width, height] of [
       // The package carries the sealed manifest; the real engine in the panel
       // must read it as complete.
       if (name === 'desktop') await validateEvidence(page, evidence.path);
-      await navigate(page, 'Mi firma documental');
+      await navigate(page, 'Mi firma digital');
       await expect(page.getByText('Vinculo registrado', { exact: true })).toBeVisible();
       await button(page, 'Retirar vinculo').click();
       await page.getByLabel('Confirmo retirar el vinculo para futuras firmas').check();

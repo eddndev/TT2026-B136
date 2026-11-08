@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import HearingFields from './HearingFields.svelte';
   import HearingValues from './HearingValues.svelte';
   import HearingReconciliation from './HearingReconciliation.svelte';
@@ -65,8 +66,8 @@
     resultados.
   </p>
   <CaseClosedNotice />
-  {#if blocked || restoredClosed}<button class="secondary" disabled={pending} onclick={retry}
-      >Volver a consultar el contexto</button
+  {#if blocked || restoredClosed}<Button variant="secondary" disabled={pending} onclick={retry}
+      >Volver a consultar el contexto</Button
     >{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if issue}<p class="notice">
@@ -97,9 +98,9 @@
           Motivo: {prepared.command.change.reason}
         </p>{/if}
       <div class="action-row">
-        <button class="secondary" disabled={pending} onclick={back}>Volver al borrador</button>
-        <button class="primary" disabled={frozen} onclick={submit}
-          >{busy ? 'Registrando audiencia...' : 'Confirmar registro'}</button
+        <Button variant="secondary" disabled={pending} onclick={back}>Volver al borrador</Button>
+        <Button variant="primary" disabled={frozen} onclick={submit}
+          >{busy ? 'Registrando audiencia...' : 'Confirmar registro'}</Button
         >
       </div>
     </div>
@@ -137,15 +138,13 @@
           bind:pending={fieldsBusy}
           onreviewed={reviewed}
         />{/key}{/if}
-    <button class="primary" disabled={frozen || mode !== 'draft' || !!issue} onclick={prepare}
-      >Revisar registro</button
+    <Button variant="primary" disabled={frozen || mode !== 'draft' || !!issue} onclick={prepare}
+      >Revisar registro</Button
     >
   {/if}
   {#if mode === 'uncertain'}<p class="hint">
       Cerrar el formulario descarta su borrador local; no cancela un env&#237;o que pueda estar en
       proceso.
     </p>{/if}
-  <button class="text-button" disabled={pending} onclick={close}
-    >Cerrar formulario de audiencia</button
-  >
+  <Button variant="text" disabled={pending} onclick={close}>Cerrar formulario de audiencia</Button>
 </section>

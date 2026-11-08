@@ -66,7 +66,7 @@ export async function setupPrecautionaryScheduling(
     hearings.state.admin.administration.revision = 2;
   }
   await page.route(/\/api\/v1\/auth\/(mfa\/|me)/, async (route) => {
-    const user = { ...state.actor, role };
+    const user = { ...state.actor, name: 'Captured Example', role };
     return route.fulfill({
       json: route.request().url().endsWith('/me')
         ? user

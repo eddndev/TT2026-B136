@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { openSection } from './helpers.mjs';
 import { publicPem, signature } from '../fixtures/owner-certificates.mjs';
 
 export const editor = (page) =>
@@ -12,10 +13,11 @@ export async function openOwnerCertificates(page) {
   if (await page.getByRole('button', { name: 'Abrir men\u00fa', exact: true }).isVisible())
     await page.getByRole('button', { name: 'Abrir men\u00fa', exact: true }).click();
   await page
-    .getByRole('button', { name: 'Mi certificado', exact: true })
+    .getByRole('button', { name: 'Mi firma digital', exact: true })
     .filter({ visible: true })
     .click();
-  await expect(page.getByRole('heading', { name: 'Mi certificado', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Mi firma digital', exact: true })).toBeVisible();
+  await openSection(page, 'Acceso con certificado');
 }
 
 export async function beginOwnerRegistration(page) {

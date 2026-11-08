@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash, X509Certificate, verify } from 'node:crypto';
 import { signLocally } from './local-signature-helpers.mjs';
+import { openSection } from './helpers.mjs';
 
 export const bindingsPath = '/api/v1/auth/certificate-bindings';
 export const currentPath = `${bindingsPath}/current`;
@@ -47,8 +48,12 @@ export async function freshOwner(page, owner, action) {
 }
 
 export async function openOwner(page, owner) {
-  const current = await freshOwner(page, owner, () => navigate(page, 'Mi certificado'));
-  await expect(page.getByRole('heading', { name: 'Mi certificado', exact: true })).toBeVisible();
+  // The certificate access tab lives inside Mi firma digital.
+  const current = await freshOwner(page, owner, async () => {
+    await navigate(page, 'Mi firma digital');
+    await openSection(page, 'Acceso con certificado');
+  });
+  await expect(page.getByRole('heading', { name: 'Mi firma digital', exact: true })).toBeVisible();
   return current;
 }
 

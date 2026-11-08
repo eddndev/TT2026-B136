@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { setup, login, navigate, caseId, caseRecord, document } from './helpers.mjs';
+import { setup, login, navigate, caseId, caseRecord, document, openSection } from './helpers.mjs';
 import { administration, overview, profile } from './case-administration-helpers.mjs';
 export { caseId, document };
 export const initial = {
@@ -79,7 +79,7 @@ export async function openStages(page) {
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await page.getByRole('link', { name: 'Etapas', exact: true }).click();
+  await openSection(page, 'Etapas');
   await expect(
     page.getByRole('heading', { name: 'Etapas del expediente', exact: true }),
   ).toBeVisible();

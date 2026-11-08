@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import HearingValues from './HearingValues.svelte';
   import { hearingDenied, hearingStatus } from '../lib/hearings.mjs';
@@ -51,8 +52,8 @@
     Revisiones inmutables en orden de registro. La fecha programada puede ser pasada o futura.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>
-    <button class="secondary" disabled={busy || disabled} onclick={() => load()}
-      >Consultar historial de nuevo</button
+    <Button variant="secondary" disabled={busy || disabled} onclick={() => load()}
+      >Consultar historial de nuevo</Button
     >{/if}
   {#each rows as row (row.revision)}<details class="hearing-revision">
       <summary
@@ -65,7 +66,7 @@
     </details>{/each}
   {#if busy}<p role="status">Consultando historial...</p>{/if}
   {#if !busy && !rows.length && !error}<p>No hay revisiones en esta consulta.</p>{/if}
-  {#if more}<button class="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
-      >Cargar revisiones anteriores</button
+  {#if more}<Button variant="secondary" disabled={busy || disabled} onclick={() => load(cursor)}
+      >Cargar revisiones anteriores</Button
     >{/if}
 </section>

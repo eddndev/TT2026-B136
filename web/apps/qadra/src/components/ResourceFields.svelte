@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onDestroy } from 'svelte';
   import FactDeclarationFields from './FactDeclarationFields.svelte';
   import FactTimeFields from './FactTimeFields.svelte';
@@ -196,19 +197,19 @@
       {canApply}
       bind:this={appellantFields[index]}
     />
-    {#if values.appellants.length > 1}<button
+    {#if values.appellants.length > 1}<Button
         type="button"
-        class="text-button"
+        variant="text"
         disabled={disabled || busy}
-        onclick={() => removeAppellant(index)}>Quitar recurrente {index + 1}</button
+        onclick={() => removeAppellant(index)}>Quitar recurrente {index + 1}</Button
       >{/if}
   {/each}
 {/key}
-<button
+<Button
   type="button"
-  class="secondary"
+  variant="secondary"
   disabled={disabled || busy || values.appellants.length >= 32}
-  onclick={addAppellant}>Agregar persona recurrente</button
+  onclick={addAppellant}>Agregar persona recurrente</Button
 >
 <p class="hint">
   El registro organiza datos declarados y conserva sus fuentes. La interposici&#243;n se registra

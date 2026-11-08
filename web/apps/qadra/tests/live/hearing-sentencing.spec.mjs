@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, openSection } from './helpers.mjs';
 import { openCase } from '../case-administration-workflow.mjs';
 import { archive, capture } from './case-administration-helpers.mjs';
 import {
@@ -12,7 +12,7 @@ import {
   submit,
 } from './hearing-helpers.mjs';
 async function supportEvidence(page, testInfo, name) {
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await page
     .getByRole('button', { name: /hearing-conviction-later.pdf/ })
     .first()

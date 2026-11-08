@@ -33,7 +33,7 @@ impl Fixture {
         let mut admin = Client::connect(&admin_url, NoTls).unwrap();
         let owner = UserId::from_uuid(Uuid::new_v4());
         let case = CaseId::new();
-        admin.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,'owner@example.test','fixture','owner','\\x00','{}')", &[&owner.as_uuid()]).unwrap();
+        admin.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes,display_name) VALUES($1,'owner@example.test','fixture','owner','\\x00','{}','Fixture')", &[&owner.as_uuid()]).unwrap();
         admin
             .execute(
                 "INSERT INTO cases(id,title,reference,created_by,required_initial_revision) VALUES($1,'Participants','P',$2,NULL)",
@@ -65,7 +65,7 @@ impl Fixture {
 
     pub fn user(&mut self, role: &str, assigned: bool) -> UserId {
         let id = UserId::from_uuid(Uuid::new_v4());
-        self.admin.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes) VALUES($1,$2,'fixture',$3,'\\x00','{}')", &[&id.as_uuid(), &format!("{id}@example.test"), &role]).unwrap();
+        self.admin.execute("INSERT INTO users(id,email,password_hash,role,protected_totp_secret,recovery_codes,display_name) VALUES($1,$2,'fixture',$3,'\\x00','{}','Fixture')", &[&id.as_uuid(), &format!("{id}@example.test"), &role]).unwrap();
         if assigned {
             self.admin
                 .execute(

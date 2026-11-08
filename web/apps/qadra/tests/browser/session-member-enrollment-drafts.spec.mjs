@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, signOut } from './helpers.mjs';
 import { expire, signInOther } from './session-inactivity-helpers.mjs';
 import {
   enrollmentSetup,
@@ -9,12 +9,14 @@ import {
   usersPath,
   principalPath,
   submittedEmail,
+  submittedName,
 } from './session-member-enrollment-fixtures.mjs';
 import {
   enterEnrollment,
   fillEnrollment,
   expectBlankEnrollment,
   expectNoEnrollmentMaterial,
+  name,
   email,
   password,
   role,
@@ -48,6 +50,7 @@ test('same Owner restores partial email and role only after fresh authority whil
     false,
   );
   fresh.release();
+  await expect(name(page)).toHaveValue(submittedName);
   await expect(email(page)).toHaveValue(rawEmail);
   await expect(role(page)).toHaveValue('litigator');
   await expectNoEnrollmentMaterial(page);
@@ -74,10 +77,7 @@ test('another Owner and explicit logout cannot recover a former nonsecret enroll
   await enterEnrollment(page);
   await expectBlankEnrollment(page);
   await fillEnrollment(page, 'Other.Unfinished@');
-  await page
-    .getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true })
-    .filter({ visible: true })
-    .click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   await login(page, false, false);
   await enterEnrollment(page);

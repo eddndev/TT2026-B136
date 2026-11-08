@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs, expectClientWorkspace } from './helpers.mjs';
+import { loginAs, expectClientWorkspace, openSection } from './helpers.mjs';
 import { navigate } from '../case-administration-workflow.mjs';
 import {
   accounts,
@@ -50,10 +50,10 @@ for (const [name, width] of [
     ).toBeVisible();
     await capture(page, testInfo, `${name}-exact-content`);
 
-    await navigate(page, 'Incidentes de integridad');
+    await navigate(page, 'Bit\u00e1cora');
+    await openSection(page, 'Incidentes de integridad');
     await findIncident(page, scenario.incident);
-    await expect(inbox(page)).toContainText('Orden por identificador');
-    await expect(inbox(page)).toContainText('No determina su causa ni atribuye responsabilidad');
+    await expect(inbox(page)).toContainText('Un incidente no indica la causa ni a un responsable.');
     const technical = card(page, scenario.incident).locator('details');
     await technical.locator('summary').click();
     await expect(technical).toContainText(scenario.incident.expected_digest);
@@ -65,7 +65,7 @@ for (const [name, width] of [
     );
     const contentResponse = responseTo(page, contentPath(scenario).replace('/content', ''));
     await card(page, scenario.incident)
-      .getByRole('button', { name: 'Abrir versi\u00f3n exacta', exact: true })
+      .getByRole('button', { name: 'Abrir esta versi\u00f3n', exact: true })
       .click();
     expect(await (await incidentResponse).json()).toEqual(scenario.incident);
     expect(await (await contentResponse).json()).toEqual(scenario.first);
@@ -77,7 +77,7 @@ for (const [name, width] of [
     ).toBeVisible();
     await page.getByRole('button', { name: 'Volver a incidentes', exact: true }).click();
     await findIncident(page, scenario.incident);
-    await inbox(page).getByRole('button', { name: 'Actualizar incidentes', exact: true }).click();
+    await inbox(page).getByRole('button', { name: 'Actualizar', exact: true }).click();
     await findIncident(page, scenario.incident);
     expect(documentMutations).toEqual([]);
     expect(pageErrors).toEqual([]);

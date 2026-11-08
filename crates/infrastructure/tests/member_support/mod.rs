@@ -12,8 +12,8 @@ pub fn store(db: &Fixture) -> PostgresMemberStore {
 
 pub fn user(db: &mut Fixture, email: &str, role: &str, active: bool, assigned: bool) -> UserId {
     let id = UserId::new();
-    db.admin.execute("INSERT INTO users(id,email,password_hash,role,active,protected_totp_secret,recovery_codes)
-        VALUES($1,$2,'fixture',$3,$4,'\\x00','{}')", &[&id.as_uuid(), &email, &role, &active]).unwrap();
+    db.admin.execute("INSERT INTO users(id,email,password_hash,role,active,protected_totp_secret,recovery_codes,display_name)
+        VALUES($1,$2,'fixture',$3,$4,'\\x00','{}','Fixture')", &[&id.as_uuid(), &email, &role, &active]).unwrap();
     if assigned {
         db.admin
             .execute(

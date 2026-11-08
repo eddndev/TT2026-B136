@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   export let enrollment;
   export let ondone;
   let saved = false;
@@ -26,5 +27,5 @@
   <label class="checkbox"
     ><input type="checkbox" bind:checked={saved} />Ya guard&eacute; la clave y los c&oacute;digos</label
   >
-  <button class="primary" disabled={!saved} onclick={ondone}>Finalizar</button>
+  <Button variant="primary" disabled={!saved} onclick={ondone}>Finalizar</Button>
 </section>

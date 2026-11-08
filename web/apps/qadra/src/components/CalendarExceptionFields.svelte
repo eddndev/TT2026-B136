@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import CalendarRuleFields from './CalendarRuleFields.svelte';
   export let exceptions,
     sources,
@@ -21,8 +22,8 @@
 <section class="calendar-fields-section" aria-label="Excepciones declaradas">
   <div class="section-heading">
     <h3>Excepciones por intervalo</h3>
-    <button class="secondary" disabled={disabled || exceptions.length >= 64} onclick={add}
-      >Agregar excepci&#243;n</button
+    <Button variant="secondary" disabled={disabled || exceptions.length >= 64} onclick={add}
+      >Agregar excepci&#243;n</Button
     >
   </div>
   <p class="hint">
@@ -50,10 +51,10 @@
       </div>
       <CalendarRuleFields bind:rule {sources} {disabled} />
       <details><summary>Identidad de la excepci&#243;n</summary><code>{rule.id}</code></details>
-      <button
-        class="text-button"
+      <Button
+        variant="text"
         onclick={() => (exceptions = exceptions.filter((row) => row.id !== rule.id))}
-        >Quitar excepci&#243;n {index + 1}</button
+        >Quitar excepci&#243;n {index + 1}</Button
       >
     </fieldset>{/each}
   {#if !exceptions.length}<p>Sin excepciones declaradas.</p>{/if}

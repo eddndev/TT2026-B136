@@ -8,6 +8,8 @@ import {
   login,
   navigate,
   selectCase,
+  signOut,
+  openSection,
 } from './helpers.mjs';
 
 async function waitForRendering(page) {
@@ -33,7 +35,7 @@ test('a document detail arriving after logout cannot enter the next session', as
   await page.getByLabel('Identificador del documento').fill(id);
   await page.getByRole('button', { name: 'Abrir documento' }).click();
   await expect.poll(() => typeof release).toBe('function');
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n' }).click();
+  await signOut(page);
   await login(page, false, false);
   const finished = page.waitForEvent('requestfinished', (request) =>
     request.url().endsWith(`/documents/${id}`),
@@ -73,7 +75,7 @@ test('old case list cannot replace documents after another case is selected', as
   );
   await page.getByRole('button', { name: 'Cambiar expediente' }).click();
   await page.getByRole('button', { name: /Otro expediente/ }).click();
-  await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+  await openSection(page, 'Documentos');
   await expect(page.getByText('other-case.pdf', { exact: true })).toBeVisible();
   const finished = page.waitForEvent('requestfinished', (request) =>
     request.url().includes(`/cases/${caseId}/documents?`),

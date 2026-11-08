@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { deadlineDenied, deadlineFailure } from '../lib/deadline-errors.mjs';
   export let api,
@@ -56,26 +57,26 @@
             ? 'Litigator'
             : 'Paralegal'}
       </p>
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
-        onclick={() => onselected(row)}>Elegir responsable {row.email}</button
+        onclick={() => onselected(row)}>Elegir responsable {row.email}</Button
       >
     </div>{/each}
   {#if !rows.length && !busy}<p>No hay responsables elegibles en esta p&#225;gina.</p>{/if}
   <div class="action-row">
-    <button type="button" class="secondary" disabled={disabled || busy} onclick={() => load()}
-      >Primera p&#225;gina de responsables</button
+    <Button type="button" variant="secondary" disabled={disabled || busy} onclick={() => load()}
+      >Primera p&#225;gina de responsables</Button
     >
-    {#if more}<button
+    {#if more}<Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
-        onclick={() => load(cursor)}>Siguientes responsables</button
+        onclick={() => load(cursor)}>Siguientes responsables</Button
       >{/if}
   </div>
-  <button type="button" class="text-button" disabled={busy} onclick={oncancel}
-    >Cerrar selector de responsable</button
+  <Button type="button" variant="text" disabled={busy} onclick={oncancel}
+    >Cerrar selector de responsable</Button
   >
 </section>

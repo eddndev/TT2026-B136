@@ -23,6 +23,7 @@ export async function provisionHearingDerivedDeadlines(call) {
     "POST",
     "/users",
     {
+      name: "Derived deadline owner",
       email: "hearing-derived-deadline.owner@example.com",
       password,
       role: "owner",

@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import { createSigningDraft } from '../lib/individual-signing-draft.mjs';
   import {
@@ -224,24 +225,15 @@
   });
 </script>
 
-<div class="page-heading">
-  <div>
-    <span class="eyebrow">MI CUENTA</span>
-    <h1>{user.role === 'client' ? 'Mi firma' : 'Mi firma documental'}</h1>
-    <p>
-      {user.role === 'client'
-        ? 'Genera tu clave, vincula tu certificado publico y firma tus contratos con la clave en tu equipo.'
-        : 'Vincula tu certificado publico y firma documentos con la clave en tu equipo.'}
-    </p>
-  </div>
-</div>
-<p class="notice">
-  Perfil interno de demostracion. Solo se reciben certificados publicos y firmas separadas.
+<p class="mb-4">
+  {user.role === 'client'
+    ? 'Firma tus contratos con la clave que guardas en tu equipo. Qadra solo recibe tu certificado p\u00fablico y tus firmas.'
+    : 'Firma documentos con la clave que guardas en tu equipo. Qadra solo recibe tu certificado p\u00fablico y tus firmas.'}
 </p>
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 {#if !ready}<section class="card stack">
     <p role="status">Consultando cuenta y certificado...</p>
-    <button class="secondary" disabled={busy} onclick={load}>Volver a consultar</button>
+    <Button variant="secondary" disabled={busy} onclick={load}>Volver a consultar</Button>
   </section>
 {:else}
   {#if current && !current.withdrawn_at && certificateExpired(current)}<p
@@ -267,11 +259,11 @@
   {#if saved}<section class="card stack">
       <h2>Intento pendiente del vinculo</h2>
       <p>Recuperarlo comprueba tu cuenta y conserva su identificador. No lo envia.</p>
-      <button class="secondary" disabled={busy} onclick={recover}
-        >Recuperar intento del vinculo</button
+      <Button variant="secondary" disabled={busy} onclick={recover}
+        >Recuperar intento del vinculo</Button
       >
-      <button class="secondary" disabled={busy} onclick={discard}
-        >Descartar intento pendiente</button
+      <Button variant="secondary" disabled={busy} onclick={discard}
+        >Descartar intento pendiente</Button
       >
     </section>{/if}
   {#if receipt}<section class="card stack">
@@ -279,26 +271,28 @@
       <SigningBindingDetails value={receipt} />
       <p>Retirar el vinculo impide futuras firmas y conserva su evidencia historica.</p>
       <div class="action-row">
-        <button
-          class="secondary"
+        <Button
+          variant="secondary"
           disabled={busy}
           onclick={() =>
             download(
               new Blob([JSON.stringify(receipt)], { type: 'application/json' }),
               'certificate-binding-receipt.json',
-            )}>Descargar recibo del vinculo</button
+            )}>Descargar recibo del vinculo</Button
         >
         {#if !receipt.withdrawn_at && state.mode !== 'uncertain' && state.action !== 'withdraw'}
-          <button class="secondary" disabled={busy || !!saved} onclick={startWithdrawal}
-            >Retirar vinculo</button
+          <Button variant="secondary" disabled={busy || !!saved} onclick={startWithdrawal}
+            >Retirar vinculo</Button
           >{/if}
       </div>
     </section>{/if}
   {#if state.mode === 'uncertain'}<section class="card stack">
       <h2>Resultado pendiente de confirmar</h2>
       <p>Conserva este intento y consulta su recibo antes de cualquier otra operacion.</p>
-      <code>{state.bindingId}</code><button class="secondary" disabled={busy} onclick={checkReceipt}
-        >Consultar recibo del vinculo</button
+      <code>{state.bindingId}</code><Button
+        variant="secondary"
+        disabled={busy}
+        onclick={checkReceipt}>Consultar recibo del vinculo</Button
       >
     </section>
   {:else if !saved && ((state.action === 'withdraw' && state.mode === 'editing') || !current || current.withdrawn_at)}

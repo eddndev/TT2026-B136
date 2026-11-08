@@ -34,7 +34,7 @@
 .welcome-card .action-row {
   margin-top: 20px;
 }
-.welcome-card .text-button {
+.welcome-card .btn-text {
   padding: 10px;
 }
 .welcome-symbol {
@@ -136,7 +136,7 @@
 .recent-panel {
   padding-bottom: 0;
 }
-.recent-panel .text-button {
+.recent-panel .btn-text {
   font-size: 11px;
 }
 .recent-row {
@@ -181,7 +181,7 @@
 .next-panel p {
   font-size: 12px;
 }
-.next-panel > .secondary {
+.next-panel > .btn-secondary {
   width: 100%;
   margin-top: 16px;
   font-size: 11px;
@@ -253,6 +253,6 @@
   max-width: 850px;
   font-size: 13px;
 }
-.guide-questions > .primary {
+.guide-questions > .btn-primary {
   margin-top: 17px;
 }

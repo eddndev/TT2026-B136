@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { shiftAgendaPeriod } from '../lib/agenda-periods.mjs';
   export let value,
     onapply,
@@ -117,14 +118,14 @@
     {#if error}<p class="notice error" role="alert">{error}</p>{/if}
     <div class="action-row agenda-period-actions">
       {#if draft.view !== 'custom'}
-        <button type="button" class="secondary" onclick={() => navigate(-1)}
-          >Periodo anterior</button
+        <Button type="button" variant="secondary" onclick={() => navigate(-1)}
+          >Periodo anterior</Button
         >
-        <button type="button" class="secondary" onclick={() => navigate(1)}
-          >Periodo siguiente</button
+        <Button type="button" variant="secondary" onclick={() => navigate(1)}
+          >Periodo siguiente</Button
         >
       {/if}
-      <button class="primary" type="submit">Consultar Agenda</button>
+      <Button variant="primary" type="submit">Consultar Agenda</Button>
     </div>
   </fieldset>
 </form>

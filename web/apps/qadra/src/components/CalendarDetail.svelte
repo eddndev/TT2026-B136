@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import CalendarValues from './CalendarValues.svelte';
   import CalendarDays from './CalendarDays.svelte';
   import CalendarHistory from './CalendarHistory.svelte';
@@ -31,7 +32,7 @@
       Revisi&#243;n hist&#243;rica. Su clasificaci&#243;n se conserva aunque exista una
       publicaci&#243;n posterior o el calendario se haya retirado.
     </p>
-    <button class="secondary" {disabled} onclick={oncurrent}>Consultar calendario actual</button
+    <Button variant="secondary" {disabled} onclick={oncurrent}>Consultar calendario actual</Button
     >{/if}
   {#if record.status === 'retired'}<p class="notice">
       El retiro conserva la historia y es terminal. No declara la derogaci&#243;n de una norma.
@@ -53,14 +54,14 @@
     </p>
   </details>
   <div class="action-row">
-    {#if canManage && record.status === 'published' && !historical}<button
-        class="primary"
+    {#if canManage && record.status === 'published' && !historical}<Button
+        variant="primary"
         {disabled}
-        onclick={() => onedit('replace')}>Reemplazar calendario</button
-      ><button class="secondary" {disabled} onclick={() => onedit('retire')}
-        >Retirar calendario</button
-      >{/if}<button class="text-button" {disabled} onclick={() => (history = !history)}
-      >{history ? 'Ocultar historial del calendario' : 'Ver historial del calendario'}</button
+        onclick={() => onedit('replace')}>Reemplazar calendario</Button
+      ><Button variant="secondary" {disabled} onclick={() => onedit('retire')}
+        >Retirar calendario</Button
+      >{/if}<Button variant="text" {disabled} onclick={() => (history = !history)}
+      >{history ? 'Ocultar historial del calendario' : 'Ver historial del calendario'}</Button
     >
   </div>
   {#if history}<CalendarHistory {api} id={record.id} {onselect} {ondenied} {disabled} />{/if}

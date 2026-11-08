@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import DeadlineFields from './DeadlineFields.svelte';
   import DeadlineFieldsAttention from './DeadlineFieldsAttention.svelte';
   import DeadlineFieldsReview from './DeadlineFieldsReview.svelte';
@@ -59,16 +60,16 @@
   <CaseClosedNotice />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if blocked || closed}
-    <button class="secondary" disabled={pending} onclick={oncontext}
-      >Volver a consultar el contexto</button
+    <Button variant="secondary" disabled={pending} onclick={oncontext}
+      >Volver a consultar el contexto</Button
     >
   {/if}
   {#if step === 'uncertain'}
     <section class="case-comparison" aria-label="Resultado incierto del plazo">
       <h3>Resultado incierto</h3>
       <p>Una ausencia temporal no confirma que la escritura haya fallado.</p>
-      <button class="primary" disabled={pending || blocked || !last} onclick={actions.check}
-        >Consultar envio exacto</button
+      <Button variant="primary" disabled={pending || blocked || !last} onclick={actions.check}
+        >Consultar envio exacto</Button
       >
       <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
     </section>
@@ -76,8 +77,8 @@
   {#if step === 'conflict'}
     <section class="case-comparison" aria-label="Comparar base del plazo">
       <h3>Comparar con el plazo actual</h3>
-      <button class="secondary" disabled={pending || blocked} onclick={actions.compare}
-        >Consultar base actual</button
+      <Button variant="secondary" disabled={pending || blocked} onclick={actions.compare}
+        >Consultar base actual</Button
       >
       {#if compared && candidate}
         <p>
@@ -87,8 +88,8 @@
         </p>
         <DeadlineFieldsReview value={candidate} />
         {#if candidate.status === 'active' && mode !== 'register'}
-          <button class="primary" disabled={frozen} onclick={actions.accept}
-            >Usar esta base y conservar borrador</button
+          <Button variant="primary" disabled={frozen} onclick={actions.accept}
+            >Usar esta base y conservar borrador</Button
           >
         {:else}
           <p>
@@ -114,9 +115,9 @@
           : 'Revise las declaraciones, fuentes, politicas y el resultado a guardar'}</label
       >
       <div class="action-row">
-        <button class="secondary" disabled={pending} onclick={onback}>Volver al borrador</button>
-        <button class="primary" disabled={frozen || !acknowledge} onclick={actions.submit}
-          >Confirmar plazo</button
+        <Button variant="secondary" disabled={pending} onclick={onback}>Volver al borrador</Button>
+        <Button variant="primary" disabled={frozen || !acknowledge} onclick={actions.submit}
+          >Confirmar plazo</Button
         >
       </div>
     </section>
@@ -158,9 +159,9 @@
         ></textarea></label
       >
     {/if}
-    <button class="primary" disabled={frozen || step !== 'draft'} onclick={actions.prepare}
-      >Preparar plazo</button
+    <Button variant="primary" disabled={frozen || step !== 'draft'} onclick={actions.prepare}
+      >Preparar plazo</Button
     >
   {/if}
-  <button class="text-button" disabled={pending} onclick={onclose}>Cerrar formulario</button>
+  <Button variant="text" disabled={pending} onclick={onclose}>Cerrar formulario</Button>
 </section>

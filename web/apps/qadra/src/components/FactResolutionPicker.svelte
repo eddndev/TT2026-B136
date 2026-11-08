@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { factTimeLabel } from '../lib/procedural-fact-time.mjs';
   import { factDeclarationLabel, classLabels } from './fact-field-labels.mjs';
@@ -74,19 +75,19 @@
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#each revisions as row}<div class="hearing-result-picker-row">
       <p>Revision {row.revision} / {row.status === 'withdrawn' ? 'Retirada' : 'Registrada'}</p>
-      <button
+      <Button
         type="button"
-        class="secondary"
+        variant="secondary"
         disabled={disabled || busy}
         onclick={() => read(row.revision)}
-        >Consultar resoluci&#243;n revisi&#243;n {row.revision}</button
+        >Consultar resoluci&#243;n revisi&#243;n {row.revision}</Button
       >
     </div>{/each}
-  {#if more}<button
+  {#if more}<Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={disabled || busy}
-      onclick={() => history(cursor)}>Revisiones anteriores de la resoluci&#243;n</button
+      onclick={() => history(cursor)}>Revisiones anteriores de la resoluci&#243;n</Button
     >{/if}
   {#if exact}<p>
       Revisi&#243;n exacta {exact.revision} / {exact.status === 'withdrawn'
@@ -99,16 +100,16 @@
       )}
     </p>
     <p class="case-multiline">{exact.values.summary}</p>
-    <button
+    <Button
       type="button"
-      class="primary"
+      variant="primary"
       disabled={disabled || busy}
       onclick={() => {
         if (canApply()) onselected(exact);
-      }}>Vincular esta revisi&#243;n de resoluci&#243;n</button
+      }}>Vincular esta revisi&#243;n de resoluci&#243;n</Button
     >
   {/if}
-  <button type="button" class="text-button" disabled={busy} onclick={oncancel}
-    >Cerrar selector de resoluci&#243;n</button
+  <Button type="button" variant="text" disabled={busy} onclick={oncancel}
+    >Cerrar selector de resoluci&#243;n</Button
   >
 </section>

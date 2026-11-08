@@ -13,7 +13,7 @@ import {
 export { pdf, digest, signature, certificate };
 export async function signingSetup(page, role = 'litigator', material = null) {
   await setup(page, role, [{ ...document, digest }]);
-  const user = { id: accountId, email: 'litigator@example.test', role };
+  const user = { id: accountId, email: 'litigator@example.test', name: 'Litigante Ejemplo', role };
   const state = {
     writes: [],
     current: null,

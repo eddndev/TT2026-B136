@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import CaseReportRequest from './CaseReportRequest.svelte';
   import CaseReportList from './CaseReportList.svelte';
@@ -9,7 +10,6 @@
     scopeLabel,
     reportFailure,
   } from '../lib/case-reports-presentation.mjs';
-  import '../styles/case-reports.css';
   export let api, user;
   let mounted = false,
     alive = true,
@@ -226,8 +226,8 @@
           Estado actual de expedientes o actividad por litigante durante el periodo seleccionado.
         </p>
       </div>
-      <button class="secondary" disabled={listBusy || requestBusy} onclick={() => load()}
-        >Actualizar informes</button
+      <Button variant="secondary" disabled={listBusy || requestBusy} onclick={() => load()}
+        >Actualizar informes</Button
       >
     </div>
     <p class="report-scope">{scopeLabel(reportScope(user.role))}</p>

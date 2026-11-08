@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import ActivityResources from './ActivityResources.svelte';
   import DeadlineEditor from './DeadlineEditor.svelte';
@@ -166,18 +167,18 @@
 <section class="fact-collection deadline-collection" aria-label="Plazos">
   <div class="section-heading">
     <h2>Seguimiento de plazos</h2>
-    {#if canDeadlines(user.role, 'manage')}<button
-        class="primary"
+    {#if canDeadlines(user.role, 'manage')}<Button
+        variant="primary"
         disabled={pending || !manage}
-        onclick={() => edit('register')}>Registrar plazo</button
+        onclick={() => edit('register')}>Registrar plazo</Button
       >{/if}
   </div>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
   {#if !mode && canDeadlines(user.role, 'manage')}
     {#each drafts as draft (draft.key)}
-      <button class="secondary" disabled={pending} onclick={() => resume(draft)}
-        >Retomar borrador de plazo</button
+      <Button variant="secondary" disabled={pending} onclick={() => resume(draft)}
+        >Retomar borrador de plazo</Button
       >
     {/each}
   {/if}
@@ -196,7 +197,7 @@
   <section class="card" aria-label="Plazos registrados" aria-busy={busy || opening}>
     <div class="section-heading">
       <h3>Registros disponibles</h3>
-      <button class="secondary" disabled={pending} onclick={reset}>Actualizar plazos</button>
+      <Button variant="secondary" disabled={pending} onclick={reset}>Actualizar plazos</Button>
     </div>
     <div class="action-row">
       <label
@@ -206,13 +207,13 @@
           >
         </select></label
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={pending}
         onclick={() => {
           applied = status;
           reset();
-        }}>Aplicar estado</button
+        }}>Aplicar estado</Button
       >
     </div>
     <p class="hint">
@@ -250,24 +251,24 @@
     {#if !rows.length && !busy && !error}<p>No hay plazos en esta consulta.</p>{/if}
     {#if busy}<p role="status">Consultando plazos...</p>{/if}
     <div class="action-row">
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={pending || !index}
         onclick={() => {
           selected = null;
           detailGeneration++;
           load(index - 1);
-        }}>Plazos anteriores</button
+        }}>Plazos anteriores</Button
       >
-      <button
-        class="secondary"
+      <Button
+        variant="secondary"
         disabled={pending || !more}
         onclick={() => {
           selected = null;
           detailGeneration++;
           cursors = [...cursors.slice(0, index + 1), next];
           load(index + 1);
-        }}>Plazos siguientes</button
+        }}>Plazos siguientes</Button
       >
     </div>
   </section>

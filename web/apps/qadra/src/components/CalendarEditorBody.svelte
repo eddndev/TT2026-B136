@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import CalendarFields from './CalendarFields.svelte';
   import CalendarValues from './CalendarValues.svelte';
   export let action, base, draft, prepared, last, candidate, compared, mode, error;
@@ -17,15 +18,15 @@
     Clasificaci&#243;n declarada por &#225;mbito. Esta captura no calcula plazos ni acredita el
     contenido de las fuentes.
   </p>
-  {#if blocked}<button class="secondary" disabled={busy} onclick={retry}
-      >Volver a consultar el contexto del calendario</button
+  {#if blocked}<Button variant="secondary" disabled={busy} onclick={retry}
+      >Volver a consultar el contexto del calendario</Button
     >{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if mode === 'uncertain'}<div class="case-comparison">
       <h3>Resultado incierto</h3>
       <p>Consulta el recibo del env&#237;o. La ausencia temporal no confirma que fall&#243;.</p>
-      <button class="primary" disabled={busy || blocked} onclick={check}
-        >Consultar env&#237;o exacto</button
+      <Button variant="primary" disabled={busy || blocked} onclick={check}
+        >Consultar env&#237;o exacto</Button
       >
       <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
     </div>{/if}
@@ -43,8 +44,8 @@
         Tu borrador se conserva. Consulta los valores actuales antes de preparar una nueva
         operaci&#243;n.
       </p>
-      <button class="secondary" disabled={busy || blocked} onclick={compare}
-        >Consultar base actual del calendario</button
+      <Button variant="secondary" disabled={busy || blocked} onclick={compare}
+        >Consultar base actual del calendario</Button
       >
       {#if compared && candidate}<p>
           Revisi&#243;n {candidate.revision} / {candidate.status === 'retired'
@@ -52,10 +53,10 @@
             : 'Publicado'}
         </p>
         <CalendarValues values={candidate.values} />
-        {#if action !== 'publish' && candidate.status === 'published'}<button
-            class="primary"
+        {#if action !== 'publish' && candidate.status === 'published'}<Button
+            variant="primary"
             disabled={busy || blocked}
-            onclick={accept}>Usar esta base y conservar borrador</button
+            onclick={accept}>Usar esta base y conservar borrador</Button
           >{:else}<p>
             Esta base no admite reenviar el borrador. Cierra el formulario y consulta su historia.
           </p>{/if}
@@ -76,9 +77,9 @@
         <p>Recibo: <code>{prepared.submission_digest}</code></p>
       </details>
       <div class="action-row">
-        <button class="secondary" disabled={busy} onclick={back}
-          >Volver al borrador del calendario</button
-        ><button class="primary" disabled={frozen} onclick={submit}>Confirmar calendario</button>
+        <Button variant="secondary" disabled={busy} onclick={back}
+          >Volver al borrador del calendario</Button
+        ><Button variant="primary" disabled={frozen} onclick={submit}>Confirmar calendario</Button>
       </div>
     </div>{:else if mode !== 'confirmed'}
     {#if action === 'retire'}<CalendarValues values={base.values} />
@@ -93,11 +94,9 @@
     {#if action !== 'publish'}<label
         >Motivo<textarea rows="3" bind:value={draft.reason} disabled={frozen}></textarea></label
       >{/if}
-    <button class="primary" disabled={frozen || mode !== 'draft'} onclick={prepare}
-      >Revisar calendario</button
+    <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={prepare}
+      >Revisar calendario</Button
     >
   {/if}
-  <button class="text-button" disabled={busy} onclick={close}
-    >Cerrar formulario de calendario</button
-  >
+  <Button variant="text" disabled={busy} onclick={close}>Cerrar formulario de calendario</Button>
 </section>

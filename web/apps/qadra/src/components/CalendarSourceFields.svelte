@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   export let sources,
     usedIds = [],
     disabled = false;
@@ -21,8 +22,8 @@
 <section class="calendar-fields-section" aria-label="Fuentes declaradas">
   <div class="section-heading">
     <h3>Fuentes p&#250;blicas declaradas</h3>
-    <button class="secondary" disabled={disabled || sources.length >= 16} onclick={add}
-      >Agregar fuente</button
+    <Button variant="secondary" disabled={disabled || sources.length >= 16} onclick={add}
+      >Agregar fuente</Button
     >
   </div>
   <p class="hint">
@@ -65,11 +66,11 @@
           Esta fuente est&#225; vinculada a reglas. Quita esos v&#237;nculos antes de retirarla del
           borrador.
         </p>{/if}
-      <button
-        class="text-button"
+      <Button
+        variant="text"
         disabled={usedIds.includes(source.id)}
         onclick={() => (sources = sources.filter((row) => row.id !== source.id))}
-        >Quitar fuente {index + 1}</button
+        >Quitar fuente {index + 1}</Button
       >
     </fieldset>{/each}
   {#if !sources.length}<p>Sin referencias en este borrador.</p>{/if}

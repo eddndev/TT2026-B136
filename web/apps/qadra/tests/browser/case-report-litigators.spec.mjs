@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { login, navigate } from './helpers.mjs';
+import { login, navigate, signOut } from './helpers.mjs';
 import { lawyerId } from './case-reports-fixtures.mjs';
 import {
   setupReports,
@@ -80,7 +80,7 @@ test('a report litigator page released after logout cannot restore private choic
   await navigate(page, 'Informes');
   const route = await captured;
   await expect(reports(page)).toHaveAttribute('aria-busy', 'true');
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
   const response = page.waitForResponse((value) => value.url() === route.request().url());
   await route.fulfill({ json: { ...state.picker, litigators: [choice] } });

@@ -291,9 +291,13 @@ workflow, while the complete case-management web product was still unfinished.
   API/restore acceptance also passed, preserving account and assignment views
   while rejecting old tokens and requiring fresh MFA. Global CI, the PDF for
   these results and integration remain pending. Direct enrollment is not an
-  invitation; account recovery and certificate login remain pending. See
-  `docs/members-api.md` and
-  `docs/adr/0043-member-access-and-authentication-generation.md`.
+  invitation; account recovery and certificate login remain pending. Every
+  office account carries a required, immutable display name written by the
+  Owner and shown only in the Qadra greeting and account menu; it stays out of
+  `Principal`, the audit log and the CA store. See
+  `docs/members-api.md`,
+  `docs/adr/0043-member-access-and-authentication-generation.md` and
+  `docs/adr/0087-account-display-names.md`.
 - `migrations/0002_cases.sql` persists case metadata and current assignments.
   `crates/application/src/cases/` authenticates every operation; the PostgreSQL
   adapter filters detail and paginated lists by membership. Owners see all

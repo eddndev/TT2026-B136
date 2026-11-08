@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import CalendarList from './CalendarList.svelte';
   import CalendarDetail from './CalendarDetail.svelte';
@@ -204,15 +205,15 @@
   onnew={() => edit('publish')}
 />
 {#if opening}<p role="status">Consultando revisi&#243;n del calendario...</p>{/if}
-{#if !action && manage}{#each drafts as saved (saved.key)}<button
-      class="secondary"
+{#if !action && manage}{#each drafts as saved (saved.key)}<Button
+      variant="secondary"
       disabled={pending}
       onclick={() => resume(saved)}
       >Retomar borrador de calendario ({saved.action === 'publish'
         ? 'publicar'
         : saved.action === 'replace'
           ? 'reemplazar'
-          : 'retirar'})</button
+          : 'retirar'})</Button
     >{/each}{/if}
 {#if action}{#key editorKey}<CalendarEditor
       {api}

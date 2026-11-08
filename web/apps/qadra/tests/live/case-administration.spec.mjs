@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, signOut, openSection } from './helpers.mjs';
 import { saveAdministration } from '../case-administration-workflow.mjs';
 import {
   accounts,
@@ -115,7 +115,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
       page.locator('.case-summary').getByText('Borrador revisado', { exact: true }),
     ).toBeVisible();
 
-    await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+    await openSection(page, 'Documentos');
     await page.getByRole('button', { name: 'Subir documento', exact: true }).click();
     await page.getByLabel('Archivo', { exact: true }).setInputFiles({
       name: 'case-evidence.txt',
@@ -140,7 +140,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
       page.getByRole('heading', { name: 'case-pending.txt', exact: true }),
     ).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sellar documento', exact: true })).toBeEnabled();
-    await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+    await openSection(page, 'Participantes');
     await page.getByRole('button', { name: 'Registrar ficha pendiente', exact: true }).click();
     await page
       .getByLabel('Nombre del participante', { exact: true })
@@ -151,7 +151,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
       page.getByRole('heading', { name: 'Persona del expediente', exact: true }),
     ).toBeVisible();
 
-    await other.getByRole('link', { name: 'Documentos', exact: true }).click();
+    await openSection(other, 'Documentos');
     await other.getByRole('button', { name: 'Subir documento', exact: true }).click();
     const upload = other.getByRole('dialog', { name: 'Subir documento', exact: true });
     await upload.getByLabel('Archivo', { exact: true }).setInputFiles({
@@ -159,7 +159,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
       mimeType: 'text/plain',
       buffer: Buffer.from('Draft'),
     });
-    await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+    await openSection(page, 'Resumen');
     await page.getByRole('button', { name: 'Cerrar administrativamente', exact: true }).click();
     await capture(page, testInfo, 'penal-close-confirmation');
     await page
@@ -184,7 +184,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
     await page.setViewportSize({ width: 390, height: 844 });
     await capture(page, testInfo, 'penal-history-mobile', page.locator('.case-history'));
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.getByRole('link', { name: 'Documentos', exact: true }).click();
+    await openSection(page, 'Documentos');
     await expect(page.getByRole('button', { name: 'Subir documento', exact: true })).toBeDisabled();
     await page.getByRole('button', { name: 'Abrir case-pending.txt', exact: true }).click();
     for (const name of ['Agregar versi\u00f3n', 'Editar clasificaci\u00f3n', 'Sellar documento'])
@@ -193,11 +193,11 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
     await page.getByRole('button', { name: 'Verificar integridad', exact: true }).click();
     await expect(page.getByText('Verificaci\u00f3n v\u00e1lida', { exact: true })).toBeVisible();
     expect(await archive(page, testInfo, 'after-case-closed.zip')).toEqual(originalZip);
-    await page.getByRole('link', { name: 'Participantes', exact: true }).click();
+    await openSection(page, 'Participantes');
     await page.getByRole('button', { name: 'Abrir Persona del expediente', exact: true }).click();
     for (const name of ['Agregar participante', 'Editar participante', 'Archivar participante'])
       await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
-    await page.getByRole('link', { name: 'Resumen', exact: true }).click();
+    await openSection(page, 'Resumen');
     await page.getByRole('button', { name: 'Reactivar expediente', exact: true }).click();
     await page.getByRole('button', { name: 'Confirmar reactivaci\u00f3n', exact: true }).click();
     await expect(
@@ -207,7 +207,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
     await context.close();
   }
 
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible();
   await page.reload();
   await loginAs(page, accounts.owner, 2);

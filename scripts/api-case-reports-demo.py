@@ -226,7 +226,8 @@ def roles_denied(saved):
 
 def capture():
     enrollments = {role: request('POST', '/api/v1/users', {
-        'email': 'report-restore-' + role + '@example.com', 'password': PASSWORD, 'role': role,
+        'email': 'report-restore-' + role + '@example.com', 'name': 'Report ' + role,
+        'password': PASSWORD, 'role': role,
     }, 201) for role in ['litigator', 'owner']}
     tokens = {role: login(row, 0) for role, row in enrollments.items()}
     litigator = {'user_id': enrollments['litigator']['user']['id'],

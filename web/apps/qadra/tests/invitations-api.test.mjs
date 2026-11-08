@@ -27,12 +27,20 @@ test('an owner may invite and list a client account but never an owner', async (
   const issued = await api.issue({
     operation_id: id,
     email: 'client@example.test',
+    name: 'Cliente Ejemplo',
     role: 'client',
   });
   assert.equal(issued.role, 'client');
   assert.equal((await api.list()).items[0].role, 'client');
-  await assert.rejects(api.issue({ operation_id: id, email: 'owner@example.test', role: 'owner' }));
+  await assert.rejects(
+    api.issue({ operation_id: id, email: 'owner@example.test', name: 'Ana', role: 'owner' }),
+  );
+  for (const name of [undefined, '', ' Ana', 'Ana\u202e', 7])
+    await assert.rejects(
+      api.issue({ operation_id: id, email: 'client@example.test', name, role: 'client' }),
+    );
   assert.equal(calls.length, 2);
+  assert.equal(calls[0][1].data.name, 'Cliente Ejemplo');
   const owner = invitationsApi(async () => row('owner'));
   await assert.rejects(owner.get(id));
 });

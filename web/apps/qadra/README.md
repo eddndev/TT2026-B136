@@ -101,8 +101,9 @@ conservan su seguimiento en [el informe](../../../docs/verification-report.md).
 
 ### Identidad, expedientes y documentos
 
-1. Configurar el acceso inicial si la base no contiene usuarios. Guardar la
-   clave TOTP y los códigos de recuperación antes de finalizar el alta.
+1. Configurar el acceso inicial si la base no contiene usuarios: nombre completo,
+   correo y contraseña. Guardar la clave TOTP y los códigos de recuperación antes
+   de finalizar el alta.
 2. Iniciar sesión con correo, contraseña y TOTP o código de recuperación.
    Un rechazo MFA consume el desafío y vuelve a pedir credenciales.
 3. Abrir **Expedientes**. El personal usa un índice autorizado con estado
@@ -171,14 +172,18 @@ conservan su seguimiento en [el informe](../../../docs/verification-report.md).
     Las filas excluyen identificadores personales, contactos y certificados.
     Su historial conserva los valores y autor/fecha de cada revisión, manual
     o tipificada; no calcula totales a partir de una página.
-15. Como Owner, crear integrantes y verificar la cadena de auditoría.
+15. Como Owner, crear integrantes y verificar la cadena de auditoría. El Owner
+    escribe el nombre de cada cuenta al darla de alta o al invitarla; el nombre
+    no se edita después ([ADR 0087](../../../docs/adr/0087-account-display-names.md)).
 
 La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; el personal
 también accede a Agenda y Alertas. Dentro del
 expediente, Resumen, Documentos, Participantes, Etapas, Audiencias, Resoluciones
 y Plazos comparten contexto. Equipo
-y Auditoría aparecen para Owner. El inicio ofrece accesos a operaciones y al
-expediente seleccionado. No presenta recuentos de una página como totales del
+y Auditoría aparecen para Owner. El inicio saluda por el nombre de la cuenta y
+el menú de la cuenta muestra el nombre con el correo como línea secundaria; el
+nombre no aparece en contratos, directorio, cargas ni informes. El inicio ofrece
+accesos a operaciones y al expediente seleccionado. No presenta recuentos de una página como totales del
 despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
 Las rutas usan fragmentos de URL y respetan atrás/adelante sin recargar la sesión.
 

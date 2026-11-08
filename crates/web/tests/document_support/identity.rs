@@ -10,6 +10,7 @@ impl IdentityWorkflow for StubIdentity {
     fn bootstrap_owner(
         &self,
         _email: &str,
+        _display_name: &str,
         _password: &str,
     ) -> Result<EnrollmentResult, ApplicationError> {
         Err(ApplicationError::BootstrapClosed)
@@ -19,6 +20,7 @@ impl IdentityWorkflow for StubIdentity {
         &self,
         _token: &str,
         _email: &str,
+        _display_name: &str,
         _password: &str,
         _role: Role,
     ) -> Result<EnrollmentResult, ApplicationError> {
@@ -76,5 +78,12 @@ impl IdentityWorkflow for StubIdentity {
 
     fn logout(&self, _access_token: &str) -> Result<(), ApplicationError> {
         Ok(())
+    }
+
+    fn current_account(
+        &self,
+        _token: &str,
+    ) -> Result<application::identity::CurrentAccount, ApplicationError> {
+        unreachable!("document routes do not read the current account")
     }
 }

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAs } from './helpers.mjs';
+import { loginAs, signOut } from './helpers.mjs';
 import { openCase } from '../case-administration-workflow.mjs';
 import { capture } from './case-administration-helpers.mjs';
 import {
@@ -133,7 +133,7 @@ test('typed identities and personally signed roles persist with exact bound hist
       response.request().method() === 'POST' &&
       new URL(response.url()).pathname === '/api/v1/auth/logout',
   );
-  await page.getByRole('button', { name: 'Cerrar sesi\u00f3n', exact: true }).click();
+  await signOut(page);
   expect((await loggedOut).status()).toBe(204);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible();
   await page.goto('/');

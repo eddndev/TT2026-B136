@@ -34,8 +34,8 @@ pub fn account(db: &mut Fixture, role: &str, active: bool) -> UserId {
     .unwrap();
     let recovery = serde_json::to_value(recovery).unwrap();
     db.admin.execute(
-        "INSERT INTO users(id,email,password_hash,role,active,protected_totp_secret,recovery_codes)
-         VALUES($1,$2,'original-hash',$3,$4,$5,$6)",
+        "INSERT INTO users(id,email,password_hash,role,active,protected_totp_secret,recovery_codes,display_name)
+         VALUES($1,$2,'original-hash',$3,$4,$5,$6,'Fixture')",
         &[&id.as_uuid(), &email(id), &role, &active, &vec![3u8; 48], &recovery],
     ).unwrap();
     // A Client account is never a case member: docs/adr/0086-bilateral-contract-signing.md.

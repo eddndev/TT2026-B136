@@ -1,4 +1,5 @@
 <script>
+  import Button from './Button.svelte';
   import { needsCredential } from '../lib/typed-participant-fields.mjs';
   import { candidateKey } from '../lib/typed-participant-values.mjs';
   import TypedParticipantForm from './TypedParticipantForm.svelte';
@@ -75,11 +76,11 @@
       bind:pending={credentialBusy}
       bind:value
     />{/if}
-  <button
+  <Button
     type="button"
-    class="secondary"
+    variant="secondary"
     disabled={pending || closed || state.uncertain || state.conflict || state.exhausted}
-    onclick={actions.reviewIdentity}>Revisar identidad y coincidencias</button
+    onclick={actions.reviewIdentity}>Revisar identidad y coincidencias</Button
   >
   {#if state.review}<ParticipantCandidates
       result={state.review}
@@ -94,11 +95,11 @@
       disabled={state.busy || formBusy || credentialBusy || directoryBusy || closed}
       bind:pending={candidatesBusy}
     />
-    <button
+    <Button
       type="button"
-      class="secondary"
+      variant="secondary"
       disabled={pending || closed || state.uncertain || state.conflict || state.exhausted}
-      onclick={actions.prepare}>Preparar registro</button
+      onclick={actions.prepare}>Preparar registro</Button
     >{/if}
   {#each stale as key}<section aria-label="Decision anterior sin aplicar">
       <p>
@@ -134,8 +135,8 @@
     directoryDisabled={state.busy || formBusy || credentialBusy || candidatesBusy || state.blocked}
     bind:directoryBusy
   />
-  {#if state.blocked}<button class="secondary" disabled={pending} onclick={retry}
-      >Volver a consultar la ficha y sus soportes</button
+  {#if state.blocked}<Button variant="secondary" disabled={pending} onclick={retry}
+      >Volver a consultar la ficha y sus soportes</Button
     >{/if}
   {#if state.typedCurrent}<p role="status" class="notice">
       La ficha ya fue tipificada. Este borrador conserva la intenci&#243;n anterior y s&#243;lo
@@ -143,9 +144,9 @@
     </p>{/if}
   <CaseClosedNotice />
   <div class="dialog-actions">
-    <button class="secondary" disabled={pending} onclick={close}>Cancelar</button>
-    <button
-      class="primary"
+    <Button variant="secondary" disabled={pending} onclick={close}>Cancelar</Button>
+    <Button
+      variant="primary"
       disabled={pending ||
         closed ||
         state.uncertain ||
@@ -153,7 +154,7 @@
         state.exhausted ||
         !state.prepared ||
         (!!state.prepared.declaration && !value?.ready)}
-      onclick={actions.submit}>{state.busy ? 'Procesando...' : 'Confirmar registro'}</button
+      onclick={actions.submit}>{state.busy ? 'Procesando...' : 'Confirmar registro'}</Button
     >
   </div>
 </div>
