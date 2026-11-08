@@ -226,7 +226,8 @@ jobs:
           TT_WEB_MOCK_SERVER: preview
       - name: Check module diagnostics against the dev server
         if: ${{ matrix.shard == 1 }}
-        run: npm run test:e2e -- tests/browser/frontend-entry-diagnostics.spec.mjs --workers=1 --max-failures=1 --reporter=line
+        # A separate output directory keeps the shard's JUnit report.
+        run: npm run test:e2e -- tests/browser/frontend-entry-diagnostics.spec.mjs --workers=1 --max-failures=1 --reporter=line --output=test-results-dev
       - name: Publish browser durations
         if: always()
         uses: actions/upload-artifact@v4

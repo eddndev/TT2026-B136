@@ -3,6 +3,7 @@ dist/
 .astro/
 test-results/
 test-results-live/
+test-results-dev/
 playwright-report/
 test-results-session/
 /apps/qadra/src/generated/browser-crypto/
