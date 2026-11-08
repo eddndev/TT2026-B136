@@ -32,6 +32,21 @@ test('a modal is centered on desktop and closes with Escape', async ({ page }) =
   await expect(modal).toBeHidden();
 });
 
+test('a closed modal stops rendering at once so reopening shows one dialog', async ({ page }) => {
+  const modal = await openUpload(page, 1440);
+  await expect(modal).toHaveCSS('opacity', '1');
+  // Read the computed display in the same task as close(): a closing
+  // transition would keep the dialog rendered and named while it runs.
+  const display = await modal.evaluate((dialog) => {
+    dialog.close();
+    return getComputedStyle(dialog).display;
+  });
+  expect(display).toBe('none');
+  await page.getByRole('button', { name: 'Subir documento', exact: true }).click();
+  await expect(modal).toHaveCount(1);
+  await expect(modal).toBeVisible();
+});
+
 test('a modal sits at the bottom of a phone screen and stacks its actions', async ({ page }) => {
   const modal = await openUpload(page, 390);
   await expect(modal).toHaveCSS('opacity', '1');

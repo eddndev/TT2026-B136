@@ -52,6 +52,27 @@ Límites: no se ejecutaron `scripts/api-demo.sh`, `scripts/web-demo.sh`, las
 especificaciones `tests/live` y `tests/session-live`, ni ninguna prueba contra
 servicios reales, ni el ensayo de las migraciones `0053` sobre un respaldo.
 
+Navegador y ventanas modales, 7 de noviembre de 2026, sobre `331e7a6a` con
+las mismas condiciones:
+
+- `npx playwright test tests/browser --workers=1` en dos invocaciones: la
+  primera se interrumpió a los 2077 s (633 casos iniciados) y la segunda
+  continuó desde el archivo en curso (130 casos, 8,6 min). Tres archivos que
+  ninguna de las dos alcanzó (`contract-client`, `contract-firm` y
+  `local-document-signing`) se ejecutaron aparte: 10 aprobadas. Sólo
+  fallaron, y de forma reproducible al aislarlas, las dos violaciones de modo
+  estricto descritas arriba.
+- Causa: `Modal.svelte` transicionaba también `display` y `overlay` con
+  `transition-discrete` sin estilo de salida, así que un diálogo cerrado seguía
+  representado, en la capa superior y con nombre accesible durante 300 ms;
+  reabrir una carga dentro de ese intervalo mostraba dos diálogos. Ahora sólo
+  se anima la apertura (opacidad, desplazamiento y escala) y el cierre es
+  inmediato. La prueba nueva de `modal.spec.mjs` (el `display` calculado tras
+  `close()` es `none` y reabrir deja un solo diálogo) falló antes del cambio
+  (`block`) y pasa después. `modal`, `session-notification-drafts`,
+  `session-typed-supports` y `metadata-upload`: 9 aprobadas. Prettier sobre los
+  dos archivos, correcto.
+
 Correcciones de revisión, 7 de noviembre de 2026, sólo con pruebas enfocadas:
 
 - El inventario de arranque rechaza también los nombres de invitación no
