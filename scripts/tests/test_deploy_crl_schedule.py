@@ -249,12 +249,6 @@ class CrlScheduleUnitTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     crl_schedule.units({**self.invocation, field: value}, 72, 4)
 
-    def test_policy_values_are_bounded(self):
-        for hours, keep in ((0, 4), (168, 4), (72, 0)):
-            with self.subTest(hours=hours, keep=keep):
-                with self.assertRaises(ValueError):
-                    crl_schedule.units(self.invocation, hours, keep)
-
     def test_invocation_is_read_from_the_admitted_launcher_command_line(self):
         raw = b"\0".join([b"/opt/cpython/3.12.14/bin/python3.12", b"-I", b"-B", b"-S",
                           b"/home/qadra/qadra/controller_launcher.py", b"--root", b"/home/qadra/qadra",

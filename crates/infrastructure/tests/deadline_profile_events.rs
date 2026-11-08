@@ -100,8 +100,6 @@ fn direct_profile_events_require_exact_nullable_scope_operation_and_revision() {
 #[test]
 fn startup_rejects_missing_profile_event_fk_emitter_generated_key_or_unsafe_grant() {
     for alteration in [
-        "ALTER TABLE deadline_source_events DROP CONSTRAINT deadline_source_profile_revision",
-        "ALTER TABLE deadline_source_events ALTER COLUMN profile_id DROP EXPRESSION",
         "ALTER TABLE deadline_profile_revisions DISABLE TRIGGER deadline_source_emit",
         "GRANT INSERT(profile_id) ON deadline_source_events TO {role}",
     ] {

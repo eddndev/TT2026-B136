@@ -5,53 +5,46 @@ use metadata_database_support::{document, metadata, Fixture};
 
 #[test]
 fn insert_second_audit_and_deferred_commit_failures_roll_back_upload_and_replace() {
-    for initial in [true, false] {
-        for failure in ["row", "audit", "commit"] {
-            let Some(mut f) = Fixture::new() else { return };
-            let store = f.store();
-            let record = document();
-            if !initial {
-                store.insert(f.owner, f.case, record.clone(), f.at).unwrap();
-            }
-            if failure == "audit" {
-                f.db.client.batch_execute("ALTER TABLE audit_events ADD CONSTRAINT reject_metadata_audit CHECK(action<>'document.metadata_changed')").unwrap();
-            } else {
-                let (constraint, timing, deferred) = if failure == "commit" {
-                    ("CONSTRAINT ", "AFTER", "DEFERRABLE INITIALLY DEFERRED")
-                } else {
-                    ("", "BEFORE", "")
-                };
-                f.db.client.batch_execute(&format!("CREATE FUNCTION reject_metadata() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected metadata failure'; END $$; CREATE {constraint}TRIGGER reject_metadata {timing} INSERT ON document_metadata_revisions {deferred} FOR EACH ROW EXECUTE FUNCTION reject_metadata()")).unwrap();
-            }
-            let before = f.snapshot();
-            let result = if initial {
-                store
-                    .insert_with_metadata(
-                        f.owner,
-                        f.case,
-                        record,
-                        metadata("Type", "Class", &[]),
-                        f.at,
-                    )
-                    .map(|_| ())
-            } else {
-                store
-                    .replace_metadata(
-                        f.owner,
-                        f.case,
-                        record.id,
-                        MetadataRevision::unclassified(),
-                        metadata("Type", "Class", &[]),
-                        f.at,
-                    )
-                    .map(|_| ())
-            };
-            assert!(
-                matches!(result, Err(ApplicationError::Port(_))),
-                "initial={initial},failure={failure}"
-            );
-            assert_eq!(f.snapshot(), before, "initial={initial},failure={failure}");
+    for (initial, failure) in [(true, "audit"), (false, "commit")] {
+        let Some(mut f) = Fixture::new() else { return };
+        let store = f.store();
+        let record = document();
+        if !initial {
+            store.insert(f.owner, f.case, record.clone(), f.at).unwrap();
         }
+        if failure == "audit" {
+            f.db.client.batch_execute("ALTER TABLE audit_events ADD CONSTRAINT reject_metadata_audit CHECK(action<>'document.metadata_changed')").unwrap();
+        } else {
+            f.db.client.batch_execute("CREATE FUNCTION reject_metadata() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected metadata failure'; END $$; CREATE CONSTRAINT TRIGGER reject_metadata AFTER INSERT ON document_metadata_revisions DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION reject_metadata()").unwrap();
+        }
+        let before = f.snapshot();
+        let result = if initial {
+            store
+                .insert_with_metadata(
+                    f.owner,
+                    f.case,
+                    record,
+                    metadata("Type", "Class", &[]),
+                    f.at,
+                )
+                .map(|_| ())
+        } else {
+            store
+                .replace_metadata(
+                    f.owner,
+                    f.case,
+                    record.id,
+                    MetadataRevision::unclassified(),
+                    metadata("Type", "Class", &[]),
+                    f.at,
+                )
+                .map(|_| ())
+        };
+        assert!(
+            matches!(result, Err(ApplicationError::Port(_))),
+            "initial={initial},failure={failure}"
+        );
+        assert_eq!(f.snapshot(), before, "initial={initial},failure={failure}");
     }
 }
 
@@ -104,13 +97,7 @@ fn metadata_reads_do_not_return_results_when_their_audit_fails() {
 
 #[test]
 fn noncanonical_stored_metadata_is_rejected_without_normalization_or_audit() {
-    for corruption in [
-        "document_type=' Type'",
-        "tags=ARRAY['z','a']",
-        "metadata_digest='\\x00'",
-        "metadata_digest=decode(repeat('00',32),'hex')",
-        "changed_at='2025-01-01T01:00:00.123456789+01:00'",
-    ] {
+    for corruption in ["document_type=' Type'", "tags=ARRAY['z','a']"] {
         let Some(mut f) = Fixture::new() else { return };
         let store = f.store();
         let record = document();

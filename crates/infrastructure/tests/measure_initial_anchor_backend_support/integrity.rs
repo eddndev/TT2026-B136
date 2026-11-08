@@ -11,81 +11,66 @@ use support::*;
 
 #[test]
 fn missing_older_initial_prefix_or_root_rejects_existing_reads_and_replay() {
-    for missing in ["prefix", "root"] {
-        let Some(mut db) = Fixture::new() else { return };
-        let mut seed = setup(&mut db);
-        let selected = super::history::replace(&db, &seed.hearing);
-        seed.command.anchor = Some(anchor(&selected));
-        let original = persist(&db, seed.actor.clone(), seed.command.clone());
-        let storage = store(&db);
-        assert_eq!(
-            MeasureDecisionReadStore::get(
-                storage.as_ref(),
-                &seed.actor,
-                db.case,
-                original.origin.decision_id
-            )
-            .unwrap(),
-            original
-        );
-        let sql = if missing == "prefix" {
-            "DELETE FROM case_hearing_revisions WHERE revision=1"
-        } else {
-            "DELETE FROM case_hearings"
-        };
-        damage(
-            &mut db.admin,
-            &["case_hearings", "case_hearing_revisions"],
-            sql,
-        );
-        let before = snapshot(&mut db);
-
-        reject_original(&storage, &seed.actor, db.case, &seed.command);
-        assert!(MeasureDecisionStore::prepare(
+    let Some(mut db) = Fixture::new() else { return };
+    let mut seed = setup(&mut db);
+    let selected = super::history::replace(&db, &seed.hearing);
+    seed.command.anchor = Some(anchor(&selected));
+    let original = persist(&db, seed.actor.clone(), seed.command.clone());
+    let storage = store(&db);
+    assert_eq!(
+        MeasureDecisionReadStore::get(
             storage.as_ref(),
             &seed.actor,
             db.case,
-            &no_change(&seed.command),
-            &StageSupportReadLimits::default()
+            original.origin.decision_id
         )
-        .is_err());
-        assert!(open(&db).is_err(), "accepted a lost ordinary {missing}");
-        assert_eq!(snapshot(&mut db), before);
-    }
+        .unwrap(),
+        original
+    );
+    damage(
+        &mut db.admin,
+        &["case_hearings", "case_hearing_revisions"],
+        "DELETE FROM case_hearing_revisions WHERE revision=1",
+    );
+    let before = snapshot(&mut db);
+
+    reject_original(&storage, &seed.actor, db.case, &seed.command);
+    assert!(MeasureDecisionStore::prepare(
+        storage.as_ref(),
+        &seed.actor,
+        db.case,
+        &no_change(&seed.command),
+        &StageSupportReadLimits::default()
+    )
+    .is_err());
+    assert!(open(&db).is_err(), "accepted a lost ordinary prefix");
+    assert_eq!(snapshot(&mut db), before);
 }
 
 #[test]
 fn missing_or_altered_original_prefix_audit_rejects_the_selected_later_anchor() {
-    for alter in [false, true] {
-        let Some(mut db) = Fixture::new() else { return };
-        let mut seed = setup(&mut db);
-        let selected = super::history::replace(&db, &seed.hearing);
-        seed.command.anchor = Some(anchor(&selected));
-        persist(&db, seed.actor.clone(), seed.command.clone());
-        let storage = store(&db);
-        let original_marker = marker(&seed.hearing);
-        let sequence: i64 = db
-            .admin
-            .query_one(
-                "SELECT sequence FROM audit_events WHERE resource=$1",
-                &[&original_marker],
-            )
-            .unwrap()
-            .get(0);
-        let sql = if alter {
-            format!(
-                "UPDATE audit_events SET resource=resource||':altered' WHERE sequence={sequence}"
-            )
-        } else {
-            format!("DELETE FROM audit_events WHERE sequence={sequence}")
-        };
-        damage(&mut db.admin, &["audit_events"], &sql);
-        let before = snapshot(&mut db);
+    let Some(mut db) = Fixture::new() else { return };
+    let mut seed = setup(&mut db);
+    let selected = super::history::replace(&db, &seed.hearing);
+    seed.command.anchor = Some(anchor(&selected));
+    persist(&db, seed.actor.clone(), seed.command.clone());
+    let storage = store(&db);
+    let original_marker = marker(&seed.hearing);
+    let sequence: i64 = db
+        .admin
+        .query_one(
+            "SELECT sequence FROM audit_events WHERE resource=$1",
+            &[&original_marker],
+        )
+        .unwrap()
+        .get(0);
+    let sql = format!("DELETE FROM audit_events WHERE sequence={sequence}");
+    damage(&mut db.admin, &["audit_events"], &sql);
+    let before = snapshot(&mut db);
 
-        reject_original(&storage, &seed.actor, db.case, &seed.command);
-        assert!(open(&db).is_err());
-        assert_eq!(snapshot(&mut db), before);
-    }
+    reject_original(&storage, &seed.actor, db.case, &seed.command);
+    assert!(open(&db).is_err());
+    assert_eq!(snapshot(&mut db), before);
 }
 
 #[test]

@@ -1,4 +1,8 @@
-"""Compile once and schedule individual tests against independent backends."""
+"""Compile once and schedule individual tests against independent backends.
+
+Pull requests run without instrumentation; the coverage gate runs on the
+nightly schedule and on request. See docs/adr/0088-ci-time-budget.md.
+"""
 
 import argparse
 import os
@@ -10,23 +14,34 @@ import subprocess
 from ci_test_shard import coverage_helpers
 
 
+def test_command(targets, slots, coverage):
+    runner = (["cargo", "llvm-cov", "nextest", "--no-report"] if coverage
+              else ["cargo", "nextest", "run"])
+    return [*runner, "--locked", *targets, "--profile", "ci",
+            "--test-threads", str(slots)]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--slots", type=int, choices=range(1, 17), default=4)
+    parser.add_argument("--no-coverage", dest="coverage", action="store_false")
     parser.add_argument("targets", nargs=argparse.REMAINDER)
     args = parser.parse_args()
     root = Path.cwd()
-    helpers = coverage_helpers(root)
-    toolchain = "".join(subprocess.check_output(command, text=True) for command in (
-        ["cargo", "llvm-cov", "--version"], ["cargo", "nextest", "--version"],
-        ["rustc", "-Vv"], ["cargo", "-V"],
-    ))
-    target = Path(os.environ["CARGO_TARGET_DIR"]).resolve()
-    directory = target.parent / "coverage" / helpers.cache_key(root, os.environ, toolchain)
-    directory.mkdir(parents=True, exist_ok=True)
-    helpers.prune_caches(directory)
-    report = root / "coverage-shard-1.info"
-    helpers.clear_measurements(directory, report)
+    environment = dict(os.environ)
+    if args.coverage:
+        helpers = coverage_helpers(root)
+        toolchain = "".join(subprocess.check_output(command, text=True) for command in (
+            ["cargo", "llvm-cov", "--version"], ["cargo", "nextest", "--version"],
+            ["rustc", "-Vv"], ["cargo", "-V"],
+        ))
+        target = Path(os.environ["CARGO_TARGET_DIR"]).resolve()
+        directory = target.parent / "coverage" / helpers.cache_key(root, os.environ, toolchain)
+        directory.mkdir(parents=True, exist_ok=True)
+        helpers.prune_caches(directory)
+        report = root / "coverage-shard-1.info"
+        helpers.clear_measurements(directory, report)
+        environment["CARGO_LLVM_COV_TARGET_DIR"] = str(directory)
     junit = root / "output" / "nextest" / "ci" / "junit.xml"
     published_junit = root / "output" / "ci-nextest-junit.xml"
     junit.unlink(missing_ok=True)
@@ -38,29 +53,28 @@ def main():
                 "psql", postgres, "-X", "-v", "ON_ERROR_STOP=1", "-q", "-c",
                 f"CREATE DATABASE ci_{kind}_{slot}",
             ], check=True)
-    environment = {
-        **os.environ,
-        "CARGO_LLVM_COV_TARGET_DIR": str(directory),
+    environment.update({
         "TT_CI_TEST_SLOTS": str(args.slots),
         "TT_CI_POSTGRES_BASE": postgres,
         "TT_CI_REDIS_BASE": os.environ["IDENTITY_TEST_REDIS_URL"],
         "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER": shlex.join([
             "python3", str(root / "scripts" / "ci_test_slot.py"),
         ]),
-    }
+    })
     targets = args.targets or ["--workspace"]
     if targets[0] == "--":
         targets = targets[1:]
-    print(f"Coverage with {args.slots} isolated test slots", flush=True)
+    mode = "Coverage" if args.coverage else "Tests"
+    print(f"{mode} with {args.slots} isolated test slots", flush=True)
     try:
-        subprocess.run([
-            "cargo", "llvm-cov", "nextest", "--no-report", "--locked", *targets,
-            "--profile", "ci", "--test-threads", str(args.slots),
-        ], env=environment, check=True)
+        subprocess.run(test_command(targets, args.slots, args.coverage),
+                       env=environment, check=True)
     finally:
         if junit.is_file():
             published_junit.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(junit, published_junit)
+    if not args.coverage:
+        return
     subprocess.run([
         "cargo", "llvm-cov", "report", "--lcov", "--output-path", str(report),
     ], env=environment, check=True)

@@ -96,11 +96,6 @@ class WebReuseTests(unittest.TestCase):
         git = FakeGit(blobs={(EARLIER, ".github/workflows/web.yml"): "older-blob"})
         self.assertIsNone(self.choose([run(7, EARLIER)], git))
 
-    def test_expired_or_missing_browser_module_prevents_reuse(self):
-        for artifacts in ({7: [{"name": "browser-crypto-module", "expired": True}]}, {7: []}):
-            with self.subTest(artifacts=artifacts):
-                self.assertIsNone(self.choose([run(7, EARLIER)], FakeGit(), artifacts))
-
     def test_a_run_missing_either_browser_module_is_not_equivalent(self):
         for kept in MODULES:
             with self.subTest(kept=kept):

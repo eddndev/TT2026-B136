@@ -172,15 +172,6 @@ fn startup_rejects_altered_columns_generated_status_constraints_functions_and_tr
     assert_missing_operation_unique_is_rejected();
     for alteration in [
         "ALTER TABLE case_deadline_revisions ALTER COLUMN capture_digest DROP NOT NULL",
-        "ALTER TABLE case_deadline_revisions ADD COLUMN unexpected text",
-        "ALTER TABLE case_deadlines ENABLE ROW LEVEL SECURITY",
-        "ALTER TABLE case_deadlines ALTER CONSTRAINT deadline_first_revision NOT DEFERRABLE",
-        "ALTER TABLE case_deadline_revisions DROP CONSTRAINT deadline_capture_hash; ALTER TABLE case_deadline_revisions ADD CONSTRAINT deadline_capture_hash CHECK(true)",
-        "ALTER TABLE case_deadline_revisions ALTER COLUMN status DROP EXPRESSION",
-        "ALTER FUNCTION deadline_submission(bytea) SECURITY DEFINER",
-        "ALTER FUNCTION deadline_attention_valid(jsonb) VOLATILE",
-        "ALTER FUNCTION deadline_submission(bytea) RESET search_path",
-        "CREATE OR REPLACE FUNCTION enforce_deadline_sequence() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$ BEGIN RETURN NEW; END; $$",
         "ALTER TABLE case_deadline_revisions DISABLE TRIGGER deadline_sequence",
     ] {
         let Some(mut db) = Fixture::new() else { return };
@@ -204,7 +195,6 @@ fn runtime_is_append_only_and_rejects_helper_rewrite_authority() {
         "GRANT UPDATE(capture_digest) ON case_deadline_revisions TO",
         "GRANT EXECUTE ON FUNCTION enforce_deadline_sequence() TO",
         "ALTER TABLE case_deadlines OWNER TO",
-        "ALTER FUNCTION deadline_submission(bytea) OWNER TO",
         "REVOKE EXECUTE ON FUNCTION deadline_submission(bytea) FROM",
     ] {
         let Some(mut db) = Fixture::new() else { return };

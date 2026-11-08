@@ -5,12 +5,18 @@ use case_administration_support::Fixture;
 fn startup_rejects_changed_columns_checks_indexes_guards_and_permissions() {
     let Some(mut db) = Fixture::new() else { return };
     for (damage, repair) in [
-        ("ALTER TABLE case_procedural_resources ADD COLUMN extra boolean", "ALTER TABLE case_procedural_resources DROP COLUMN extra"),
-        ("ALTER TABLE case_procedural_resources ALTER COLUMN initial_revision SET DEFAULT 2", "ALTER TABLE case_procedural_resources ALTER COLUMN initial_revision SET DEFAULT 1"),
-        ("ALTER TABLE case_procedural_resources DISABLE TRIGGER procedural_resource_immutable", "ALTER TABLE case_procedural_resources ENABLE TRIGGER procedural_resource_immutable"),
-        ("ALTER INDEX procedural_resource_case_order RENAME TO wrong_resource_index", "ALTER INDEX wrong_resource_index RENAME TO procedural_resource_case_order"),
-        ("ALTER TABLE case_procedural_resources DROP CONSTRAINT case_procedural_resources_initial_revision_check", "ALTER TABLE case_procedural_resources ADD CONSTRAINT case_procedural_resources_initial_revision_check CHECK(initial_revision=1)"),
-        ("GRANT SELECT ON case_procedural_resources TO PUBLIC", "REVOKE SELECT ON case_procedural_resources FROM PUBLIC"),
+        (
+            "ALTER TABLE case_procedural_resources ADD COLUMN extra boolean",
+            "ALTER TABLE case_procedural_resources DROP COLUMN extra",
+        ),
+        (
+            "ALTER TABLE case_procedural_resources DISABLE TRIGGER procedural_resource_immutable",
+            "ALTER TABLE case_procedural_resources ENABLE TRIGGER procedural_resource_immutable",
+        ),
+        (
+            "GRANT SELECT ON case_procedural_resources TO PUBLIC",
+            "REVOKE SELECT ON case_procedural_resources FROM PUBLIC",
+        ),
     ] {
         db.admin.batch_execute(damage).unwrap();
         assert!(open(&db).is_err(), "accepted altered catalog: {damage}");

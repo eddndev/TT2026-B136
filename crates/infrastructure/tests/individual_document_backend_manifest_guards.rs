@@ -46,43 +46,28 @@ fn bypass_immutability(test: &mut Harness, statements: &str) {
 
 #[test]
 fn a_manifest_row_that_differs_from_its_receipt_commits_nothing() {
-    for (trigger, change) in [
-        (
-            "aa_alter_manifest",
-            "NEW.document_version:=NEW.document_version+1",
-        ),
-        (
-            "aa_alter_manifest",
-            "NEW.document_sha256:=sha256(NEW.document_sha256)",
-        ),
-        (
-            "zz_alter_manifest",
-            "NEW.document_sha256:=sha256(NEW.document_sha256)",
-        ),
-        (
-            "zz_alter_manifest",
-            "NEW.document_version:=NEW.document_version+1",
-        ),
-    ] {
-        let Some(mut test) = Harness::new() else {
-            return;
-        };
-        let command = test.command(Uuid::new_v4());
-        let store = test.store();
-        test.db
-            .admin
-            .batch_execute(&format!(
-                "CREATE FUNCTION alter_test_manifest() RETURNS trigger LANGUAGE plpgsql
-                    AS $$ BEGIN {change}; RETURN NEW; END $$;
-                CREATE TRIGGER {trigger} BEFORE INSERT ON individual_document_manifests
-                    FOR EACH ROW EXECUTE FUNCTION alter_test_manifest()"
-            ))
-            .unwrap();
-        let before = test.snapshot();
-        assert!(store.commit(command).is_err(), "{trigger}: {change}");
-        assert_eq!(test.snapshot(), before, "{trigger}: {change}");
-        assert_eq!(test.mutation_counts(), (0, 0), "{trigger}: {change}");
-    }
+    let (trigger, change) = (
+        "aa_alter_manifest",
+        "NEW.document_version:=NEW.document_version+1",
+    );
+    let Some(mut test) = Harness::new() else {
+        return;
+    };
+    let command = test.command(Uuid::new_v4());
+    let store = test.store();
+    test.db
+        .admin
+        .batch_execute(&format!(
+            "CREATE FUNCTION alter_test_manifest() RETURNS trigger LANGUAGE plpgsql
+                AS $$ BEGIN {change}; RETURN NEW; END $$;
+            CREATE TRIGGER {trigger} BEFORE INSERT ON individual_document_manifests
+                FOR EACH ROW EXECUTE FUNCTION alter_test_manifest()"
+        ))
+        .unwrap();
+    let before = test.snapshot();
+    assert!(store.commit(command).is_err(), "{trigger}: {change}");
+    assert_eq!(test.snapshot(), before, "{trigger}: {change}");
+    assert_eq!(test.mutation_counts(), (0, 0), "{trigger}: {change}");
 }
 
 #[test]

@@ -1,14 +1,25 @@
 # Runner isolation: docs/adr/0052-owned-ci-runners.md.
+# Time budget, path filter and coverage cadence: docs/adr/0088-ci-time-budget.md.
 name: CI
 on:
   push:
     branches: [main]
   pull_request:
+    # Nothing in this workflow reads web/; the Web workflow covers it.
+    paths-ignore:
+      - 'web/**'
+  schedule:
+    # Nightly coverage gate on main.
+    - cron: '17 9 * * *'
   workflow_call:
   workflow_dispatch:
     inputs:
       dispatch_measurement:
         description: Run only the extended dispatch measurement
+        type: boolean
+        default: false
+      coverage:
+        description: Run the tests with coverage and enforce the gate
         type: boolean
         default: false
 permissions:
@@ -89,12 +100,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 2
           persist-credentials: false
-      - name: Find a passed pull request run of this exact tree
+      - name: Find a passed run of this tree, or of the parent when only web/ changed
         id: find
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python3 -B scripts/ci_tree_reuse.py --tree "$(git rev-parse 'HEAD^{tree}')" --repository "$GITHUB_REPOSITORY" >> "$GITHUB_OUTPUT"
+        run: python3 -B scripts/ci_tree_reuse.py --parent-equivalence --tree "$(git rev-parse 'HEAD^{tree}')" --repository "$GITHUB_REPOSITORY" >> "$GITHUB_OUTPUT"
 
   test:
     needs: reuse
@@ -186,6 +198,7 @@ jobs:
         with:
           components: llvm-tools-preview
       - uses: taiki-e/install-action@v2
+        if: ${{ matrix.slots == 0 || github.event_name == 'schedule' || inputs.coverage }}
         with:
           tool: cargo-llvm-cov@0.9.1
       - uses: taiki-e/install-action@v2
@@ -231,7 +244,12 @@ jobs:
         run: python3 -B scripts/ci_test_shard.py "${{ matrix.shard }}"
       - name: Run individually scheduled tests with isolated backends
         if: ${{ matrix.slots > 0 }}
-        run: python3 -B scripts/ci_native_postgres.py -- python3 -B scripts/ci_nextest.py --slots "${{ matrix.slots }}"
+        env:
+          COVERAGE: ${{ (github.event_name == 'schedule' || inputs.coverage) && 'true' || 'false' }}
+        run: |
+          flag=--no-coverage
+          if [ "$COVERAGE" = true ]; then flag=; fi
+          python3 -B scripts/ci_native_postgres.py -- python3 -B scripts/ci_nextest.py --slots "${{ matrix.slots }}" $flag
       - name: Ensure native PostgreSQL cleanup
         if: ${{ always() && matrix.slots > 0 }}
         run: python3 -B scripts/ci_native_postgres.py --cleanup
@@ -244,6 +262,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
       - name: Publish coverage from this execution
+        if: ${{ matrix.slots == 0 || github.event_name == 'schedule' || inputs.coverage }}
         uses: actions/upload-artifact@v4
         with:
           name: workspace-coverage-${{ matrix.shard }}
@@ -372,7 +391,8 @@ jobs:
     needs: [test, deployment-backup]
     # test depends on reuse, which is skipped outside main pushes; without a
     # status check here GitHub would skip this gate on every pull request.
-    if: ${{ !cancelled() && !inputs.dispatch_measurement && needs.test.result == 'success' && needs.deployment-backup.result == 'success' }}
+    # The dedicated runner measures coverage only nightly or on request.
+    if: ${{ !cancelled() && !inputs.dispatch_measurement && needs.test.result == 'success' && needs.deployment-backup.result == 'success' && (vars.TT_CI_DEDICATED != 'true' || github.event_name == 'schedule' || inputs.coverage) }}
     runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4

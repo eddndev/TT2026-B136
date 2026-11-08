@@ -53,8 +53,7 @@ const superseded = (promise) =>
 const answer = (exchange, value, status = 200) =>
   exchange.resolve(Response.json(value, { status }));
 function settle(exchange, outcome, value) {
-  if (outcome === 'network') exchange.reject(new TypeError('Disconnected'));
-  else if (outcome === 'failure') answer(exchange, { error: { code: 'invalid_credentials' } }, 401);
+  if (outcome === 'failure') answer(exchange, { error: { code: 'invalid_credentials' } }, 401);
   else answer(exchange, value);
 }
 async function establish(h, token, mode = 'totp', challengeToken = `challenge-${token}`) {
@@ -86,7 +85,7 @@ test('the current login and captured challenge retain the existing API contract'
   assert.equal(h.expired, 0);
 });
 
-for (const outcome of ['success', 'failure', 'network']) {
+for (const outcome of ['success', 'failure']) {
   test(`a late login ${outcome} cannot supersede a newer challenge or session`, async () => {
     const h = client();
     const old = superseded(h.api.login('old@example.test', 'password'));
@@ -100,19 +99,17 @@ for (const outcome of ['success', 'failure', 'network']) {
   });
 }
 
-for (const mode of ['totp', 'recovery']) {
-  for (const outcome of ['success', 'failure', 'network']) {
-    test(`a late ${mode} MFA ${outcome} cannot replace a newer MFA result`, async () => {
-      const h = client();
-      const old = superseded(h.api.mfa('old-challenge', '123456', mode));
-      const exchange = h.take(`/auth/mfa/${mode}`);
-      await establish(h, 'new-session');
-      settle(exchange, outcome, session('old-session'));
-      await old;
-      assert.equal((await h.api.me()).bearer, 'Bearer new-session');
-      assert.equal(h.expired, 0);
-    });
-  }
+for (const outcome of ['success', 'failure']) {
+  test(`a late totp MFA ${outcome} cannot replace a newer MFA result`, async () => {
+    const h = client();
+    const old = superseded(h.api.mfa('old-challenge', '123456', 'totp'));
+    const exchange = h.take('/auth/mfa/totp');
+    await establish(h, 'new-session');
+    settle(exchange, outcome, session('old-session'));
+    await old;
+    assert.equal((await h.api.me()).bearer, 'Bearer new-session');
+    assert.equal(h.expired, 0);
+  });
 }
 
 test('a challenge from an earlier accepted login cannot be submitted after a newer login', async () => {

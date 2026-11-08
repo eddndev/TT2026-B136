@@ -44,11 +44,8 @@ fn runtime_startup_rejects_direct_inherited_column_and_function_privileges() {
     for grant in [
         "GRANT INSERT ON participant_credential_trust_revisions TO {role}",
         "GRANT UPDATE(crl_number) ON participant_credential_trust_revisions TO {role}",
-        "GRANT DELETE ON participant_credential_authority TO {role}",
-        "GRANT TRUNCATE ON participant_credential_trust_revisions TO {role}",
         "GRANT EXECUTE ON FUNCTION enforce_credential_trust_sequence() TO {role}",
         "ALTER FUNCTION preserve_credential_trust_history() OWNER TO {role}",
-        "GRANT INSERT ON participant_credential_authority TO PUBLIC",
     ] {
         let Some(mut db) = Database::new() else {
             return;

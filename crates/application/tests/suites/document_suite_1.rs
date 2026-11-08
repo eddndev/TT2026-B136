@@ -10,8 +10,6 @@ mod document_metadata_query;
 mod document_query;
 #[path = "../document_record.rs"]
 mod document_record;
-#[path = "../document_repository_port.rs"]
-mod document_repository_port;
 #[path = "../document_version_crypto.rs"]
 mod document_version_crypto;
 #[path = "../document_versions.rs"]

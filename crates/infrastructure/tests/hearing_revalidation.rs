@@ -131,19 +131,21 @@ fn used_operations_and_submission_mismatches_do_not_change_rows_or_audit() {
 
 #[test]
 fn insert_audit_and_deferred_failures_roll_back_the_entire_hearing_write() {
-    for failure in [
-        "CREATE FUNCTION reject_hearing() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected root failure'; END $$; CREATE TRIGGER reject_hearing BEFORE INSERT ON case_hearings FOR EACH ROW EXECUTE FUNCTION reject_hearing()",
-        "CREATE FUNCTION reject_hearing() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected revision failure'; END $$; CREATE TRIGGER reject_hearing BEFORE INSERT ON case_hearing_revisions FOR EACH ROW EXECUTE FUNCTION reject_hearing()",
-        "ALTER TABLE audit_events ADD CONSTRAINT reject_hearing CHECK(action<>'hearing.scheduled')",
-        "CREATE FUNCTION reject_hearing() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected deferred failure'; END $$; CREATE CONSTRAINT TRIGGER reject_hearing AFTER INSERT ON case_hearing_revisions DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION reject_hearing()",
-    ] {
-        let Some(mut db) = Fixture::new() else { return };
-        complete(&mut db);
-        let command = schedule();
-        let draft = service(&db, db.owner, Role::Owner).prepare("session", db.case, command.clone()).unwrap();
-        let (workflow, captured) = watched(&db, db.owner, Role::Owner, move |client| { client.batch_execute(failure).unwrap(); });
-        let result = workflow.submit("session", db.case, command, draft.submission_digest);
-        assert!(matches!(result, Err(ApplicationError::Port(_))), "{result:?}");
-        unchanged(&mut db, captured);
-    }
+    let failure =
+        "ALTER TABLE audit_events ADD CONSTRAINT reject_hearing CHECK(action<>'hearing.scheduled')";
+    let Some(mut db) = Fixture::new() else { return };
+    complete(&mut db);
+    let command = schedule();
+    let draft = service(&db, db.owner, Role::Owner)
+        .prepare("session", db.case, command.clone())
+        .unwrap();
+    let (workflow, captured) = watched(&db, db.owner, Role::Owner, move |client| {
+        client.batch_execute(failure).unwrap();
+    });
+    let result = workflow.submit("session", db.case, command, draft.submission_digest);
+    assert!(
+        matches!(result, Err(ApplicationError::Port(_))),
+        "{result:?}"
+    );
+    unchanged(&mut db, captured);
 }

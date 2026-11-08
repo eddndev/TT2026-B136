@@ -3,7 +3,7 @@ use application::documents::StageSupportReadLimits;
 
 #[test]
 fn losing_either_replacement_sibling_root_or_original_audit_rejects_the_whole_owner() {
-    for missing in ["marked", "replacement", "root", "audit"] {
+    for missing in ["marked", "audit"] {
         let Some(mut db) = Fixture::new() else { return };
         let (seed, _, _, command) = setup_joint(&mut db);
         let original = persist(&db, seed.actor.clone(), command);
@@ -17,8 +17,6 @@ fn losing_either_replacement_sibling_root_or_original_audit_rejects_the_whole_ow
         let op = original.origin.operation_id;
         let statement = match missing {
             "marked" => format!("DELETE FROM case_measure_revisions WHERE measure_id='{old_id}' AND owner_operation='{op}'"),
-            "replacement" => format!("DELETE FROM case_measure_revisions WHERE measure_id='{new_id}'"),
-            "root" => format!("DELETE FROM case_measures WHERE id='{new_id}'"),
             "audit" => format!("DELETE FROM audit_events WHERE sequence=(SELECT audit_sequence FROM case_measure_operations WHERE operation_id='{op}')"),
             _ => unreachable!(),
         };

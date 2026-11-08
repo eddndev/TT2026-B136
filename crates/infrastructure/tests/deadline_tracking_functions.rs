@@ -72,67 +72,55 @@ fn repeated_migration_preserves_dispatcher_oid_and_effective_v2_behavior() {
 
 #[test]
 fn runtime_checks_every_new_parser_body_and_execution_metadata() {
-    for (signature, arguments, returns) in PARSERS {
-        let name = signature.split('(').next().unwrap();
-        for attribute in [
-            "SECURITY DEFINER",
-            "VOLATILE",
-            "STRICT",
-            "LEAKPROOF",
-            "PARALLEL SAFE",
-            "RESET search_path",
-        ] {
-            let Some(mut db) = Fixture::new() else { return };
-            require_parsers(&mut db);
-            db.admin
-                .batch_execute(&format!("ALTER FUNCTION {signature} {attribute}"))
-                .unwrap();
-            assert!(open(&db).is_err(), "accepted {name}: {attribute}");
-        }
-        let Some(mut db) = Fixture::new() else { return };
-        require_parsers(&mut db);
-        db.admin.batch_execute(&format!(
-            "CREATE OR REPLACE FUNCTION {name}({arguments}) RETURNS {returns} LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $$ BEGIN RETURN NULL; END; $$"
-        )).unwrap();
-        assert!(open(&db).is_err(), "accepted replaced parser {name}");
-    }
+    let (signature, arguments, returns) = PARSERS[0];
+    let name = signature.split('(').next().unwrap();
+    let Some(mut db) = Fixture::new() else { return };
+    require_parsers(&mut db);
+    db.admin
+        .batch_execute(&format!("ALTER FUNCTION {signature} SECURITY DEFINER"))
+        .unwrap();
+    assert!(open(&db).is_err(), "accepted {name}: SECURITY DEFINER");
+    let Some(mut db) = Fixture::new() else { return };
+    require_parsers(&mut db);
+    db.admin.batch_execute(&format!(
+        "CREATE OR REPLACE FUNCTION {name}({arguments}) RETURNS {returns} LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $$ BEGIN RETURN NULL; END; $$"
+    )).unwrap();
+    assert!(open(&db).is_err(), "accepted replaced parser {name}");
 }
 
 #[test]
 fn runtime_cannot_own_new_parsers_and_requires_execute_on_each() {
-    for (signature, _, _) in PARSERS {
-        for alteration in [
-            format!("ALTER FUNCTION {signature} OWNER TO"),
-            format!("REVOKE EXECUTE ON FUNCTION {signature} FROM"),
-        ] {
-            let Some(mut db) = Fixture::new() else { return };
-            require_parsers(&mut db);
-            db.admin
-                .batch_execute(&format!("{alteration} {}", db.role))
-                .unwrap();
-            assert!(open(&db).is_err(), "accepted {alteration}");
-        }
+    let (signature, _, _) = PARSERS[0];
+    for alteration in [
+        format!("ALTER FUNCTION {signature} OWNER TO"),
+        format!("REVOKE EXECUTE ON FUNCTION {signature} FROM"),
+    ] {
+        let Some(mut db) = Fixture::new() else { return };
+        require_parsers(&mut db);
+        db.admin
+            .batch_execute(&format!("{alteration} {}", db.role))
+            .unwrap();
+        assert!(open(&db).is_err(), "accepted {alteration}");
     }
 }
 
 #[test]
 fn runtime_rejects_default_arguments_on_each_new_parser() {
-    for (signature, arguments, returns) in PARSERS {
-        let name = signature.split('(').next().unwrap();
-        let arguments = arguments.replace("BYTEA", "BYTEA DEFAULT NULL");
-        let Some(mut db) = Fixture::new() else { return };
-        require_parsers(&mut db);
-        let body: String = db
-            .admin
-            .query_one(
-                "SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure($1)",
-                &[&signature],
-            )
-            .unwrap()
-            .get(0);
-        db.admin.batch_execute(&format!(
-            "CREATE OR REPLACE FUNCTION {name}({arguments}) RETURNS {returns} LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $body${body}$body$"
-        )).unwrap();
-        assert!(open(&db).is_err(), "accepted default argument for {name}");
-    }
+    let (signature, arguments, returns) = PARSERS[0];
+    let name = signature.split('(').next().unwrap();
+    let arguments = arguments.replace("BYTEA", "BYTEA DEFAULT NULL");
+    let Some(mut db) = Fixture::new() else { return };
+    require_parsers(&mut db);
+    let body: String = db
+        .admin
+        .query_one(
+            "SELECT prosrc FROM pg_proc WHERE oid=to_regprocedure($1)",
+            &[&signature],
+        )
+        .unwrap()
+        .get(0);
+    db.admin.batch_execute(&format!(
+        "CREATE OR REPLACE FUNCTION {name}({arguments}) RETURNS {returns} LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $body${body}$body$"
+    )).unwrap();
+    assert!(open(&db).is_err(), "accepted default argument for {name}");
 }

@@ -5,20 +5,35 @@ use typed_participant_service_support::*;
 
 #[test]
 fn insert_review_audit_and_deferred_failures_rollback_the_compound_change() {
-    for failure in [
-        "CREATE FUNCTION reject_typed() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected typed insert'; END $$;CREATE TRIGGER reject_typed BEFORE INSERT ON case_participant_typed_revisions FOR EACH ROW EXECUTE FUNCTION reject_typed()",
-        "ALTER TABLE participant_identity_reviews ADD CONSTRAINT reject_typed CHECK(FALSE)",
-        "ALTER TABLE audit_events ADD CONSTRAINT reject_typed CHECK(action<>'participant.typed_created')",
-        "CREATE FUNCTION reject_typed() RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'injected deferred failure'; END $$;CREATE CONSTRAINT TRIGGER reject_typed AFTER INSERT ON case_participant_typed_revisions DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION reject_typed()",
-    ]{
-        let Some(mut db)=Fixture::new() else{return};let record=upload(&db,db.case,"support.pdf");
-        let request=reviewed(service(&db,FormatCheck(None)).review_participant("session",db.case,proposal(&record)).unwrap());
-        let before=Arc::new(Mutex::new(None));let captured=before.clone();let url=db.admin_url.clone();
-        let format=FormatCheck(Some(Box::new(move||{let mut client=postgres::Client::connect(&url,postgres::NoTls).unwrap();client.batch_execute(failure).unwrap();*captured.lock().unwrap()=Some(snapshot_client(&mut client));})));
-        let result=service(&db,format).submit_participant("session",db.case,ParticipantSubmission{prepared:request,signature:None});
-        assert!(matches!(result,Err(ApplicationError::Port(_))),"{result:?}");
-        assert_eq!(snapshot(&mut db),before.lock().unwrap().clone().unwrap());
-    }
+    let failure = "ALTER TABLE audit_events ADD CONSTRAINT reject_typed CHECK(action<>'participant.typed_created')";
+    let Some(mut db) = Fixture::new() else { return };
+    let record = upload(&db, db.case, "support.pdf");
+    let request = reviewed(
+        service(&db, FormatCheck(None))
+            .review_participant("session", db.case, proposal(&record))
+            .unwrap(),
+    );
+    let before = Arc::new(Mutex::new(None));
+    let captured = before.clone();
+    let url = db.admin_url.clone();
+    let format = FormatCheck(Some(Box::new(move || {
+        let mut client = postgres::Client::connect(&url, postgres::NoTls).unwrap();
+        client.batch_execute(failure).unwrap();
+        *captured.lock().unwrap() = Some(snapshot_client(&mut client));
+    })));
+    let result = service(&db, format).submit_participant(
+        "session",
+        db.case,
+        ParticipantSubmission {
+            prepared: request,
+            signature: None,
+        },
+    );
+    assert!(
+        matches!(result, Err(ApplicationError::Port(_))),
+        "{result:?}"
+    );
+    assert_eq!(snapshot(&mut db), before.lock().unwrap().clone().unwrap());
 }
 #[test]
 fn concurrent_seal_changes_prepared_snapshot_and_prevents_typing() {

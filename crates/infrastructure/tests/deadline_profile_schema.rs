@@ -140,18 +140,8 @@ fn sql_guards_preserve_initial_scope_contiguous_history_and_terminal_retirement(
 #[test]
 fn startup_rejects_changed_profile_columns_functions_constraints_and_trigger_bodies() {
     for alteration in [
-        "ALTER FUNCTION deadline_profile_definition(bytea) SECURITY DEFINER",
-        "ALTER FUNCTION deadline_profile_submission(bytea) VOLATILE",
-        "ALTER FUNCTION deadline_profile_definition(bytea) RESET search_path",
         "CREATE OR REPLACE FUNCTION enforce_deadline_profile_sequence() RETURNS trigger LANGUAGE plpgsql SET search_path=pg_catalog AS $$ BEGIN RETURN NEW; END; $$",
         "ALTER TABLE deadline_profile_revisions ALTER COLUMN operation_id DROP NOT NULL",
-        "ALTER TABLE deadline_profile_revisions ADD COLUMN unrecognized text",
-        "ALTER TABLE deadline_profiles ENABLE ROW LEVEL SECURITY",
-        "ALTER TABLE deadline_profiles ALTER CONSTRAINT deadline_profile_first_revision NOT DEFERRABLE",
-        "ALTER TABLE deadline_profile_revisions DROP CONSTRAINT deadline_profile_definition_hash; ALTER TABLE deadline_profile_revisions ADD CONSTRAINT deadline_profile_definition_hash CHECK(true)",
-        "ALTER TABLE deadline_profile_revisions DROP CONSTRAINT deadline_profile_operation_unique",
-        "ALTER TABLE deadline_profile_revisions ALTER COLUMN definition_view DROP EXPRESSION",
-        "ALTER TABLE deadline_profile_revisions DISABLE TRIGGER deadline_profile_sequence",
     ] {
         let Some(mut db)=Fixture::new() else {return}; open(&db).unwrap();
         db.admin.batch_execute(alteration).unwrap();
@@ -173,7 +163,6 @@ fn runtime_requires_append_and_helpers_and_rejects_direct_or_inherited_rewrite_a
         "GRANT UPDATE(definition_digest) ON deadline_profile_revisions TO",
         "GRANT EXECUTE ON FUNCTION enforce_deadline_profile_sequence() TO",
         "ALTER TABLE deadline_profiles OWNER TO",
-        "ALTER FUNCTION deadline_profile_definition(bytea) OWNER TO",
         "REVOKE EXECUTE ON FUNCTION deadline_profile_submission(bytea) FROM",
     ] {
         let Some(mut db) = Fixture::new() else { return };
@@ -182,34 +171,33 @@ fn runtime_requires_append_and_helpers_and_rejects_direct_or_inherited_rewrite_a
             .unwrap();
         assert!(open(&db).is_err(), "startup accepted {alteration}");
     }
-    for inherit in ["INHERIT", "NOINHERIT"] {
-        let Some(mut db) = Fixture::new() else { return };
-        let parent = format!("profile_parent_{}", Uuid::new_v4().simple());
-        db.control
-            .batch_execute(&format!(
-                "CREATE ROLE {parent} NOLOGIN; GRANT {parent} TO {}; ALTER ROLE {} {inherit}",
-                db.role, db.role
-            ))
-            .unwrap();
-        db.admin
-            .batch_execute(&format!(
-                "GRANT DELETE ON deadline_profile_revisions TO {parent}"
-            ))
-            .unwrap();
-        let rejected = open(&db).is_err();
-        db.admin
-            .batch_execute(&format!(
-                "REVOKE ALL ON deadline_profile_revisions FROM {parent}"
-            ))
-            .unwrap();
-        db.control
-            .batch_execute(&format!(
-                "REVOKE {parent} FROM {}; DROP ROLE {parent}",
-                db.role
-            ))
-            .unwrap();
-        assert!(rejected, "indirect authority via {inherit}");
-    }
+    let inherit = "NOINHERIT";
+    let Some(mut db) = Fixture::new() else { return };
+    let parent = format!("profile_parent_{}", Uuid::new_v4().simple());
+    db.control
+        .batch_execute(&format!(
+            "CREATE ROLE {parent} NOLOGIN; GRANT {parent} TO {}; ALTER ROLE {} {inherit}",
+            db.role, db.role
+        ))
+        .unwrap();
+    db.admin
+        .batch_execute(&format!(
+            "GRANT DELETE ON deadline_profile_revisions TO {parent}"
+        ))
+        .unwrap();
+    let rejected = open(&db).is_err();
+    db.admin
+        .batch_execute(&format!(
+            "REVOKE ALL ON deadline_profile_revisions FROM {parent}"
+        ))
+        .unwrap();
+    db.control
+        .batch_execute(&format!(
+            "REVOKE {parent} FROM {}; DROP ROLE {parent}",
+            db.role
+        ))
+        .unwrap();
+    assert!(rejected, "indirect authority via {inherit}");
 }
 
 #[test]

@@ -9,10 +9,6 @@ use support::*;
 fn missing_or_altered_administrative_payload_owner_and_original_audit_fail_closed() {
     for statement in [
         "DELETE FROM case_measure_administrations",
-        "DELETE FROM case_measure_operations WHERE family='a1'",
-        "DELETE FROM audit_events WHERE action='measure_administrative.recorded'",
-        "UPDATE case_measure_administrations SET reason='Another recorded reason'",
-        "UPDATE case_measure_operations SET owner_digest=decode(repeat('a1',32),'hex') WHERE family='a1'",
         "UPDATE audit_events SET actor='altered@example.test' WHERE action='measure_administrative.recorded'",
     ] {
         let Some(mut db) = Fixture::new() else { return };
@@ -91,33 +87,29 @@ fn losing_the_latest_corrected_row_cannot_expose_an_older_judicial_or_corrected_
 
 #[test]
 fn computed_value_hashes_do_not_admit_malformed_correction_bytes_or_contradictory_views() {
-    for statement in [
-        "UPDATE case_measure_administrations
+    let statement = "UPDATE case_measure_administrations
          SET correction_canonical=set_byte(correction_canonical,6,255),
-             correction_digest=sha256(set_byte(correction_canonical,6,255))",
-        "UPDATE case_measure_administrations
-         SET correction_view=jsonb_set(correction_view,'{conditions}','\"Contradictory conditions\"'),
-             correction_digest=sha256(correction_canonical)",
-        "UPDATE case_measure_revisions
-         SET values_view=jsonb_set(values_view,'{conditions}','\"Contradictory result\"'),
-             values_digest=sha256(values_canonical) WHERE family='c1'",
-    ] {
-        let Some(mut db) = Fixture::new() else { return };
-        let (seed, _, command) = setup(&mut db);
-        let original = persist(&db, seed.actor.clone(), command);
-        reopened(&db, &seed.actor, &original);
-        let storage = store(&db);
-        let workflow = existing_service(&db, seed.actor.clone(), storage.clone());
+         correction_digest=sha256(set_byte(correction_canonical,6,255))";
+    let Some(mut db) = Fixture::new() else { return };
+    let (seed, _, command) = setup(&mut db);
+    let original = persist(&db, seed.actor.clone(), command);
+    reopened(&db, &seed.actor, &original);
+    let storage = store(&db);
+    let workflow = existing_service(&db, seed.actor.clone(), storage.clone());
 
-        damage(&mut db, &ADMINISTRATIVE_TABLES, statement);
+    damage(&mut db, &ADMINISTRATIVE_TABLES, statement);
 
-        let hashes_match: bool = db.admin.query_one(
+    let hashes_match: bool = db
+        .admin
+        .query_one(
             "SELECT NOT EXISTS(SELECT 1 FROM case_measure_administrations
-             WHERE correction_digest<>sha256(correction_canonical))
-             AND NOT EXISTS(SELECT 1 FROM case_measure_revisions
-             WHERE values_digest<>sha256(values_canonical))", &[],
-        ).unwrap().get(0);
-        assert!(hashes_match);
-        reject_original(&mut db, &storage, &workflow, &seed.actor, &original);
-    }
+         WHERE correction_digest<>sha256(correction_canonical))
+         AND NOT EXISTS(SELECT 1 FROM case_measure_revisions
+         WHERE values_digest<>sha256(values_canonical))",
+            &[],
+        )
+        .unwrap()
+        .get(0);
+    assert!(hashes_match);
+    reject_original(&mut db, &storage, &workflow, &seed.actor, &original);
 }

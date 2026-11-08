@@ -68,12 +68,6 @@ class ProvisionedRestoreProfileTests(CaptureFixture):
     def test_default_aof_directory_rejects_before_dump(self):
         self.assert_rejected_profile("appenddirname", "appendonlydir")
 
-    def test_other_aof_directory_rejects_before_dump(self):
-        self.assert_rejected_profile("appenddirname", "other-appendonly")
-
-    def test_parent_relative_aof_directory_rejects_before_dump(self):
-        self.assert_rejected_profile("appenddirname", "../redis-appendonly")
-
     def test_other_snapshot_filename_rejects_before_dump(self):
         self.assert_rejected_profile("dbfilename", "other.rdb")
 

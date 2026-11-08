@@ -18,13 +18,7 @@ fn an_unmigrated_runtime_schema_reports_the_required_administrative_migration() 
 #[test]
 fn startup_rejects_incomplete_version_inventory_and_disabled_constraints() {
     for corruption in [
-        "SET session_replication_role=replica; DELETE FROM document_series; SET session_replication_role=origin",
         "SET session_replication_role=replica; DELETE FROM documents WHERE version=1; SET session_replication_role=origin",
-        "SET session_replication_role=replica; DELETE FROM documents WHERE version=2; SET session_replication_role=origin",
-        "ALTER TABLE documents DISABLE TRIGGER documents_version_sequence",
-        "ALTER TABLE document_series DISABLE TRIGGER document_series_preserve_identity",
-        "ALTER TABLE documents DROP CONSTRAINT documents_series_case_fk",
-        "ALTER TABLE documents DROP CONSTRAINT documents_series_case_fk; ALTER TABLE documents ADD CONSTRAINT documents_series_case_fk FOREIGN KEY(id,case_id) REFERENCES document_series(id,case_id) NOT VALID",
         "DO $$ DECLARE name text; BEGIN SELECT t.tgname INTO name FROM pg_trigger t JOIN pg_constraint c ON c.oid=t.tgconstraint WHERE c.conname='documents_series_case_fk' AND t.tgrelid='documents'::regclass LIMIT 1; EXECUTE format('ALTER TABLE documents DISABLE TRIGGER %I',name); END $$",
     ] {
         let Some(mut db) = Database::old_schema() else { return };

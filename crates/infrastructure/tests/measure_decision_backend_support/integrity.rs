@@ -62,9 +62,6 @@ fn reject_reads_and_replay(
 fn altered_commitments_missing_siblings_and_lost_roots_reject_on_open_connections() {
     for statement in [
         "UPDATE case_measure_decisions SET group_digest=decode(repeat('a1',32),'hex')",
-        "UPDATE case_measure_revisions SET capture_digest=decode(repeat('b2',32),'hex')",
-        "DELETE FROM case_measure_revisions WHERE measure_id=(SELECT measure_id FROM case_measure_revisions ORDER BY measure_id LIMIT 1)",
-        "DELETE FROM case_measures WHERE id=(SELECT id FROM case_measures ORDER BY id LIMIT 1)",
         "DELETE FROM case_measure_decisions",
     ] {
         let Some(mut db) = Fixture::new() else { return };

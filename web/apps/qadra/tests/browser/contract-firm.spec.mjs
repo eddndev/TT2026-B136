@@ -11,7 +11,7 @@ const stub = readFileSync(new URL('./evidence-worker-stub.js', import.meta.url),
 test('the firm signer validates the partial acknowledgement and counter-signs', async ({
   page,
 }) => {
-  await page.route('**/evidence-verify-worker.mjs*', (route) =>
+  await page.route(/\/evidence-verify-worker(?:-[\w-]+)?\.m?js(?:\?|$)/, (route) =>
     route.fulfill({ contentType: 'text/javascript', body: stub }),
   );
   const material = localSignatureMaterial();

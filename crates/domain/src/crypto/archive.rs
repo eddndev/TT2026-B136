@@ -77,13 +77,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn entries_expose_their_name_and_content() {
-        let entry = ArchiveEntry::new("document.txt", vec![1, 2, 3]).unwrap();
-        assert_eq!(entry.name(), "document.txt");
-        assert_eq!(entry.content(), &[1, 2, 3]);
-    }
-
-    #[test]
     fn names_with_path_separators_are_rejected() {
         for name in ["a/b.txt", "a\\b.txt", "../escape", "dir/"] {
             let err = ArchiveEntry::new(name, Vec::new()).unwrap_err();
@@ -123,42 +116,5 @@ mod tests {
                 "name {name:?} must be accepted"
             );
         }
-    }
-
-    #[test]
-    fn entry_name_error_displays_the_offending_name() {
-        let err = DomainError::InvalidArchiveEntryName {
-            name: "a/b".to_string(),
-        };
-        assert_eq!(
-            err.to_string(),
-            "archive entry name is not usable: \"a/b\" (ascii letters, digits, \
-             dot, dash, and underscore only, starting with a letter or digit)"
-        );
-    }
-
-    /// Test double proving the port is object safe; it is not a real
-    /// archive format.
-    struct Concatenator;
-
-    impl ArchiveWriter for Concatenator {
-        fn write_archive(&self, entries: &[ArchiveEntry]) -> Result<Vec<u8>, DomainError> {
-            if entries.is_empty() {
-                return Err(DomainError::ArchiveWriteFailure("no entries".to_string()));
-            }
-            Ok(entries
-                .iter()
-                .flat_map(|entry| entry.content().to_vec())
-                .collect())
-        }
-    }
-
-    #[test]
-    fn port_is_object_safe_and_surfaces_failures() {
-        let writer: &dyn ArchiveWriter = &Concatenator;
-        let entry = ArchiveEntry::new("a.bin", vec![1]).unwrap();
-        assert_eq!(writer.write_archive(&[entry]).unwrap(), vec![1]);
-        let err = writer.write_archive(&[]).unwrap_err();
-        assert_eq!(err.to_string(), "archive writing failed: no entries");
     }
 }

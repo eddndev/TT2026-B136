@@ -18,7 +18,10 @@ async function enter(page) {
     `/?diagnostic=${privateMarkers.query}#${privateMarkers.fragment}`,
   );
   expect(response.status()).toBe(200);
-  await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible();
+  // A cold dev server compiles the island on this first visit.
+  await expect(page.getByLabel('Correo electr\u00f3nico')).toBeVisible({
+    timeout: 30000,
+  });
   await expect(page.locator('astro-island')).not.toHaveAttribute('ssr', '');
   await page.getByLabel('Correo electr\u00f3nico').fill(privateMarkers.input);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toHaveValue(privateMarkers.input);

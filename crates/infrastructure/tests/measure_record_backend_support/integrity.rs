@@ -26,8 +26,6 @@ fn damage(db: &mut Fixture, statement: &str) {
 fn already_open_record_readers_fail_closed_after_lost_latest_payload_row_or_audit() {
     for statement in [
         "DELETE FROM case_measure_administrations WHERE action='entered_in_error'",
-        "DELETE FROM case_measure_revisions WHERE family='c1' AND revision=3",
-        "DELETE FROM audit_events WHERE action='measure_administrative.recorded' AND resource LIKE '%:revision:3:%'",
         "ALTER TABLE case_measure_revisions DROP CONSTRAINT measure_revision_capture_size;
          UPDATE case_measure_revisions SET capture_digest='\\x01' WHERE family='c1' AND revision=3",
     ] {
@@ -35,13 +33,26 @@ fn already_open_record_readers_fail_closed_after_lost_latest_payload_row_or_audi
         let (seed, group, _, marked) = chain(&mut db);
         let expected = administrative(&marked);
         let service = reads(&db, seed.actor);
-        same_detail(&service.get("session", db.case, expected.reference.id()).unwrap(), &expected);
+        same_detail(
+            &service
+                .get("session", db.case, expected.reference.id())
+                .unwrap(),
+            &expected,
+        );
         damage(&mut db, statement);
         let before = snapshot(&mut db);
-        assert!(service.get("session", db.case, expected.reference.id()).is_err());
-        assert!(service.exact("session", db.case, expected.reference).is_err());
-        assert!(service.exact("session", db.case, judicial(&group, 0).reference).is_err());
-        assert!(service.list("session", db.case, MeasureRecordReadQuery::default()).is_err());
+        assert!(service
+            .get("session", db.case, expected.reference.id())
+            .is_err());
+        assert!(service
+            .exact("session", db.case, expected.reference)
+            .is_err());
+        assert!(service
+            .exact("session", db.case, judicial(&group, 0).reference)
+            .is_err());
+        assert!(service
+            .list("session", db.case, MeasureRecordReadQuery::default())
+            .is_err());
         assert_eq!(snapshot(&mut db), before);
     }
 }

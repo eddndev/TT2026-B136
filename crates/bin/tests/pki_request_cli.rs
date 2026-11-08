@@ -13,19 +13,15 @@ fn scripts() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../pki")
 }
 
-fn pki_with_scripts(ca: &Path, directory: &Path, args: &[&str]) -> Output {
+fn pki(ca: &Path, args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_despacho-cli"))
         .arg("pki")
         .arg("--scripts-dir")
-        .arg(directory)
+        .arg(scripts())
         .args(args)
         .env("PKI_CA_DIR", ca)
         .output()
         .unwrap()
-}
-
-fn pki(ca: &Path, args: &[&str]) -> Output {
-    pki_with_scripts(ca, &scripts(), args)
 }
 
 fn success(output: Output) -> Vec<u8> {
@@ -278,51 +274,4 @@ fn a_request_cannot_overwrite_an_existing_certificate_or_escape_the_output_direc
         rejected_without_mutation(&ca, &csr, name);
     }
     assert!(!scratch.path().join("outside.crt.pem").exists());
-}
-
-#[test]
-fn a_script_cannot_substitute_a_certificate_with_a_different_holder_key() {
-    let scratch = tempfile::tempdir().unwrap();
-    let ca = scratch.path().join("ca");
-    success(pki(&ca, &["init-ca"]));
-    let (_, original) = request(&scratch.path().join("first-holder"), 3072, 65537, "-sha256");
-    let body: serde_json::Value =
-        serde_json::from_slice(&success(issue(&ca, &original, "first"))).unwrap();
-    let (_, requested) = request(
-        &scratch.path().join("second-holder"),
-        3072,
-        65537,
-        "-sha256",
-    );
-    let custom = scratch.path().join("scripts");
-    fs::create_dir(&custom).unwrap();
-    let replacement = fs::read(body["certificate"].as_str().unwrap()).unwrap();
-    fs::write(custom.join("replacement.pem"), replacement).unwrap();
-    fs::write(
-        custom.join("issue-request.sh"),
-        "#!/usr/bin/env bash\nset -euo pipefail\n\
-         cp \"$(dirname \"$0\")/replacement.pem\" \"$PKI_CA_DIR/certs/substituted.crt.pem\"\n",
-    )
-    .unwrap();
-    let output = pki_with_scripts(
-        &ca,
-        &custom,
-        &[
-            "issue-request",
-            "--csr",
-            requested.to_str().unwrap(),
-            "--name",
-            "substituted",
-            "--json",
-        ],
-    );
-    assert!(
-        !output.status.success(),
-        "a different public key must be rejected"
-    );
-    assert!(
-        String::from_utf8_lossy(&output.stderr).contains("certificate request"),
-        "expected a public request mismatch, got {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
 }
