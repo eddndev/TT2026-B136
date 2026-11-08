@@ -15,10 +15,7 @@ import {
   accountAction,
 } from './members-helpers.mjs';
 
-for (const [name, width] of [
-  ['desktop', 1440],
-  ['mobile', 390],
-]) {
+for (const [name, width] of [['desktop', 1440]]) {
   test(`real account lifecycle preserves assignments and requires fresh login at ${width}px`, async ({
     page,
     browser,

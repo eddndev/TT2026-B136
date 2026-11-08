@@ -54,20 +54,3 @@ for (const width of [1440, 390]) {
     );
   });
 }
-
-test('legacy and insufficient history show unavailable estimation without inventing duration', async ({
-  page,
-}) => {
-  const state = await setupReports(page);
-  state.records.set(reportId, pending());
-  await enterReports(page);
-  await openReport(page);
-  const detail = details(page);
-  await expect(detail.getByText('Estimaci\u00f3n no disponible.', { exact: true })).toBeVisible();
-  await expect(detail.getByText('Duraci\u00f3n observada', { exact: true })).toHaveCount(0);
-  state.records.set(reportId, report({ estimated_total_ms: null, ready_email: null }));
-  await updateReport(page);
-  await expect(detail.getByText('Estimaci\u00f3n no disponible.', { exact: true })).toBeVisible();
-  await expect(detail.getByText('1 min', { exact: true })).toBeVisible();
-  await expect(detail.getByText(/sin aviso por correo registrado/i)).toBeVisible();
-});

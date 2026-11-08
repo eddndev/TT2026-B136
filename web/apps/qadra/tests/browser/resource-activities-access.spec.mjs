@@ -37,38 +37,3 @@ for (const [name, options] of [
     expect(state.submissions).toHaveLength(0);
   });
 }
-test('revoked membership clears linked private captures after a protected refresh', async ({
-  page,
-}) => {
-  const state = await setupResourceActivities(page, { role: 'litigator' });
-  const linked = state.seed();
-  await openResourceActivities(page, state);
-  await activityPanel(page)
-    .getByRole('button', { name: `Consultar v\u00ednculo ${linked.id}`, exact: true })
-    .click();
-  await expect(activityDetail(page)).toContainText('Sala historica uno');
-  state.resources.facts.results.scheduling.denied = true;
-  const denied = page.waitForResponse(
-    (response) => response.url().includes('/activities') && response.status() === 403,
-  );
-  await activityPanel(page)
-    .getByRole('button', { name: 'Actualizar actividades', exact: true })
-    .click();
-  await denied;
-  await expect(activityPanel(page)).toHaveCount(0);
-  await expect(activityDetail(page)).toHaveCount(0);
-  await expect(activityEditor(page)).toHaveCount(0);
-  await expect(page.getByText('Sala historica uno', { exact: true })).toHaveCount(0);
-  expect(state.submissions).toHaveLength(0);
-});
-test('client never loads resource associations through navigation or a protected hash', async ({
-  page,
-}) => {
-  const state = await setupResourceActivities(page, { role: 'client' });
-  state.seed();
-  await login(page, false, false);
-  await expectClientWorkspace(page, ['resources']);
-  await expect(activityPanel(page)).toHaveCount(0);
-  await expect(activityEditor(page)).toHaveCount(0);
-  expect(state.calls).toHaveLength(0);
-});

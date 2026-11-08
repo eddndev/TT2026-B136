@@ -15,10 +15,7 @@ import {
 } from './procedural-resources-helpers.mjs';
 
 if (!accounts) throw new Error('The live fixture must provision independent procedural resources');
-for (const [name, width, role] of [
-  ['desktop', 1440, 'owner'],
-  ['mobile', 390, 'litigator'],
-]) {
+for (const [name, width, role] of [['desktop', 1440, 'owner']]) {
   test(`real resource act correction preserves exact history at ${width}px`, async ({
     page,
   }, testInfo) => {

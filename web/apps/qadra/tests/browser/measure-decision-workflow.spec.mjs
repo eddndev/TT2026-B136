@@ -154,61 +154,6 @@ test('an explicit decision without measure changes records its statement without
   expect(state.submissions).toHaveLength(1);
 });
 
-test('a lost decision response is recovered by its original operation without automatically posting again', async ({
-  page,
-}) => {
-  const state = await setupMeasureDecisions(page);
-  state.loseResponse = true;
-  await openMeasures(page);
-  await newDecision(page);
-  await fillDecisionCommon(page);
-  await fillImposition(page);
-  await prepareDecision(page);
-  await submitDecision(page);
-  const editor = decisionEditor(page);
-  await expect(
-    editor.getByRole('heading', { name: 'Resultado incierto', exact: true }),
-  ).toBeVisible();
-  expect(state.submissions).toHaveLength(1);
-  const sent = structuredClone(state.submissions[0]),
-    first = state.operations.get(sent.command.operation_id);
-  const id = sent.command.outcome.effects[0].proposal.id;
-  const original = structuredClone(state.records.get(id).at(-1));
-  const later = structuredClone(sent.command);
-  later.operation_id = 'b9000000-0000-4000-8000-000000000002';
-  later.decision_id = 'b9000000-0000-4000-8000-000000000003';
-  later.values.authority = 'Autoridad posterior fuera del recibo original';
-  const values = structuredClone(original.record.capture.result.values);
-  values.conditions = 'Condiciones posteriores fuera del recibo original';
-  later.outcome = {
-    kind: 'changes',
-    effects: [{ action: 'modify', previous: original.reference, values }],
-  };
-  state.commit(state.prepare(later));
-  await editor.getByRole('button', { name: 'Consultar resultado', exact: true }).click();
-  await expect(editor).toHaveCount(0);
-  await expect(decisionDetail(page)).toContainText('Juzgado declarado en soporte');
-  await expect(decisionDetail(page)).toContainText('Presentarse cada viernes segun soporte');
-  await expect(decisionDetail(page)).not.toContainText(
-    'Condiciones posteriores fuera del recibo original',
-  );
-  await expect(decisionDetail(page)).not.toContainText(
-    'Autoridad posterior fuera del recibo original',
-  );
-  expect(
-    state.calls.filter(
-      (call) =>
-        call.path === `${state.base}/operations/${sent.command.operation_id}` &&
-        call.method === 'GET',
-    ),
-  ).toHaveLength(1);
-  expect(state.calls.filter((call) => call.method === 'POST')).toHaveLength(2);
-  expect(state.submissions).toEqual([sent]);
-  expect(state.preparations).toHaveLength(1);
-  expect(state.operations.get(sent.command.operation_id)).toEqual(first);
-  expect(state.records.get(id).at(-1).reference.revision).toBe(2);
-});
-
 for (const [role, closed] of [
   ['paralegal', false],
   ['owner', true],

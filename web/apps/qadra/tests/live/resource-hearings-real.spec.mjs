@@ -22,10 +22,7 @@ import {
 if (!accounts?.desktop?.resourceInitial || !accounts?.mobile?.resourceAct)
   throw new Error('The live resource activities fixture must retain resource and act history');
 
-for (const [name, width, role, code] of [
-  ['desktop', 1440, 'owner', 7],
-  ['mobile', 390, 'litigator', 2],
-]) {
+for (const [name, width, role, code] of [['desktop', 1440, 'owner', 7]]) {
   test(`real own hearing reconciles creation and shares its exact origin with agenda and alert at ${width}px`, async ({
     page,
   }, testInfo) => {

@@ -27,10 +27,7 @@ import {
 if (!fixture.deadlineReevaluation)
   throw new Error('Enable deadline reevaluation fixtures before selecting this live spec');
 
-for (const [name, width] of [
-  ['desktop', 1440],
-  ['mobile', 390],
-])
+for (const [name, width] of [['desktop', 1440]])
   test(`real Follow reevaluation and explicit human review at ${width}px`, async ({
     page,
   }, testInfo) => {

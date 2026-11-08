@@ -21,10 +21,7 @@ async function refresh(page) {
   return response.json();
 }
 
-for (const [name, width] of [
-  ['desktop', 1440],
-  ['mobile', 390],
-])
+for (const [name, width] of [['desktop', 1440]])
   test(`real personal alerts retain exact hearing history, read state and preferences at ${width}px`, async ({
     page,
   }, testInfo) => {

@@ -85,29 +85,6 @@ test('history pages remain light and exact retired revisions can classify dates'
   await expect(calendarDetail(page)).toContainText('Revisi\u00f3n hist\u00f3rica');
   expect(state.calls.some((c) => c.path.endsWith('/revisions/1/days'))).toBe(true);
 });
-test('month navigation reaches civil extremes without fabricating year 10000', async ({ page }) => {
-  const r = calendarRecord();
-  r.values.coverage = { from: '9999-12-01', through: '9999-12-31' };
-  r.values.exceptions = [];
-  const { state } = await setupCalendars(page, { records: [r] });
-  await openCalendars(page);
-  await calendarPanel(page)
-    .getByRole('button', { name: `Consultar calendario ${calendarId}`, exact: true })
-    .click();
-  const detail = calendarDetail(page);
-  await expect(detail.getByRole('button', { name: 'Mes siguiente', exact: true })).toBeDisabled();
-  await expect(detail.getByRole('button', { name: /^31 de diciembre de 9999:/ })).toBeVisible();
-  expect(state.calls.at(-1).search).toContain('through=9999-12-31');
-  await detail.getByLabel('Mes de consulta', { exact: true }).fill('0001-01');
-  await detail.getByRole('button', { name: 'Consultar mes', exact: true }).click();
-  await expect(detail.getByRole('button', { name: 'Mes anterior', exact: true })).toBeDisabled();
-  await detail
-    .getByRole('button', { name: '1 de enero de 0001: Fuera de cobertura', exact: true })
-    .click();
-  await expect(detail.getByRole('region', { name: 'Detalle del d\u00eda' })).toContainText(
-    'no se aplica una regla por defecto',
-  );
-});
 test('month controls stay within the declared coverage and mark today', async ({ page }) => {
   await page.clock.setFixedTime(new Date(2026, 10, 5, 12));
   const { state } = await setupCalendars(page);

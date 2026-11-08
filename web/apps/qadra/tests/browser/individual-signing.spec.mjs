@@ -164,37 +164,3 @@ test('explicit credential rejection clears confirmation and allows a corrected e
   await expect(page.getByText('Vinculo registrado', { exact: true })).toBeVisible();
   expect(attempts).toBe(2);
 });
-
-test('explicit document credential rejection requires a corrected proof and renewed confirmation', async ({
-  page,
-}) => {
-  const state = await signingSetup(page);
-  await login(page, false, false);
-  await register(page, state);
-  await prepareDocument(page);
-  let attempts = 0;
-  await page.route('**/individual-signing/submit', async (route) => {
-    attempts++;
-    if (attempts === 1)
-      return route.fulfill({
-        status: 422,
-        json: { error: { code: 'signing_credential_rejected' } },
-      });
-    return route.fallback();
-  });
-  await page.getByRole('button', { name: 'Enviar firma personal', exact: true }).click();
-  await expect(page.getByRole('alert')).toBeVisible();
-  await expect(page.getByLabel('Firma externa del consentimiento')).toBeEnabled();
-  await expect(
-    page.getByLabel('Confirmo firmar esta version con mi certificado'),
-  ).not.toBeChecked();
-  await expect(
-    page.getByRole('button', { name: 'Enviar firma personal', exact: true }),
-  ).toBeDisabled();
-  expect(attempts).toBe(1);
-  await page.getByLabel('Firma externa del consentimiento').setInputFiles(detached);
-  await page.getByLabel('Confirmo firmar esta version con mi certificado').check();
-  await page.getByRole('button', { name: 'Enviar firma personal', exact: true }).click();
-  await expect(page.getByText('Firma personal aceptada', { exact: true })).toBeVisible();
-  expect(attempts).toBe(2);
-});

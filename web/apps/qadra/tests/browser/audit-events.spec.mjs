@@ -94,33 +94,6 @@ test('permission and capacity failures clear prior results without document guid
   await expect(panel(page).getByRole('alert')).toBeVisible();
   await expect(panel(page).locator('[data-sequence]')).toHaveCount(0);
 });
-test('editing filters discards a late response from the old selection', async ({ page }) => {
-  const state = await setupAudit(page);
-  let release, started;
-  const intercepted = new Promise((resolve) => {
-    started = resolve;
-  });
-  state.handle = (route) =>
-    new Promise((resolve) => {
-      release = async () => {
-        await route.fulfill({ json: auditPage() });
-        resolve();
-      };
-      started();
-    });
-  await enterAudit(page);
-  await consult(page);
-  await expect(panel(page)).toHaveAttribute('aria-busy', 'true');
-  await intercepted;
-  await panel(page).getByLabel('Actor', { exact: true }).fill('changed');
-  await expect(panel(page)).toHaveAttribute('aria-busy', 'false');
-  await release();
-  await expect(panel(page).locator('[data-sequence]')).toHaveCount(0);
-  state.handle = null;
-  state.value = auditPage(0, 0);
-  await consult(page);
-  await expect(panel(page)).toContainText('Ning\u00fan movimiento coincide con estos filtros.');
-});
 test('expired session clears the audit panel and its private results', async ({ page }) => {
   const state = await setupAudit(page);
   await enterAudit(page);

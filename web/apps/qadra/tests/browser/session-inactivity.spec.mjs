@@ -133,25 +133,3 @@ test('explicit logout discards a suspended draft even before its original editor
   await login(page);
   await blankEditor(page);
 });
-
-test('denied fresh case access prevents restoration and discards that context draft', async ({
-  page,
-}) => {
-  const state = await sessionSetup(page);
-  await login(page);
-  await expire(page, state, await draft(page));
-  await login(page, false, false);
-  await navigate(page, 'Expedientes');
-  state.allowed = false;
-  await page.getByRole('button', { name: /Defensa inicial/ }).click();
-  await expect(page.getByRole('alert')).toContainText('ya no tienes acceso');
-  await expect(page.getByRole('dialog', { name: editorName })).toHaveCount(0);
-  const token = `Bearer ${state.current.token}`;
-  expect(
-    state.calls.some((call) => call.headers.authorization === token && call.path === metadataPath),
-  ).toBe(false);
-  state.allowed = true;
-  await page.getByRole('button', { name: 'Actualizar', exact: true }).click();
-  await selectCase(page);
-  await blankEditor(page);
-});

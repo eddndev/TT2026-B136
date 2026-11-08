@@ -21,7 +21,6 @@ test('live partitions cover every current spec exactly once without a fixed test
 test('related scenarios share expensive fixtures and preserve dependent setup', () => {
   const related = [
     'case-stages.spec.mjs',
-    'stage-adoption.spec.mjs',
     'combined-agenda.spec.mjs',
     'alerts.spec.mjs',
     'case-participants.spec.mjs',
@@ -41,14 +40,13 @@ test('related scenarios share expensive fixtures and preserve dependent setup', 
   assert.ok(plans[2].fixtures.includes('participants'));
 });
 
-test('stage transitions and adoption share the primary with administration and participants', () => {
+test('stage transitions share the primary with administration and participants', () => {
   const plans = [1, 2, 3].map((n) => planLiveSuite(files, `${n}/3`));
   const owner = plans.find((plan) => plan.files.includes('case-participants.spec.mjs'));
   assert.ok(owner.files.includes('case-administration.spec.mjs'));
   assert.ok(owner.fixtures.includes('caseAdministration'));
   assert.equal(owner, plans[2]);
   assert.ok(owner.files.includes('case-stages.spec.mjs'));
-  assert.ok(owner.files.includes('stage-adoption.spec.mjs'));
   assert.ok(owner.fixtures.includes('caseStages'));
   assert.equal(plans.filter((plan) => plan.fixtures.includes('caseStages')).length, 1);
   assert.equal(plans.filter((plan) => plan.fixtures.includes('caseAdministration')).length, 1);

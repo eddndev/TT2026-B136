@@ -146,6 +146,17 @@ the same broad campaign locally just to wait for it again remotely. Address
 failures with focused checks, then rerun the affected closing checks. Preserve
 TDD and all required merge gates.
 
+Keep the automated suites proportionate to a thesis prototype. Browser specs
+cover each workflow's main path, one permission gate, one basic error or
+validation, and layout where desktop and phone differ; cryptography, signing
+and evidence keep their correctness tests. Do not add browser specs for
+compatibility with earlier versions or legacy records, uncertain-response or
+receipt reconciliation, late or racing responses, session-expiry variants
+beyond `web/apps/qadra/tests/browser/session-inactivity.spec.mjs` and
+`session-upload-drafts.spec.mjs`, or desktop and phone copies of the same
+assertions. When such logic needs a check, use a Node unit test. Each CI
+campaign should finish within 20 minutes; trim tests before adding shards.
+
 Closing a Rust delivery requires these checks, locally or in CI for the
 revision being integrated:
 

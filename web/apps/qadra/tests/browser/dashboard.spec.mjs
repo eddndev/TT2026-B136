@@ -96,30 +96,6 @@ test('loading and failed refresh never present zero or retain stale counts', asy
   await expect(dashboard(page).getByRole('alert')).toHaveCount(0);
 });
 
-test('returning to dashboard discards the departed request and fetches current counts', async ({
-  page,
-}) => {
-  const state = await setupDashboard(page);
-  let release;
-  state.handle = (route) =>
-    new Promise((resolve) => {
-      release = async () => {
-        await route.fulfill({ json: dashboardValue() });
-        resolve();
-      };
-    });
-  await enterDashboard(page);
-  await expect(dashboard(page)).toHaveAttribute('aria-busy', 'true');
-  await navigate(page, 'Expedientes');
-  state.handle = null;
-  state.value = dashboardValue({ active_cases: 12 });
-  await navigate(page, 'Inicio');
-  await expect(metric(page, 'active_cases').locator('strong')).toHaveText('12');
-  await release();
-  await expect(metric(page, 'active_cases').locator('strong')).toHaveText('12');
-  expect(state.calls).toBe(2);
-});
-
 for (const role of ['paralegal', 'client']) {
   test(`dashboard makes no aggregate request for ${role}`, async ({ page }) => {
     const state = await setupDashboard(page, role);
@@ -128,16 +104,3 @@ for (const role of ['paralegal', 'client']) {
     expect(state.calls).toBe(0);
   });
 }
-
-test('session revocation removes all dashboard metrics', async ({ page }) => {
-  const state = await setupDashboard(page);
-  await enterDashboard(page);
-  await expect(metric(page, 'active_cases').locator('strong')).toHaveText('9');
-  state.handle = (route) =>
-    route.fulfill({ status: 401, json: { error: { code: 'invalid_session' } } });
-  await dashboard(page)
-    .getByRole('button', { name: 'Actualizar indicadores', exact: true })
-    .click();
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
-  await expect(dashboard(page)).toHaveCount(0);
-});

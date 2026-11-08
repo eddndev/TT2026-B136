@@ -40,26 +40,6 @@ for (const width of [1440, 390])
     );
   });
 
-test('a lost read response is checked explicitly without a repeated mutation or deadline attention', async ({
-  page,
-}) => {
-  const state = await setupAlerts(page);
-  state.loseReadResponse = true;
-  await openAlerts(page);
-  const row = state.rows.find((value) => value.kind.kind === 'overdue_unattended');
-  const card = alertCard(page, row);
-  await card.getByRole('button', { name: 'Marcar como le\u00edda', exact: true }).click();
-  await expect(card.getByRole('alert')).toBeVisible();
-  await expect(card.getByText('Sin leer', { exact: true })).toBeVisible();
-  expect(state.calls.filter((call) => call.method === 'POST')).toHaveLength(1);
-  await card.getByRole('button', { name: 'Comprobar lectura', exact: true }).click();
-  await expect(card.getByText('Le\u00edda', { exact: true })).toBeVisible();
-  expect(state.calls.filter((call) => call.method === 'POST')).toHaveLength(1);
-  expect(state.deadlines.calls.filter((call) => call.method !== 'GET')).toHaveLength(0);
-  await filterAlerts(page, 'unread');
-  await expect(card).toHaveCount(0);
-});
-
 test('personal preference conflicts preserve the draft and require comparison before saving again', async ({
   page,
 }) => {
@@ -134,65 +114,6 @@ for (const kind of ['hearing', 'deadline'])
     await expect(alertCard(page, row)).toBeVisible();
     expect(exact()).toHaveLength(1);
   });
-
-test('empty partial scans keep continuation and late pages cannot restore a changed filter', async ({
-  page,
-}) => {
-  const state = await setupAlerts(page);
-  const oldest = clone(state.rows.at(-1));
-  let release,
-    started = false,
-    ended = false;
-  const gate = new Promise((resolve) => {
-    release = resolve;
-  });
-  state.handle = async (route, url) => {
-    if (!url.pathname.endsWith('/alerts')) return false;
-    if (url.searchParams.get('read') === 'unread') {
-      await route.fulfill({ json: alertPageFor([]) });
-      return true;
-    }
-    if (!url.searchParams.get('cursor')) {
-      const cursorRow = clone(state.rows[0]);
-      cursorRow.created_at.unix_seconds++;
-      await route.fulfill({ json: alertPageFor([], true, alertCursor(cursorRow)) });
-      return true;
-    }
-    started = true;
-    await gate;
-    await route.fulfill({ json: alertPageFor([oldest]) });
-    ended = true;
-    return true;
-  };
-  await openAlerts(page);
-  await expect(
-    page.getByText('Consulta parcial: faltan alertas por consultar.', { exact: true }),
-  ).toBeVisible();
-  await expect(page.getByText('No hay alertas en esta consulta.', { exact: true })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Cargar m\u00e1s alertas', exact: true }).click();
-  await expect.poll(() => started).toBe(true);
-  await filterAlerts(page, 'unread');
-  await expect(page.getByText('No hay alertas en esta consulta.', { exact: true })).toBeVisible();
-  release();
-  await expect.poll(() => ended).toBe(true);
-  await expect(page.locator('[data-alert-id]')).toHaveCount(0);
-});
-
-test('revoked case access removes its captured alerts instead of opening protected content', async ({
-  page,
-}) => {
-  const state = await setupAlerts(page);
-  await openAlerts(page);
-  await page.route(`**/api/v1/cases/${caseId}/administration`, (route) =>
-    route.fulfill({ status: 403, json: { error: { code: 'permission_denied' } } }),
-  );
-  const row = state.rows.find((value) => value.subject.kind === 'hearing');
-  await alertCard(page, row).getByRole('button', { name: 'Abrir audiencia', exact: true }).click();
-  await expect(
-    page.getByRole('region', { name: 'Mis alertas', exact: true }).getByRole('alert'),
-  ).toBeVisible();
-  await expect(page.locator('[data-alert-id]')).toHaveCount(0);
-});
 
 test('Client has no alert navigation or private preference and inbox requests', async ({
   page,

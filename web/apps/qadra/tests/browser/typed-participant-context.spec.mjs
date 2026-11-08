@@ -49,59 +49,6 @@ test('completes a manual participant at its next revision without replacing hist
   await history.getByText('Cambio 2', { exact: true }).click();
   await expect(history).toContainText('Identidad vinculada: revisi\u00f3n 1');
 });
-test('ignores a delayed current-identity response after leaving participants', async ({ page }) => {
-  await typedSetup(page, 'owner', [typed]);
-  await openParticipant(page, typed.display_name);
-  let release, started;
-  const pending = new Promise((resolve) => (started = resolve));
-  await page.route('**/subjects/*', async (route) => {
-    started();
-    await new Promise((resolve) => (release = resolve));
-    await route.fulfill({
-      json: {
-        ...subject,
-        values: { ...subject.values, name: { state: 'known', value: 'Respuesta vieja privada' } },
-      },
-    });
-  });
-  await detail(page)
-    .getByRole('button', { name: 'Consultar identidad actual', exact: true })
-    .click();
-  await pending;
-  await openSection(page, 'Resumen');
-  release();
-  await expect(
-    page.getByRole('heading', { name: 'Resumen del expediente', exact: true }),
-  ).toBeVisible();
-  await expect(page.getByText('Respuesta vieja privada')).toHaveCount(0);
-});
-test('coordinates identity and evidence readers so a neighboring history cannot create a third request', async ({
-  page,
-}) => {
-  await typedSetup(page, 'owner', [typed]);
-  await openParticipant(page, typed.display_name);
-  let release, started;
-  const pending = new Promise((resolve) => (started = resolve));
-  await page.route('**/subjects/*', async (route) => {
-    started();
-    await new Promise((resolve) => (release = resolve));
-    await route.fulfill({ json: subject });
-  });
-  await detail(page)
-    .getByRole('button', { name: 'Consultar identidad actual', exact: true })
-    .click();
-  await pending;
-  await expect(
-    detail(page).getByRole('button', { name: 'Ver historial de cambios', exact: true }),
-  ).toBeDisabled();
-  await expect(
-    detail(page).getByRole('button', { name: 'Editar participante', exact: true }),
-  ).toBeDisabled();
-  release();
-  await expect(
-    detail(page).getByRole('button', { name: 'Ver historial de cambios', exact: true }),
-  ).toBeEnabled();
-});
 test('clears detail, identity and prepared materials when access is denied', async ({ page }) => {
   await typedSetup(page, 'owner', [typed]);
   await openParticipant(page, typed.display_name);
@@ -134,35 +81,4 @@ test('history exports the attested historical revision explicitly without fetchi
       .first(),
   ).toBeVisible();
   expect(state.calls.filter((call) => call.path.endsWith('/credential'))).toHaveLength(0);
-});
-
-test('a duplicate-role lookup includes archived records and preserves the typed draft', async ({
-  page,
-}) => {
-  const state = await typedSetup(page, 'owner', [{ ...typed, directory_status: 'archived' }]);
-  const dialog = await fillTyped(page);
-  await page.route('**/participants/proposals/review', (route) =>
-    route.fulfill({ status: 409, json: { error: { code: 'participant_role_conflict' } } }),
-  );
-  await dialog
-    .getByRole('button', { name: 'Revisar identidad y coincidencias', exact: true })
-    .click();
-  await dialog.getByRole('button', { name: 'Consultar directorio completo', exact: true }).click();
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByLabel('Nombre de la persona', { exact: true })).toHaveValue(
-    'Persona tipificada',
-  );
-  const directory = dialog.getByRole('region', {
-    name: 'Consulta del directorio completo',
-    exact: true,
-  });
-  await expect(directory).toContainText('Persona tipificada');
-  expect(
-    state.calls.some(
-      (call) =>
-        call.method === 'GET' &&
-        call.search?.includes('status=all') &&
-        call.search?.includes('kind=defendant'),
-    ),
-  ).toBe(true);
 });

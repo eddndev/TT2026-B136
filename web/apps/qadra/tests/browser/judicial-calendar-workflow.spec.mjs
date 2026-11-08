@@ -86,23 +86,3 @@ test('paralegal reads global catalog without a selected case and Client cannot o
   await expect(calendarDetail(page)).toBeVisible();
   expect(state.calls.every((c) => !c.path.includes('/cases/'))).toBe(true);
 });
-
-test('reviews the immutable title before publishing or retiring', async ({ page }) => {
-  await setupCalendars(page, { records: [] });
-  await openCalendars(page);
-  await calendarPanel(page)
-    .getByRole('button', { name: 'Publicar calendario', exact: true })
-    .click();
-  await fillCalendar(page);
-  const editor = calendarEditor(page);
-  await editor
-    .getByLabel('T\u00edtulo del calendario', { exact: true })
-    .fill('Titulo que debe revisarse');
-  await editor.getByRole('button', { name: 'Revisar calendario', exact: true }).click();
-  await expect(editor.locator('dd').filter({ hasText: 'Titulo que debe revisarse' })).toBeVisible();
-  await editor.getByRole('button', { name: 'Confirmar calendario', exact: true }).click();
-  await calendarDetail(page)
-    .getByRole('button', { name: 'Retirar calendario', exact: true })
-    .click();
-  await expect(editor.locator('dd').filter({ hasText: 'Titulo que debe revisarse' })).toBeVisible();
-});

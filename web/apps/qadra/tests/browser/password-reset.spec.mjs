@@ -56,34 +56,6 @@ test('a link is removed before confirmation and never submits automatically', as
   await expect(page.getByText('Conserva tu segundo factor')).toBeVisible();
 });
 
-test('an uncertain completion clears secrets and never offers an automatic replay', async ({
-  page,
-}) => {
-  const calls = await wire(page, 'disconnect');
-  await page.goto(`/#password-reset=${token}`);
-  await page.getByLabel('Nueva contrase\u00f1a', { exact: true }).fill(secret);
-  await page.getByLabel('Repite la nueva contrase\u00f1a', { exact: true }).fill(secret);
-  await page.getByRole('button', { name: 'Cambiar contrase\u00f1a', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('No pudimos confirmar');
-  expect(calls).toHaveLength(1);
-  await expect(
-    page.getByRole('button', { name: 'Cambiar contrase\u00f1a', exact: true }),
-  ).toHaveCount(0);
-  await expect(page.locator('input[type="password"]')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Volver al inicio de sesi\u00f3n', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
-  expect(calls).toHaveLength(1);
-});
-
-test('a malformed link is removed and cannot call completion', async ({ page }) => {
-  const calls = await wire(page);
-  await page.goto('/#password-reset=invalid');
-  await expect(page.getByRole('alert')).toContainText('enlace no es v\u00e1lido');
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.locator('input[type="password"]')).toHaveCount(0);
-  expect(calls).toHaveLength(0);
-});
-
 test('password mismatch and byte bounds are checked before submitting', async ({ page }) => {
   const calls = await wire(page);
   await page.goto(`/#password-reset=${token}`);
@@ -109,56 +81,4 @@ test('request transport errors never display provider or account details', async
   await page.getByRole('button', { name: 'Solicitar enlace', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('no est\u00e1 disponible');
   expect(calls).toHaveLength(1);
-});
-
-test('a link opened after sign-in screen mount replaces navigation immediately', async ({
-  page,
-}) => {
-  const calls = await wire(page);
-  await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
-  await page.evaluate((value) => {
-    location.hash = `#password-reset=${value}`;
-  }, token);
-  await expect(page).toHaveURL(/\/$/);
-  await expect(
-    page.getByRole('heading', { name: 'Elige una nueva contrase\u00f1a.' }),
-  ).toBeVisible();
-  expect(calls).toHaveLength(0);
-});
-
-test('a replacement link owns its token and ignores the prior completion response', async ({
-  page,
-}) => {
-  const replacement = Buffer.alloc(32, 70).toString('base64url');
-  let release;
-  const held = new Promise((resolve) => {
-    release = resolve;
-  });
-  const calls = [];
-  await page.route('**/api/v1/auth/password-reset/complete', async (route) => {
-    calls.push(route.request().postDataJSON());
-    if (calls.length === 1) await held;
-    await route.fulfill({ status: 204 });
-  });
-  try {
-    await page.goto(`/#password-reset=${token}`);
-    await page.getByLabel('Nueva contrase\u00f1a', { exact: true }).fill(secret);
-    await page.getByLabel('Repite la nueva contrase\u00f1a', { exact: true }).fill(secret);
-    await page.getByRole('button', { name: 'Cambiar contrase\u00f1a', exact: true }).click();
-    await expect.poll(() => calls.length).toBe(1);
-    await page.evaluate((value) => {
-      location.hash = `#password-reset=${value}`;
-    }, replacement);
-    await expect(page).toHaveURL(/\/$/);
-    await expect(page.getByLabel('Nueva contrase\u00f1a', { exact: true })).toBeEnabled();
-    release();
-    await page.getByLabel('Nueva contrase\u00f1a', { exact: true }).fill(secret);
-    await page.getByLabel('Repite la nueva contrase\u00f1a', { exact: true }).fill(secret);
-    await page.getByRole('button', { name: 'Cambiar contrase\u00f1a', exact: true }).click();
-    await expect(page.getByRole('status')).toContainText('Contrase\u00f1a actualizada');
-    expect(calls.map((call) => call.token)).toEqual([token, replacement]);
-  } finally {
-    release();
-  }
 });

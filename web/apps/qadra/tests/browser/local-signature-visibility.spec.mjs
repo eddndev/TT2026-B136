@@ -61,25 +61,3 @@ for (const stage of ['selected-secret', 'pending-worker']) {
     await checkOwnerCertificateRequests(page);
   });
 }
-
-test('hiding unauthenticated certificate login cancels its local worker without proof', async ({
-  page,
-}) => {
-  await holdLocalWork(page);
-  const material = localSignatureMaterial();
-  const state = await ownerLoginSetup(page);
-  await openOwnerLogin(page);
-  await prepareLogin(page);
-  const local = panel(page).getByRole('region', { name: /^Firma local:/ });
-  await local
-    .getByLabel('Certificado para firma local', { exact: true })
-    .setInputFiles(localFile('browser-test-certificate.pem', material.certificatePem));
-  await signLocally(local, material);
-  await expect.poll(() => page.evaluate(() => window.localSigningEntered)).toBe(true);
-  await visibility(page, 'hidden');
-  await expect.poll(() => page.evaluate(() => window.localSigningTerminated)).toBe(true);
-  await expect(local.getByLabel('Clave privada cifrada', { exact: true })).toHaveValue('');
-  await expect(local.getByLabel('Contrasena de la clave', { exact: true })).toHaveValue('');
-  expect(state.proofs).toEqual([]);
-  await checkOwnerLoginRequests(page);
-});

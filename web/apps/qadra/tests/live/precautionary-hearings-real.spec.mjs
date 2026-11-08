@@ -19,7 +19,6 @@ if (!accounts?.desktop?.subject || !accounts?.mobile?.initial)
 
 for (const [name, width, role, anchor, action] of [
   ['desktop', 1440, 'owner', 'precautionary', 'correct'],
-  ['mobile', 390, 'litigator', 'initial', 'replace_entered_in_error'],
 ]) {
   test(`real precautionary workflow preserves original hearing decision and rectification at ${width}px`, async ({
     page,

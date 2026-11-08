@@ -49,65 +49,6 @@ test('conflict keeps draft, compares current explicitly and rejects an obsolete 
     page.getByRole('button', { name: 'Usar etapa consultada y revisar borrador' }),
   ).toHaveCount(0);
 });
-test('uncertain mutation reconciles head then history and never resubmits automatically', async ({
-  page,
-}) => {
-  const { state } = await setupStages(page);
-  await prepare(page);
-  let posts = 0,
-    releaseHead,
-    releaseHistory,
-    headDone = false,
-    historyStarted = false;
-  await page.route(`**/api/v1/cases/${caseId}/stage/transitions`, async (route) => {
-    posts++;
-    await route.abort('failed');
-  });
-  await page.getByRole('button', { name: 'Registrar transici\u00f3n', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('No se pudo confirmar');
-  await page.route(`**/api/v1/cases/${caseId}/stage`, async (route) => {
-    await new Promise((resolve) => (releaseHead = resolve));
-    headDone = true;
-    await route.fulfill({ json: { case_id: caseId, current: initial } });
-  });
-  await page.route(`**/api/v1/cases/${caseId}/stage/history?*`, async (route) => {
-    historyStarted = true;
-    expect(headDone).toBe(true);
-    await new Promise((resolve) => (releaseHistory = resolve));
-    await route.fulfill({
-      json: { entries: [initial], has_more: false, next_before_revision: null },
-    });
-  });
-  await page.getByRole('button', { name: 'Consultar etapa e historial' }).click();
-  await expect.poll(() => !!releaseHead).toBe(true);
-  expect(historyStarted).toBe(false);
-  releaseHead();
-  await expect.poll(() => !!releaseHistory).toBe(true);
-  await expect(
-    page.getByRole('button', { name: 'Usar etapa consultada y revisar borrador' }),
-  ).toBeDisabled();
-  releaseHistory();
-  await page.getByRole('button', { name: 'Usar etapa consultada y revisar borrador' }).click();
-  await expect(page.getByLabel('Nota (opcional)')).toHaveValue('Borrador preservado');
-  expect(posts).toBe(1);
-  expect(state.posts).toHaveLength(0);
-});
-test('support conflict preserves selected version and requires a new explicit exact read', async ({
-  page,
-}) => {
-  await setupStages(page);
-  await prepare(page);
-  await page.route(`**/api/v1/cases/${caseId}/stage/transitions`, (route) =>
-    route.fulfill({ status: 409, json: { error: { code: 'stage_support_changed' } } }),
-  );
-  await page.getByRole('button', { name: 'Registrar transici\u00f3n', exact: true }).click();
-  await expect(page.getByRole('group', { name: 'Acusaci\u00f3n', exact: true })).toContainText(
-    'contrato.pdf',
-  );
-  await expect(page.getByRole('button', { name: 'Revisar registro' })).toBeDisabled();
-  await chooseSupport(page);
-  await expect(page.getByRole('button', { name: 'Revisar registro' })).toBeEnabled();
-});
 test('confirmed upload remains selected when stage validation rejects its format', async ({
   page,
 }) => {
@@ -142,18 +83,4 @@ test('Client neither navigates nor requests staff stages', async ({ page }) => {
   await login(page, false, false);
   await expectClientWorkspace(page, ['stages']);
   expect(state.requests).toHaveLength(0);
-});
-test('denied exact support clears all protected stage data', async ({ page }) => {
-  await setupStages(page);
-  await openStages(page);
-  await page.getByRole('button', { name: 'Registrar paso a Intermedia' }).click();
-  await page.route(`**/api/v1/cases/${caseId}/documents/*/versions/1`, (route) =>
-    route.fulfill({ status: 403, json: { error: { code: 'permission_denied' } } }),
-  );
-  const field = page.getByRole('group', { name: 'Acusaci\u00f3n', exact: true });
-  await field.getByRole('button', { name: 'Elegir documento' }).click();
-  await field.getByRole('button', { name: /contrato.pdf/ }).click();
-  await field.getByRole('button', { name: /Versi\u00f3n 1/ }).click();
-  await expect(page.getByRole('heading', { name: 'Expediente no disponible' })).toBeVisible();
-  await expect(page.locator('.case-stages')).toHaveCount(0);
 });

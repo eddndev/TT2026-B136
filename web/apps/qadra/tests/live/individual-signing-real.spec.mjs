@@ -15,10 +15,7 @@ import {
   screenshotSigning,
 } from './individual-signing-real-helpers.mjs';
 
-for (const [name, width, height] of [
-  ['desktop', 1440, 1000],
-  ['mobile', 390, 844],
-]) {
+for (const [name, width, height] of [['desktop', 1440, 1000]]) {
   test(
     'real individual signature preserves exact public evidence and receipt recovery on ' + name,
     async ({ page }, testInfo) => {

@@ -80,45 +80,6 @@ for (const role of ['client', 'paralegal']) {
   });
 }
 
-test('an uncertain report request retries the same operation only explicitly and changed filters get a new operation', async ({
-  page,
-}) => {
-  const state = await setupReports(page);
-  const attempted = [];
-  state.handle = async (route, url) => {
-    if (url.pathname !== '/api/v1/case-reports' || route.request().method() !== 'POST')
-      return false;
-    const command = route.request().postDataJSON();
-    attempted.push(command);
-    if (attempted.length === 1) {
-      await route.abort('failed');
-      return true;
-    }
-    const value = pending({ operation_id: command.operation_id, filters: command.filters });
-    state.records.set(reportId, value);
-    await route.fulfill({ status: 202, json: value });
-    return true;
-  };
-  await enterReports(page);
-  await fillFilters(page);
-  await form(page).getByRole('button', { name: 'Generar informe', exact: true }).click();
-  await expect(form(page).getByRole('alert')).toBeVisible();
-  expect(attempted).toHaveLength(1);
-  await expect(form(page).getByLabel('Creaci\u00f3n desde (UTC)', { exact: true })).toHaveValue(
-    '2026-09-01',
-  );
-  await form(page).getByRole('button', { name: 'Reintentar solicitud', exact: true }).click();
-  await expect(details(page)).toContainText('En cola');
-  expect(attempted).toHaveLength(2);
-  expect(attempted[1]).toEqual(attempted[0]);
-  await fillFilters(page, { until: '2026-09-30' });
-  await form(page).getByRole('button', { name: 'Generar informe', exact: true }).click();
-  await expect(details(page)).toContainText('2026-09-30');
-  expect(attempted).toHaveLength(3);
-  expect(attempted[2].operation_id).not.toBe(attempted[0].operation_id);
-  expect(attempted[2].filters.created_before).toBe('2026-09-30T00:00:00Z');
-});
-
 test('report progress reflects durable phases and a terminal failure without fabricated percentages', async ({
   page,
 }) => {

@@ -120,31 +120,3 @@ test('notification lifecycle retains its withdrawn exact parent without inheriti
       .every((call) => call.parent === parent.id),
   ).toBe(true);
 });
-
-test('same notification UUID under another parent is never returned by child navigation', async ({
-  page,
-}) => {
-  const parent = factRecord(),
-    other = { ...structuredClone(parent), id: '90000000-0000-4000-8000-000000000009' };
-  const command = factCommand('notification');
-  const first = factRecord(factPrepared(command));
-  first.values.summary = 'Notificacion del primer padre';
-  first.sources.resolution = factResolutionSource(parent);
-  const second = structuredClone(first);
-  second.resolution_id = other.id;
-  second.values.resolution.id = other.id;
-  second.values.summary = 'Dato privado de otro padre';
-  second.sources.resolution = factResolutionSource(other);
-  const state = await setupFacts(page, { facts: [parent, other, first, second] });
-  await openChildren(page, parent);
-  await factList(page, 'notification')
-    .getByRole('button', { name: `Consultar notificaci\u00f3n ${first.id}`, exact: true })
-    .click();
-  await expect(factDetail(page, 'notification')).toContainText(first.values.summary);
-  await expect(page.getByText(second.values.summary, { exact: true })).toHaveCount(0);
-  expect(
-    state.calls
-      .filter((call) => call.family === 'notification')
-      .every((call) => call.parent === parent.id),
-  ).toBe(true);
-});

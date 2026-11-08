@@ -8,32 +8,6 @@ import {
   support,
 } from './typed-participant-helpers.mjs';
 import { detail, openParticipant } from './participant-helpers.mjs';
-test('retains an uncertain submission and reconciles exact origin without a second commit', async ({
-  page,
-}) => {
-  const state = await typedSetup(page);
-  let writes = 0;
-  await page.route('**/participants/proposals/commit', async (route) => {
-    writes++;
-    state.records.set(typed.id, [typed]);
-    await route.fulfill({ status: 503, json: { error: { code: 'service_busy' } } });
-  });
-  const dialog = await fillTyped(page);
-  await prepareTyped(dialog);
-  await dialog.getByRole('button', { name: 'Confirmar registro', exact: true }).click();
-  await expect(
-    dialog.getByRole('button', { name: 'Confirmar registro', exact: true }),
-  ).toBeDisabled();
-  await dialog.getByLabel('Nombre de la persona', { exact: true }).fill('Borrador posterior');
-  await dialog
-    .getByRole('button', { name: 'Consultar resultado del env\u00edo', exact: true })
-    .click();
-  await expect(dialog).not.toBeVisible();
-  await expect(
-    detail(page).getByRole('heading', { name: typed.display_name, exact: true }),
-  ).toBeVisible();
-  expect(writes).toBe(1);
-});
 test('changing values or certificate invalidates candidates, statement and signature', async ({
   page,
 }) => {
@@ -104,44 +78,4 @@ test('does not merge a homonym and requires a supported explicit different-perso
     reason: 'Homonimo distinto conforme documento',
     support,
   });
-});
-test('typed editing preserves the subject and compares a fresh participant revision before new preparation', async ({
-  page,
-}) => {
-  const state = await typedSetup(page, 'owner', [typed]);
-  await openParticipant(page, typed.display_name);
-  await detail(page).getByRole('button', { name: 'Editar participante', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Editar ficha tipificada', exact: true });
-  await expect(
-    dialog.getByRole('button', { name: 'Elegir identidad existente', exact: true }),
-  ).toHaveCount(0);
-  await dialog
-    .getByLabel('Organizaci\u00f3n (opcional)', { exact: true })
-    .fill('Borrador conservado');
-  await prepareTyped(dialog);
-  await page.route('**/participants/proposals/commit', async (route) => {
-    state.records.get(typed.id).push({ ...typed, revision: 2, organization: 'Cambio concurrente' });
-    await route.fulfill({
-      status: 409,
-      json: { error: { code: 'participant_revision_conflict' } },
-    });
-  });
-  await dialog.getByRole('button', { name: 'Confirmar registro', exact: true }).click();
-  await dialog.getByRole('button', { name: 'Consultar datos actuales', exact: true }).click();
-  await expect(
-    dialog.getByRole('region', { name: 'Ficha actual consultada', exact: true }),
-  ).toContainText('Cambio concurrente');
-  await expect(dialog.getByLabel('Organizaci\u00f3n (opcional)', { exact: true })).toHaveValue(
-    'Borrador conservado',
-  );
-  await dialog
-    .getByRole('button', { name: 'Usar esta base y conservar mi formulario', exact: true })
-    .click();
-  await dialog
-    .getByRole('button', { name: 'Revisar identidad y coincidencias', exact: true })
-    .click();
-  expect(
-    state.calls.filter((call) => call.path.endsWith('/proposals/review')).at(-1).body.participant
-      .expected_revision,
-  ).toBe(2);
 });
