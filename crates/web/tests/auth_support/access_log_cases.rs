@@ -88,9 +88,12 @@ async fn access_logs_correlate_success_rejection_and_invalid_input_without_secre
             assert!(public["error"].get("reason").is_none());
         }
         let output = String::from_utf8(capture.0.lock().unwrap().clone()).unwrap();
+        // Opaque 500s also log their port category; the secret scan below
+        // still covers every line.
         let events: Vec<serde_json::Value> = output
             .lines()
-            .map(|l| serde_json::from_str(l).unwrap())
+            .map(|l| serde_json::from_str::<serde_json::Value>(l).unwrap())
+            .filter(|event| event["target"] == "qadra::access")
             .collect();
         assert_eq!(events.len(), ids.len());
         let fields = &events.last().unwrap()["fields"];

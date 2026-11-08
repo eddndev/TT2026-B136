@@ -1,3 +1,4 @@
+use crate::audit_lock_holder::{behind_sibling_hold, SIBLING_HOLD};
 use crate::{alert_backend_support, hearing_database_support};
 use alert_backend_support::*;
 use application::{alerts::*, cases::CaseRepository, ApplicationError};
@@ -119,4 +120,14 @@ fn corrupted_captured_hearing_context_fails_closed_on_get_and_list() {
     corrupt_hearing_context(&mut db, hearing.snapshot.id);
     assert!(store.get(db.owner, id).is_err());
     assert!(store.list(db.owner, query(20)).is_err());
+}
+
+// The shell bell lists unread alerts while the dashboard holds the audit lock.
+#[test]
+fn inbox_list_waits_for_a_sibling_audited_read_beyond_one_second() {
+    let Some(db) = fixture() else { return };
+    let store = store(&db, Arc::new(MutableClock::new(db.at)));
+    let (page, waited) = behind_sibling_hold(&db.admin_url, || store.list(db.owner, query(20)));
+    assert!(page.unwrap().alerts.is_empty());
+    assert!(waited >= SIBLING_HOLD / 2, "{waited:?}");
 }
