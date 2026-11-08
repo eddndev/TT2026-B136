@@ -1,5 +1,6 @@
 import importlib.util
 from pathlib import Path
+import sys
 import unittest
 from urllib.parse import urlsplit
 
@@ -10,6 +11,8 @@ SPEC = importlib.util.spec_from_file_location(
 )
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
+sys.path.insert(0, str(ROOT / "scripts"))
+import ci_nextest  # noqa: E402
 
 
 class TestCiNextest(unittest.TestCase):
@@ -61,6 +64,20 @@ class TestCiNextest(unittest.TestCase):
             del env[key]
             with self.assertRaises(ValueError):
                 MODULE.slot_environment(env)
+
+
+class TestCiNextestCommand(unittest.TestCase):
+    def test_coverage_runs_instrumented_tests_without_an_intermediate_report(self):
+        self.assertEqual(ci_nextest.test_command(["--workspace"], 16, coverage=True), [
+            "cargo", "llvm-cov", "nextest", "--no-report", "--locked", "--workspace",
+            "--profile", "ci", "--test-threads", "16"])
+
+    def test_pull_requests_run_the_same_schedule_without_instrumentation(self):
+        command = ci_nextest.test_command(["--workspace"], 16, coverage=False)
+        self.assertEqual(command, [
+            "cargo", "nextest", "run", "--locked", "--workspace",
+            "--profile", "ci", "--test-threads", "16"])
+        self.assertNotIn("llvm-cov", command)
 
 
 if __name__ == "__main__":

@@ -20,12 +20,19 @@ const port = process.env.TT_WEB_MOCK_PORT
 if (!Number.isInteger(port) || port < 1 || port > 65535)
   throw new Error('Invalid mock browser port');
 process.env.TT_WEB_MOCK_PORT = String(port);
+// CI serves the build it already made; see docs/adr/0088-ci-time-budget.md.
+const preview = process.env.TT_WEB_MOCK_SERVER === 'preview';
 export default defineConfig({
   testDir: './tests/browser',
+  // Module diagnostics name dev-server sources; CI runs them in a dev step.
+  testIgnore: preview ? ['**/frontend-entry-diagnostics.spec.mjs'] : [],
   use: { baseURL: `http://127.0.0.1:${port}`, headless: true },
   webServer: {
-    command: `npm run dev -- --port ${port} --ignore-lock`,
-    env: { ASTRO_DEV_BACKGROUND: '1' },
+    command: preview
+      ? `npm run preview -- --port ${port} --ignore-lock`
+      : `npm run dev -- --port ${port} --ignore-lock`,
+    // Both flags keep Astro in the foreground under an agent-detected shell.
+    env: { ASTRO_DEV_BACKGROUND: '1', ASTRO_PREVIEW_BACKGROUND: '1' },
     timeout: 120000,
     url: `http://127.0.0.1:${port}`,
     reuseExistingServer: false,

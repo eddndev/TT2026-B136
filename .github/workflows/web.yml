@@ -110,7 +110,27 @@ concurrency:
   group: web-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Main pushes reuse the browser suites of a passed pull request run of the
+# same tree; see docs/adr/0088-ci-time-budget.md.
 jobs:
+  reuse:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    name: Reuse pull request browser suites
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
+    timeout-minutes: 5
+    outputs:
+      run_id: ${{ steps.find.outputs.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Find a passed pull request run of this exact tree
+        id: find
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -B scripts/ci_tree_reuse.py --kind web --tree "$(git rev-parse 'HEAD^{tree}')" --repository "$GITHUB_REPOSITORY" >> "$GITHUB_OUTPUT"
+
+  # Always built: deploy gate reuse requires both modules on the main run.
   browser-crypto:
     name: Browser cryptography module
     runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
@@ -147,7 +167,8 @@ jobs:
         uses: ./.github/actions/cancel-ci-campaign
 
   verify-shards:
-    needs: browser-crypto
+    needs: [browser-crypto, reuse]
+    if: ${{ !cancelled() && needs.browser-crypto.result == 'success' && needs.reuse.outputs.run_id == '' }}
     name: Web checks (${{ matrix.shard }}/2)
     strategy:
       fail-fast: true
@@ -198,9 +219,14 @@ jobs:
       - name: Check CA portal in desktop and mobile browsers
         if: ${{ matrix.shard == 1 }}
         run: npm run test:e2e --workspace @qadra/ca -- --workers=1 --max-failures=1 --reporter=line
-      - run: npm run test:e2e -- --workers=1 --max-failures=1 --shard=${{ matrix.shard }}/2 --reporter=line,junit
+      - run: npm run test:e2e -- --workers=2 --max-failures=1 --shard=${{ matrix.shard }}/2 --reporter=line,junit
         env:
           PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/browser-junit.xml
+          # Serve the build that the previous step produced instead of the dev server.
+          TT_WEB_MOCK_SERVER: preview
+      - name: Check module diagnostics against the dev server
+        if: ${{ matrix.shard == 1 }}
+        run: npm run test:e2e -- tests/browser/frontend-entry-diagnostics.spec.mjs --workers=1 --max-failures=1 --reporter=line
       - name: Publish browser durations
         if: always()
         uses: actions/upload-artifact@v4
@@ -215,7 +241,7 @@ jobs:
 
   verify:
     if: ${{ !cancelled() }}
-    needs: verify-shards
+    needs: [verify-shards, reuse]
     runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
@@ -224,13 +250,15 @@ jobs:
       - name: Require every web shard
         env:
           SHARD_RESULT: ${{ needs.verify-shards.result }}
-        run: test "$SHARD_RESULT" = success
+          REUSED_RUN: ${{ needs.reuse.outputs.run_id }}
+        run: test "$SHARD_RESULT" = success || { test "$SHARD_RESULT" = skipped && test -n "$REUSED_RUN"; }
       - name: Cancel the failed campaign
         if: ${{ failure() && !cancelled() }}
         uses: ./.github/actions/cancel-ci-campaign
 
   integration-shards:
-    needs: browser-crypto
+    needs: [browser-crypto, reuse]
+    if: ${{ !cancelled() && needs.browser-crypto.result == 'success' && needs.reuse.outputs.run_id == '' }}
     name: Browser with real services (${{ matrix.shard }}/3)
     strategy:
       fail-fast: true
@@ -335,7 +363,7 @@ jobs:
   integration:
     name: Browser with real services
     if: ${{ !cancelled() }}
-    needs: integration-shards
+    needs: [integration-shards, reuse]
     runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
     steps:
       - uses: actions/checkout@v4
@@ -344,7 +372,32 @@ jobs:
       - name: Require every real browser shard
         env:
           SHARD_RESULT: ${{ needs.integration-shards.result }}
-        run: test "$SHARD_RESULT" = success
+          REUSED_RUN: ${{ needs.reuse.outputs.run_id }}
+        run: test "$SHARD_RESULT" = success || { test "$SHARD_RESULT" = skipped && test -n "$REUSED_RUN"; }
       - name: Cancel the failed campaign
         if: ${{ failure() && !cancelled() }}
         uses: ./.github/actions/cancel-ci-campaign
+
+  record-tree:
+    name: Record the tested tree
+    needs: [verify, integration]
+    # Without a status function, the skipped reuse ancestor would skip this job.
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && needs.verify.result == 'success' && needs.integration.result == 'success' }}
+    runs-on: [self-hosted, Linux, X64, tt-ci-vps1]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Record the tree every browser suite passed on
+        id: tree
+        run: |
+          mkdir -p output/tested-tree
+          git rev-parse 'HEAD^{tree}' | tee output/tested-tree/tree.txt
+          printf 'tree=%s\n' "$(git rev-parse 'HEAD^{tree}')" >> "$GITHUB_OUTPUT"
+      - name: Publish the tested tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: tested-web-tree-${{ steps.tree.outputs.tree }}
+          path: output/tested-tree/tree.txt
+          if-no-files-found: error
+          retention-days: 7

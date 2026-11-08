@@ -14,7 +14,7 @@ const MARKER = 'evidence-bytes-marker';
 
 async function stubWorker(page) {
   const loads = [];
-  await page.route('**/evidence-verify-worker.mjs*', (route) => {
+  await page.route(/\/evidence-verify-worker(?:-[\w-]+)?\.m?js(?:\?|$)/, (route) => {
     loads.push(route.request().url());
     return route.fulfill({ contentType: 'text/javascript', body: stub });
   });

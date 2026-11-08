@@ -39,3 +39,10 @@ pushes, the coverage gate states its own status condition: it runs whenever
 the test job and the deployment backup check succeeded. Without it, GitHub
 skipped the coverage gate on every pull request from the introduction of this
 decision until the condition was added.
+
+## Amendment of 2026-11-08
+
+ADR 0088 measures coverage nightly instead of on every pull request, so a
+reused run no longer stands in for the coverage gate. It also extends this
+reuse to the browser suites of the Web workflow with the artifact
+`tested-web-tree-<tree>`.
