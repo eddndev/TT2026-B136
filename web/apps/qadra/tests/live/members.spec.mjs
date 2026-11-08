@@ -49,7 +49,7 @@ for (const [name, width] of [['desktop', 1440]]) {
       const rejected = responseTo(subject, `/cases/${scenario.case.id}/administration`);
       await subject.getByRole('button', { name: 'Actualizar resumen', exact: true }).click();
       expect((await rejected).status()).toBe(401);
-      await expect(subject.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+      await expect(subject.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
       await loginAs(subject, scenario.subject, 1);
       await openCase(subject, scenario.case);
       await expect(subject.getByRole('link', { name: 'Asignaciones', exact: true })).toHaveCount(0);
@@ -114,7 +114,7 @@ test('real self-demotion confirms before logout and Client remains outside accou
   await loginAs(page, accounts.selfOwner, 0);
   await findAccount(page, accounts.selfOwner);
   await changeAccess(page, accounts.selfOwner, 'paralegal', true);
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
   await expect(directory(page)).toHaveCount(0);
   await loginAs(page, accounts.selfOwner, 1);
   await expect(

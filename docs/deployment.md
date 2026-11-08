@@ -250,8 +250,10 @@ Abrir `http://127.0.0.1:18086`. No se expone HTTP en interfaces externas y el
 tramo remoto queda protegido por SSH. El bootstrap de Owner está bloqueado en
 nginx: realizarlo localmente sobre la API siguiendo [identidad](http-api.md),
 con email, nombre visible (`name`) y contraseña elegidos por el operador. El
-nombre queda fijo y se muestra en el saludo y en el menú de cuenta de Qadra
-([ADR 0087](adr/0087-account-display-names.md)). La respuesta MFA y los códigos
+nombre queda fijo y se muestra en el encabezado del tablero, en el menú de
+cuenta y en la carga por integrante de Qadra
+([ADR 0087](adr/0087-account-display-names.md),
+[ADR 0089](adr/0089-display-names-in-workload.md)). La respuesta MFA y los códigos
 de recuperación deben conservarse como secretos.
 
 Para invocar controladores, sustituir `SHA256_APROBADO` por el inventario externo

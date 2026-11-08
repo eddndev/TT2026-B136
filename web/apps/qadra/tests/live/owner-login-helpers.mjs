@@ -110,7 +110,7 @@ export async function loginWithOwnerCertificate(page, own, receipt, testInfo) {
     expect(proofResponse.request().headers().authorization).toBeUndefined();
     expect(Object.keys(mfa).sort()).toEqual(['challenge_token', 'expires_in_seconds']);
     await expect(
-      page.getByRole('heading', { name: 'Un paso m\u00e1s.', exact: true }),
+      page.getByRole('heading', { name: 'Un paso m\u00e1s', exact: true }),
     ).toBeVisible();
     expect(calls.filter((call) => call.method === 'POST').map((call) => call.path)).toEqual([
       `${path}/start`,

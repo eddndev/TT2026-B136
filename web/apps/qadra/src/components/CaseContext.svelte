@@ -26,7 +26,7 @@
   <div>
     <span class="eyebrow">Expediente actual</span>
     <h2>{record.title}</h2>
-    <p>{record.reference}</p>
+    <p class="font-mono">{record.reference}</p>
   </div>
   <div class="action-row">
     <Button variant="secondary" onclick={onchange}>Cambiar expediente</Button>

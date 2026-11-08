@@ -59,5 +59,5 @@ test('recipient confirms real MFA step and receives no session before normal log
     expect(stored).not.toContain(secret);
   await expect(page.locator('input[type="password"]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Ir a iniciar sesion', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
 });

@@ -39,7 +39,7 @@ La alternativa de firma externa con OpenSSL se conserva.
    fuera del navegador y selecciona sólo la firma binaria de **384 bytes** en
    **Firma separada de acceso**. No se admiten archivos PFX.
 5. Pulsa **Comprobar firma** una sola vez. Si la prueba es admitida, aparece
-   **Un paso más.**; introduce tu código TOTP o un código de recuperación aún
+   **Un paso más**; introduce tu código TOTP o un código de recuperación aún
    sin usar y selecciona **Verificar y entrar**. La prueba de firma por sí sola
    no abre la sesión ni recupera un segundo factor perdido.
 

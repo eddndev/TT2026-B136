@@ -24,7 +24,7 @@
           >
           <div class="min-w-0 flex-auto">
             <div class="flex flex-wrap items-baseline justify-between gap-x-3">
-              <p class="max-w-full truncate text-label text-ink" title={name}>{name}</p>
+              <p class="max-w-full truncate text-label text-ink" title={row.email}>{name}</p>
               <p class="shrink-0 text-label text-ink tabular-nums">
                 {row.active_cases}
                 <span class="font-normal text-muted"

@@ -97,7 +97,7 @@ for (const [name, width, height] of [['desktop', 1440, 1000]]) {
       expect(revoked.status()).toBe(204);
       await button(page, 'Consultar recibo de firma').click();
       await expect(
-        page.getByRole('heading', { name: 'Accede a tu despacho.', exact: true }),
+        page.getByRole('heading', { name: 'Accede a tu despacho', exact: true }),
       ).toBeVisible();
       await loginAs(page, scenario.litigator, 1);
       await openSigningDocument(page, scenario);

@@ -78,7 +78,7 @@ for (const { name, viewport } of localSigningViewports) {
     await captureLocalSignature(local, testInfo, `owner-login-${name}`);
     await proof(page).click();
     await expect(
-      page.getByRole('heading', { name: 'Un paso m\u00e1s.', exact: true }),
+      page.getByRole('heading', { name: 'Un paso m\u00e1s', exact: true }),
     ).toBeVisible();
     expect(proofs).toHaveLength(1);
     expect(state.mfas).toEqual([]);

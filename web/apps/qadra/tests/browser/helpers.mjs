@@ -224,7 +224,7 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
   });
   await page.goto('/');
   // Initial client hydration includes cold compilation by the development server.
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible({
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible({
     timeout: 20000,
   });
   return requests;

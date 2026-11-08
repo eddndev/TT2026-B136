@@ -218,7 +218,7 @@ export async function draft(page) {
 
 export async function expire(page, state, element) {
   await state.advance(state.current.deadline - state.now + 1);
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
   await expect(page.getByRole('alert')).toContainText(/sesi\u00f3n.*(termin|venc|expir)/i);
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeFocused();
   await expect(page.getByLabel('Correo electr\u00f3nico')).toBeEditable();

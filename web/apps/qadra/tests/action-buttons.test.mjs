@@ -6,7 +6,9 @@ import { join } from 'node:path';
 // Action buttons share one look through src/components/Button.svelte. A raw
 // <button> carrying one of the old action classes would bypass it.
 const root = new URL('../src/components/', import.meta.url).pathname;
-const legacy = /<button\b[^>]*\bclass="[^"]*\b(primary|secondary|text-button|icon-button)\b/;
+// Whole class names only: a token such as text-ink-secondary is not one.
+const legacy =
+  /<button\b[^>]*\bclass="(?:[^"]*\s)?(primary|secondary|text-button|icon-button)(?=[\s"])/;
 
 test('action buttons go through the shared Button component', () => {
   const offenders = readdirSync(root, { recursive: true })

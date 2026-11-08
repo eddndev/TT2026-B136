@@ -205,10 +205,10 @@
           {#if challenge}<span class="eyebrow">Segundo factor</span>{/if}
           <h2>
             {challenge
-              ? 'Un paso m\u00e1s.'
+              ? 'Un paso m\u00e1s'
               : bootstrap
-                ? 'Configura tu despacho.'
-                : 'Accede a tu despacho.'}
+                ? 'Configura tu despacho'
+                : 'Accede a tu despacho'}
           </h2>
           <p>
             {challenge

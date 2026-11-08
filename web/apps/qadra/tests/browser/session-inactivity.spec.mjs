@@ -50,7 +50,7 @@ test('MFA idle deadlines drive bounded trusted activity while background reads d
   expect(activity.headers.authorization).toBe(`Bearer ${state.grants[0].access_token}`);
   expect(activity.headers['content-type']).toBeUndefined();
   await state.advance(state.current.deadline - state.now + 1);
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
   expect(state.activity()).toHaveLength(before + 1);
 });
 
@@ -129,7 +129,7 @@ test('explicit logout discards a suspended draft even before its original editor
   await expire(page, state, await draft(page));
   await login(page, false, false);
   await signOut(page);
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
   await login(page);
   await blankEditor(page);
 });

@@ -121,7 +121,7 @@
     {:else}<div class="page-heading"><h1>Resumen del expediente</h1></div>
       <section class="card">
         <h2>{current.title}</h2>
-        <p>Referencia interna: {current.reference}</p>
+        <p>Referencia interna: <span class="font-mono">{current.reference}</span></p>
         <p class="hint">Tu cuenta permite consultar los datos b&#225;sicos de este expediente.</p>
       </section>{/if}
   {:else if view === 'case-members' && user.role === 'owner'}<CaseMembers

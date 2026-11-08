@@ -1,6 +1,7 @@
 /* Pre-Tailwind styles, loaded in the legacy layer by global.css. Delete each
    import once its screen uses Tailwind utilities. */
 @import '@qadra/ui/base.css';
+@import './qadra-base.css';
 @import './auth.css';
 @import './layout.css';
 @import './overview.css';

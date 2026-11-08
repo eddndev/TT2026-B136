@@ -113,3 +113,8 @@ created over HTTP, and the documented curl recipes and demo scripts send
   rejects a database holding a non-canonical account or invitation name.
 - Rolling back to a binary that predates the column requires the
   pre-migration backup, because older binaries reject the extra column.
+
+## Amendment of 2026-11-08
+
+ADR 0089 shows the name in the dashboard workload and replaces the overview
+greeting with a detail line of the dashboard heading.

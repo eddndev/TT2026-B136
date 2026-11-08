@@ -72,7 +72,7 @@ test('the last active Owner cannot be removed and the rejected change does not l
     .click();
   await expect(editor(page).getByRole('alert')).toContainText(/\u00faltimo|administrador/i);
   await expect(directory(page)).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toHaveCount(0);
   expect(state.rows[0]).toEqual(memberActor);
   expect(writes(state)).toHaveLength(1);
 });
@@ -87,7 +87,7 @@ test('a confirmed self role change returns to login and clears account data with
   await editor(page)
     .getByRole('button', { name: 'Confirmar cambio de acceso', exact: true })
     .click();
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
   await expect(directory(page)).toHaveCount(0);
   await expect(editor(page)).toHaveCount(0);
   expect(writes(state)).toHaveLength(1);

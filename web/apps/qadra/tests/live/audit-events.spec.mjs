@@ -135,7 +135,7 @@ test('real Owner reads exact historical events with stable pages and separate ch
       .getByText('Cadena \u00edntegra', { exact: true }),
   ).toBeVisible();
   await signOut(page);
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
   await expect(panel(page)).toHaveCount(0);
 });
 
