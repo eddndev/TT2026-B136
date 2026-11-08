@@ -55,11 +55,12 @@ ocho nuevos de recuperación, autoridad, aislamiento, resultado incierto y
 navegación, más el recorrido existente de alta con MFA y auditoría en pantalla
 móvil. El registro aprobó **20 pruebas Node en 298,159 ms**: seis nuevas de
 captura individual y catorce regresiones existentes.
-Los casos están en
-[recuperación de alta](../web/apps/qadra/tests/browser/session-member-enrollment-drafts.spec.mjs),
-[resultado incierto](../web/apps/qadra/tests/browser/session-member-enrollment-outcomes.spec.mjs),
-[navegación](../web/apps/qadra/tests/browser/session-member-enrollment-navigation.spec.mjs)
-y [flujo general](../web/apps/qadra/tests/browser/workflow.spec.mjs). Las comprobaciones del
+Los casos estaban en `session-member-enrollment-drafts.spec.mjs`,
+`session-member-enrollment-outcomes.spec.mjs` y
+`session-member-enrollment-navigation.spec.mjs`, retiradas el 7 de noviembre
+de 2026 al reducir la suite de navegador a su núcleo (la recuperación general
+de borradores sigue en `session-inactivity.spec.mjs`), y en
+[flujo general](../web/apps/qadra/tests/browser/workflow.spec.mjs). Las comprobaciones del
 registro se conservan en
 [captura individual](../web/apps/qadra/tests/draft-handle-capture.test.mjs) y
 [regresiones del registro](../web/apps/qadra/tests/draft-registry.test.mjs).

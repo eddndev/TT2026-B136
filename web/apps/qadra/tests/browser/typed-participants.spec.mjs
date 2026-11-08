@@ -104,24 +104,3 @@ test('exports exact statement bytes and requires a separate signature for a judg
     ),
   ).toEqual(Buffer.alloc(384, 7));
 });
-test('keeps the bound identity in detail and history until current identity is explicitly requested', async ({
-  page,
-}) => {
-  const state = await typedSetup(page, 'paralegal', [typed]);
-  state.subjects.get(subjectId).push({
-    ...subject,
-    revision: 2,
-    values: { ...subject.values, name: { state: 'known', value: 'Nombre actualizado' } },
-  });
-  await openParticipant(page, typed.display_name);
-  await expect(detail(page)).toContainText('Identidad vinculada: revisi\u00f3n 1');
-  expect(state.calls.filter((call) => call.path.includes('/subjects'))).toHaveLength(0);
-  await detail(page)
-    .getByRole('button', { name: 'Consultar identidad actual', exact: true })
-    .click();
-  await expect(
-    detail(page).getByRole('region', { name: 'Identidad actual consultada', exact: true }),
-  ).toContainText('Nombre actualizado');
-  await expect(detail(page)).toContainText('Identidad vinculada: revisi\u00f3n 1');
-  await expect(page.getByRole('button', { name: 'Editar identidad', exact: true })).toHaveCount(0);
-});

@@ -89,39 +89,6 @@ test('resource hearing filter clears cancelled while mixed cancelled excludes it
   expect(state.calls.at(-1).searchParams.get('hearing_status')).toBe('scheduled');
 });
 
-test('opening and closing own detail preserves an incomplete page and its continuation', async ({
-  page,
-}) => {
-  const state = await setupResourceHearingAgenda(page);
-  state.handle = async (route, url) => {
-    if (!url.searchParams.get('from')?.startsWith('2026-01-02')) return false;
-    const next = cursorFor(url, state.own.at.unix_seconds, 0, 2, state.creation.hearing.id);
-    await route.fulfill({
-      json: url.searchParams.has('cursor')
-        ? agendaPage(url, [])
-        : agendaPage(url, state.rows, false, next),
-    });
-    return true;
-  };
-  await openResourceHearingAgenda(page, state);
-  const count = state.calls.length;
-  await ownCard(page, state).click();
-  await expect(ownDetail(page)).toBeVisible();
-  await ownDetail(page)
-    .getByRole('button', { name: 'Cerrar detalle de audiencia', exact: true })
-    .click();
-  expect(state.calls).toHaveLength(count);
-  await expect(page.locator('[data-agenda-kind]')).toHaveCount(3);
-  await page.getByRole('button', { name: 'Cargar m\u00e1s actividades', exact: true }).click();
-  await expect(
-    page.getByRole('button', { name: 'Cargar m\u00e1s actividades', exact: true }),
-  ).toHaveCount(0);
-  expect(state.calls.at(-1).searchParams.get('cursor')).toContain(
-    `:2:${state.creation.hearing.id}`,
-  );
-  await expect(page.locator('[data-agenda-kind]')).toHaveCount(3);
-});
-
 test('revoked case access removes every family without requesting its own detail', async ({
   page,
 }) => {

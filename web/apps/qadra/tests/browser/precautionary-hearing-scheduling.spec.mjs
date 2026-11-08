@@ -100,54 +100,6 @@ test('case hearings schedule an imposition, replace its appointment and retain i
   expect(state.hearings.state.submissions).toEqual([]);
 });
 
-test('a lost precautionary submit response is recovered by its exact operation without another POST', async ({
-  page,
-}) => {
-  const state = await setupPrecautionaryScheduling(page);
-  state.loseResponse = true;
-  await openPrecautionaryForm(page);
-  await fillPrecautionaryForm(page);
-  await preparePrecautionary(page);
-  await submitPrecautionary(page);
-  const editor = precautionaryEditor(page);
-  await expect(
-    editor.getByRole('heading', { name: 'Resultado incierto', exact: true }),
-  ).toBeVisible();
-  expect(state.submissions).toHaveLength(1);
-  const sent = clone(state.submissions[0]),
-    first = state.operations.get(sent.command.operation_id);
-  const later = clone(sent.command);
-  later.operation_id = 'f9000000-0000-4000-8000-000000000002';
-  later.change = {
-    action: 'replace',
-    expected_revision: 1,
-    expected_capture_digest: first.capture.capture_digest,
-    context: clone(state.context.expectation),
-    values: clone(sent.command.change.values),
-    reason: 'Senalamiento posterior independiente',
-  };
-  later.change.values.venue = 'Sala posterior que no pertenece al recibo';
-  state.commit(state.prepare(later));
-  await editor.getByRole('button', { name: 'Consultar resultado', exact: true }).click();
-  await expect(editor).toHaveCount(0);
-  await expect(precautionaryDetail(page)).toContainText(/Revisi[o\u00f3]n exacta consultada: 1/);
-  await expect(precautionaryDetail(page)).toContainText('Sala cautelar declarada');
-  await expect(precautionaryDetail(page)).not.toContainText(
-    'Sala posterior que no pertenece al recibo',
-  );
-  expect(
-    state.calls.filter(
-      (call) =>
-        call.path === `${state.base}/operations/${sent.command.operation_id}` &&
-        call.method === 'GET',
-    ),
-  ).toHaveLength(1);
-  expect(state.calls.filter((call) => call.method === 'POST')).toHaveLength(2);
-  expect(state.preparations).toHaveLength(1);
-  expect(state.submissions).toEqual([sent]);
-  expect(state.records.get(sent.command.hearing_id).at(-1).capture.review.result_revision).toBe(2);
-});
-
 for (const [role, closed] of [
   ['paralegal', false],
   ['owner', true],

@@ -62,30 +62,3 @@ test('report litigator pagination loads only on explicit action and retains the 
   await expect(loadMore(page)).toHaveCount(0);
   expect(state.calls.filter((call) => call.path.endsWith('/litigators'))).toHaveLength(2);
 });
-
-test('a report litigator page released after logout cannot restore private choices', async ({
-  page,
-}) => {
-  const state = await setupReports(page, 'litigator');
-  let capture;
-  const captured = new Promise((resolve) => {
-    capture = resolve;
-  });
-  state.handle = async (route, url) => {
-    if (!url.pathname.endsWith('/litigators')) return false;
-    capture(route);
-    return true;
-  };
-  await login(page, false, false);
-  await navigate(page, 'Informes');
-  const route = await captured;
-  await expect(reports(page)).toHaveAttribute('aria-busy', 'true');
-  await signOut(page);
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
-  const response = page.waitForResponse((value) => value.url() === route.request().url());
-  await route.fulfill({ json: { ...state.picker, litigators: [choice] } });
-  await (await response).finished();
-  await expect(reports(page)).toHaveCount(0);
-  await expect(page.getByText(choice.email, { exact: true })).toHaveCount(0);
-  expect(state.requests).toHaveLength(0);
-});

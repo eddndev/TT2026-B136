@@ -172,29 +172,3 @@ test('entry diagnostics observe real Astro startup and failures without copying 
     await observer.dispose();
   }
 });
-
-test('entry diagnostics bound repeated failures and stop observing when disposed', async ({
-  page,
-}) => {
-  const observer = await observeFrontendEntry(page);
-  try {
-    await enter(page);
-    await missingScripts(page, 14);
-    await hydrationFailure(page, 20);
-    await expect.poll(async () => (await observer.snapshot()).failures.length).toBe(12);
-    const before = await observer.snapshot();
-    publicSnapshot(before);
-    expect(before.dropped.failures).toBeGreaterThanOrEqual(2);
-    expect(before.hydrationErrors).toHaveLength(4);
-    expect(before.dropped.hydrationErrors).toBe(16);
-    await observer.dispose();
-    await hydrationFailure(page);
-    const after = await observer.snapshot();
-    expect(after.failures).toEqual(before.failures);
-    expect(after.hydrationErrors).toEqual(before.hydrationErrors);
-    expect(after.dropped).toEqual(before.dropped);
-    publicSnapshot(after);
-  } finally {
-    await observer.dispose();
-  }
-});

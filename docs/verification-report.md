@@ -1,5 +1,40 @@
 # Informe de verificación local
 
+## Reducción de las suites de navegador: 7 de noviembre de 2026
+
+La campaña web de CI tardaba de 24 a 31 minutos desde mediados de octubre: los
+dos trabajos con HTTP controlado sumaban 50 minutos de pruebas (753 casos en
+223 archivos, con un trabajador) y la tercera partición con servicios reales
+casi 19 minutos. Se retiraron las pruebas que no comprueban el núcleo de un
+flujo: compatibilidad con versiones o registros anteriores, reconciliación de
+respuestas inciertas y recibos, respuestas tardías o en carrera, variantes de
+expiración de sesión y copias de escritorio y teléfono con las mismas
+aserciones. Se conservan el recorrido principal de cada flujo, una barrera de
+permisos, un error o validación básicos, el diseño donde escritorio y teléfono
+difieren, y la corrección de criptografía, firma y evidencia. La regla quedó
+en `AGENTS.md` y `CONTRIBUTING.md`.
+
+- `tests/browser`: de 228 a 134 especificaciones y de 769 a 377 casos; con las
+  duraciones de la última campaña verde se estiman 24,5 minutos de pruebas en
+  total. De las 66 especificaciones `session-*` quedan `session-inactivity` y
+  `session-upload-drafts`; se borraron 43 módulos auxiliares sin referencias.
+- `tests/live`: de 41 a 36 especificaciones; se retiraron las de concurrencia
+  de plazos, resultados y hechos, `stage-adoption` (caso heredado) y
+  `activity-resources-real`, dos casos sueltos y las variantes de 390 px de
+  doce especificaciones. Particiones: 6, 10 y 20 archivos.
+  `scripts/web-live-plan.mjs` y su prueba se ajustaron a los archivos que
+  quedan.
+- Comprobaciones locales sobre `62a0e927` con estos cambios: `npm test`, 1061
+  aprobadas; `npx prettier --check apps/qadra/tests apps/qadra/*.mjs`,
+  correcto; `npx playwright test --list` carga las 134 especificaciones; doce
+  especificaciones con eliminaciones dentro de bucles o varias por archivo,
+  38 aprobadas en 2,2 min con un trabajador; `node --check` sobre las
+  especificaciones reales modificadas, correcto.
+
+Límites: no se ejecutaron localmente la suite completa de navegador ni las
+especificaciones con servicios reales; la duración resultante queda para la
+campaña de CI de esta revisión.
+
 ## Nombres visibles de cuentas: 6 de noviembre de 2026
 
 Ejecución local fresca sobre la rama `feat/tailwind-v4` en `4eb90750`, con los

@@ -80,30 +80,3 @@ test('lowering temporal precision removes hidden seconds instead of inventing a 
     offset_seconds: null,
   });
 });
-
-test('an explicitly entered zero second remains second precision through native time input', async ({
-  page,
-}) => {
-  const state = await setupFacts(page);
-  await openFacts(page);
-  await page.getByRole('button', { name: 'Registrar resoluci\u00f3n', exact: true }).click();
-  await fillResolution(page);
-  const editor = factEditor(page);
-  await editor
-    .getByRole('combobox', { name: 'Precisi\u00f3n de emisi\u00f3n', exact: true })
-    .selectOption('second');
-  await editor.getByLabel('Fecha de emisi\u00f3n', { exact: true }).fill('2026-09-01');
-  await editor.getByLabel('Hora de emisi\u00f3n', { exact: true }).fill('12:34:00');
-  await confirmFact(page);
-  await expect(editor).toHaveCount(0);
-  expect(state.submissions[0].change.values.issued_at).toEqual({
-    precision: 'second',
-    year: 2026,
-    month: 9,
-    day: 1,
-    hour: 12,
-    minute: 34,
-    second: 0,
-    offset_seconds: null,
-  });
-});

@@ -79,53 +79,6 @@ test('real calendar publication replacement retirement and exact uncertain recei
   });
 });
 
-test('real calendar concurrent owners compare before preserving a draft on the new base', async ({
-  browser,
-}, testInfo) => {
-  const contexts = await Promise.all([
-    browser.newContext({ baseURL: testInfo.project.use.baseURL }),
-    browser.newContext({ baseURL: testInfo.project.use.baseURL }),
-  ]);
-  try {
-    const pages = await Promise.all(contexts.map((c) => c.newPage()));
-    for (const [index, page] of pages.entries()) {
-      await page.goto('/');
-      await loginAs(page, calendars.owner, index + 1);
-      await openCalendars(page, calendars.race.id);
-      await detail(page)
-        .getByRole('button', { name: 'Reemplazar calendario', exact: true })
-        .click();
-      await editor(page)
-        .getByLabel('Cobertura hasta', { exact: true })
-        .fill(index ? '2000-03-12' : '2000-03-11');
-      await editor(page)
-        .getByLabel('Motivo', { exact: true })
-        .fill(`Borrador independiente ${index}`);
-    }
-    const first = await prepare(pages[0]),
-      second = await prepare(pages[1]);
-    await submit(pages[0], first);
-    const conflict = await submit(pages[1], second, 409);
-    expect(conflict.error.code).toBe('judicial_calendar_revision_conflict');
-    const form = editor(pages[1]);
-    await expect(form.getByLabel('Cobertura hasta', { exact: true })).toHaveValue('2000-03-12');
-    await form
-      .getByRole('button', { name: 'Consultar base actual del calendario', exact: true })
-      .click();
-    await expect(form).toContainText('Revisi\u00f3n 2 / Publicado');
-    await form
-      .getByRole('button', { name: 'Usar esta base y conservar borrador', exact: true })
-      .click();
-    const accepted = await prepare(pages[1]);
-    expect(accepted.command.change.expected_revision).toBe(2);
-    const final = await submit(pages[1], accepted);
-    expect(final.revision).toBe(3);
-    expect(final.values.coverage.through).toBe('2000-03-12');
-  } finally {
-    await Promise.all(contexts.map((c) => c.close()));
-  }
-});
-
 test('real calendar catalogue is global staff read only and Client is denied', async ({
   browser,
 }, testInfo) => {

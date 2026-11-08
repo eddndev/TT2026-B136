@@ -64,38 +64,3 @@ test('Owner issues and explicitly resends without ever seeing recipient secrets'
   expect(calls[1].data.expected_revision).toBe('1');
   expect(calls[1].data.operation_id).not.toBe(calls[0].data.operation_id);
 });
-
-test('uncertain issue survives navigation and is reconciled by its exact id', async ({ page }) => {
-  await setupMembers(page);
-  let row = null,
-    posts = 0;
-  await page.route('**/api/v1/member-invitations**', async (route) => {
-    const req = route.request(),
-      path = new URL(req.url()).pathname;
-    if (req.method() === 'POST') {
-      posts++;
-      row = summary(req.postDataJSON());
-      return route.abort();
-    }
-    return route.fulfill({
-      json: path.endsWith('/member-invitations') ? { items: row ? [row] : [], next: null } : row,
-    });
-  });
-  await enterDirectory(page);
-  await region(page)
-    .getByLabel('Nombre de la persona invitada', { exact: true })
-    .fill(' Persona Invitada ');
-  await region(page)
-    .getByLabel('Correo de la invitacion', { exact: true })
-    .fill('recipient@example.test');
-  await region(page).getByRole('button', { name: 'Enviar invitacion', exact: true }).click();
-  await expect(
-    region(page).getByRole('button', { name: 'Comprobar invitacion', exact: true }),
-  ).toBeVisible();
-  await navigate(page, 'Expedientes');
-  await navigate(page, 'Equipo');
-  await region(page).getByRole('button', { name: 'Retomar invitacion', exact: true }).click();
-  await region(page).getByRole('button', { name: 'Comprobar invitacion', exact: true }).click();
-  await expect(region(page).getByRole('status')).toContainText('Invitacion registrada');
-  expect(posts).toBe(1);
-});

@@ -78,17 +78,6 @@ async function validatePartial(panel, requestDigest) {
   await panel.getByRole('button', { name: 'Validar paquete', exact: true }).click();
 }
 
-test('the firm signer declines with a separate confirmation', async ({ page }) => {
-  const state = await contractSetup(page, 'litigator', localSignatureMaterial());
-  await login(page, false, false);
-  await navigate(page, 'Por firmar');
-  const region = await openRequest(page, 'Por firmar');
-  await region.getByRole('button', { name: 'Declinar firma' }).click();
-  await region.getByRole('button', { name: 'Confirmar declinaci\u00f3n' }).click();
-  await expect(region.getByText('Declinaste la firma.')).toBeVisible();
-  expect(state.writes.find((row) => row.path.endsWith('/close')).body.outcome).toBe('decline');
-});
-
 test('the requester cancels an open request from the case contracts with a reason', async ({
   page,
 }) => {

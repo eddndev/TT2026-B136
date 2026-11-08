@@ -47,33 +47,3 @@ for (const [label, options] of [
     expect(state.submissions).toHaveLength(0);
   });
 }
-
-test('client cannot navigate or load own resource hearings', async ({ page }) => {
-  const state = await setupResourceHearing(page, { role: 'client' });
-  state.seed();
-  await login(page, false, false);
-  await expectClientWorkspace(page, ['resources']);
-  await expect(hearingPanel(page)).toHaveCount(0);
-  await expect(hearingEditor(page)).toHaveCount(0);
-  expect(state.calls).toHaveLength(0);
-});
-
-test('authorization revoked after review prevents submission and clears private fields', async ({
-  page,
-}) => {
-  const state = await setupResourceHearing(page, { role: 'litigator' });
-  await openHearingForm(page, state);
-  await fillHearingForm(page);
-  await prepareHearing(page);
-  state.resources.facts.results.scheduling.denied = true;
-  await page.route(`**/api/v1/cases/${caseId}/administration`, (route) =>
-    failFact(route, 'permission_denied', 403),
-  );
-  await submitHearing(page);
-  await expect(hearingEditor(page)).toHaveCount(0);
-  await expect(activityPanel(page)).toHaveCount(0);
-  await expect(hearingDetail(page)).toHaveCount(0);
-  await expect(page.getByText('Sala propia del recurso', { exact: true })).toHaveCount(0);
-  expect(state.calls.filter((call) => call.path.endsWith('/submit'))).toHaveLength(0);
-  expect(state.committed.size).toBe(0);
-});

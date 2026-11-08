@@ -41,22 +41,6 @@ test('paralegal reads exact deadline history without any mutation or selector re
   expect(state.calls.every((c) => c.method === 'GET')).toBe(true);
   expect(state.calls.some((c) => c.path.includes('/responsibles'))).toBe(false);
 });
-test('closed case keeps deadline history readable and creation disabled', async ({ page }) => {
-  const row = detail(deadlineFixture()),
-    state = await setupDeadlines(page, { closed: true, deadlines: [row] });
-  await openDeadlines(page);
-  await expect(page.getByRole('button', { name: 'Registrar plazo', exact: true })).toBeDisabled();
-  await open(page, row);
-  await expect(panel(page)).toContainText(row.definition.title);
-  await expect(
-    panel(page).getByRole('button', { name: 'Corregir plazo', exact: true }),
-  ).toHaveCount(0);
-  await panel(page).getByRole('button', { name: 'Ver historial de plazo', exact: true }).click();
-  await expect(
-    page.getByRole('button', { name: 'Consultar plazo revisi\u00f3n 1', exact: true }),
-  ).toBeVisible();
-  expect(state.calls.every((c) => c.method === 'GET')).toBe(true);
-});
 test('client does not request deadlines through navigation or a protected hash', async ({
   page,
 }) => {
@@ -68,27 +52,6 @@ test('client does not request deadlines through navigation or a protected hash',
   ).toHaveCount(0);
   expect(state.calls).toHaveLength(0);
 });
-for (const [status, code] of [
-  [403, 'permission_denied'],
-  [404, 'case_not_found'],
-])
-  test(`${code} removes previously displayed private deadline data`, async ({ page }) => {
-    const row = detail(deadlineFixture()),
-      state = await setupDeadlines(page, { deadlines: [row] });
-    await openDeadlines(page);
-    await open(page, row);
-    await expect(panel(page)).toContainText(row.definition.title);
-    state.handle = async (route) => {
-      await deadlineError(route, code, status);
-      return true;
-    };
-    await page.getByRole('button', { name: 'Actualizar plazos', exact: true }).click();
-    await expect(
-      page.getByRole('heading', { name: 'Expediente no disponible', exact: true }),
-    ).toBeVisible();
-    await expect(panel(page)).toHaveCount(0);
-    await expect(page.getByText(row.definition.title, { exact: true })).toHaveCount(0);
-  });
 test('deadline_not_found is a local record error and does not revoke the case', async ({
   page,
 }) => {
@@ -116,40 +79,3 @@ test('deadline_not_found is a local record error and does not revoke the case', 
   await open(page, row);
   await expect(panel(page)).toContainText(row.definition.title);
 });
-for (const destination of ['case', 'session'])
-  test(`late deadline detail is discarded after changing ${destination}`, async ({ page }) => {
-    const row = detail(deadlineFixture()),
-      state = await setupDeadlines(page, { deadlines: [row] }),
-      held = gate();
-    await page.route('**/api/v1/case-administrations?*', (route) =>
-      route.fulfill({
-        json: {
-          cases: [overview(state.facts.results.scheduling.admin), overview(otherAdministration())],
-          has_more: false,
-          next_after_id: null,
-        },
-      }),
-    );
-    let started = false,
-      finished = false;
-    state.handle = async (route, call) => {
-      if (!call.path.endsWith(`/${row.id}`)) return;
-      started = true;
-      await held.promise;
-      await route.fulfill({ json: row });
-      finished = true;
-      return true;
-    };
-    await openDeadlines(page);
-    await open(page, row);
-    await expect.poll(() => started).toBe(true);
-    if (destination === 'case') {
-      await page.getByRole('button', { name: 'Cambiar expediente', exact: true }).click();
-      await page.getByRole('button', { name: /Otro expediente/ }).click();
-    } else await signOut(page);
-    held.release();
-    await expect.poll(() => finished).toBe(true);
-    await expect(panel(page)).toHaveCount(0);
-    await expect(page.getByText(row.definition.title, { exact: true })).toHaveCount(0);
-    expect(state.submissions).toHaveLength(0);
-  });

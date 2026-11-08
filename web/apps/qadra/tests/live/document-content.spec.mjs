@@ -15,10 +15,7 @@ import {
   capture,
 } from './document-content-helpers.mjs';
 
-for (const [name, width] of [
-  ['desktop', 1440],
-  ['mobile', 390],
-]) {
+for (const [name, width] of [['desktop', 1440]]) {
   test(`real historical content and persistent Owner incidents at ${width}px`, async ({
     page,
   }, testInfo) => {

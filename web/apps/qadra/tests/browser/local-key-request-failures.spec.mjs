@@ -67,25 +67,3 @@ test('WASM loading failure explains unavailable local cryptography without creat
     /No se pudo (?:cargar|iniciar) la criptograf(?:i|\u00ed)a local/,
   );
 });
-
-test('unavailable secure randomness explains the capability failure and releases password inputs', async ({
-  page,
-}) => {
-  let instrumented = false;
-  await page.route('**/local-crypto-worker.mjs*', async (route) => {
-    const response = await route.fetch();
-    const body = await response.text();
-    instrumented = true;
-    await route.fulfill({
-      response,
-      body: `Object.defineProperty(self.crypto, 'getRandomValues', {
-        value() { throw new DOMException('Synthetic entropy unavailable', 'OperationError'); }
-      });\n${body}`,
-    });
-  });
-  const { form, state } = await beginGeneration(page);
-  await expect
-    .poll(() => instrumented, { message: 'Only the local crypto Worker is instrumented' })
-    .toBe(true);
-  await expectSafeFailure(form, state, /fuente segura/);
-});

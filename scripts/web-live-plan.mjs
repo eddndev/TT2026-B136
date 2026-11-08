@@ -33,7 +33,7 @@ const families = [
   [/^individual-signing-real\./, 3, ["individualSigning"]],
   [/^precautionary-hearings-real\./, 3, ["precautionaryHearings"]],
   [/^owner-certificates\./, 3, ["ownerCertificates"]],
-  [/^(case-stages|stage-adoption)\./, 3, ["caseStages"]],
+  [/^case-stages\./, 3, ["caseStages"]],
   [/^case-administration\./, 3, ["caseAdministration"]],
   [/^dashboard\./, 3, ["dashboard"]],
   [/^case-reports\./, 3, ["caseReports"]],
@@ -55,7 +55,6 @@ const families = [
   [/^procedural-facts-/, 3, ["proceduralFacts"]],
   [/^procedural-resources\./, 3, ["proceduralResources"]],
   [/^resource-activities-real\./, 3, ["resourceActivities"]],
-  [/^activity-resources-real\./, 3, ["resourceActivities"]],
   [/^resource-activities-contextual-real\./, 3, ["resourceActivities"]],
   [/^resource-hearings-real\./, 3, ["resourceActivities"]],
 ];

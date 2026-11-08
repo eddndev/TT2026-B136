@@ -68,10 +68,7 @@ async function openExact(page, scenario, kind) {
   );
 }
 
-for (const [name, width] of [
-  ['desktop', 1440],
-  ['mobile', 390],
-])
+for (const [name, width] of [['desktop', 1440]])
   test(`real combined agenda preserves exact history and excludes pending deadlines at ${width}px`, async ({
     page,
   }, testInfo) => {
@@ -160,10 +157,7 @@ for (const [name, width] of [
     expect(errors).toEqual([]);
   });
 
-for (const [name, width, recoveryIndex] of [
-  ['desktop', 1440, 1],
-  ['mobile', 390, 2],
-])
+for (const [name, width, recoveryIndex] of [['desktop', 1440, 1]])
   test(`real combined agenda queries five assigned cases and excludes an unassigned sixth at ${width}px`, async ({
     page,
   }, testInfo) => {

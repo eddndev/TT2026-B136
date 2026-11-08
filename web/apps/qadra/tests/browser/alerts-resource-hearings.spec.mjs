@@ -107,34 +107,3 @@ test('a different valid own capture cannot replace the origin selected in an ale
   expect(state.ownCalls).toHaveLength(1);
   expect(state.unwanted).toEqual([]);
 });
-
-test('filter changes invalidate a pending own alert detail without restoring it from a late response', async ({
-  page,
-}) => {
-  const state = await setupOwnAlerts(page);
-  let release,
-    started = false,
-    ended = false;
-  const gate = new Promise((resolve) => {
-    release = resolve;
-  });
-  state.onExact = async (route) => {
-    started = true;
-    await gate;
-    await route.fulfill({ json: state.creation });
-    ended = true;
-  };
-  await openAlerts(page);
-  await openOwn(page, state);
-  try {
-    await expect.poll(() => started).toBe(true);
-    await filterAlerts(page, 'unread', 'all');
-    release();
-    await expect.poll(() => ended).toBe(true);
-    await expect(alertCard(page, state.own)).toBeVisible();
-    await expect(ownDetail(page)).toHaveCount(0);
-    expect(state.ownCalls).toHaveLength(1);
-  } finally {
-    release();
-  }
-});

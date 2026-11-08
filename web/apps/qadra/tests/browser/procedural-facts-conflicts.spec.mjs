@@ -52,25 +52,6 @@ test('revision conflict retains the draft until the operator reads and explicitl
   expect(state.submissions[0].change.values.summary).toBe('Mi borrador conservado');
 });
 
-test('closing a case before preparation preserves the draft and disables confirmation', async ({
-  page,
-}) => {
-  const state = await setupFacts(page);
-  await openFacts(page);
-  await page.getByRole('button', { name: 'Registrar resoluci\u00f3n', exact: true }).click();
-  await fillResolution(page);
-  state.results.scheduling.context.administrative_status = 'closed';
-  state.results.scheduling.admin.administration.administrative_status = 'closed';
-  await factEditor(page).getByRole('button', { name: 'Preparar registro', exact: true }).click();
-  await expect(
-    factEditor(page).getByLabel('Resumen de la resoluci\u00f3n', { exact: true }),
-  ).toHaveValue('Declaracion de resolucion capturada');
-  await expect(
-    factEditor(page).getByRole('button', { name: 'Preparar registro', exact: true }),
-  ).toBeDisabled();
-  expect(state.submissions).toHaveLength(0);
-});
-
 test('support admission failure preserves capture and shows actionable guidance without submitting', async ({
   page,
 }) => {

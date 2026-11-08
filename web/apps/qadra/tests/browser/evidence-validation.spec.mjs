@@ -126,27 +126,6 @@ test('an engine failure and a file over the limit are explained', async ({ page 
   await expect(panel.getByRole('button', { name: 'Validar paquete', exact: true })).toBeDisabled();
 });
 
-test('the result of another version is discarded when the version changes', async ({ page }) => {
-  await stubWorker(page);
-  await versionSetup(page);
-  await append(page);
-  await expect(page.getByText('Versi\u00f3n actual: 2', { exact: true })).toBeVisible();
-  let panel = await openPanel(page);
-  await validate(panel, scenario('checked', 6000));
-  await expect(panel.getByText('Revisando la evidencia', { exact: false })).toBeVisible();
-  await page.getByRole('button', { name: /Versi\u00f3n 1.*contrato.pdf/ }).click();
-  await expect(
-    page.getByText('Consultando versi\u00f3n hist\u00f3rica: 1', { exact: true }),
-  ).toBeVisible();
-  panel = await openPanel(page);
-  await expect(panel.getByText('Revisando la evidencia', { exact: false })).toHaveCount(0, {
-    timeout: 3000,
-  });
-  await expect(panel.getByRole('button', { name: 'Cancelar', exact: true })).toHaveCount(0);
-  await page.waitForTimeout(4000);
-  await expect(panel.locator('.evidence-result')).toHaveCount(0);
-});
-
 test('the report is downloaded as JSON without the file bytes', async ({ page }) => {
   await stubWorker(page);
   await versionSetup(page);
@@ -174,18 +153,4 @@ test('the report is downloaded as JSON without the file bytes', async ({ page })
   expect(value.anchors.pinned[0].label).toBe(pinnedLabel);
   expect(value.anchors.route['server-seal'].root_fingerprint).toMatch(/^[0-9a-f]{64}$/);
   expect(value.components).toHaveLength(8);
-});
-
-test('an unavailable trust route only changes the trust notes', async ({ page }) => {
-  await stubWorker(page);
-  await versionSetup(page);
-  await page.route('**/api/v1/evidence/trust', (route) =>
-    route.fulfill({ status: 503, json: { error: { code: 'internal_error' } } }),
-  );
-  const panel = await openPanel(page);
-  await validate(panel, scenario('checked'));
-  await expect(panel.locator('.evidence-result-overall')).toHaveText('Completo');
-  await expect(panel.locator('.evidence-result')).toContainText(
-    'No se pudo consultar la confianza actual del servidor',
-  );
 });

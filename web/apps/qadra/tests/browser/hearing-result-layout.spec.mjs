@@ -99,29 +99,3 @@ for (const width of [1440, 390])
       resultEditor(page).getByRole('button', { name: 'Revisar resultado', exact: true }),
     ).toBeVisible();
   });
-
-test('same-name historical fiches stay distinguishable by exact identifiers', async ({ page }) => {
-  const second = { ...structuredClone(participant), id: '99999999-9999-4999-8999-999999999999' };
-  const state = await setupResults(page);
-  state.directory.set(second.id, [second]);
-  await openResults(page);
-  await resultPanel(page)
-    .getByRole('button', { name: 'Registrar sesi\u00f3n o acto', exact: true })
-    .click();
-  const editor = resultEditor(page);
-  await editor.getByText('Comparecencias informadas (0/32)', { exact: true }).click();
-  await editor.getByRole('button', { name: 'Agregar comparecencia', exact: true }).click();
-  const picker = editor.getByRole('region', { name: 'Elegir ficha hist\u00f3rica', exact: true });
-  await picker
-    .getByRole('button', { name: `Consultar historia de ficha ${second.id}`, exact: true })
-    .click();
-  await picker
-    .getByRole('button', { name: 'Consultar ficha revisi\u00f3n 1', exact: true })
-    .click();
-  await picker
-    .getByRole('button', { name: 'Informar comparecencia de esta revisi\u00f3n', exact: true })
-    .click();
-  const group = editor.getByRole('group', { name: `Comparecencia ${second.id}`, exact: true });
-  await group.getByText('Referencia exacta del participante', { exact: true }).click();
-  await expect(group).toContainText(second.id);
-});

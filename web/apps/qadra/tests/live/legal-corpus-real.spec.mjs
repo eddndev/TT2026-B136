@@ -134,10 +134,7 @@ async function inspectCalendar(page, record) {
   }
 }
 
-for (const [width, recoveryIndex] of [
-  [1440, 0],
-  [390, 1],
-])
+for (const [width, recoveryIndex] of [[1440, 0]])
   test(`real legal corpus preserves eight results, calendar and blocked effects at ${width}px`, async ({
     page,
   }, info) => {

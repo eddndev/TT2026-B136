@@ -112,35 +112,6 @@ test('declared agreement identifiers survive reordering and correction under sha
   });
 });
 
-test('selects a historical scheduling revision while a later head stays unchanged', async ({
-  page,
-}) => {
-  const hearing = hearingRecord(),
-    state = await setupResults(page);
-  state.scheduling.records
-    .get(hearing.id)
-    .push({ ...structuredClone(hearing), revision: 2, status: 'cancelled' });
-  await openResults(page);
-  await resultPanel(page)
-    .getByRole('button', { name: 'Registrar sesi\u00f3n o acto', exact: true })
-    .click();
-  const editor = resultEditor(page);
-  await editor
-    .getByRole('button', { name: 'Elegir programaci\u00f3n de origen', exact: true })
-    .click();
-  await editor
-    .getByRole('button', { name: `Consultar programaci\u00f3n ${hearing.id}`, exact: true })
-    .click();
-  await editor
-    .getByRole('button', { name: 'Usar programaci\u00f3n revisi\u00f3n 1', exact: true })
-    .click();
-  await fillResult(page);
-  await confirmResult(page);
-  await expect(editor).toHaveCount(0);
-  expect(state.submissions[0].change.anchor_revision).toBe(1);
-  expect(state.scheduling.records.get(hearing.id).at(-1).status).toBe('cancelled');
-});
-
 test('written source links an explicitly consulted exact documentary version', async ({ page }) => {
   const state = await setupResults(page);
   await openResults(page);

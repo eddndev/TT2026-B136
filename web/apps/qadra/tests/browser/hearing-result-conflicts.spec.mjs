@@ -11,41 +11,6 @@ import {
 } from './hearing-result-helpers.mjs';
 import { resultRecord, resultCommand } from '../fixtures/hearing-results.mjs';
 
-test('lost response consults an exact receipt and keeps temporary absence uncertain without re-sending', async ({
-  page,
-}) => {
-  const state = await setupResults(page);
-  let missing = true;
-  state.handle = async (route, call) => {
-    if (call.method === 'POST' && !call.path.endsWith('/prepare')) {
-      state.submissions.push(call.body.command);
-      state.commit(state.prepare(call.body.command));
-      await route.abort('failed');
-      return true;
-    }
-    if (call.path.includes('/revisions/') && missing) {
-      await failResult(route, 'hearing_result_not_found', 404);
-      return true;
-    }
-  };
-  await openResults(page);
-  await resultPanel(page)
-    .getByRole('button', { name: 'Registrar sesi\u00f3n o acto', exact: true })
-    .click();
-  await fillResult(page);
-  await confirmResult(page);
-  const editor = resultEditor(page);
-  await expect(editor).toContainText('Resultado incierto');
-  await editor.getByRole('button', { name: 'Consultar env\u00edo exacto', exact: true }).click();
-  await expect(editor.getByRole('alert')).toContainText('sigue incierto');
-  expect(state.submissions).toHaveLength(1);
-  missing = false;
-  await editor.getByRole('button', { name: 'Consultar env\u00edo exacto', exact: true }).click();
-  await expect(editor).toHaveCount(0);
-  await expect(resultDetail(page)).toContainText('Consultada exactamente');
-  expect(state.submissions).toHaveLength(1);
-});
-
 test('another exact receipt stays a conflict and the operator compares before adopting a new base', async ({
   page,
 }) => {
@@ -82,23 +47,4 @@ test('another exact receipt stays a conflict and the operator compares before ad
   await expect(editor).toHaveCount(0);
   expect(state.submissions[0].change.expected_revision).toBe(2);
   expect(state.submissions[0].change.values.summary).toBe('Mi borrador');
-});
-
-test('a case closed before prepare keeps the draft and disables writes', async ({ page }) => {
-  const state = await setupResults(page);
-  await openResults(page);
-  await resultPanel(page)
-    .getByRole('button', { name: 'Registrar sesi\u00f3n o acto', exact: true })
-    .click();
-  await fillResult(page);
-  state.scheduling.context.administrative_status = 'closed';
-  state.scheduling.admin.administration.administrative_status = 'closed';
-  await resultEditor(page).getByRole('button', { name: 'Revisar resultado', exact: true }).click();
-  await expect(resultEditor(page).getByLabel('Relato del operador', { exact: true })).toHaveValue(
-    'Sesion parcial comunicada',
-  );
-  await expect(
-    resultEditor(page).getByRole('button', { name: 'Revisar resultado', exact: true }),
-  ).toBeDisabled();
-  expect(state.submissions).toHaveLength(0);
 });

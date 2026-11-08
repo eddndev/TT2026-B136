@@ -63,42 +63,6 @@ test('sentencing requires an explicit declaration and exact support without infe
     page.getByRole('region', { name: 'Detalle de audiencia', exact: true }),
   ).toContainText('Antecedente de condena declarado');
 });
-test('typed participant references retain the exact identity revision after directory changes', async ({
-  page,
-}) => {
-  const { state } = await setupHearings(page);
-  state.participants = [structuredClone(typed)];
-  await openHearings(page);
-  await page.getByRole('button', { name: 'Programar audiencia', exact: true }).click();
-  await fillHearing(page);
-  const editor = hearingEditor(page);
-  await editor.getByRole('button', { name: 'Elegir participante', exact: true }).click();
-  await editor
-    .getByRole('button', { name: `Consultar ficha: ${typed.display_name}`, exact: true })
-    .click();
-  await editor.getByRole('button', { name: 'Vincular esta revisi\u00f3n', exact: true }).click();
-  await confirmHearing(page);
-  await expect(editor).toHaveCount(0);
-  state.participants[0] = {
-    ...state.participants[0],
-    revision: 2,
-    directory_status: 'archived',
-    display_name: 'Nombre actual distinto',
-  };
-  await page.getByRole('button', { name: 'Corregir o reprogramar', exact: true }).click();
-  await expect(editor).toContainText('Referencia conservada del registro anterior.');
-  await expect(editor).toContainText('Identidad vinculada, revisi\u00f3n 1');
-  await expect(editor).not.toContainText('Nombre actual distinto');
-  await editor.getByLabel('Motivo del cambio', { exact: true }).fill('Nueva sede declarada');
-  await editor
-    .getByLabel('Sede o conexi\u00f3n', { exact: true })
-    .fill('https://reunion.example/privada');
-  await editor.getByRole('button', { name: 'Revisar registro', exact: true }).click();
-  await expect(editor.getByRole('link')).toHaveCount(0);
-  const command = state.calls.filter((row) => row.path.endsWith('/prepare')).at(-1).body;
-  expect(command.change.values.participants).toEqual([{ participant_id: typed.id, revision: 1 }]);
-});
-
 test('same-name participants expose distinct exact references in the picker and bound history', async ({
   page,
 }) => {

@@ -14,6 +14,11 @@ la aserción empieza tras la respuesta y sigue usando su límite original.
 La regresión exige una preparación, ningún envío y revisión visible antes de
 habilitar la confirmación mediante el reconocimiento explícito.
 
+El 7 de noviembre de 2026 esa especificación se retiró junto con las demás
+pruebas de respuestas lentas al reducir la suite de navegador a su núcleo; el
+helper conserva la espera descrita y lo siguen usando las especificaciones de
+plazos de recurso que quedan.
+
 ## Evidencia del 3 de octubre de 2026
 
 El CI de `main` falló esperando el botón de confirmación en un caso de cierre

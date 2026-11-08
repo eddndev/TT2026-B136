@@ -124,51 +124,6 @@ for (const [role, width] of [
   });
 }
 
-test('changing the report type preserves an uncertain activity operation until explicit retry', async ({
-  page,
-}) => {
-  const state = await setupReports(page);
-  const attempted = [];
-  state.handle = async (route, url) => {
-    if (url.pathname !== '/api/v1/case-reports' || route.request().method() !== 'POST')
-      return false;
-    const command = route.request().postDataJSON();
-    attempted.push(command);
-    if (attempted.length === 1) {
-      await route.abort('failed');
-      return true;
-    }
-    const value = accepted(command);
-    state.records.set(reportId, value);
-    await route.fulfill({ status: 202, json: value });
-    return true;
-  };
-  await enterReports(page);
-  await activityFilters(page);
-  await generate(page).click();
-  await expect(form(page).getByRole('alert')).toBeVisible();
-  expect(attempted).toHaveLength(1);
-  await type(page).selectOption('case_state');
-  await fillFilters(page, { assigned: lawyerId, status: 'active' });
-  await expect(form(page).locator('.report-retry')).toContainText('Actividad por litigante');
-  expect(attempted).toHaveLength(1);
-  await form(page).getByRole('button', { name: 'Reintentar solicitud', exact: true }).click();
-  await expect(details(page)).toContainText('En cola');
-  expect(attempted[1]).toEqual(attempted[0]);
-  await expect(details(page)).toContainText('Actividad por litigante');
-  await generate(page).click();
-  await expect(details(page)).toContainText('Estado y carga de expedientes');
-  expect(attempted).toHaveLength(3);
-  expect(attempted[2].operation_id).not.toBe(attempted[0].operation_id);
-  expect(attempted[2]).not.toHaveProperty('report_type');
-  expect(attempted[2].filters).toEqual({
-    created_from: '2026-09-01T00:00:00Z',
-    created_before: '2026-10-01T00:00:00Z',
-    status: 'active',
-    assigned_litigator: lawyerId,
-  });
-});
-
 test.describe('activity report draft reentry', () => {
   test.afterEach(async ({ page }) => checkReportRequests(page));
   test('the same account restores its incomplete activity period without submitting', async ({

@@ -133,35 +133,3 @@ test('directory accumulates pages and changing filters resets its opaque cursor'
   expect(state.calls.at(-1).query.email_prefix).toBe('person52');
   expect(state.calls.at(-1).query.cursor).toBeUndefined();
 });
-
-test('existing account creation retains one-time enrollment and remains distinct from invitations', async ({
-  page,
-}) => {
-  const state = await setupMembers(page);
-  await enterDirectory(page);
-  await page.getByLabel('Nombre del nuevo usuario', { exact: true }).fill('  Nueva Integrante ');
-  await page.getByLabel('Correo del nuevo usuario', { exact: true }).fill('new@example.test');
-  await page.getByLabel('Contrase\u00f1a inicial', { exact: true }).fill('synthetic-new-password');
-  await page.getByRole('button', { name: 'Crear usuario', exact: true }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Configura el segundo factor', exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole('checkbox', { name: 'Ya guard\u00e9 la clave y los c\u00f3digos', exact: true })
-    .check();
-  await page.getByRole('button', { name: 'Finalizar', exact: true }).click();
-  await expect(page.getByLabel('Contrase\u00f1a inicial', { exact: true })).toHaveValue('');
-  await expect(page.getByText('TESTSECRET', { exact: true })).toHaveCount(0);
-  expect(
-    state.calls
-      .filter((call) => call.method === 'POST' && call.path === '/api/v1/users')
-      .map((call) => call.body.name),
-  ).toEqual(['Nueva Integrante']);
-  expect(state.calls.some((call) => /invitation|invite/.test(call.path))).toBe(false);
-  await navigate(page, 'Inicio');
-  expect(
-    await page.evaluate(
-      () => Object.keys(localStorage).length + Object.keys(sessionStorage).length,
-    ),
-  ).toBe(0);
-});

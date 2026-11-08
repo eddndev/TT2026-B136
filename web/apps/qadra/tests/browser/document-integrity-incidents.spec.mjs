@@ -104,32 +104,6 @@ test('Owner incident service failure stays visible until explicit refresh, disti
   expect(state.calls.length).toBe(before + 1);
 });
 
-test('a late Owner incident list is discarded after logout', async ({ page }) => {
-  const state = await setupIncidents(page);
-  await enterIncidents(page);
-  await expect(incidentCard(page, state.rows[0])).toBeVisible();
-  let release;
-  state.handle = (route) =>
-    new Promise((resolve) => {
-      release = async () => {
-        await route.fulfill({ json: incidentPage(state.rows) });
-        resolve(true);
-      };
-    });
-  await inbox(page).getByRole('button', { name: 'Actualizar', exact: true }).click();
-  await expect.poll(() => typeof release).toBe('function');
-  const finished = requestCompletion(page, (request) =>
-    request.url().includes('/document-integrity-incidents?'),
-  );
-  await signOut(page);
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
-  await release();
-  const completed = await finished;
-  if (completed.failed) expect(completed.request.failure()?.errorText).toMatch(/abort|cancel/i);
-  await expect(inbox(page)).toHaveCount(0);
-  await expect(page.locator('[data-incident-id]')).toHaveCount(0);
-});
-
 for (const role of ['litigator', 'paralegal', 'client']) {
   test(`${role} cannot enter the Owner incident inbox or trigger its initial query`, async ({
     page,

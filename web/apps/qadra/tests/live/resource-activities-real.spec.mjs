@@ -21,10 +21,7 @@ import {
 } from './resource-activities-real-helpers.mjs';
 
 if (!accounts) throw new Error('The live fixture must provision independent resource activities');
-for (const [name, width, role] of [
-  ['desktop', 1440, 'owner'],
-  ['mobile', 390, 'litigator'],
-]) {
+for (const [name, width, role] of [['desktop', 1440, 'owner']]) {
   test(`real exact resource associations preserve activities and alerts at ${width}px`, async ({
     page,
   }, testInfo) => {

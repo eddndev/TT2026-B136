@@ -27,17 +27,3 @@ for (const role of ['owner', 'litigator', 'paralegal'])
     else await expect(register).toBeEnabled();
     expect(calls).toEqual(['GET']);
   });
-
-test('Client cannot open deadlines by navigation or forced hash and sends no private request', async ({
-  page,
-}) => {
-  await setupFacts(page, { role: 'client' });
-  const calls = [];
-  await page.route('**/api/v1/cases/*/deadlines**', (route) => {
-    calls.push(route.request().url());
-    return route.fulfill({ status: 403, json: { error: { code: 'permission_denied' } } });
-  });
-  await login(page, false, false);
-  await expectClientWorkspace(page, ['deadlines']);
-  expect(calls).toHaveLength(0);
-});

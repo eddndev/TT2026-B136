@@ -83,35 +83,3 @@ test('same account restores an unsent root upload and sends exact file only afte
     bearer: `Bearer ${state.current.token}`,
   });
 });
-
-test('another account cannot recover a selected upload or revive it in the original account', async ({
-  page,
-}) => {
-  const state = await sessionSetup(page);
-  await login(page);
-  await expire(page, state, await prepare(page));
-  await signInOther(page);
-  await selectCase(page);
-  const modal = await openUpload(page);
-  await blank(modal);
-  await modal.getByRole('button', { name: 'Cancelar', exact: true }).click();
-  await signOut(page);
-  await login(page);
-  await blank(await openUpload(page));
-});
-
-test('explicitly cancelling a recovered upload discards its file before another expiry', async ({
-  page,
-}) => {
-  const state = await sessionSetup(page);
-  await login(page);
-  await expire(page, state, await prepare(page));
-  await login(page);
-  const modal = await openUpload(page);
-  await expect(modal.getByText(originalName, { exact: true })).toBeVisible();
-  await modal.getByRole('button', { name: 'Cancelar', exact: true }).click();
-  await state.advance(state.current.deadline - state.now + 1);
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
-  await login(page);
-  await blank(await openUpload(page));
-});

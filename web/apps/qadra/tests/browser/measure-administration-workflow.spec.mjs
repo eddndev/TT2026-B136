@@ -115,51 +115,6 @@ for (const action of ['correct', 'entered_in_error', 'replace_entered_in_error']
     expect(state.unexpected).toEqual([]);
   });
 
-test('an uncertain rectification recovers its original operation after another correction without posting again', async ({
-  page,
-}) => {
-  const state = await setupMeasureAdministrations(page);
-  state.loseResponse = true;
-  await openAdministration(page, state, 'correct');
-  await fillAdministration(page, 'correct');
-  await prepareAdministration(page);
-  await submitAdministration(page);
-  const editor = administrationEditor(page);
-  await expect(
-    editor.getByRole('heading', { name: 'Resultado incierto', exact: true }),
-  ).toBeVisible();
-  expect(state.submissions).toHaveLength(1);
-  const sent = clone(state.submissions[0]);
-  const receipt = clone(state.operations.get(sent.command.operation_id));
-  const current = clone(state.records.get(state.target.reference.id).at(-1));
-  const later = clone(sent.command);
-  later.operation_id = 'b8000000-0000-4000-8000-000000000003';
-  later.target = clone(current.reference);
-  later.reason = 'Rectificacion posterior ajena al recibo original';
-  later.action.values.conditions = 'Condiciones posteriores ajenas al recibo original';
-  state.commit(state.prepare(later));
-  await editor.getByRole('button', { name: 'Consultar resultado', exact: true }).click();
-  await expect(editor).toHaveCount(0);
-  await expect(administrationDetail(page)).toContainText(
-    'Texto de condiciones rectificado expresamente',
-  );
-  await expect(administrationDetail(page)).toContainText(sent.command.operation_id);
-  await expect(administrationDetail(page)).not.toContainText(later.reason);
-  await expect(administrationDetail(page)).not.toContainText(later.action.values.conditions);
-  expect(
-    state.calls.filter(
-      (call) => call.method === 'GET' && call.path === `${state.base}/${sent.command.operation_id}`,
-    ),
-  ).toHaveLength(1);
-  expect(state.calls.filter((call) => call.method === 'POST')).toHaveLength(2);
-  expect(state.preparations).toHaveLength(1);
-  expect(state.submissions).toEqual([sent]);
-  expect(state.operations.get(sent.command.operation_id)).toEqual(receipt);
-  expect(state.records.get(state.target.reference.id).at(-1).reference.revision).toBe(3);
-  expect(state.decisions.submissions).toEqual([]);
-  expect(state.unexpected).toEqual([]);
-});
-
 for (const [role, closed] of [
   ['paralegal', false],
   ['owner', true],
