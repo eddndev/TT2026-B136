@@ -29,7 +29,7 @@ mod alert_review_episode;
 mod alert_scheduler;
 #[path = "../alert_scheduler_edges.rs"]
 mod alert_scheduler_edges;
-#[path = "../audit_lock_holder.rs"]
+#[path = "../audit_lock_support/mod.rs"]
 mod audit_lock_holder;
 #[path = "../case_administration_support/mod.rs"]
 mod case_administration_support;
