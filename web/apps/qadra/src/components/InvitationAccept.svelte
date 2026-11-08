@@ -101,7 +101,6 @@
   }
 </script>
 
-<span class="eyebrow">INVITACION AL DESPACHO</span>
 <h2>{mode === 'finish' ? 'Confirma tu segundo factor' : 'Acepta tu invitacion'}</h2>
 {#if error}<div class="notice error" role="alert">{error}</div>{/if}
 {#if mode === 'invalid'}

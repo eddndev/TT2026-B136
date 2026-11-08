@@ -9,7 +9,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">ADMINISTRACI&Oacute;N DEL DESPACHO</span>
+    <span class="eyebrow">Administraci&oacute;n del despacho</span>
     <h1>Tu equipo, conectado</h1>
     <p>Crea accesos con los permisos adecuados.</p>
   </div>

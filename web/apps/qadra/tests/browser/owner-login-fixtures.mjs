@@ -20,6 +20,7 @@ export const owner = {
 const states = new WeakMap();
 const workspaceReads = new Set([
   '/api/v1/dashboard',
+  '/api/v1/agenda',
   '/api/v1/document-integrity-incidents',
   '/api/v1/case-administrations',
 ]);

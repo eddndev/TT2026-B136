@@ -220,7 +220,7 @@
   >
     <div class="page-heading">
       <div>
-        <span class="eyebrow">SEGUIMIENTO DEL DESPACHO</span>
+        <span class="eyebrow">Seguimiento del despacho</span>
         <h1>Informes de expedientes</h1>
         <p>
           Estado actual de expedientes o actividad por litigante durante el periodo seleccionado.

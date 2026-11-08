@@ -24,7 +24,7 @@
 
 <section class="card case-context">
   <div>
-    <span class="eyebrow">EXPEDIENTE ACTUAL</span>
+    <span class="eyebrow">Expediente actual</span>
     <h2>{record.title}</h2>
     <p>{record.reference}</p>
   </div>

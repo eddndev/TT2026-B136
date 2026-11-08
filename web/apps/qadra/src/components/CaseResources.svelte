@@ -204,7 +204,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">GESTI&#211;N DEL EXPEDIENTE</span>
+    <span class="eyebrow">Gesti&oacute;n del expediente</span>
     <h1>Recursos procesales</h1>
     <p>Revocaci&#243;n y apelaci&#243;n con sus actos, personas y fuentes hist&#243;ricas.</p>
   </div>

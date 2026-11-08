@@ -1,9 +1,15 @@
 <script>
-  import Button from './Button.svelte';
+  // Overview of Owner and Litigator: the heading with the authorized counts,
+  // the coming agenda, the load per litigator and the shortcuts. Counts and
+  // agenda are read again for each account; a response that arrives after the
+  // account or role changed, or after the view closed, is discarded.
   import { onMount, onDestroy } from 'svelte';
-  import Icon from '@qadra/ui/Icon.svelte';
   import OverviewHeading from './OverviewHeading.svelte';
-  export let api, user, onnavigate;
+  import DashboardStats from './DashboardStats.svelte';
+  import DashboardAgenda from './DashboardAgenda.svelte';
+  import DashboardWorkload from './DashboardWorkload.svelte';
+  import OverviewLinks from './OverviewLinks.svelte';
+  export let api, user, onnavigate, ondocument;
   let mounted = false,
     alive = true,
     seen = null,
@@ -11,59 +17,12 @@
   let scoped = null,
     value = null,
     busy = true,
-    error = '';
+    error = '',
+    agenda = null;
   $: allowed = ['owner', 'litigator'].includes(user?.role);
   $: identity = `${user?.id}:${user?.role}`;
   $: if (mounted && identity !== seen) open(identity);
-  const metrics = [
-    {
-      key: 'active_cases',
-      label: 'Expedientes activos',
-      icon: 'briefcase',
-      detail: 'Estado administrativo activo',
-    },
-    {
-      key: 'pending_contracts',
-      label: 'Contratos en borrador o en firma',
-      icon: 'file',
-      detail: 'Sin completar ni abandonar',
-    },
-    {
-      key: 'deadlines_overdue',
-      label: 'Plazos vencidos',
-      icon: 'clock',
-      detail: 'Sin atenci\u00f3n declarada',
-      urgent: true,
-    },
-    {
-      key: 'deadlines_due_48h',
-      label: 'Vencen en menos de 48 horas',
-      icon: 'clock',
-      detail: 'Atenci\u00f3n prioritaria',
-      urgent: true,
-    },
-    {
-      key: 'deadlines_due_7d',
-      label: 'Vencen en menos de 7 d\u00edas',
-      icon: 'calendar',
-      detail: 'Incluye los de 48 horas',
-    },
-    {
-      key: 'deadlines_unresolved',
-      label: 'Plazos por revisar',
-      icon: 'info',
-      detail: 'Sin vencimiento operativo vigente',
-    },
-  ];
-  // These three lead the page heading; the grid shows the rest.
-  const leading = ['active_cases', 'deadlines_overdue', 'deadlines_due_48h'];
   $: scope = user?.role === 'owner' ? 'Todo el despacho' : 'Tus expedientes asignados';
-  $: stats = value
-    ? leading.map((key) => {
-        const item = metrics.find((row) => row.key === key);
-        return { key, label: item.label, value: value[key], urgent: item.urgent };
-      })
-    : null;
   function open(current) {
     seen = current;
     generation++;
@@ -93,11 +52,10 @@
       if (alive && request === generation && context === identity) busy = false;
     }
   }
-  const timestamp = (instant) =>
-    new Intl.DateTimeFormat('es-MX', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(instant));
+  function refresh() {
+    load();
+    agenda?.refresh();
+  }
   onMount(() => {
     mounted = true;
   });
@@ -110,77 +68,18 @@
 </script>
 
 {#if allowed}
-  <section class="dashboard-panel" aria-label="Indicadores operativos" aria-busy={busy}>
-    <OverviewHeading {user} {scope} {stats} {onnavigate} />
-    <div class="section-heading dashboard-heading">
-      <div>
-        <h2>Indicadores operativos</h2>
+  <section class="grid gap-8" aria-label="Indicadores operativos" aria-busy={busy}>
+    <OverviewHeading {user} {scope} {onnavigate}>
+      <DashboardStats {value} {busy} {error} onrefresh={refresh} />
+    </OverviewHeading>
+    <div class="grid gap-8 xl:grid-cols-3">
+      {#key identity}
+        <DashboardAgenda bind:this={agenda} class="xl:col-span-2" {api} {onnavigate} />
+      {/key}
+      <div class="grid grid-cols-1 content-start gap-8">
+        {#if value}<DashboardWorkload {value} />{/if}
+        <OverviewLinks {user} {onnavigate} {ondocument} />
       </div>
-      <Button variant="secondary" disabled={busy} onclick={load}>Actualizar indicadores</Button>
     </div>
-    {#if busy}
-      <div class="card dashboard-status" role="status">Consultando los indicadores actuales...</div>
-    {:else if error}
-      <p class="notice error" role="alert">{error}</p>
-    {:else if value}
-      <p class="dashboard-cutoff">
-        Consulta del <time datetime={value.checked_at}>{timestamp(value.checked_at)}</time>.
-        Actualiza para incorporar cambios posteriores.
-      </p>
-      <div class="stats-grid dashboard-metrics">
-        {#each metrics.filter((row) => !leading.includes(row.key)) as item}
-          <article
-            class="stat-card dashboard-metric"
-            class:dashboard-urgent={item.urgent && value[item.key] > 0}
-            data-metric={item.key}
-            aria-label={item.label}
-          >
-            <div>
-              <span>{item.label}</span><strong>{value[item.key]}</strong><small>{item.detail}</small
-              >
-            </div>
-            <span class="stat-icon"><Icon name={item.icon} size={22} /></span>
-          </article>
-        {/each}
-      </div>
-      <p class="hint dashboard-explanation">
-        Los plazos incluyen expedientes cerrados administrativamente. Se excluyen los retirados y
-        atendidos; los que requieren revisi&oacute;n no se presentan como fechas vigentes.
-      </p>
-      <section class="card dashboard-workload" aria-label="Carga por litigante">
-        <div class="section-heading">
-          <div>
-            <h3>Carga por litigante</h3>
-            <p>Expedientes activos dentro de este alcance.</p>
-          </div>
-          <span class="tile-icon"><Icon name="users" size={22} /></span>
-        </div>
-        {#if value.active_cases === 0}<p class="dashboard-empty">
-            Sin expedientes activos en este alcance.
-          </p>{/if}
-        {#if value.workload.length}
-          <ul>
-            {#each value.workload as row (row.user_id)}
-              <li>
-                <span>{row.email}</span><strong
-                  >{row.active_cases}<small
-                    >{row.active_cases === 1 ? 'expediente' : 'expedientes'}</small
-                  ></strong
-                >
-              </li>
-            {/each}
-          </ul>
-          <p class="hint">Un expediente compartido cuenta para cada litigante asignado.</p>
-        {:else}<p class="hint">No hay carga asignada a litigantes activos.</p>{/if}
-      </section>
-      <div class="action-row dashboard-actions">
-        <Button variant="text" onclick={() => onnavigate('cases')}
-          >Ver expedientes<Icon name="arrow" size={15} /></Button
-        >
-        <Button variant="text" onclick={() => onnavigate('agenda')}
-          >Consultar agenda<Icon name="calendar" size={15} /></Button
-        >
-      </div>
-    {/if}
   </section>
 {/if}

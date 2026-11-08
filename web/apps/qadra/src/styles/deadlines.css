@@ -19,8 +19,10 @@
   display: block;
 }
 .deadline-due {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: var(--text-section-title);
+  line-height: var(--text-section-title--line-height);
+  font-weight: var(--text-section-title--font-weight);
+  font-variant-numeric: tabular-nums;
 }
 .deadline-trace {
   padding-inline-start: 1.5rem;

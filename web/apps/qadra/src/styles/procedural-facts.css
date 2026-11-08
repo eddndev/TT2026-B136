@@ -28,7 +28,7 @@
 }
 .fact-history-row {
   padding-block: 12px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-line);
 }
 .fact-notification-toggle,
 .fact-administration {
@@ -36,7 +36,7 @@
 }
 .fact-editor details > summary {
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 500;
 }
 .fact-editor fieldset,
 .fact-editor label,

@@ -86,12 +86,12 @@
       load();
     }}
   >
-    <label class="grid min-w-0 flex-1 gap-1.5 text-[13px] font-medium text-navy sm:max-w-56"
+    <label class="grid min-w-0 flex-1 gap-1.5 text-label text-ink sm:max-w-56"
       >Mes de consulta<input
         type="month"
         min="0001-01"
         max="9999-12"
-        class="w-full min-w-0 rounded-md border border-line bg-white px-3 py-2 text-ink disabled:opacity-60"
+        class="w-full min-w-0 rounded-md border border-line-strong bg-surface px-3 py-2 text-body text-ink disabled:opacity-60"
         bind:value={month}
         disabled={busy}
       /></label
@@ -134,16 +134,16 @@
       {/if}
     </div>
     <div class="grid min-w-0 content-start gap-4">
-      <ul aria-label="Leyenda de estados" class="flex flex-wrap gap-2 text-xs">
+      <ul aria-label="Leyenda de estados" class="flex flex-wrap gap-2 text-caption">
         {#each calendarLegend as entry (entry.state)}
           <li class={`rounded-full px-2.5 py-1 ring-1 ring-line ${dayTone(entry.tone)}`}>
-            <span aria-hidden="true" class="font-semibold">{entry.symbol}</span>
+            <span aria-hidden="true" class="font-medium">{entry.symbol}</span>
             {entry.label}
           </li>
         {/each}
       </ul>
       {#if selected}<section class="case-comparison" aria-label="Detalle del d&#237;a">
-          <h4 class="font-semibold text-ink">
+          <h4 class="font-medium text-ink">
             {civilLabel(selected.date)} / {calendarStates[selected.state]}
           </h4>
           <p>{calendarDayOrigin(selected)}</p>
@@ -153,7 +153,7 @@
               sources={record.values.sources.filter((s) => selected.source_ids.includes(s.id))}
             />{/if}
         </section>
-      {:else if days.length}<p class="text-sm text-muted">
+      {:else if days.length}<p class="text-body text-muted">
           Selecciona un d&#237;a para consultar su regla declarada.
         </p>{/if}
     </div>

@@ -176,7 +176,7 @@
 
 <div class="section-heading version-heading">
   <div>
-    <span class="eyebrow">DOCUMENTO Y VERSIONES</span>
+    <span class="eyebrow">Documento y versiones</span>
     <p class="hint">Cada versi&#243;n conserva su archivo, firma y sello.</p>
   </div>
   {#if !unavailable && can(user.role, 'documents')}<Button

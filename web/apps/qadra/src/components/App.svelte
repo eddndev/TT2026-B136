@@ -249,7 +249,7 @@
   {/if}
   <SkipLink target={() => main} />
   <div
-    class="app-layout group/app min-h-dvh bg-slate-50"
+    class="app-layout group/app min-h-dvh bg-canvas"
     bind:this={appLayout}
     inert={sessionState.phase !== 'active'}
   >

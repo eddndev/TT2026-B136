@@ -32,9 +32,9 @@
 >
   <HeroIcon name="shield" class="size-6 text-brand-800" />
   <div class="min-w-0 flex-1">
-    <h2 class="text-base">Integridad de la cadena</h2>
+    <h2 class="text-card-title text-ink">Integridad de la cadena</h2>
     {#if result}
-      <p role="status" class={result.valid ? 'text-success' : 'text-red-700'}>
+      <p role="status" class={result.valid ? 'text-success' : 'text-danger'}>
         <strong>{result.valid ? 'Cadena \u00edntegra' : 'Alteraci\u00f3n detectada'}</strong>
         &#183;
         {result.valid
@@ -43,7 +43,7 @@
             : `${result.entries} eventos verificados`
           : `primer evento roto: ${result.first_broken_index}`}
       </p>
-    {:else if error}<p class="text-red-700" role="alert">{error}</p>
+    {:else if error}<p class="text-danger" role="alert">{error}</p>
     {:else}<p>Comprueba que ning&#250;n movimiento se haya alterado o eliminado.</p>{/if}
   </div>
   <Button variant="primary" disabled={busy} onclick={verify}

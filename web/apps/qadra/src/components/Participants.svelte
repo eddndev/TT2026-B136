@@ -171,7 +171,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">PERSONAS DEL EXPEDIENTE</span>
+    <span class="eyebrow">Personas del expediente</span>
     <h1>Participantes</h1>
     <p>Personas registradas en este expediente.</p>
   </div>

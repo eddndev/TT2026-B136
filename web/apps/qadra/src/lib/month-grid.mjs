@@ -90,12 +90,12 @@ export const toneClasses = {
   countable: 'bg-success/10',
   excluded: 'bg-brand-100',
   unresolved: 'bg-amber-50',
-  outside: 'bg-slate-100 text-slate-500',
+  outside: 'bg-canvas text-muted',
 };
 
-// Classes for a day of the month: its tone (white when it has none) plus the
+// Classes for a day of the month: its tone (the surface when it has none) plus the
 // ink text colour unless the tone sets its own.
 export function dayTone(tone) {
-  const background = toneClasses[tone] ?? 'bg-white';
+  const background = toneClasses[tone] ?? 'bg-surface';
   return /\btext-/.test(background) ? background : `${background} text-ink`;
 }

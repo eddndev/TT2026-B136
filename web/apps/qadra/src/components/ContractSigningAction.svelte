@@ -142,7 +142,7 @@
   {:else}
     <div class="section-heading">
       <div>
-        <span class="eyebrow">SOLICITUD DE FIRMA</span>
+        <span class="eyebrow">Solicitud de firma</span>
         <h2>{detail.title}</h2>
         <p class="hint">Vence: {expiryText(detail.expires_at_unix)}</p>
       </div>

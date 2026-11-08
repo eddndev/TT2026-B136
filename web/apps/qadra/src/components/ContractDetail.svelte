@@ -97,7 +97,7 @@
   {:else}
     <div class="section-heading">
       <div>
-        <span class="eyebrow">CONTRATO</span>
+        <span class="eyebrow">Contrato</span>
         <h2>{contract.title}</h2>
         <p class="hint">Creado por {contract.created_by_email}</p>
       </div>
@@ -173,7 +173,7 @@
     overflow-wrap: anywhere;
   }
   .contract-request-row {
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--color-line);
     padding-top: 12px;
   }
   .contract-timeline {

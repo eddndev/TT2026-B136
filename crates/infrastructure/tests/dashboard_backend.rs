@@ -72,6 +72,12 @@ fn office_and_assigned_scope_never_leak_unrelated_members_or_cases() {
     let client = db.user("client", false);
     hearing_database_support::complete(&mut db);
     let unrelated = db.user("litigator", true);
+    db.admin
+        .execute(
+            "UPDATE users SET display_name='Ana Litigante' WHERE id=$1",
+            &[&litigator.as_uuid()],
+        )
+        .unwrap();
     let store = store(&db, db.at);
     let office = store.read(db.owner).unwrap();
     assert_eq!(office.scope, DashboardScope::Office);
@@ -98,6 +104,10 @@ fn office_and_assigned_scope_never_leak_unrelated_members_or_cases() {
         .workload
         .iter()
         .all(|v| [litigator, colleague].contains(&v.user_id) && v.active_cases == 1));
+    for (user, name) in [(litigator, "Ana Litigante"), (colleague, "Fixture")] {
+        let row = assigned.workload.iter().find(|v| v.user_id == user);
+        assert_eq!(row.unwrap().display_name, name);
+    }
     assert!(!assigned.workload.iter().any(|v| v.user_id == unrelated));
     let empty = store.read(unassigned).unwrap();
     assert_eq!(empty.active_cases, 0);

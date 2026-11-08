@@ -182,7 +182,7 @@
 <section class="card member-access" aria-label="Acceso de cuenta" aria-busy={busy}>
   <div class="section-heading">
     <div>
-      <span class="eyebrow">PERMISOS DE LA CUENTA</span>
+      <span class="eyebrow">Permisos de la cuenta</span>
       <h2>{base.email}</h2>
       <p class="hint">Revisi&#243;n consultada {base.revision}</p>
     </div>

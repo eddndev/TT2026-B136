@@ -9,8 +9,8 @@
 
 <div class="mb-4 flex items-start justify-between gap-x-4">
   <div class="min-w-0">
-    {#if eyebrow}<span class="eyebrow">{eyebrow}</span>{/if}
-    <h2 {id} class="text-lg font-semibold text-ink">{title}</h2>
+    {#if eyebrow}<p class="text-caption text-muted">{eyebrow}</p>{/if}
+    <h2 {id} class="text-section-title text-ink">{title}</h2>
   </div>
   <slot />
 </div>

@@ -154,7 +154,7 @@
     <AuthStory />
     <section class="auth-panel">
       <div class="auth-top">
-        <span class="badge neutral">Prototipo local</span><span>Despacho digital</span>
+        <span>Despacho digital</span>
       </div>
       <div class="auth-form">
         {#if acceptingInvitation}
@@ -202,9 +202,7 @@
           />
         {:else}
           <span class="auth-symbol"><Icon name={challenge ? 'shield' : 'lock'} size={24} /></span>
-          <span class="eyebrow"
-            >{challenge ? 'PASO 02 / SEGUNDO FACTOR' : 'ACCESO AL DESPACHO'}</span
-          >
+          {#if challenge}<span class="eyebrow">Segundo factor</span>{/if}
           <h2>
             {challenge
               ? 'Un paso m\u00e1s.'

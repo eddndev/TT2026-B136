@@ -370,7 +370,7 @@
     close();
   }}
 >
-  <ModalHeading {title} id="typed-participant-title" eyebrow="DIRECTORIO DEL EXPEDIENTE">
+  <ModalHeading {title} id="typed-participant-title" eyebrow="Directorio del expediente">
     <Button variant="text" disabled={pending} onclick={close}>Cerrar ficha</Button>
   </ModalHeading>
   {#if state.opened}<TypedParticipantBody

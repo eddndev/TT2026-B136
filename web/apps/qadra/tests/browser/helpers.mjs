@@ -83,6 +83,21 @@ export async function setup(page, role = 'owner', initialDocuments = [document])
             }
           : { status: 403, json: { error: { code: 'permission_denied' } } },
       );
+    // The overview of Owner and Litigator reads the coming agenda; an empty,
+    // complete page echoes the query as the client validates it.
+    if (path === '/api/v1/agenda')
+      return route.fulfill({
+        json: {
+          from: url.searchParams.get('from'),
+          until: url.searchParams.get('until'),
+          kind: url.searchParams.get('kind') || 'all',
+          hearing_status: url.searchParams.get('hearing_status') || 'scheduled',
+          checked_at: { unix_seconds: 1767225600, nanosecond: 0, offset_seconds: 0 },
+          items: [],
+          complete: true,
+          next_cursor: null,
+        },
+      });
     if (path === '/api/v1/document-integrity-incidents')
       return route.fulfill(
         role === 'owner'

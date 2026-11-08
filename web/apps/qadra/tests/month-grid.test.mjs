@@ -121,12 +121,12 @@ test('periods exclude their end and tones are literal classes', () => {
     'unresolved',
   ]);
   assert.equal(toneClasses.period, 'bg-brand-50');
-  assert.equal(toneClasses.outside, 'bg-slate-100 text-slate-500');
+  assert.equal(toneClasses.outside, 'bg-canvas text-muted');
 });
 
-test('a day tone falls back to white and keeps ink unless it sets its own text', () => {
-  assert.equal(dayTone(undefined), 'bg-white text-ink');
+test('a day tone falls back to the surface and keeps ink unless it sets its own text', () => {
+  assert.equal(dayTone(undefined), 'bg-surface text-ink');
   assert.equal(dayTone('period'), 'bg-brand-50 text-ink');
-  assert.equal(dayTone('outside'), 'bg-slate-100 text-slate-500');
-  assert.equal(dayTone('unknown'), 'bg-white text-ink');
+  assert.equal(dayTone('outside'), 'bg-canvas text-muted');
+  assert.equal(dayTone('unknown'), 'bg-surface text-ink');
 });

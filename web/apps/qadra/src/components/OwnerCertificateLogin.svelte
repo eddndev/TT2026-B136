@@ -199,7 +199,6 @@
   aria-busy={busy || available === null}
 >
   <span class="auth-symbol"><Icon name="shield" size={24} /></span>
-  <span class="eyebrow">PASO 01 / FIRMA</span>
   <h2>Ingresa con tu certificado.</h2>
   <p>Usa el recibo de tu v&iacute;nculo. La clave privada permanece en tu equipo.</p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
@@ -219,11 +218,11 @@
         <dt>Nombre declarado en el recibo</dt>
         <dd>{selected.subject}</dd>
         <dt>Cuenta Owner</dt>
-        <dd>{selected.ownerId}</dd>
+        <dd class="font-mono">{selected.ownerId}</dd>
         <dt>V&iacute;nculo</dt>
-        <dd>{selected.bindingId}</dd>
+        <dd class="font-mono">{selected.bindingId}</dd>
         <dt>Huella del certificado</dt>
-        <dd>{selected.leafFingerprint}</dd>
+        <dd class="font-mono">{selected.leafFingerprint}</dd>
       </dl>
       <small
         >El recibo es hist&oacute;rico. El servidor comprueba la cuenta, el v&iacute;nculo y la
@@ -298,7 +297,7 @@
     margin: 0;
   }
   .selected-receipt dt {
-    font-weight: 600;
+    font-weight: 500;
   }
   .selected-receipt dd {
     margin: 0 0 8px;

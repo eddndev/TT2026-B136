@@ -53,6 +53,7 @@ export async function sessionSetup(page) {
   sessions.set(page, state);
   const reads = new Set([
     '/api/v1/dashboard',
+    '/api/v1/agenda',
     '/api/v1/document-integrity-incidents',
     '/api/v1/case-administrations',
     casePath,

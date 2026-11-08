@@ -47,9 +47,11 @@ def snapshot(token, scope):
     assert isinstance(value['workload'], list)
     identifiers = []
     for row in value['workload']:
-        assert set(row) == {'user_id', 'email', 'active_cases'}
+        assert set(row) == {'user_id', 'email', 'name', 'active_cases'}
         identifiers.append(str(UUID(row['user_id'])))
         assert isinstance(row['email'], str) and '@' in row['email']
+        assert isinstance(row['name'], str) and row['name'] == row['name'].strip()
+        assert 1 <= len(row['name']) <= 120
         assert type(row['active_cases']) is int and 0 <= row['active_cases'] <= value['active_cases']
     assert identifiers == sorted(set(identifiers))
     return value

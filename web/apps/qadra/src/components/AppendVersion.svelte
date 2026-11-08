@@ -235,7 +235,7 @@
   <ModalHeading
     title="Agregar versi&#243;n"
     id="append-version-title"
-    eyebrow="HISTORIAL DOCUMENTAL"
+    eyebrow="Historial documental"
   >
     <Button variant="icon" disabled={busy} onclick={close} aria-label="Cerrar nueva versi&#243;n"
       ><Icon name="close" /></Button

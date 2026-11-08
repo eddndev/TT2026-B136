@@ -223,7 +223,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">PROGRAMACI&#211;N DEL EXPEDIENTE</span>
+    <span class="eyebrow">Programaci&oacute;n del expediente</span>
     <h1>Audiencias del expediente</h1>
     <p>Citas declaradas e historial de cambios.</p>
   </div>

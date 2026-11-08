@@ -65,7 +65,7 @@
     gap: 6px;
   }
   dt {
-    font-weight: 600;
+    font-weight: 500;
   }
   dd {
     margin: 0 0 8px;

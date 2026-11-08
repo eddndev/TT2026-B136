@@ -82,7 +82,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">ARCHIVO DEL DESPACHO</span>
+    <span class="eyebrow">Archivo del despacho</span>
     <h1>Expedientes</h1>
     <p>Consulta los expedientes a los que tienes acceso.</p>
   </div>

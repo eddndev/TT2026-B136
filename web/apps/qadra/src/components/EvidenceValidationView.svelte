@@ -5,7 +5,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">EVIDENCIA</span>
+    <span class="eyebrow">Evidencia</span>
     <h1>Validar evidencia</h1>
     <p>
       Revisa en este navegador un paquete que descargaste: el acuse parcial de tu firma o el

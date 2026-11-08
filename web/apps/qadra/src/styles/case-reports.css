@@ -6,9 +6,10 @@
   gap: 18px;
 }
 .report-scope {
-  color: var(--navy);
-  font-size: 13px;
-  font-weight: 700;
+  color: var(--color-ink);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
   margin: 0 0 14px;
 }
 .report-layout {
@@ -33,8 +34,9 @@
   display: grid;
   gap: 7px;
   min-width: 0;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
 }
 .report-fields input,
 .report-fields select {
@@ -53,14 +55,14 @@
 }
 .report-request-note {
   padding-top: 14px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-line);
 }
 .report-retry p {
   margin: 0 0 10px;
 }
 .report-row {
   padding: 20px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-line);
   display: flex;
   gap: 16px;
   align-items: center;
@@ -74,11 +76,12 @@
 }
 .report-row h3 {
   margin: 9px 0 5px;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
 }
 .report-row p {
-  font-size: 12px;
+  font-size: var(--text-caption);
   line-height: 1.55;
   margin: 6px 0;
 }
@@ -89,30 +92,30 @@
   display: inline-block;
   border-radius: 999px;
   padding: 5px 9px;
-  background: var(--surface-alt, #f1f3f5);
-  color: var(--navy);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.4;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  line-height: var(--text-caption--line-height);
 }
 .report-ready {
-  color: #216155;
-  background: #eaf4ef;
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface));
 }
 .report-notice {
   display: inline-block;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
+  color: var(--color-muted);
+  font-size: var(--text-caption);
+  font-weight: 500;
 }
 .report-pagination {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-line);
   padding-top: 15px;
 }
 .report-empty {
   padding: 22px 0 4px;
-  color: var(--muted);
-  font-size: 13px;
+  color: var(--color-muted);
+  font-size: var(--text-body);
 }
 .report-detail {
   margin-bottom: 24px;
@@ -138,34 +141,37 @@
   min-width: 0;
 }
 .report-facts dt {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: var(--text-caption);
+  color: var(--color-muted);
   margin-bottom: 5px;
 }
 .report-facts dd {
   margin: 0;
-  font-size: 13px;
+  color: var(--color-ink);
+  font-size: var(--text-body);
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
 .report-capture {
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-line);
   border-radius: 12px;
   padding: 18px;
   margin: 20px 0;
-  background: var(--surface-alt, #f8faf9);
+  background: var(--color-canvas);
 }
 .report-capture h3 {
-  font-size: 14px;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
   margin: 0 0 12px;
 }
 .report-capture p {
-  font-size: 12px;
+  font-size: var(--text-caption);
   line-height: 1.6;
 }
 .report-capture code {
   display: block;
-  font-size: 11px;
+  font-size: var(--text-caption);
   line-height: 1.7;
   overflow-wrap: anywhere;
   white-space: normal;
@@ -182,19 +188,21 @@
   align-items: center;
   gap: 16px;
   padding: 16px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-line);
   border-radius: 12px;
 }
 .report-artifact strong {
   display: block;
-  color: var(--navy);
-  font-size: 15px;
+  color: var(--color-ink);
+  font-size: var(--text-card-title);
+  line-height: var(--text-card-title--line-height);
+  font-weight: var(--text-card-title--font-weight);
 }
 .report-artifact small {
   display: block;
   margin-top: 5px;
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--color-muted);
+  font-size: var(--text-caption);
 }
 .reports-page time,
 .reports-page .notice {

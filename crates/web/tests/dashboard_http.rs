@@ -31,6 +31,7 @@ impl DashboardWorkflow for Workflow {
             workload: vec![DashboardWorkload {
                 user_id: UserId::from_uuid(uuid::Uuid::from_u128(7)),
                 email: "lawyer@example.test".into(),
+                display_name: "Lawyer Example".into(),
                 active_cases: 3,
             }],
         })
@@ -76,6 +77,8 @@ async fn dashboard_exposes_authorized_snapshot_and_temporal_scope_without_secret
         "00000000-0000-0000-0000-000000000007"
     );
     assert_eq!(body["workload"][0]["email"], "lawyer@example.test");
+    assert_eq!(body["workload"][0]["name"], "Lawyer Example");
+    assert_eq!(body["workload"][0].as_object().unwrap().len(), 4);
     assert_eq!(body.as_object().unwrap().len(), 9);
     assert_eq!(*workflow.calls.lock().unwrap(), ["dashboard-session"]);
 }

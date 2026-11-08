@@ -1,9 +1,5 @@
-.case-create,
 .case-context {
   margin-bottom: 24px;
-}
-.case-create {
-  max-width: 700px;
 }
 .case-grid {
   display: grid;
@@ -14,17 +10,17 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-line);
   border-radius: 11px;
-  background: white;
+  background: var(--color-surface);
   padding: 20px;
   text-align: left;
-  color: var(--navy);
+  color: var(--color-ink);
   min-width: 0;
 }
 .case-card:hover {
-  background: #f8fafc;
-  border-color: #b9cbed;
+  background: var(--color-canvas);
+  border-color: var(--color-line-strong);
 }
 .case-text {
   flex: 1;
@@ -33,7 +29,8 @@
 }
 .case-text strong {
   display: block;
-  font-size: 14px;
+  font-size: var(--text-label);
+  font-weight: var(--text-label--font-weight);
   margin-bottom: 6px;
 }
 .case-context {
@@ -55,7 +52,7 @@
   gap: 14px;
   margin-top: 22px;
   padding-top: 18px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-line);
 }
 .pagination .action-row {
   margin-top: 0;
@@ -95,15 +92,4 @@
   .pagination .action-row {
     flex-direction: row;
   }
-}
-
-.overview-actions .stat-card > div {
-  display: block;
-  min-width: 0;
-}
-.overview-actions .stat-card strong {
-  font-size: 23px;
-  text-align: left;
-  margin: 12px 0 6px;
-  letter-spacing: -0.5px;
 }

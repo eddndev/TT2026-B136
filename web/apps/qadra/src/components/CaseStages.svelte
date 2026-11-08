@@ -97,7 +97,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">SEGUIMIENTO PROCESAL</span>
+    <span class="eyebrow">Seguimiento procesal</span>
     <h1>Etapas del expediente</h1>
     <p>Etapa registrada, actos declarados y soportes exactos.</p>
   </div>

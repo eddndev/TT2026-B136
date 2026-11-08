@@ -11,7 +11,7 @@
 {#if canDeadlines(user.role)}
   <div class="page-heading">
     <div>
-      <span class="eyebrow">GESTI&#211;N DEL EXPEDIENTE</span>
+      <span class="eyebrow">Gesti&oacute;n del expediente</span>
       <h1>Plazos del expediente</h1>
       <p>Consulta el c&#243;mputo, sus fuentes y la atenci&#243;n declarada.</p>
     </div>

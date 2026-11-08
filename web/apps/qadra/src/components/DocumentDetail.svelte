@@ -90,7 +90,7 @@
 
 <section class="detail-panel" aria-labelledby="document-title">
   <div class="section-heading">
-    <span class="eyebrow">FICHA DOCUMENTAL</span>
+    <span class="eyebrow">Ficha documental</span>
     <span
       class="badge"
       class:success={document.sealed === true}

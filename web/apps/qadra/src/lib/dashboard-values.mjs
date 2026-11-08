@@ -1,5 +1,6 @@
 import { factObject, factUuid } from './procedural-fact-primitives.mjs';
 import { hearingTimeParts } from './hearing-time.mjs';
+import { canonicalAccountName } from './account-name.mjs';
 
 const counts = [
   'active_cases',
@@ -32,7 +33,14 @@ export function dashboardValue(value) {
       invalid();
     const seen = new Set();
     for (const row of value.workload) {
-      factObject(row, ['user_id', 'email', 'active_cases']);
+      // name is the account display name (docs/adr/0087-account-display-names.md);
+      // a row without it is shown by its email.
+      factObject(
+        row,
+        ['user_id', 'email', 'name', 'active_cases'],
+        ['user_id', 'email', 'active_cases'],
+      );
+      if (Object.hasOwn(row, 'name') && !canonicalAccountName(row.name)) invalid();
       if (factUuid(row.user_id) !== row.user_id || seen.has(row.user_id)) invalid();
       seen.add(row.user_id);
       count(row.active_cases);

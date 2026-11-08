@@ -54,7 +54,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">EXPEDIENTE</span>
+    <span class="eyebrow">Expediente</span>
     <h1>Contratos</h1>
     <p>
       Contratos firmados por el Cliente y el despacho sobre una versi&#243;n exacta de un PDF. Para

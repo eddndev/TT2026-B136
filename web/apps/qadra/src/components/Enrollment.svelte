@@ -6,7 +6,6 @@
 </script>
 
 <section class="enrollment stack" aria-labelledby="enrollment-title">
-  <span class="eyebrow">Protege tu acceso</span>
   <h2 id="enrollment-title">Configura el segundo factor</h2>
   <p>
     Agrega esta clave a tu app de autenticaci&oacute;n para <strong>{enrollment.user.email}</strong
