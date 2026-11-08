@@ -151,7 +151,7 @@ test('penal profiles preserve legacy, explicit conflicts and evidence across clo
       page.getByRole('heading', { name: 'Persona del expediente', exact: true }),
     ).toBeVisible();
 
-    await other.getByRole('link', { name: 'Documentos', exact: true }).click();
+    await openSection(other, 'Documentos');
     await other.getByRole('button', { name: 'Subir documento', exact: true }).click();
     const upload = other.getByRole('dialog', { name: 'Subir documento', exact: true });
     await upload.getByLabel('Archivo', { exact: true }).setInputFiles({

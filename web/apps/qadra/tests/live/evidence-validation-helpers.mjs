@@ -4,13 +4,14 @@
 // run, sealed by the server or signed individually, is complete.
 import { readFileSync } from 'node:fs';
 import { expect } from '@playwright/test';
+import { openSection } from './helpers.mjs';
 
 export async function validateEvidence(page, archive) {
   const bytes = readFileSync(archive);
   const sent = [];
   const record = (request) => sent.push(request.postDataBuffer());
   page.on('request', record);
-  await page.getByRole('tab', { name: 'Evidencia', exact: true }).click();
+  await openSection(page, 'Evidencia');
   const panel = page.locator('.evidence-validation');
   await panel.getByLabel('Paquete de evidencia (ZIP)', { exact: true }).setInputFiles({
     name: 'evidencia.zip',

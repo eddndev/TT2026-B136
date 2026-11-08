@@ -223,9 +223,13 @@ export async function navigate(page, name) {
 
 // Sections of a page are links on wide screens and a select on phones.
 export async function openSection(page, name) {
-  const link = page.getByRole('link', { name, exact: true }).filter({ visible: true });
+  // SectionTabs renders links (nav mode) or tabs (tabs mode), and a select on phones.
+  const link = page
+    .getByRole('link', { name, exact: true })
+    .or(page.getByRole('tab', { name, exact: true }))
+    .filter({ visible: true });
   const select = page.getByRole('combobox', { name: /^Secciones / }).filter({ visible: true });
-  // Wait until the page shows one of the two before choosing.
+  // Wait until the page shows one of them before choosing.
   await expect(link.or(select).first()).toBeVisible();
   if (await link.count()) return link.first().click();
   await select.selectOption({ label: name });

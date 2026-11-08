@@ -54,7 +54,7 @@ test('participants persist with concurrent edits, precise archive, history and l
     await other.goto('/');
     await loginAs(other, accounts.owner, 1);
     await openCase(other);
-    await other.getByRole('link', { name: 'Participantes', exact: true }).click();
+    await openSection(other, 'Participantes');
     await openPerson(other, 'Ana Mu\u00f1oz');
     const otherModal = await edit(other);
     await otherModal
