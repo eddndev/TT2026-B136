@@ -21,7 +21,7 @@ use infrastructure::{
 };
 use std::sync::{
     atomic::{AtomicBool, AtomicI64, Ordering},
-    Arc,
+    Arc, OnceLock,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
@@ -73,12 +73,23 @@ impl ManifestTimestamping for Authority {
     }
 }
 
+/// Stores that every service of one test shares, as one process would.
+struct Stores {
+    contract: Arc<PostgresContractStore>,
+    bindings: Arc<PostgresSigningBindingStore>,
+    incidents: Arc<PostgresCaseDocumentStore>,
+}
+
 pub struct Live {
     pub test: Harness,
     pub clock: Arc<LiveClock>,
     pub authority: Arc<Authority>,
     pub contract: Uuid,
     pub request: Uuid,
+    // Each open validates the whole catalog (about a second), so services
+    // reuse these; `store()` and `opens` remain fresh opens. No contract
+    // service test calls a service from several threads.
+    stores: OnceLock<Stores>,
 }
 
 impl Live {
@@ -101,6 +112,20 @@ impl Live {
             }),
             contract: Uuid::nil(),
             request: Uuid::nil(),
+            stores: OnceLock::new(),
+        })
+    }
+
+    fn stores(&self) -> &Stores {
+        self.stores.get_or_init(|| {
+            let url = &self.test.individual.db.runtime_url;
+            Stores {
+                contract: self.store(),
+                bindings: Arc::new(
+                    PostgresSigningBindingStore::open(url, self.clock.clone()).unwrap(),
+                ),
+                incidents: Arc::new(PostgresCaseDocumentStore::open(url).unwrap()),
+            }
         })
     }
 
@@ -109,18 +134,18 @@ impl Live {
     }
 
     pub fn service(&self, principal: &Principal) -> ContractService {
-        let url = &self.test.individual.db.runtime_url;
+        let stores = self.stores();
         ContractService::new(ContractPorts {
             identity: Arc::new(FixedIdentity(principal.clone())),
-            store: self.store(),
-            bindings: Arc::new(PostgresSigningBindingStore::open(url, self.clock.clone()).unwrap()),
+            store: stores.contract.clone(),
+            bindings: stores.bindings.clone(),
             verifier: Arc::new(InternalRsaDocumentSigningVerifier),
             timestamps: self.authority.clone(),
             hasher: Arc::new(RingSha256Hasher),
             clock: self.clock.clone(),
             processor: Arc::new(processor::processor()),
             formats: Arc::new(processor::Pdf),
-            incidents: Arc::new(PostgresCaseDocumentStore::open(url).unwrap()),
+            incidents: stores.incidents.clone(),
             archiver: Arc::new(StoredZipWriter),
             notices: NoticeSettings {
                 from: "qadra@example.test".into(),
