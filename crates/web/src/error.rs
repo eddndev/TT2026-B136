@@ -21,6 +21,7 @@ mod identity;
 mod judicial_calendar;
 mod members;
 mod owner_certificate;
+mod port_log;
 mod precautionary;
 mod procedural_fact;
 mod procedural_resource;
@@ -373,7 +374,10 @@ impl From<ApplicationError> for ApiError {
                 code: "invalid_case_metadata",
                 message: format!("invalid case {field}: {reason}"),
             },
-            _ => Self::internal(),
+            error => {
+                port_log::record(&error);
+                Self::internal()
+            }
         }
     }
 }

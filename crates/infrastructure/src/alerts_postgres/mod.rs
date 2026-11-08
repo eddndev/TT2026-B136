@@ -85,8 +85,10 @@ fn connect(
     url: &(impl crate::PostgresConnectionSource + ?Sized),
 ) -> Result<Client, ApplicationError> {
     let mut client = crate::postgres::open(url)?;
+    // Inbox reads run beside the dashboard, which holds the shared audit lock
+    // for seconds; wait for it, but stay below the statement timeout.
     client
-        .batch_execute("SET lock_timeout='1s'; SET statement_timeout='5s'")
+        .batch_execute("SET lock_timeout='4s'; SET statement_timeout='5s'")
         .map_err(port)?;
     Ok(client)
 }

@@ -30,3 +30,37 @@ async fn classified_port_errors_keep_the_opaque_internal_http_response() {
         );
     }
 }
+
+// Logging reads only this category; the private message never reaches it.
+#[test]
+fn opaque_port_errors_name_a_category_for_the_server_log() {
+    let message = || "private diagnostic".to_string();
+    for (failure, category) in [
+        (ApplicationError::Port(message()), "port"),
+        (
+            ApplicationError::ClassifiedPort {
+                kind: PortFailureKind::Busy,
+                message: message(),
+            },
+            "busy",
+        ),
+        (
+            ApplicationError::ClassifiedPort {
+                kind: PortFailureKind::Interrupted,
+                message: message(),
+            },
+            "interrupted",
+        ),
+        (
+            ApplicationError::ClassifiedPort {
+                kind: PortFailureKind::Unavailable,
+                message: message(),
+            },
+            "unavailable",
+        ),
+    ] {
+        assert_eq!(super::port_log::category(&failure), Some(category));
+    }
+    let denied = ApplicationError::PermissionDenied;
+    assert_eq!(super::port_log::category(&denied), None);
+}

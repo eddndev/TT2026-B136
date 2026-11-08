@@ -27,8 +27,10 @@ impl PostgresDashboardStore {
         clock: Arc<dyn Clock + Send + Sync>,
     ) -> Result<Self, ApplicationError> {
         let mut client = crate::postgres::open(url)?;
+        // Concurrent audited reads (the shell inbox) hold the shared audit lock
+        // for seconds; wait for them, but stay below the statement timeout.
         client
-            .batch_execute("SET lock_timeout='1s'; SET statement_timeout='5s'")
+            .batch_execute("SET lock_timeout='4s'; SET statement_timeout='5s'")
             .map_err(port)?;
         Ok(Self {
             client: Mutex::new(client),

@@ -1,3 +1,5 @@
+#[path = "audit_lock_holder.rs"]
+mod audit_lock_holder;
 #[path = "case_administration_support/mod.rs"]
 mod case_administration_support;
 #[path = "case_stage_database_support/mod.rs"]
@@ -205,6 +207,8 @@ fn case_capacity_failure_is_explicit_and_does_not_return_a_partial_count() {
     assert_eq!(audits(&mut db), 0);
 }
 
+#[path = "dashboard_backend_support/audit_lock_wait.rs"]
+mod dashboard_audit_lock_wait;
 #[path = "dashboard_backend_support/concurrency.rs"]
 mod dashboard_concurrency;
 #[path = "dashboard_backend_support/deadlines.rs"]
