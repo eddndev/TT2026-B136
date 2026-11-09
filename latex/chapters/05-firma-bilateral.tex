@@ -81,6 +81,18 @@ de navegador con HTTP controlado y criptografía local real: la firma del
 Cliente en tres pasos, la contrafirma bloqueada hasta validar el acuse parcial
 de esa misma solicitud, la nueva preparación tras un rechazo por cambio de
 confianza, la creación del contrato, los cierres con confirmación y la huella
-de la clave comparada con la de la clave pública descargada. Estos resultados describen un estado
-demostrado localmente; la integración, la instalación productiva, la ceremonia
-con un Cliente real y la evaluación de usabilidad del flujo siguen pendientes.
+de la clave comparada con la de la clave pública descargada. Estos resultados describen el estado
+demostrado localmente.
+
+El recorrido se repitió después en el servicio instalado. El 4 de noviembre de
+2026, con la firma bilateral integrada en la rama principal, una cuenta Cliente
+creada por invitación y un Owner vincularon certificados de firma documental
+emitidos por la CA interna; la parte Cliente firmó el contrato y el despacho lo
+contrafirmó. El acuse parcial se validó como parcial y el paquete final como
+completo, y las órdenes de OpenSSL incluidas en el paquete aprobaron las
+cuatro firmas, los dos certificados con su CRL, los tres sellos de tiempo y las
+entradas del manifiesto (\rutarepo{docs/production-acceptance.md}). La cuenta
+Cliente estaba controlada por el equipo: el recorrido no es la ceremonia de
+alta de un cliente real. El paquete final se validó con la biblioteca nativa
+del validador, la misma que usa la vista del navegador. La evaluación de
+usabilidad del flujo con personas sigue pendiente.

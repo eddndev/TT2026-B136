@@ -102,7 +102,7 @@ La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de é
   \endfoot
   \bottomrule
   \endlastfoot
-  OE-3 & Firma RSA-3072 con SHA-256 verificable de forma independiente sobre el 100\,\% de los contratos firmados. & La firma individual se verifica antes de escribirse, interopera en ambos sentidos con OpenSSL y su paquete se verifica sin el software propio y en el navegador sin enviarlo al servidor (\cref{sec:pruebas-validador}). El contrato firmado bilateralmente por el Cliente y el despacho no estaba cubierto: su firma está implementada y demostrada localmente, con paquetes verificables con OpenSSL y en el navegador (\cref{sec:pruebas-firma-bilateral}), pero sin aceptación en el servicio instalado ni ceremonia con un Cliente real. & Parcial \\
+  OE-3 & Firma RSA-3072 con SHA-256 verificable de forma independiente sobre el 100\,\% de los contratos firmados. & La firma individual se verifica antes de escribirse, interopera en ambos sentidos con OpenSSL y su paquete se verifica sin el software propio y en el navegador sin enviarlo al servidor (\cref{sec:pruebas-validador}). El contrato firmado bilateralmente por el Cliente y el despacho se firma y contrafirma en el servicio instalado; sus paquetes parcial y completo se verifican con OpenSSL y con el validador (\cref{sec:pruebas-firma-bilateral}). El recorrido instalado usó una cuenta Cliente controlada por el equipo. & Cumplido* \\
   \addlinespace
   OE-3 & Sello de tiempo RFC 3161 local vinculado al hash del documento y verificable con OpenSSL. & Tokens emitidos sobre el digest SHA-256, verificados en dos etapas y aceptados por \texttt{openssl ts -verify}; el binario comprueba que el token cubre el digest antes de almacenarlo. & Cumplido \\
   \addlinespace
@@ -129,10 +129,10 @@ La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de é
   OE-6 & Pruebas de usabilidad con usuarios del despacho. & No se ha reproducido una campaña con usuarios; las pruebas automáticas no sustituyen esa evaluación. & Pendiente \\
 \end{longtable}
 
-Los resultados respaldan los criterios criptográficos de integridad y confidencialidad de OE-4, así como la firma individual verificable y el sellado local contemplados en OE-3; la firma bilateral de contratos queda demostrada localmente y OE-3 permanece parcial hasta tener evidencia de su aceptación. La campaña con un PSC externo está fuera del alcance vigente. La autenticación por certificado para socios con rol Owner de OE-5 cuenta con aceptación del servicio instalado, seguida de MFA; sus límites de identidad y autorización permanecen explícitos. OE-6 permanece parcial respecto de la matriz de los 18 casos de uso y la usabilidad con usuarios del despacho. Las condiciones de interpretación son las siguientes:
+Los resultados respaldan los criterios criptográficos de integridad y confidencialidad de OE-4, así como la firma individual verificable y el sellado local contemplados en OE-3; la firma bilateral de contratos cuenta con un recorrido completo en el servicio instalado, por lo que el criterio de firma verificable de OE-3 se considera cumplido con la condición indicada abajo. La campaña con un PSC externo está fuera del alcance vigente. La autenticación por certificado para socios con rol Owner de OE-5 cuenta con aceptación del servicio instalado, seguida de MFA; sus límites de identidad y autorización permanecen explícitos. OE-6 permanece parcial respecto de la matriz de los 18 casos de uso y la usabilidad con usuarios del despacho. Las condiciones de interpretación son las siguientes:
 
 \begin{itemize}
-  \item \textbf{Contratos bilaterales (OE-3).} El criterio se refiere a los contratos firmados, y un contrato entre el Cliente y el despacho requiere ambas firmas. La firma bilateral está implementada y su recorrido completo, con paquetes parcial y completo validados en el navegador y con OpenSSL y con restauración, se demostró localmente (\cref{sec:pruebas-firma-bilateral}). Faltan su instalación, la ceremonia de alta con un Cliente real y la evaluación con personas, por lo que el estado es parcial y no aceptado.
+  \item \textbf{Contratos bilaterales (OE-3).} El criterio se refiere a los contratos firmados, y un contrato entre el Cliente y el despacho requiere ambas firmas. La firma bilateral está implementada y su recorrido completo, con paquetes parcial y completo validados en el navegador y con OpenSSL y con restauración, se demostró localmente y después en el servicio instalado, donde el 4 de noviembre de 2026 la parte Cliente firmó y el despacho contrafirmó un contrato cuyos acuse parcial y paquete final se verificaron con el validador y con OpenSSL (\cref{sec:pruebas-firma-bilateral}; \rutarepo{docs/production-acceptance.md}). El criterio se considera cumplido. El asterisco de la tabla recuerda que la cuenta Cliente de ese recorrido estaba controlada por el equipo: no es la ceremonia de alta de un cliente real ni una evaluación con personas, que se tratan por separado en la usabilidad de OE-6.
   \item \textbf{Evidencia externa de PSC (OE-3).} La autoridad de sellado local demuestra el flujo RFC 3161 completo (solicitud, emisión, token DER, verificación en dos etapas y aceptación por herramientas independientes). La tasa de verificación externa no se mide porque la API de Cincel no ofreció garantía operativa y el sandbox requiere un pago no transparente. El adaptador remoto queda probado contra un stub y disponible para una futura sustitución consciente, pero no bloquea el desarrollo ni se presenta como evidencia del prototipo.
   \item \textbf{Autenticación por certificado (OE-5).} El primer factor Owner comprueba una firma sobre un desafío nuevo con el certificado interno previamente vinculado y concede únicamente el paso MFA. La aceptación instalada del 14 de octubre comprobó el acceso con certificado y MFA y, después de cerrar esa sesión, el acceso independiente por contraseña y MFA (\cref{sec:pruebas-portal-ca}). La firma de ese ensayo se produjo con OpenSSL fuera de Qadra; no acredita una nueva prueba personal del ayudante local ni identidad civil. El método requiere habilitación explícita del servidor y no sustituye el segundo factor.
   \item \textbf{RBAC de cuatro roles (OE-5).} \texttt{X-Actor} fue eliminado. La API exige sesiones opacas revocables, recarga rol y estado desde PostgreSQL y revalida permisos y pertenencia en los casos de uso y la transacción. Redis impone cinco rechazos de contraseña por 15 minutos, reclama TOTP de forma atómica y conserva desafíos de un solo intento. El asterisco recuerda que la pertenencia ya se persiste y que el Cliente nunca es miembro de un expediente: el servicio, un disparador de la base y los selectores lo impiden. Su única excepción, autorizada expresamente por los autores, es el acceso por relación a sus propias solicitudes de contrato (\cref{sec:diseno-firma-bilateral}); cualquier otro acceso documental del Cliente requiere ampliar y probar expresamente la política (\cref{sec:impl-divergencias}).
@@ -144,6 +144,45 @@ La clasificación implementada no completa por sí sola los casos de uso de carg
 El corte del 12 de septiembre respalda el backend criptográfico y HTTP con 519 pruebas ejecutadas, una cobertura global de 90.7\,\%, vectores oficiales y verificaciones independientes. Los ensayos documentan autorización por expediente, atomicidad, migración y restauración sobre datos generados. No constituyen una campaña de carga de producción, una evaluación de usabilidad ni evidencia de cumplimiento jurídico. La ejecución del 14 de septiembre amplía esa evidencia con consultas de metadatos autorizadas y auditadas, 539 pruebas aprobadas y 91.0\,\% de cobertura; el escenario de navegador contra servicios reales se registra separadamente de esos conteos Rust. Las versiones inmutables y la clasificación amplían la operación documental con historias independientes. El directorio añade fichas organizativas auditadas y el expediente incorpora perfil penal, historia y cierre administrativo. La adopción y los avances de Investigación a Intermedia y de Intermedia a Juicio incorporan soportes exactos e historia propia. La programación de audiencias incorpora valores, historia y contratos con evidencia por capa. Los incrementos de recursos, sesiones y resultados declarados de audiencias, plazos y alertas tienen evidencia específica en este capítulo; los conteos históricos anteriores no describen por sí solos su estado actual.
 
 La aceptación del corpus finito de ocho supuestos se presenta en la \cref{sec:pruebas-corpus-juridico}; sus resultados y bloqueos no acreditan cobertura jurídica universal. Las verificaciones de despliegue y del portal CA registran por separado activaciones, respaldos, recuperación y parada, con los entornos y límites de las \cref{sec:pruebas-despliegue,sec:pruebas-portal-ca}. Esta evidencia operacional no establece garantías generales de capacidad, latencia o disponibilidad, ni convierte los ensayos locales en comprobaciones del servicio instalado. La aceptación histórica del riesgo temporal del firmante RSA bajo uso por CLI, descrita en \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md}, no acredita por sí sola su exposición mediante HTTP. La evaluación de usabilidad con personal del despacho permanece pendiente; la identidad civil o judicial tampoco se acredita mediante la PKI interna. La cabeza de auditoría carece de anclaje externo: una cadena válida aislada no prueba que no se haya truncado su extremo. La TSA local no equivale a una constancia de un PSC autorizado.
+
+\subsection{Ejecución de cierre sobre el código final}\label{sec:pruebas-ejecucion-cierre}
+Los cortes anteriores son mediciones fechadas del desarrollo. El 9 de noviembre
+de 2026 la integración continua ejecutó la campaña completa sobre la revisión
+\texttt{bc5ec925} de la rama principal, con PostgreSQL y Redis reales. La
+\cref{tab:pruebas-ejecucion-cierre} resume el resultado.
+
+\begin{table}[H]
+  \centering
+  \caption{Ejecución de cierre del 9 de noviembre de 2026 sobre \texttt{bc5ec925}.}
+  \label{tab:pruebas-ejecucion-cierre}
+  \begin{tabular}{@{}p{0.52\textwidth}p{0.40\textwidth}@{}}
+    \toprule
+    \textbf{Campaña} & \textbf{Resultado} \\
+    \midrule
+    Pruebas Rust del espacio de trabajo & 6397 ejecutadas, 6397 aprobadas, 6 omitidas \\
+    Pruebas unitarias de la interfaz (Node) & 1056 aprobadas \\
+    Navegador con respuestas HTTP controladas & 379 casos aprobados \\
+    Navegador con servicios reales & 45 recorridos aprobados \\
+    Compilación del reporte & Aprobada \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Esta campaña incluye las pruebas criptográficas de las secciones anteriores:
+vectores oficiales, detección de alteraciones, unicidad de nonces,
+interoperabilidad con OpenSSL, firma bilateral y validador de evidencia. La
+cobertura se mide en una corrida programada y no en cada integración. La
+medición más reciente, sobre la revisión \texttt{bb17eac1}, registró 98\,\% en
+\texttt{domain}, 96\,\% en \texttt{application} y 93\,\% en
+\texttt{infrastructure}, con un umbral de 90\,\%, y 64\,\% en \texttt{bin}, que
+no tiene umbral. Entre esa revisión y \texttt{bc5ec925} no cambió ningún
+archivo fuente de los crates, solo archivos de prueba; la revisión final no
+tiene una medición propia. La matriz con un caso positivo y uno negativo por
+cada caso de uso permanece parcial, como indica la \cref{tab:pruebas-criterios}.
+
+Los manuales acompañan al reporte como documentos independientes: el manual de
+usuario en \rutarepo{manual-usuario/} y el manual técnico en
+\rutarepo{manual-tecnico/}.
 
 \subsection{Protocolo de evaluación humana preparado}\label{sec:pruebas-protocolo-humano}
 El kit \rutarepo{docs/usability/README.md} reúne protocolo, tareas, guía de
