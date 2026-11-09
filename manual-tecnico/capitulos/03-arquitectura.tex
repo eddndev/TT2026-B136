@@ -1,0 +1,226 @@
+\chapter{Arquitectura}\label{cap:arquitectura}
+
+Este capítulo resume la arquitectura desde el punto de vista de quien instala
+y opera el sistema: qué piezas existen, dónde está su código, qué proceso las
+ejecuta y qué almacén usa cada una. La justificación del diseño (atributos de
+calidad, alternativas evaluadas, modelo de datos y diseño criptográfico) se
+desarrolla en el capítulo 3 del reporte técnico (secciones \emph{Diseño de
+arquitectura del sistema}, \emph{Vista de despliegue} y \emph{Diseño
+criptográfico del prototipo}) y no se repite aquí. Las decisiones se
+registran como ADR en \archivo{docs/adr/}; la \cref{tab:mapa-adr} lista las
+que más condicionan la instalación y la operación.
+
+\section{Vista general}\label{sec:arq-vista}
+
+Qadra es un monolito modular con arquitectura hexagonal. Un solo ejecutable
+escrito en Rust, \texttt{despacho-cli}, atiende la API HTTP y ejecuta las
+tareas de fondo (alertas, informes, correo, reevaluación de plazos y
+vencimiento de solicitudes de contrato). La interfaz es un conjunto de
+archivos estáticos que el navegador descarga y que consulta la API. Los datos
+durables residen en PostgreSQL y el estado efímero de autenticación, en Redis.
+
+La autoridad certificadora (CA) interna tiene un portal propio, con su
+ejecutable \texttt{qadra-ca} y su interfaz, separado del sistema del despacho.
+El sellado de tiempo lo realiza una autoridad de sellado (TSA) local basada en
+OpenSSL, que el mismo servidor invoca.
+
+\importante{La CA y la TSA son internas y de demostración. La TSA local no es
+un Prestador de Servicios de Certificación ni emite constancias de la
+NOM-151, y los certificados de la CA interna no equivalen a la e.firma.}
+
+\section{Capas y crates del workspace}\label{sec:arq-crates}
+
+El código del servidor es un workspace de Cargo declarado en
+\archivo{Cargo.toml}, con ocho crates bajo \archivo{crates/}. Cinco forman el
+servidor y reproducen las capas hexagonales; los otros tres se dedican a la
+verificación de evidencia y al navegador (\cref{tab:arq-crates}).
+
+\begin{table}[H]
+  \centering
+  \caption{Crates del workspace y dependencias internas
+    declaradas.}\label{tab:arq-crates}
+  \small
+  \begin{tabularx}{\textwidth}{L{3.6cm} Y L{4.1cm}}
+    \toprule
+    \textbf{Crate} & \textbf{Responsabilidad} & \textbf{Depende de} \\
+    \midrule
+    \texttt{domain}
+      & Entidades y reglas de negocio.
+      & Ningún crate del workspace. \\
+    \texttt{application}
+      & Casos de uso y puertos (interfaces hacia el exterior).
+      & \texttt{domain}, \texttt{evidence-verify}. \\
+    \texttt{infrastructure}
+      & Adaptadores concretos: persistencia, criptografía y servicios
+        externos.
+      & \texttt{domain}, \texttt{application}, \texttt{evidence-verify}. \\
+    \texttt{web}
+      & Capa HTTP del servidor (Axum): rutas, límites de concurrencia y
+        traducción de errores.
+      & \texttt{domain}, \texttt{application}. \\
+    \texttt{bin}
+      & Raíz de composición. Produce los binarios \texttt{despacho-cli} y
+        \texttt{qadra-ca}.
+      & Los cuatro anteriores y \texttt{evidence-verify}. \\
+    \texttt{evidence-verify}
+      & Motor de verificación de paquetes de evidencia, sin entrada/salida,
+        reloj ni azar.
+      & Ningún crate del workspace. \\
+    \texttt{evidence-verify-wasm}
+      & Envoltura WebAssembly del motor para el validador del navegador.
+      & \texttt{evidence-verify}. \\
+    \texttt{browser-crypto}
+      & Módulo WebAssembly de generación de claves, solicitud de certificado
+        (CSR) y firma local.
+      & Ningún crate del workspace. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+En el servidor las dependencias apuntan siempre hacia el dominio. La regla no
+es una convención: cada manifiesto \archivo{crates/*/Cargo.toml} declara solo
+las dependencias permitidas, de modo que una importación prohibida impide la
+compilación. Sustituir un adaptador (por ejemplo, la TSA) consiste en entregar
+otra implementación del mismo puerto en \texttt{bin}. La ubicación del
+resto de las piezas (interfaces, guiones de la PKI, despliegue) se resume en
+la \cref{tab:mant-estructura}.
+
+\section{Binarios}\label{sec:arq-binarios}
+
+El crate \archivo{crates/bin} genera dos ejecutables: \texttt{despacho-cli}
+(\archivo{crates/bin/src/main.rs}), cuyo subcomando \texttt{serve} inicia la
+API y las tareas de fondo y cuyos demás subcomandos cubren la administración
+y la verificación desde la terminal, y \texttt{qadra-ca}
+(\archivo{crates/bin/src/ca/main.rs}), el servicio del portal de la CA. Sus
+subcomandos se describen en el \cref{cap:cli}.
+
+Al iniciar, \texttt{serve} compone la TSA local, los repositorios de
+PostgreSQL, el estado de autenticación en Redis, los validadores documentales
+y los procesos internos, y no acepta peticiones si las herramientas de
+admisión documental (qpdf y FFmpeg) no superan su comprobación inicial. Al
+detenerse espera a que terminen las operaciones en curso.
+
+\section{Interfaces web}\label{sec:arq-web}
+
+El directorio \archivo{web/} es un workspace de npm con dos aplicaciones y un
+paquete compartido, construidos con Astro y Svelte.
+
+\archivo{web/apps/qadra} (paquete \texttt{@qadra/desk}) es la interfaz del
+despacho y del cliente; \archivo{web/apps/ca} (paquete \texttt{@qadra/ca}),
+el portal de la CA interna, y \archivo{web/packages/ui} (paquete
+\texttt{@qadra/ui}), el sistema de diseño común a ambas.
+
+Las dos aplicaciones se compilan a archivos estáticos; no existe un servidor
+que genere páginas. En despliegue los sirve nginx, que además reenvía las
+peticiones de la API al ejecutable correspondiente.
+
+\section{Qué se ejecuta en el navegador}\label{sec:arq-navegador}
+
+Dos funciones se ejecutan por completo en el equipo del usuario, como módulos
+Rust compilados a WebAssembly dentro de un \emph{worker} que se crea para cada
+operación:
+
+\begin{itemize}
+  \item \textbf{Criptografía local.} \texttt{browser-crypto} genera el par de
+    claves del titular, su CSR y las firmas. La clave privada no se envía al
+    servidor ni a la CA. El módulo se construye con
+    \archivo{scripts/build-browser-crypto.sh} y lo carga
+    \archivo{web/apps/qadra/src/lib/local-crypto-worker.mjs}. Referencia:
+    \archivo{docs/browser-local-cryptography.md}.
+  \item \textbf{Validador de evidencia.} \texttt{evidence-verify-wasm} valida
+    los paquetes de evidencia exportados con el crate
+    \texttt{evidence-verify}, el mismo con el que el servidor codifica el
+    manifiesto de esos paquetes. Se construye con
+    \archivo{scripts/build-evidence-verify.sh} y lo carga \archivo{web/apps/qadra/src/lib/evidence-verify-worker.mjs}. El
+    paquete no sale del navegador; el servidor solo informa, mediante
+    \texttt{GET /api/v1/evidence/trust}, qué raíces admite. Véase el
+    \cref{cap:verificacion}.
+\end{itemize}
+
+Ambos módulos generados se integran en la aplicación bajo
+\archivo{web/apps/qadra/src/generated/}.
+
+\section{Almacenes}\label{sec:arq-almacenes}
+
+\begin{itemize}
+  \item \textbf{PostgreSQL} (\texttt{DATABASE\_URL}). Todo dato durable:
+    cuentas, expedientes, actividad procesal, contratos, alertas, documentos
+    cifrados con su evidencia de firma y sello, y la bitácora encadenada. El
+    esquema se define en \archivo{migrations/}.
+  \item \textbf{Redis} (\texttt{REDIS\_URL}). Sesiones opacas y revocables,
+    desafíos de segundo factor y contadores de intentos. No es caché ni canal
+    de mensajes.
+  \item \textbf{Almacén cifrado de documentos} (\texttt{KEK\_BASE64}). Reside
+    en PostgreSQL. Cada versión se cifra con AES-GCM y una clave propia (DEK),
+    envuelta por la clave maestra (KEK), que se entrega al proceso mediante
+    esa variable de entorno.
+  \item \textbf{Directorios de la CA y de la TSA} (\texttt{PKI\_CA\_DIR} y
+    \texttt{TSA\_DIR}). Claves, certificados, índice de emisión, lista de
+    revocación (CRL) y número de serie de la TSA local.
+\end{itemize}
+
+La cuenta de PostgreSQL con la que opera el servidor es distinta de la que
+aplica las migraciones y no puede reescribir la bitácora ni la evidencia
+protegida. El portal de la CA usa el mismo servidor PostgreSQL, con un esquema
+propio (\texttt{qadra\_ca}) y un rol restringido, y guarda sus sesiones en
+Redis. Las variables se explican en el
+\cref{cap:configuracion}; la plantilla es \archivo{.env.example}.
+
+\importante{La pérdida de la KEK hace irrecuperables los documentos cifrados,
+y los directorios de la CA y de la TSA contienen claves privadas. Deben
+mantenerse fuera del repositorio e incluirse en los respaldos
+(\cref{cap:operacion}).}
+
+\section{Vista de despliegue}\label{sec:arq-despliegue}
+
+La \cref{fig:arq-despliegue} muestra los procesos de una instalación. Todos
+se ejecutan con una cuenta sin privilegios de administrador y solo aceptan
+conexiones desde el propio equipo; la publicación HTTPS hacia el exterior se
+configura aparte, en el servidor web del equipo anfitrión.
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.92\textwidth}
+\small
+\begin{verbatim}
+ Navegador (interfaz estática, WASM de firma y validador)
+     |  HTTPS                             |  HTTPS
+     v                                    v
++--------------------------+   +--------------------------+
+| qadra-web  (nginx)       |   | qadra-ca-web  (nginx)    |
+| estáticos + proxy /api   |   | estáticos + proxy /api   |
++------------+-------------+   +------------+-------------+
+             v                              v
++--------------------------+   +--------------------------+
+| qadra-api                |   | qadra-ca                 |
+| despacho-cli serve       |   | portal de la CA          |
+| API + tareas de fondo    |   | emisión, revocación, CRL |
++----+--------+--------+---+   +----+--------+------------+
+     |        |        |            |        |
+     |        |        +--> PKI_CA_DIR <-----+ (OpenSSL)
+     |        |        +--> TSA_DIR   (TSA local RFC 3161)
+     v        v                     |
++---------+ +--------+              |
+| qadra-  | | qadra- | <------------+ (PostgreSQL: esquema
+| postgres| | redis  |                 propio; Redis: sesiones)
++---------+ +--------+
+ Opcional, saliente desde qadra-api: correo (Resend).
+\end{verbatim}
+\end{minipage}
+\caption{Procesos de una instalación y sus almacenes. Los nombres
+  corresponden a las unidades de servicio que crea la
+  provisión.}\label{fig:arq-despliegue}
+\end{figure}
+
+Las unidades \texttt{qadra-api}, \texttt{qadra-web}, \texttt{qadra-postgres}
+y \texttt{qadra-redis} las define \archivo{ops/deploy/host.py}; las del
+portal, \texttt{qadra-ca} y \texttt{qadra-ca-web}, se definen en
+\archivo{ops/ca/host.py}. En desarrollo, PostgreSQL y Redis provienen de
+\archivo{compose.yaml} (puertos 5432 y 6379) y la interfaz se sirve con el
+servidor de desarrollo de Astro (\cref{cap:instalacion}). El procedimiento de
+despliegue, los puertos y la configuración de cada unidad se describen en el
+\cref{cap:despliegue} y en \archivo{docs/deployment.md}.
+
+El correo saliente es opcional y está deshabilitado por omisión. El adaptador
+hacia un PSC externo existe solo en la línea de comandos; el servidor HTTP
+usa siempre la TSA local.

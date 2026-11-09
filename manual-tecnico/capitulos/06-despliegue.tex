@@ -1,0 +1,239 @@
+\chapter{Despliegue en servidor}\label{cap:despliegue}
+
+Este capítulo resume el despliegue por versiones: organización de la
+instalación, servicios, construcción del paquete, activación y reversión. Es
+un procedimiento genérico; los valores propios de cada servidor aparecen
+como marcadores en mayúsculas. La guía completa es
+\archivo{docs/deployment.md}.
+
+\section{Modelo de despliegue}\label{sec:desp-modelo}
+
+Cada versión es un paquete inmutable identificado por etiqueta y commit,
+sin credenciales, datos ni claves. El estado persistente vive fuera de las
+versiones: cambiar de versión equivale a mover un enlace simbólico y
+reiniciar dos servicios. Todo se ejecuta con una cuenta Unix propia, sin
+privilegios de administrador, bajo un directorio raíz privado (en adelante
+\texttt{RAIZ}).
+
+\begin{table}[H]
+  \centering
+  \caption{Estructura del directorio raíz del despliegue.}\label{tab:desp-raiz}
+  \begin{tabularx}{\textwidth}{L{5.1cm} Y}
+    \toprule
+    \textbf{Ruta bajo RAIZ} & \textbf{Contenido} \\
+    \midrule
+    \texttt{config/}
+      & \texttt{settings.json}, \texttt{nginx.conf}, \texttt{redis.conf} y
+        la huella de migraciones admitida (\texttt{schema}). Véase el
+        \cref{cap:configuracion}. \\
+    \texttt{data/}
+      & Bases de datos, material de la CA y de la TSA, y temporales. \\
+    \texttt{releases/}
+      & Un directorio \texttt{VERSION-COMMIT} por versión admitida, con su
+        manifiesto \texttt{release.json}. \\
+    \texttt{current}, \texttt{previous}
+      & Enlaces simbólicos a la versión activa y a la anterior. \\
+    \texttt{incoming/}
+      & Paquetes recibidos, pendientes de admisión. \\
+    \texttt{tools/}
+      & Controladores Python instalados (copia de \texttt{ops/deploy}). \\
+    \texttt{backups/}, \texttt{logs/}, \texttt{run/}
+      & Respaldos, registros de nginx y archivos de ejecución. \\
+    \texttt{maintenance/}
+      & Diarios de las operaciones sobre los controladores. \\
+    \texttt{controller\_launcher.py}
+      & Lanzador de controladores, fuera de \texttt{tools/}. \\
+    \texttt{deploy.lock}
+      & Bloqueo exclusivo: una sola operación de despliegue a la vez. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Servicios y proxy inverso}\label{sec:desp-servicios}
+
+La aplicación son cuatro unidades systemd de usuario que escuchan solo en
+\texttt{127.0.0.1}. Los puertos de la \cref{tab:desp-unidades} son los que
+\archivo{ops/deploy/host.py} escribe por omisión en \texttt{settings.json}.
+
+\begin{table}[H]
+  \centering
+  \caption{Unidades de servicio de la aplicación.}\label{tab:desp-unidades}
+  \begin{tabularx}{\textwidth}{L{4.1cm} L{1.5cm} Y}
+    \toprule
+    \textbf{Unidad} & \textbf{Puerto} & \textbf{Función y dependencias} \\
+    \midrule
+    \texttt{qadra-postgres.service} & 15486
+      & PostgreSQL propio de la instalación. \\
+    \texttt{qadra-redis.service} & 16386
+      & Redis propio, con contraseña y persistencia AOF. \\
+    \texttt{qadra-api.service} & 18087
+      & API del sistema. Requiere las dos bases. \\
+    \texttt{qadra-web.service} & 18086
+      & nginx: frontend y proxy hacia la API, a la que espera. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El proxy inverso es el nginx de \texttt{qadra-web}
+(\texttt{RAIZ/config/nginx.conf}): sirve \texttt{current/web}, reenvía
+\texttt{/api/} a la API y responde 403 a \texttt{/api/v1/auth/bootstrap},
+de modo que el alta del primer Administrador solo puede hacerse en el
+propio servidor, contra el puerto de la API. La unidad \texttt{qadra-api} no ejecuta el
+binario directamente: lanza, por medio del lanzador en las unidades
+aprobadas, el controlador \texttt{tools/runtime.py}, que arranca \texttt{despacho-cli serve} con las rutas y los secretos de la
+instalación. El portal de la CA tiene unidades propias (\cref{cap:ca}).
+
+\nota{Publicar la aplicación por
+HTTPS (dominio, certificado TLS y proxy público hacia el puerto de
+\texttt{qadra-web}) es configuración del servidor ajena a estos guiones; sin
+ella se accede por un túnel SSH.}
+
+\section{Preparación del servidor}\label{sec:desp-preparacion}
+
+Se realiza una sola vez. Los requisitos están en el \cref{cap:requisitos};
+el controlador exige Python 3.11 o posterior.
+
+\begin{enumerate}
+  \item Como administrador, cree la cuenta de despliegue e instale nginx
+    con su servicio global enmascarado
+    (\texttt{sudo systemctl mask nginx.service}).
+  \item Como usuario de despliegue, desde una copia revisada del
+    repositorio, prepare la raíz y valide el resultado:
+\begin{verbatim}
+loginctl enable-linger "$(id -un)"
+python3 -B ops/deploy/host.py --root "$HOME/qadra" --start-databases
+systemd-analyze --user verify \
+  "$HOME/.config/systemd/user/"qadra-*.service
+nginx -t -c "$HOME/qadra/config/nginx.conf"
+\end{verbatim}
+    El guion verifica las dependencias, crea los directorios base de la
+    \cref{tab:desp-raiz}, genera \texttt{settings.json} (lo conserva si ya
+    existe), copia los controladores, escribe las unidades y arranca las
+    bases. No inicia la aplicación.
+  \item Instale y apruebe el lanzador de controladores
+    (\cref{sec:desp-controladores}).
+\end{enumerate}
+
+La primera activación aplica las migraciones, genera la CA, el certificado
+firmante, la TSA y la CRL internas, y publica esa confianza en la base de
+datos. No crea ninguna cuenta; las activaciones siguientes conservan claves
+y datos.
+
+\section{Construcción del paquete}\label{sec:desp-paquete}
+
+\archivo{scripts/build-release.sh} recibe la versión y el commit, que debe
+coincidir con \texttt{HEAD}:
+
+\begin{verbatim}
+bash scripts/build-release.sh v1.0.0 "$(git rev-parse HEAD)"
+\end{verbatim}
+
+El guion prepara qpdf, verifica la instalación de FFmpeg en
+\texttt{/opt/tt-media} (\archivo{docs/media-decoder-setup.md}), compila
+backend y frontend con sus archivos de bloqueo y llama a
+\archivo{ops/deploy/bundle.py}, que exige un árbol de trabajo sin cambios y
+deja en \archivo{output/releases/} el archivo
+\texttt{qadra-VERSION-COMMIT.tar.gz} y su \texttt{.sha256}; no sobrescribe
+un paquete existente. El paquete reúne \texttt{bin/}
+(\texttt{despacho-cli}, \texttt{qadra-ca}, \texttt{ffmpeg} y
+\texttt{ffprobe}), \texttt{lib/} (qpdf), \texttt{web/}, \texttt{ca-web/},
+\texttt{ca/}, \texttt{migrations/}, \texttt{pki/}, los guiones de
+\texttt{ops/} y el manifiesto \texttt{release.json} con versión, commit,
+huella de migraciones y SHA-256 de cada archivo. Debe compilarse en una
+distribución compatible con la del servidor (\cref{cap:requisitos}).
+
+El flujo \archivo{.github/workflows/deploy.yml} automatiza estos pasos al
+publicar una etiqueta de versión (\cref{tab:mant-flujos}).
+
+\section{Activación de una versión}\label{sec:desp-activacion}
+
+Los controladores se invocan siempre a través del lanzador, con un intérprete
+aislado y la huella aprobada del inventario de controladores:
+
+\begin{verbatim}
+PYTHON -I -B -S RAIZ/controller_launcher.py \
+  --root RAIZ --inventory-sha256 SHA256_APROBADO \
+  --entrypoint release.py -- --root RAIZ ORDEN
+\end{verbatim}
+
+\texttt{PYTHON} es la ruta absoluta del intérprete aprobado y \texttt{ORDEN}
+es \texttt{status}, \texttt{activate} o \texttt{rollback}. Cuando el
+despliegue lo inicia una etiqueta, \archivo{scripts/deploy-via-ssh.sh}
+ejecuta los pasos 1 a 3.
+
+\begin{enumerate}
+  \item Verifique el paquete en el equipo de origen con
+    \texttt{sha256sum --check} sobre su archivo \texttt{.sha256}.
+  \item Copie el paquete a \texttt{RAIZ/incoming/} con \texttt{scp}.
+  \item Ejecute la orden de activación, con la ruta del paquete, su
+    SHA-256, la versión y el commit:
+\begin{verbatim}
+activate RAIZ/incoming/PAQUETE.tar.gz SHA256_PAQUETE v1.0.0 COMMIT
+\end{verbatim}
+  \item Confirme con la orden \texttt{status}, que comprueba la salud de
+    la versión activa y devuelve versión, commit y huella de migraciones.
+\end{enumerate}
+
+Bajo \texttt{deploy.lock}, \archivo{ops/deploy/release.py} admite el
+paquete contra su huella y su manifiesto y lo extrae en
+\texttt{releases/}; comprueba versión y huella de migraciones, detiene
+\texttt{qadra-web} y \texttt{qadra-api}, toma un respaldo, inicializa la versión, apunta \texttt{current} a ella, arranca
+y comprueba su salud. Solo entonces apunta \texttt{previous} a la versión
+que estaba activa. Rechaza, antes de detener servicios, una versión menor que la
+activa, una versión ya ligada a otro commit y un paquete cuya huella de
+migraciones difiera de \texttt{config/schema}.
+
+\importante{Un cambio de esquema no forma parte de la activación
+automática: requiere el mantenimiento explícito de
+\archivo{docs/database-operations.md}. No edite \texttt{config/schema}
+para forzar la activación.}
+
+\section{Reversión}\label{sec:desp-reversion}
+
+Si la activación falla, el controlador restaura y arranca la versión
+anterior y devuelve error; si tampoco lo logra, deja detenida la entrada web
+(revise \texttt{journalctl --user -u qadra-api}).
+
+Para volver de forma explícita, ejecute la orden \texttt{rollback} con la
+misma invocación del lanzador. Exige que exista \texttt{previous} y que
+coincida la huella de migraciones, y toma un respaldo como cualquier
+activación; al terminar, \texttt{current} y
+\texttt{previous} quedan intercambiados. La reversión cambia el código, no
+los datos: las escrituras hechas con la versión nueva se conservan. La
+restauración de datos se trata en el \cref{cap:operacion}.
+
+\section{Controladores, lanzador y aprobación}\label{sec:desp-controladores}
+
+Los controladores (\texttt{tools/}) se actualizan por un camino separado:
+activar una versión no los cambia, ni cambia las unidades. Una
+\emph{generación} es el conjunto completo de esos guiones, identificado por
+el SHA-256 de su inventario. El operador aprueba esa huella fuera del
+servidor y la entrega en cada invocación; nunca se deduce de lo que haya en
+el servidor.
+
+El lanzador (\archivo{ops/controller_launcher.py}), la publicación, la
+aprobación, el cierre de entradas y el instalador se documentan en los
+archivos \archivo{docs/deployment-controller-*.md}. Una generación se
+actualiza así:
+
+\begin{enumerate}
+  \item Prepare, desde una revisión aprobada, un área privada con lanzador,
+    \emph{bootstrap} y candidato, y sus huellas
+    (\archivo{docs/deployment-controller-bootstrap.md}).
+  \item Suspenda el acceso administrativo externo y deshabilite el
+    temporizador de la CRL durante toda la ventana:
+    \texttt{systemctl --user disable --now qadra-crl-renew.timer}.
+  \item Ejecute el instalador (\texttt{controller\_installation.py}) con
+    el lanzador. El estado final es \texttt{installed\_closed}: fuentes
+    aprobadas y servicios cerrados. Ante una respuesta incierta se
+    reintenta la misma operación.
+  \item Entregue la autorización de reapertura: el instalador arranca
+    bases, API y web, comprueba la versión y devuelve \texttt{installed}.
+  \item Actualice la huella aprobada donde se invoque el lanzador y vuelva
+    a generar las unidades del temporizador con la orden
+    \texttt{schedule-units} de \texttt{renew\_crl.py} (\cref{sec:op-crl}).
+\end{enumerate}
+
+\importante{No use \archivo{ops/deploy/host.py} para actualizar
+controladores en una instalación activa: reescribe configuración y unidades,
+y las que genera invocan \texttt{tools/runtime.py} sin lanzador ni huella.}

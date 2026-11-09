@@ -1,0 +1,246 @@
+\chapter{Mapa de la documentación}\label{cap:mapa}
+
+Este manual condensa lo necesario para instalar, desplegar y operar Qadra, y
+remite al detalle que ya existe en el repositorio. Este apéndice indica dónde
+está cada tema. Todas las rutas son relativas a la raíz del repositorio.
+
+\section{Puntos de entrada}\label{sec:mapa-entrada}
+
+Conviene empezar por \archivo{README.md} (presentación, comandos comunes,
+catálogo de \texttt{despacho-cli} y arranque local) y por
+\archivo{docs/README.md}, índice por tema de \archivo{docs/}. Las normas de
+contribución están en \archivo{CONTRIBUTING.md}. Cada parte del repositorio
+tiene además su propio archivo: \archivo{web/README.md} (con
+\archivo{web/apps/qadra/README.md} y \archivo{web/apps/ca/README.md}),
+\archivo{pki/README.md}, \archivo{latex/README.md},
+\archivo{manual-usuario/README.md} y \archivo{manual-tecnico/README.md}.
+
+\section{Documentos de \texttt{docs/} por tema}\label{sec:mapa-docs}
+
+La carpeta \archivo{docs/} contiene un centenar de documentos Markdown en
+su primer nivel y tres subcarpetas: \archivo{docs/adr/}, \archivo{docs/ca/} y
+\archivo{docs/usability/}. La \cref{tab:mapa-docs} los agrupa por familia, con
+el patrón de nombre y algunas rutas representativas; el índice por tema está
+en \archivo{docs/README.md}.
+
+\nota{Los informes de \archivo{docs/} conservan la fecha y el alcance de sus
+comprobaciones. Su presencia no acredita una ejecución nueva ni convierte una
+capacidad prevista en implementada.}
+
+\begingroup
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{longtable}{@{}L{3.1cm} L{4.4cm} L{7.9cm}@{}}
+  \caption{Familias de documentos de \texttt{docs/}.}\label{tab:mapa-docs} \\
+  \toprule
+  \textbf{Tema} & \textbf{Patrón} & \textbf{Rutas representativas} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Tema} & \textbf{Patrón} & \textbf{Rutas representativas} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endlastfoot
+  Estado y alcance
+    & \archivo{docs/technical-closure.md} y afines
+    & \archivo{docs/technical-closure.md},
+      \archivo{docs/product-completion.md},
+      \archivo{docs/production-acceptance.md},
+      \archivo{docs/user-guide.md} \\
+  Despliegue (\cref{cap:despliegue})
+    & \archivo{docs/deployment*.md}
+    & \archivo{docs/deployment.md},
+      \archivo{docs/deployment-controller-installation.md},
+      \archivo{docs/deployment-controller-launcher.md},
+      \archivo{docs/deployment-controller-publication.md},
+      \archivo{docs/deployment-readiness-deadline.md} \\
+  Base de datos, respaldo y restauración (\cref{cap:operacion})
+    & \archivo{docs/database-*.md}, \archivo{docs/deployment-restore-*.md}
+    & \archivo{docs/database-operations.md},
+      \archivo{docs/deployment-backups.md},
+      \archivo{docs/backup-capture-manifest.md},
+      \archivo{docs/database-restore-commands.md},
+      \archivo{docs/deployment-restore-quiesce.md},
+      \archivo{docs/restore-process-observation.md} \\
+  Autoridad certificadora (\cref{cap:ca})
+    & \archivo{docs/ca/*.md}
+    & \archivo{docs/ca/README.md},
+      \archivo{docs/ca/operations.md},
+      \archivo{docs/ca/api.md},
+      \archivo{docs/ca/owner-activation.md},
+      \archivo{docs/ca/restore.md},
+      \archivo{docs/ca/verification.md},
+      \archivo{docs/deployment-crl.md} \\
+  Contratos HTTP (\cref{cap:api})
+    & \archivo{docs/http-*.md}, \archivo{docs/*-api.md}
+    & \archivo{docs/http-api.md},
+      \archivo{docs/members-api.md},
+      \archivo{docs/case-administration-api.md},
+      \archivo{docs/document-upload-admission-api.md},
+      \archivo{docs/hearings-api.md},
+      \archivo{docs/deadlines-api.md} \\
+  Identidad, sesión y acceso
+    & \archivo{docs/member-*.md}, \archivo{docs/password-reset-*.md},
+      \archivo{docs/owner-certificate-*.md}
+    & \archivo{docs/member-enrollment-recovery.md},
+      \archivo{docs/password-reset-internal.md},
+      \archivo{docs/session-editor-recovery.md},
+      \archivo{docs/mfa-access-logs.md},
+      \archivo{docs/owner-certificate-login-operations.md} \\
+  Firma y criptografía en el navegador
+    & \archivo{docs/*-signing*.md}
+    & \archivo{docs/individual-signing-guide.md},
+      \archivo{docs/http-individual-signing.md},
+      \archivo{docs/http-contract-signing.md},
+      \archivo{docs/browser-local-cryptography.md} \\
+  Documentos y formatos
+    & \archivo{docs/document-*.md}
+    & \archivo{docs/document-format-operations.md},
+      \archivo{docs/media-decoder-setup.md},
+      \archivo{docs/document-content-api.md} \\
+  Audiencias, medidas y recursos
+    & \archivo{docs/hearing*.md}, \archivo{docs/precautionary-*.md},
+      \archivo{docs/measure-*.md}, \archivo{docs/resource-*.md}
+    & \archivo{docs/hearing-results-api.md},
+      \archivo{docs/precautionary-hearings-scope.md},
+      \archivo{docs/measure-records-api.md},
+      \archivo{docs/procedural-resources-scope.md},
+      \archivo{docs/resource-hearings.md},
+      \archivo{docs/agenda-api.md}, \archivo{docs/alerts-api.md} \\
+  Hechos procesales y calendarios
+    & \archivo{docs/procedural-*.md}
+    & \archivo{docs/procedural-facts.md},
+      \archivo{docs/procedural-facts-canonical.md},
+      \archivo{docs/procedural-time.md},
+      \archivo{docs/judicial-calendars-api.md} \\
+  Plazos
+    & \archivo{docs/deadline*.md},
+      \archivo{docs/legal-corpus-*.md}
+    & \archivo{docs/deadline-lifecycle.md},
+      \archivo{docs/deadline-arithmetic.md},
+      \archivo{docs/deadline-dispatch.md},
+      \archivo{docs/deadline-worker.md},
+      \archivo{docs/four-front-closure.md} \\
+  Verificación y pruebas (\cref{cap:mantenimiento})
+    & \archivo{docs/*verification*.md}, \archivo{docs/access-audit-*.md}
+    & \archivo{docs/verification-report.md},
+      \archivo{docs/academic-report-verification.md},
+      \archivo{docs/access-audit-matrix.md},
+      \archivo{docs/browser-preparation-checks.md},
+      \archivo{docs/ci-runner-operations.md} \\
+  Usabilidad
+    & \archivo{docs/usability/}
+    & \archivo{docs/usability/README.md},
+      \archivo{docs/usability/protocol.md},
+      \archivo{docs/usability/tasks.md},
+      \archivo{docs/usability/facilitator.md} \\
+\end{longtable}
+\endgroup
+
+\section{Anexos del reporte técnico}\label{sec:mapa-anexos}
+
+El reporte técnico (\archivo{latex/main.tex}) incluye cinco anexos que
+amplían varios capítulos de este manual. Sus fuentes están en
+\archivo{latex/chapters/}.
+
+\begin{table}[H]
+  \centering
+  \caption{Anexos del reporte técnico.}\label{tab:mapa-anexos}
+  \begin{tabularx}{\textwidth}{C{1.2cm} Y L{5.4cm} L{2.2cm}}
+    \toprule
+    \textbf{Anexo} & \textbf{Título} & \textbf{Fuente} & \textbf{Véase} \\
+    \midrule
+    A & Catálogo de formatos canónicos y migraciones
+      & \archivo{anexos.tex} & \cref{cap:arquitectura} \\
+    B & Manual de la interfaz de línea de comandos
+      & \archivo{anexo-b-cli.tex} & \cref{cap:cli} \\
+    C & Guía de verificación independiente con OpenSSL
+      & \archivo{anexo-c-verificacion.tex} & \cref{cap:verificacion} \\
+    D & Scripts de la autoridad certificadora interna
+      & \archivo{anexo-d-pki.tex} & \cref{cap:ca} \\
+    E & Matriz de pruebas y evidencia de ejecución
+      & \archivo{anexo-e-matriz.tex} & \cref{cap:mantenimiento} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Los anexos B, D y E se componen de varios archivos: el archivo indicado en la
+tabla incluye los demás de su misma letra (\archivo{anexo-b-*.tex},
+\archivo{anexo-d-*.tex} y \archivo{anexo-e-*.tex}).
+
+\section{Manual de usuario}\label{sec:mapa-usuario}
+
+El manual de usuario es un documento independiente en
+\archivo{manual-usuario/}, con la misma estructura de archivos que este
+manual. Describe el uso de la aplicación, no su operación, y se organiza en
+una introducción y tres partes: A, \emph{Uso del sistema en el despacho};
+B, \emph{Cliente y verificación de evidencia}, y C, \emph{Referencia rápida}
+(mensajes del sistema y solución de problemas desde la interfaz).
+
+Las capturas de pantalla previstas se relacionan en
+\archivo{manual-usuario/capturas.md}.
+
+\section{Decisiones de arquitectura}\label{sec:mapa-adr}
+
+La carpeta \archivo{docs/adr/} contiene los registros de decisión de
+arquitectura (ADR), con nombre \archivo{NNNN-titulo.md}; dos registros
+comparten el número 0048. La
+\cref{tab:mapa-adr} recoge los que más inciden en la instalación, el
+despliegue y la operación; el título se da traducido y el archivo se
+encuentra en \archivo{docs/adr/}.
+
+\begingroup
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{longtable}{@{}C{1.1cm} L{6.6cm} L{7.7cm}@{}}
+  \caption{ADR más relevantes para operar el sistema.}\label{tab:mapa-adr} \\
+  \toprule
+  \textbf{Núm.} & \textbf{Título} & \textbf{Archivo en \texttt{docs/adr/}} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Núm.} & \textbf{Título} & \textbf{Archivo en \texttt{docs/adr/}} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endlastfoot
+  0001 & Versión mínima de Rust y fijación de dependencias
+    & \archivo{0001-msrv-and-dependency-pinning.md} \\
+  0006 & Formato del paquete de evidencia
+    & \archivo{0006-evidence-package-format.md} \\
+  0007 & Anclaje de la cadena de auditoría
+    & \archivo{0007-audit-chain-anchoring.md} \\
+  0009 & Autoridad local de sellado de tiempo
+    & \archivo{0009-local-timestamp-authority.md} \\
+  0012 & Sesiones revocables y control de acceso por roles
+    & \archivo{0012-revocable-sessions-and-rbac.md} \\
+  0044 & Costo de referencia del resumen de contraseñas
+    & \archivo{0044-reference-password-hashing-cost.md} \\
+  0048 & Despliegue privado y versionado sobre SSH
+    & \archivo{0048-private-versioned-deployment.md} \\
+  0048 & Coordinación de migraciones acotada a un esquema de PostgreSQL
+    & \archivo{0048-schema-scoped-migration-lock.md} \\
+  0062 & Validación acotada de PostgreSQL al construir el servidor
+    & \archivo{0062-scoped-postgres-startup-validation.md} \\
+  0063 & Mantenimiento recuperable de la CRL en un despliegue privado
+    & \archivo{0063-recoverable-crl-maintenance.md} \\
+  0064 & Vida absoluta de la sesión y actividad explícita
+    & \archivo{0064-explicit-session-activity.md} \\
+  0078 & Operador de CA separado y operaciones de certificado recuperables
+    & \archivo{0078-separate-ca-operator-and-recoverable-operations.md} \\
+  0079 & Claves locales en el navegador y firmas sobre bytes exactos
+    & \archivo{0079-browser-local-cryptography.md} \\
+  0080 & Renovación programada de la CRL cerca de su vencimiento
+    & \archivo{0080-scheduled-crl-renewal.md} \\
+  0085 & Validación de evidencia en el navegador y manifiesto sellado
+    & \archivo{0085-in-browser-evidence-validation.md} \\
+  0086 & Firma bilateral de contratos
+    & \archivo{0086-bilateral-contract-signing.md} \\
+\end{longtable}
+\endgroup
+
+Las decisiones sobre la integración continua (entre otras, la 0027, de la
+0045 a la 0055 salvo las dos 0048, la 0081, la 0082 y la 0088) sólo interesan
+a quien mantenga los ejecutores de CI; su operación se describe en
+\archivo{docs/ci-runner-operations.md}.

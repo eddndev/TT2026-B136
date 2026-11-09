@@ -1,0 +1,264 @@
+\chapter{Autoridad certificadora y sellado de tiempo}\label{cap:ca}
+
+Qadra incluye una autoridad certificadora (CA) interna y una autoridad de
+sellado de tiempo (TSA) local, ambas construidas sobre OpenSSL. Este capítulo
+resume su estructura y su operación; el detalle de cada paso está en
+\archivo{docs/ca/operations.md}, \archivo{pki/README.md} y el Anexo D del
+reporte técnico.
+
+\importante{La CA y la TSA son internas y de prototipo. No son un prestador
+de servicios de certificación, no emiten e.firma ni FIREL y no acreditan la
+identidad civil del titular. Un certificado emitido prueba únicamente que su
+titular posee la clave privada correspondiente.}
+
+% ---------------------------------------------------------------------
+\section{Estructura de la PKI}\label{sec:ca-estructura}
+
+La PKI tiene un solo nivel: una raíz autofirmada que emite directamente los
+certificados de entidad final. No hay autoridades intermedias ni OCSP; la
+revocación se publica mediante una lista de revocación (CRL). Todas las
+claves son RSA de 3072 bits y todas las firmas usan SHA-256. Los perfiles se
+definen en \archivo{pki/openssl.cnf} y \archivo{pki/tsa.cnf}
+(\cref{tab:ca-perfiles}).
+
+\begin{table}[H]
+  \centering\small
+  \caption{Perfiles de certificado de la PKI interna.}
+  \label{tab:ca-perfiles}
+  \begin{tabularx}{\textwidth}{L{3.4cm}L{4.9cm}Y}
+    \toprule
+    \textbf{Perfil} & \textbf{Sección OpenSSL} & \textbf{Usos y vigencia} \\
+    \midrule
+    Raíz & \texttt{v3\_root\_ca} &
+      \texttt{CA:true}, \texttt{keyCertSign} y \texttt{cRLSign}; 1825 días. \\
+    Firma documental (\texttt{document-signing}) &
+      \texttt{v3\_internal\_declaration} &
+      \texttt{digitalSignature} y \texttt{nonRepudiation}, sin usos
+      extendidos; 365 días. \\
+    Acceso del Administrador (\texttt{partner}) & \texttt{v3\_end\_entity} &
+      Los mismos usos más \texttt{clientAuth} y \texttt{emailProtection};
+      365 días. \\
+    Sellado de tiempo (\texttt{time-stamping}) & \texttt{v3\_tsa} &
+      \texttt{digitalSignature} y uso extendido crítico
+      \texttt{timeStamping}; 365 días. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+La política \texttt{policy\_internal} exige que el país (C) y la organización
+(O) del sujeto coincidan con los de la raíz y que exista un nombre común (CN).
+Las extensiones solicitadas en el CSR no se copian. La CRL vence a los 7 días
+de generada, por lo que debe renovarse periódicamente
+(\cref{sec:ca-revocacion}).
+
+El material vive fuera del repositorio, en dos directorios de trabajo:
+\texttt{PKI\_CA\_DIR} para la CA (por omisión \archivo{pki-ca} bajo el
+directorio actual) y \texttt{TSA\_DIR} para la TSA (por omisión
+\archivo{pki-tsa} junto al anterior). En una instalación desplegada
+corresponden a \archivo{data/ca} y \archivo{data/tsa} bajo la raíz de la
+instalación. Ambos contienen claves privadas y nunca se versionan.
+
+\section{Creación de la CA y de la TSA}\label{sec:ca-creacion}
+
+Los guiones de \archivo{pki/} se invocan directamente o mediante la CLI
+(\cref{cap:cli}). La creación se hace una sola vez por instalación:
+
+\begin{verbatim}
+export PKI_CA_DIR="$HOME/pki-ca"
+bash pki/init-ca.sh          # raíz, índice y contadores
+bash pki/issue-tsa-cert.sh   # clave y certificado de la TSA
+bash pki/gen-crl.sh          # primera CRL
+\end{verbatim}
+
+\archivo{init-ca.sh} no sobrescribe una CA existente. La TSA responde
+solicitudes RFC 3161 con \texttt{openssl ts} según \archivo{pki/tsa.cnf}; el
+subcomando \texttt{timestamp --mock} de la CLI la utiliza y falla si el
+directorio de la TSA no existe. El certificado de la TSA aparece en el inventario
+del portal solo para consulta y descarga: no se emite ni se revoca desde ahí.
+
+\nota{Instalar el portal no crea una autoridad nueva. El servicio adopta la
+raíz, el índice, los contadores y la TSA existentes, y fija la huella de la
+raíz en su configuración.}
+
+\section{Servicio y portal de la CA}\label{sec:ca-portal}
+
+La CA se opera desde un servicio propio, separado del despacho:
+
+\begin{itemize}
+  \item \textbf{Binario \texttt{qadra-ca}} (\archivo{crates/bin/src/ca/}).
+        Expone el acceso del operador bajo \texttt{/api/v1/auth}, las
+        operaciones en \texttt{POST /api/v1/ca/operations} y
+        \texttt{/healthz}. Escucha solo en \emph{loopback}. El contrato HTTP
+        está en \archivo{docs/ca/api.md}.
+  \item \textbf{Portal web} (\archivo{web/apps/ca}). Se construye aparte de la
+        aplicación del despacho con \texttt{npm run build:ca} desde
+        \archivo{web/}. En desarrollo usa el puerto 18088 y dirige
+        \texttt{/api} a \texttt{127.0.0.1:18089}; el destino se cambia con
+        \texttt{CA\_API\_PROXY\_TARGET}.
+  \item \textbf{Ejecutor de operaciones} (\archivo{ops/ca/command.py}), que
+        invoca los guiones PKI y el mantenimiento de CRL existentes.
+\end{itemize}
+
+El servicio comparte PostgreSQL y Redis con el despacho, pero con identidad
+propia: el esquema \texttt{qadra\_ca} (tablas \texttt{users} y
+\texttt{audit\_events}) y un rol de ejecución con permisos mínimos y
+\texttt{search\_path=qadra\_ca,pg\_temp}. Las credenciales, las sesiones y la
+auditoría de la CA no se mezclan con las del despacho; una cuenta de
+Administrador del despacho no da acceso al portal. Las unidades
+\texttt{qadra-ca} y \texttt{qadra-ca-web} las genera
+\archivo{ops/ca/host.py} (\cref{cap:despliegue}).
+
+\section{Alta del operador}\label{sec:ca-alta}
+
+La CA admite un único operador, fijado por UUID y correo en la configuración.
+Su alta se hace por terminal, una sola vez, después de preparar el esquema
+(\archivo{crates/infrastructure/src/ca_identity/schema.sql}) y el rol:
+
+\begin{enumerate}
+  \item Prepare un archivo privado de alta (modo \texttt{0600}, sin enlaces
+        simbólicos) con la base, el correo del operador, la KEK de la CA de
+        32 bytes en Base64 y las conexiones administrativa y de ejecución.
+        Los campos exactos están en \archivo{docs/ca/operations.md}.
+  \item Ejecute el alta:
+\begin{verbatim}
+qadra-ca enroll-operator \
+  --setup-config /ruta/privada/ca-setup.json \
+  --enrollment-out /ruta/privada/ca-enrollment.json
+\end{verbatim}
+  \item Introduzca la contraseña (12 a 1024 bytes) dos veces. El comando
+        escribe en el archivo de salida el secreto TOTP, su URI y ocho
+        códigos de recuperación.
+  \item Registre el secreto en una aplicación de autenticación e introduzca
+        el código de seis dígitos. Solo entonces se crean la cuenta y el
+        evento de auditoría \texttt{ca.operator\_enrolled}.
+  \item Cree la configuración del servicio con el UUID del recibo, el mismo
+        correo y la misma KEK, y arranque:
+        \texttt{qadra-ca --config /ruta/privada/ca-service.json}.
+\end{enumerate}
+
+\importante{El alta no se repite para reemplazar una cuenta existente. La
+KEK protege el secreto TOTP almacenado: si se pierde o se cambia, el segundo
+factor del operador deja de ser recuperable. Conserve el archivo de alta, la
+KEK y las URL de conexión fuera del repositorio, de los registros y de las
+capturas.}
+
+La sección opcional \texttt{operations} de la configuración activa las
+operaciones PKI; sin ella el servicio solo ofrece el acceso. En ella se
+declaran las rutas absolutas del intérprete, el ejecutor, la raíz de la
+instalación, la CLI y los guiones, además de \texttt{expected\_root}, la
+huella SHA-256 de la raíz adoptada.
+
+\section{Solicitud, emisión y vínculo}\label{sec:ca-emision}
+
+El titular genera su clave y su solicitud (CSR) en su propio equipo; la CA
+recibe únicamente el CSR público. La clave puede generarse desde la aplicación
+(Manual de usuario, capítulo \enquote{Mi firma digital}) o con OpenSSL,
+con los comandos de \archivo{pki/README.md}. En el portal, el operador
+sigue este recorrido:
+
+\begin{enumerate}
+  \item En \textbf{Solicitudes}, pega el CSR en formato PEM (máximo 16 KiB) y
+        elige el perfil \textbf{Firma documental} o \textbf{Partner}.
+  \item Completa \textbf{Titular revisado}, \textbf{Referencia de la
+        solicitud} y \textbf{Criterio de emisión}, y pulsa \textbf{Revisar
+        solicitud}. Contrasta el sujeto y las huellas del CSR, de la clave
+        pública y de la CA con los datos que entregó el titular.
+  \item Pulsa \textbf{Confirmar y emitir} y conserva el recibo con la serie y
+        la huella. El certificado se descarga desde \textbf{Certificados}.
+\end{enumerate}
+
+El CSR debe usar RSA de 3072 bits, exponente 65537 y firma SHA-256. Una
+solicitud cuyo sujeto no cumple la política se rechaza antes de reservar una
+serie. Si la respuesta se pierde, use \textbf{Retomar esta emisión} o
+\textbf{Historial}; no envíe la solicitud como una operación nueva. Sin
+portal, la misma emisión se obtiene con
+\texttt{despacho-cli pki issue-request --csr \ldots{} --name \ldots{}} y,
+para el acceso del Administrador, \texttt{--purpose partner}.
+
+\nota{Emitir un certificado no crea una cuenta ni lo vincula. El titular
+registra el certificado en Qadra y firma una prueba de posesión; ese vínculo
+es el que habilita la firma individual o el acceso por certificado. Retirar
+el vínculo y revocar el certificado son operaciones distintas. Véanse
+\archivo{docs/individual-signing-guide.md} y
+\archivo{docs/owner-certificate-login-operations.md}.}
+
+\section{Revocación y publicación de la CRL}\label{sec:ca-revocacion}
+
+La revocación tiene dos pasos, y el primero no surte efecto por sí solo:
+
+\begin{enumerate}
+  \item \textbf{Revocación local.} En \textbf{Certificados}, elija
+        \textbf{Revocar certificado}, confirme la serie y la huella, y
+        escriba el motivo. Esto solo marca el índice de la CA; el inventario
+        muestra \enquote{Pendiente de publicar en Qadra}.
+  \item \textbf{Publicación.} En \textbf{Publicación}, revise la revisión
+        vigente, confirme la ventana de mantenimiento y pulse \textbf{Renovar
+        y publicar CRL}. El procedimiento prepara la CRL candidata, detiene
+        la API y la web del despacho, toma un respaldo, publica la lista
+        como una nueva revisión de confianza en PostgreSQL y reabre el
+        servicio.
+\end{enumerate}
+
+Qadra decide con la confianza publicada en la base de datos (raíz, CRL y
+número de revisión), no con los archivos locales de la CA. Mientras la
+publicación no termine, el certificado revocado sigue siendo aceptado. Una
+operación pendiente bloquea otras mutaciones: retómela desde
+\textbf{Historial} en lugar de iniciar otra.
+
+La renovación también puede ejecutarse sin portal, a mano o mediante el
+temporizador diario, con \archivo{ops/deploy/renew_crl.py}
+(\cref{sec:op-crl}). En un entorno local, la confianza se publica con
+\texttt{despacho-cli credential-trust publish} y una conexión administrativa
+(\archivo{pki/README.md}, \enquote{Publicar confianza para declaraciones}).
+La primera publicación fija la raíz de la instalación; las siguientes solo
+admiten una CRL con número mayor y no sustituyen la raíz.
+
+\section{Raíces fijadas en el validador}\label{sec:ca-raices}
+
+El validador de evidencia del navegador (\cref{cap:verificacion}) no confía
+en una raíz por el hecho de venir dentro del paquete. Solo admite las raíces
+cuya huella SHA-256 consta en
+\archivo{web/apps/qadra/src/lib/evidence/pinned-roots.json}, que se integra
+en la aplicación al construirla. Cada entrada tiene exactamente tres campos:
+\texttt{fingerprint} (64 dígitos hexadecimales en minúsculas),
+\texttt{purposes} (uno o más de \texttt{server-seal},
+\texttt{individual-signing} y \texttt{time-stamping}) y \texttt{label}.
+
+Para construir la web contra otra CA, defina \texttt{QADRA\_PINNED\_ROOTS}
+con la ruta absoluta de un archivo del mismo formato;
+\archivo{web/apps/qadra/astro.config.mjs} lo valida y detiene la
+construcción si es inválido. \archivo{scripts/web-demo.sh} fija así su CA
+desechable. Además, el validador consulta
+\texttt{GET /api/v1/evidence/trust} para conocer la confianza que el servidor
+admite en ese momento y reporta cualquier diferencia con el conjunto fijado.
+
+\importante{Si se sustituye la raíz de una instalación, agregue la huella
+nueva y conserve la anterior en el archivo. Al retirarla, los paquetes de
+evidencia emitidos bajo esa raíz dejarían de validarse.}
+
+\section{Respaldo y restauración}\label{sec:ca-restauracion}
+
+No existe un comando único de restauración de la CA; el procedimiento
+administrativo está en \archivo{docs/ca/restore.md}. Sus puntos esenciales
+son:
+
+\begin{itemize}
+  \item \textbf{Qué conservar del mismo punto de recuperación:} el volcado de
+        la base (incluido el esquema \texttt{qadra\_ca}), la configuración
+        privada del servicio con su KEK, todo \archivo{data/ca} (raíz, clave,
+        índice, contadores, certificados y los directorios
+        \archivo{operations}, \archivo{revocations} y
+        \archivo{publications}), \archivo{data/tsa} y el estado de Redis.
+  \item \textbf{Orden:} detener y enmascarar el servicio de la CA y los del
+        despacho; restaurar base, roles y archivos; invalidar las sesiones en
+        Redis; comprobar el acceso del operador y la confianza publicada
+        antes de reabrir.
+  \item \textbf{Qué no hacer:} repetir \texttt{enroll-operator}, generar otra
+        KEK, regenerar la raíz o la TSA, bajar contadores o borrar registros
+        de operaciones para destrabar un arranque.
+\end{itemize}
+
+Una publicación de CRL que quedó pendiente al tomar el respaldo se retoma
+con su identificador original desde \textbf{Historial}; no se genera otra
+lista. El respaldo y la restauración generales de la instalación se
+describen en las \cref{sec:op-respaldo,sec:op-restauracion}.

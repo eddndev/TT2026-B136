@@ -1,0 +1,187 @@
+\chapter{Requisitos}\label{cap:requisitos}
+
+Este capítulo reúne lo que debe estar disponible antes de construir Qadra
+desde sus fuentes y antes de ejecutarlo en un servidor. Las versiones
+indicadas son las que fija el repositorio; cuando no se cita otro archivo,
+los requisitos de ejecución proceden de \archivo{docs/deployment.md}. El
+único entorno soportado para construir y ejecutar es
+Linux x86\_64 (\archivo{docs/document-format-operations.md}).
+
+\section{Construcción y ejecución}\label{sec:req-tabla}
+
+La \cref{tab:req-software} separa dos situaciones. La \emph{construcción}
+ocurre en el equipo de desarrollo o en el ejecutor de integración continua:
+compila el binario \texttt{despacho-cli}, los módulos Rust/WASM y los dos
+portales web. La \emph{ejecución} ocurre en el servidor, que recibe un
+paquete ya compilado y no necesita las herramientas de construcción. La
+construcción requiere acceso a Internet: descarga las dependencias de Cargo
+y de npm, la biblioteca qpdf, el código fuente de FFmpeg y la herramienta
+que enlaza los módulos WASM.
+
+\begin{longtable}{L{3.3cm} L{3.4cm} L{8.6cm}}
+  \caption{Requisitos de software por etapa.}\label{tab:req-software} \\
+  \toprule
+  \textbf{Componente} & \textbf{Versión} & \textbf{Uso y fuente} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Componente} & \textbf{Versión} & \textbf{Uso y fuente} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+    \multicolumn{3}{l}{\textbf{Construcción}} \\*
+    \midrule
+    Rust y Cargo
+      & 1.88 o posterior
+      & Compila el espacio de trabajo. Mínimo declarado en
+        \texttt{rust-version} de \archivo{Cargo.toml}; se requiere
+        \texttt{rustup} para añadir el destino
+        \texttt{wasm32-unknown-unknown}. \\
+    clang y Python 3
+      & Sin versión fijada
+      & Requeridos para generar los módulos Rust/WASM de la interfaz con
+        \archivo{scripts/build-browser-crypto.sh} (clang y Python 3) y
+        \archivo{scripts/build-evidence-verify.sh} (sin clang); véase
+        \archivo{web/README.md}. \\
+    Node.js y npm
+      & Node.js 24
+      & Instala dependencias y construye los portales de \archivo{web/}.
+        Versión fijada en \archivo{.github/workflows/ci.yml} e indicada en
+        \archivo{web/apps/qadra/README.md}. \\
+    Motor de contenedores con Compose
+      & Sin versión fijada
+      & Opcional. \archivo{compose.yaml} define PostgreSQL 16 y Redis 7
+        para desarrollo local; puede sustituirse por instancias propias de
+        esas versiones. \\
+    Biblioteca qpdf
+      & 12.4.1
+      & Validación de PDF. Se obtiene con
+        \archivo{scripts/setup-document-formats.sh}, que verifica su SHA-256
+        (\archivo{docs/document-format-operations.md}). \\
+    FFmpeg y ffprobe
+      & 9.0.2
+      & Admisión de imagen, audio y video. Se compilan una sola vez con
+        \archivo{scripts/install_media_decoder.py}, que requiere Python
+        3.10 o posterior, GCC, make, NASM, pkg-config y los encabezados de
+        zlib (\archivo{docs/media-decoder-setup.md}). \\
+    OpenSSL y \texttt{unzip}
+      & Sin versión fijada
+      & Guiones de \archivo{pki/}, sellado de tiempo local y
+        \archivo{scripts/demo.sh} (\archivo{README.md}). \\
+    Herramientas de PostgreSQL y Redis
+      & Sin versión fijada
+      & El cliente \texttt{psql} se usa en la instalación local
+        (\cref{cap:instalacion}). Con los ejecutables del servidor
+        (\texttt{pg\_ctl}, \texttt{redis-server}, \texttt{redis-cli})
+        \archivo{scripts/test-backends.sh} y \archivo{scripts/api-demo.sh}
+        crean instancias desechables; el primero requiere además
+        \texttt{setsid} (\archivo{README.md}). \\
+    Git y \texttt{curl}
+      & Sin versión fijada
+      & Obtención del código y comprobación de la API en la instalación
+        local y en \archivo{scripts/api-demo.sh}. \\
+    TeX Live
+      & Con LuaLaTeX, biber y makeglossaries
+      & Compila el reporte (\archivo{latex/README.md}) y los manuales, que
+        solo requieren LuaLaTeX y las fuentes Times New Roman y DejaVu Sans
+        Mono (\archivo{manual-usuario/README.md}). \\
+    \midrule
+    \multicolumn{3}{l}{\textbf{Ejecución en servidor}} \\*
+    \midrule
+    Sistema operativo
+      & Ubuntu 22.04 x86\_64
+      & Instalación objetivo descrita en \archivo{docs/deployment.md}. El
+        paquete debe compilarse sobre la misma distribución o una de ABI
+        compatible. \\
+    PostgreSQL
+      & 16
+      & Base de datos de la aplicación. \\
+    Redis
+      & 7
+      & Desafíos, sesiones revocables y límites de uso; en el servidor se
+        ejecuta con autenticación. \\
+    nginx, OpenSSL y systemd
+      & Sin versión fijada
+      & nginx sirve la interfaz compilada y reenvía \texttt{/api} a la API;
+        OpenSSL atiende a la CA y la TSA internas; las unidades de usuario
+        de systemd supervisan los servicios bajo una cuenta sin privilegios
+        de administrador. \\
+    Python
+      & 3.11 o posterior
+      & Controlador de despliegue (\archivo{ops/}); no basta asumir la
+        versión del intérprete del sistema. \\
+    qpdf, FFmpeg y ffprobe
+      & 12.4.1 y 9.0.2
+      & No se instalan aparte: la biblioteca qpdf y los ejecutables
+        verificados de FFmpeg y ffprobe acompañan al paquete de despliegue. \\
+\end{longtable}
+
+\section{Dependencias fijadas: qpdf y decodificador multimedia}%
+\label{sec:req-fijadas}
+
+Ambas dependencias son necesarias también en desarrollo para iniciar
+\texttt{serve} o ejecutar las demostraciones con la API real: el servidor las
+comprueba antes de abrir el puerto HTTP. Su preparación se describe en la
+\cref{sec:inst-nativos}.
+
+\importante{Un \texttt{ffmpeg} instalado desde los paquetes de la
+distribución no sustituye a esta instalación: no garantiza el conjunto de
+capacidades requerido. El prefijo predeterminado es
+\archivo{/opt/tt-media}; si usa otro, prepárelo con el mismo
+instalador e indíquelo con \texttt{TT\_FFMPEG\_PATH} y
+\texttt{TT\_FFPROBE\_PATH}.}
+
+\section{Recursos de hardware}\label{sec:req-hardware}
+
+El repositorio no fija un dimensionamiento mínimo de procesador, memoria ni
+almacenamiento. La única referencia disponible son los límites que la
+provisión del servidor impone a cada servicio
+(\archivo{docs/deployment.md}): 2~GiB de memoria para la API, 768~MiB para
+PostgreSQL, 256~MiB para Redis y 128~MiB para nginx, con una cuota de dos
+CPU por servicio. Son techos de consumo, no reservas ni un requisito mínimo
+comprobado. El almacenamiento necesario depende del volumen de documentos
+cifrados y de los respaldos que se conserven (\cref{cap:operacion}).
+
+\section{Puertos en desarrollo}\label{sec:req-puertos}
+
+La \cref{tab:req-puertos} lista los puertos predeterminados en un equipo de
+desarrollo. Todos pueden cambiarse; los del servidor se asignan durante la
+provisión y se describen en el \cref{cap:despliegue}.
+
+\begin{table}[H]
+  \centering
+  \caption{Puertos predeterminados en desarrollo.}\label{tab:req-puertos}
+  \begin{tabularx}{\textwidth}{L{1.6cm} L{4.2cm} Y}
+    \toprule
+    \textbf{Puerto} & \textbf{Servicio} & \textbf{Dónde se define} \\
+    \midrule
+    5432 & PostgreSQL & \archivo{compose.yaml}; \texttt{DATABASE\_URL} en
+      \archivo{.env.example}. \\
+    6379 & Redis & \archivo{compose.yaml}; \texttt{REDIS\_URL} en
+      \archivo{.env.example}. \\
+    3000 & API (\texttt{despacho-cli serve}) & Valor predeterminado de
+      \texttt{-{}-bind}, \texttt{127.0.0.1:3000}. La interfaz reenvía
+      \texttt{/api} a esa dirección salvo que se defina
+      \texttt{API\_PROXY\_TARGET}
+      (\archivo{web/apps/qadra/astro.config.mjs}). \\
+    4321 & Interfaz Qadra (\texttt{npm run dev}) & Dirección indicada en
+      \archivo{web/apps/qadra/README.md}; se cambia con
+      \texttt{npm run dev -{}- -{}-port N} (\archivo{web/README.md}). \\
+    18088 & Portal de la CA (\texttt{npm run dev:ca}) &
+      \archivo{web/apps/ca/astro.config.mjs}. \\
+    18089 & API de la CA & Destino predeterminado del proxy del portal de
+      la CA; configurable con \texttt{CA\_API\_PROXY\_TARGET}
+      (\archivo{docs/ca/operations.md}). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Navegador del cliente}\label{sec:req-navegador}
+
+Quien usa Qadra solo necesita un navegador web actualizado con JavaScript
+activado; la firma y la validación de evidencia se ejecutan localmente en el
+navegador mediante módulos Rust/WASM incluidos en la interfaz. Los
+requisitos de cada persona usuaria (aplicación de autenticación para el
+segundo factor, códigos de recuperación y certificado de la CA interna) se describen en el Manual de usuario,
+capítulo «Antes de empezar».

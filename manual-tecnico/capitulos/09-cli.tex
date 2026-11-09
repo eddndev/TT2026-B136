@@ -1,0 +1,221 @@
+% =====================================================================
+%  09-cli.tex - Command-line reference of the two server binaries
+% =====================================================================
+\chapter{Referencia de la línea de comandos}\label{cap:cli}
+
+El crate \archivo{crates/bin} produce dos binarios. \texttt{despacho-cli}
+reúne el servidor HTTP del despacho, la preparación de la base de datos y las
+operaciones criptográficas fuera de línea. \texttt{qadra-ca} es el servicio
+del operador de la autoridad certificadora. Este capítulo resume sus subcomandos y
+muestra los ejemplos de uso más frecuentes. Los campos de la salida JSON y
+las transcripciones de \texttt{despacho-cli} están en el Anexo~B del reporte
+técnico (\archivo{latex/chapters/anexo-b-cli.tex}). La definición vigente de
+subcomandos y opciones es la del código (\archivo{crates/bin/src/cli.rs},
+\archivo{crates/bin/src/database_args.rs}, \archivo{crates/bin/src/serve_args.rs}
+y \archivo{crates/bin/src/ca/main.rs}) y se consulta con \texttt{--help}.
+
+\section{Convenciones}\label{sec:cli-convenciones}
+
+\begin{itemize}
+  \item \textbf{Ayuda.} \texttt{--help} está disponible en todos los niveles
+    de ambos binarios; \texttt{--version}, solo en el comando raíz de
+    \texttt{despacho-cli}. Desde el código fuente, la ayuda se consulta con
+    \texttt{cargo run --bin despacho-cli -- --help}.
+  \item \textbf{Flujos.} Los resultados se escriben en la salida estándar y
+    los diagnósticos en el flujo de error. El nivel de diagnóstico se ajusta
+    con la variable \texttt{RUST\_LOG}.
+  \item \textbf{Salida para programas.} La bandera global \texttt{--json} hace
+    que cada operación finita de \texttt{despacho-cli} imprima un objeto JSON
+    en lugar de texto. No aplica a \texttt{serve}, que es un proceso
+    persistente, ni a \texttt{vault decrypt} sin \texttt{--out}, que escribe
+    el contenido descifrado.
+  \item \textbf{Entorno.} \texttt{despacho-cli} carga el archivo
+    \archivo{.env} del directorio de trabajo, o de uno superior, cuando
+    existe; la plantilla es
+    \archivo{.env.example}. Las variables se describen en el
+    \cref{cap:configuracion}.
+\end{itemize}
+
+\subsection{Códigos de salida}\label{sec:cli-salida}
+
+\texttt{despacho-cli} termina con código cero cuando la operación concluye y
+con código distinto de cero ante cualquier error. También termina con código
+distinto de cero, de forma deliberada, cuando el resultado criptográfico es un
+rechazo, de modo que un guion pueda bifurcar sin analizar la salida:
+
+\begin{itemize}
+  \item \texttt{verify}: el veredicto es \texttt{not valid}.
+  \item \texttt{package export}: la evidencia no verifica antes de exportarse.
+  \item \texttt{auth verify-password}: la contraseña no coincide.
+  \item \texttt{auth totp verify}: el código es rechazado.
+  \item \texttt{audit verify-chain}: la cadena está rota; se nombra el índice
+    del primer eslabón roto.
+\end{itemize}
+
+No se asignan valores numéricos distintos a cada causa: los guiones deben
+comparar únicamente contra cero. \texttt{qadra-ca} devuelve
+éxito o fallo; si el servicio no puede iniciar, escribe un mensaje genérico en
+el flujo de error, sin detalles de configuración (\cref{cap:problemas}).
+
+\section{Subcomandos de \texttt{despacho-cli}}\label{sec:cli-despacho}
+
+\begin{table}[H]
+  \centering
+  \caption{Árbol de subcomandos de \texttt{despacho-cli}.}\label{tab:cli-despacho}
+  \small
+  \begin{tabularx}{\textwidth}{L{2.9cm} L{4.6cm} Y}
+    \toprule
+    \textbf{Subcomando} & \textbf{Acciones} & \textbf{Propósito} \\
+    \midrule
+    \texttt{serve} & --
+      & Inicia la API HTTP con PostgreSQL, Redis y la TSA local. No ejecuta
+        migraciones. \\
+    \texttt{database}
+      & \archivo{migrate}, \archivo{check}, \archivo{import},
+        \archivo{invalidate-restored-password-resets},
+        \archivo{invalidate-restored-invitations}
+      & Aplica el esquema y los permisos del rol de ejecución, valida la base
+        completa, importa un almacenamiento local anterior y cancela
+        invitaciones o recuperaciones pendientes tras una restauración. \\
+    \texttt{credential-trust} & \texttt{publish}
+      & Publica la raíz y la CRL de confianza para declaraciones internas;
+        requiere conexión administrativa. \\
+    \texttt{pki}
+      & \archivo{init-ca}, \archivo{issue}, \archivo{issue-request},
+        \archivo{revoke}, \archivo{gen-crl}, \archivo{show}
+      & Administra la CA interna mediante los guiones de \archivo{pki/}:
+        raíz, emisión (con llave generada o desde una solicitud PKCS\#10),
+        revocación, CRL e inspección. \\
+    \texttt{crypto} & \texttt{hash}
+      & Imprime el resumen SHA-256 de un archivo. \\
+    \texttt{vault}
+      & \archivo{encrypt}, \archivo{decrypt}, \archivo{rotate-kek}
+      & Cifra y descifra paquetes con AES-256-GCM y rota la llave de cifrado
+        de llaves. \\
+    \texttt{sign} & --
+      & Firma el resumen de un documento y escribe \texttt{<archivo>.sig}. \\
+    \texttt{timestamp} & --
+      & Solicita un sello de tiempo RFC~3161; \texttt{--mock} usa la TSA
+        local. \\
+    \texttt{verify} & --
+      & Reporte de integridad, firma, estado del certificado y sello de
+        tiempo. \\
+    \texttt{package} & \texttt{export}
+      & Construye el paquete de evidencia (ZIP) con sus instrucciones de
+        verificación. \\
+    \texttt{auth}
+      & \archivo{calibrate}, \archivo{hash-password},
+        \archivo{verify-password}, \texttt{totp enroll}, \texttt{totp verify}
+      & Mide el costo de Argon2id en el equipo, genera y verifica hashes de
+        contraseña e inscribe y verifica un segundo factor TOTP. \\
+    \texttt{audit}
+      & \archivo{append}, \archivo{verify-chain}, \archivo{show}
+      & Opera la bitácora encadenada de archivo del flujo fuera de línea. La
+        API usa la cadena almacenada en PostgreSQL. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+\section{Subcomandos de \texttt{qadra-ca}}\label{sec:cli-qadra-ca}
+
+\texttt{qadra-ca} es el servicio del portal de la CA, con credenciales,
+segundo factor y sesiones propias, separadas de las del despacho. Su línea de
+comandos no incluye subcomandos de emisión ni de revocación: en la terminal, esas
+operaciones corresponden a \texttt{despacho-cli pki} y a los guiones de
+\archivo{pki/}. El funcionamiento del portal se describe en el \cref{cap:ca};
+la configuración y operación del servicio, en \archivo{docs/ca/README.md} y
+\archivo{docs/ca/operations.md}.
+
+\begin{table}[H]
+  \centering
+  \caption{Formas de invocación de \texttt{qadra-ca}.}\label{tab:cli-qadra-ca}
+  \begin{tabularx}{\textwidth}{L{6.2cm} Y}
+    \toprule
+    \textbf{Invocación} & \textbf{Propósito} \\
+    \midrule
+    \texttt{qadra-ca -{}-config <CONFIG>}
+      & Ejecuta el servicio del operador con un archivo de configuración
+        privado, legible solo por su dueño. \\
+    \texttt{qadra-ca enroll-operator} \texttt{-{}-setup-config <RUTA>}
+      \texttt{-{}-enrollment-out <RUTA>}
+      & Inscribe al operador inicial de la CA a partir de un archivo de
+        preparación separado. \\
+    \texttt{qadra-ca inspect-public}
+      & Inspecciona material público en JSON recibido por la entrada
+        estándar, sin modificar el estado de la CA. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Ejemplos}\label{sec:cli-ejemplos}
+
+Los comandos de evidencia proceden del Anexo~B del reporte técnico y los de base
+de datos, de \archivo{docs/database-operations.md} y
+\archivo{docs/database-restore-commands.md}. Se omitió el prefijo de ruta del binario, se dividieron
+las líneas largas y las rutas son ilustrativas.
+
+\subsection{Preparar la base de datos e iniciar el servidor}
+\label{sec:cli-ej-servidor}
+
+La secuencia completa (\texttt{database migrate} con la conexión
+administrativa, \texttt{database check} y \texttt{serve} con el rol de
+ejecución) se muestra con sus comandos en las
+\cref{sec:inst-migrar,sec:inst-serve}; las opciones de \texttt{serve} y sus
+valores por defecto, en la \cref{tab:conf-serve}. \texttt{database migrate}
+otorga permisos a un rol de ejecución que debe existir previamente: no crea
+la cuenta ni decide su contraseña. \texttt{database check} valida la base
+completa con el rol de ejecución:
+
+\begin{verbatim}
+despacho-cli database check --json
+\end{verbatim}
+
+\subsection{Firmar, sellar y verificar un documento}
+\label{sec:cli-ej-evidencia}
+
+La secuencia siguiente supone una CA creada con \texttt{pki init-ca}, un
+certificado emitido con \texttt{pki issue --cn "Socia Demo"}, la CRL generada
+con \texttt{pki gen-crl} y la TSA local preparada (\cref{cap:ca}).
+
+\begin{verbatim}
+despacho-cli sign document.txt \
+  --cert pki-ca/certs/socia-demo.crt.pem \
+  --key pki-ca/private/socia-demo.key.pem
+
+despacho-cli timestamp document.txt --mock --pki-dir pki
+
+despacho-cli verify document.txt \
+  --sig document.txt.sig --tsr document.txt.tsr \
+  --cert pki-ca/certs/socia-demo.crt.pem \
+  --ca pki-ca/ca.crt.pem --crl pki-ca/crl/crl.pem
+\end{verbatim}
+
+\texttt{sign} escribe \archivo{document.txt.sig} y \texttt{timestamp},
+\archivo{document.txt.tsr}. \texttt{verify} informa el estado de cuatro
+componentes (\texttt{integrity}, \texttt{signature}, \texttt{certificate} y
+\texttt{timestamp}) y cierra con la línea \texttt{verdict}, cuyo valor es
+\texttt{valid} o \texttt{not valid}.
+
+Un componente sin evidencia aportada se reporta como omitido y no cuenta
+contra el veredicto. Con un sello verificado, el certificado se juzga en el
+instante del sello.
+
+\subsection{Exportar el paquete de evidencia}\label{sec:cli-ej-paquete}
+
+\begin{verbatim}
+despacho-cli package export document.txt \
+  --sig document.txt.sig --tsr document.txt.tsr \
+  --cert pki-ca/certs/socia-demo.crt.pem \
+  --ca pki-ca/ca.crt.pem --crl pki-ca/crl/crl.pem \
+  --tsa-chain pki-tsa/tsa-chain.pem --out evidencia.zip
+\end{verbatim}
+
+Antes de escribir el ZIP, el subcomando ejecuta la misma verificación que
+\texttt{verify} y rehúsa exportar si el veredicto no es válido. La
+verificación independiente del paquete se explica en el
+\cref{cap:verificacion}.
+
+\importante{El paquete es evidencia técnica de un prototipo con CA y TSA
+internas. Un veredicto \texttt{valid} describe la consistencia criptográfica
+de los artefactos frente a esas autoridades; no acredita validez jurídica.}

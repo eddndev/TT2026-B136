@@ -1,0 +1,42 @@
+% =====================================================================
+%  Qadra - Manual tecnico
+%  Trabajo Terminal 2026-B136 - ESCOM / IPN
+%  Standalone document, sibling of manual-usuario/ and separate from the
+%  technical report in latex/.
+%
+%  Build with LuaLaTeX:
+%      latexmk -lualatex -outdir=build main.tex
+% =====================================================================
+\documentclass[12pt,letterpaper,oneside]{report}
+
+\input{preamble}
+
+\begin{document}
+
+\pagenumbering{alph}
+\input{portada}
+
+\pagenumbering{roman}
+\setcounter{tocdepth}{1}
+{\hypersetup{linkcolor=qadranavy}\tableofcontents}
+\cleardoublepage
+\pagenumbering{arabic}
+
+\input{capitulos/01-introduccion}
+\input{capitulos/02-requisitos}
+\input{capitulos/03-arquitectura}
+\input{capitulos/04-instalacion-local}
+\input{capitulos/05-configuracion}
+\input{capitulos/06-despliegue}
+\input{capitulos/07-operacion}
+\input{capitulos/08-autoridad-certificadora}
+\input{capitulos/09-cli}
+\input{capitulos/10-api-http}
+\input{capitulos/11-verificacion-evidencia}
+\input{capitulos/12-mantenimiento}
+\input{capitulos/13-solucion-problemas}
+
+\appendix
+\input{capitulos/ap-a-mapa-documentacion}
+
+\end{document}

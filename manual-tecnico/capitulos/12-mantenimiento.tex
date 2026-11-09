@@ -1,0 +1,278 @@
+\chapter{Mantenimiento y desarrollo}\label{cap:mantenimiento}
+
+Este capítulo orienta a quien modifica el sistema: dónde está cada cosa, qué
+reglas debe cumplir un cambio, cómo se verifica antes de integrarlo y qué
+comprueba la integración continua. Las reglas completas están en
+\archivo{CONTRIBUTING.md} y \archivo{AGENTS.md}; ambos archivos contienen las
+mismas normas y deben mantenerse consistentes.
+
+\section{Estructura del repositorio}\label{sec:mant-estructura}
+
+\begin{table}[H]
+  \centering
+  \caption{Directorios y archivos principales del repositorio.}\label{tab:mant-estructura}
+  \begin{tabularx}{\textwidth}{L{4.4cm} Y}
+    \toprule
+    \textbf{Ruta} & \textbf{Contenido} \\
+    \midrule
+    \archivo{crates/}
+      & Espacio de trabajo de Rust. \archivo{crates/bin/} es la raíz de
+        composición y produce \texttt{despacho-cli} y \texttt{qadra-ca}. \\
+    \archivo{migrations/}
+      & Migraciones SQL de PostgreSQL, numeradas \texttt{NNNN\_nombre.sql}. \\
+    \archivo{web/}
+      & Espacio de trabajo npm: \archivo{apps/qadra} (interfaz del despacho),
+        \archivo{apps/ca} (portal de la CA) y \archivo{packages/ui}. \\
+    \archivo{pki/}
+      & Guiones y configuración de OpenSSL para la CA y la TSA internas. \\
+    \archivo{ops/}
+      & Automatización en Python del despliegue y de la operación de la CA. \\
+    \archivo{scripts/}
+      & Construcción de módulos WASM y de la versión, demostraciones,
+        utilidades de CI y sus pruebas (\archivo{scripts/tests/}). \\
+    \archivo{docs/}
+      & Documentación técnica (índice en \archivo{docs/README.md}) y
+        decisiones de arquitectura en \archivo{docs/adr/}. \\
+    \archivo{latex/}, \archivo{manual-usuario/}, \archivo{manual-tecnico/}
+      & Fuentes del reporte técnico y de los dos manuales. \\
+    \archivo{.github/workflows/}
+      & Flujos de integración continua y de despliegue. \\
+    \archivo{Cargo.toml}, \archivo{deny.toml}
+      & Manifiesto del espacio de trabajo y política de dependencias. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El grafo de crates impone la dirección de dependencias descrita en el
+\cref{cap:arquitectura}; un cambio que agregue una dependencia en sentido
+contrario no se integra.
+
+\section{Reglas de contribución}\label{sec:mant-reglas}
+
+\begin{itemize}
+  \item \textbf{Solo ASCII} en código, comentarios, identificadores, nombres
+    de archivo, configuración y mensajes de \emph{commit}. La prosa en
+    Markdown y \LaTeX{} está exenta.
+  \item \textbf{Archivos de menos de 400 líneas} de código en Rust, guiones y
+    configuración con lógica. El módulo se divide antes de superar el límite.
+  \item \textbf{Desarrollo guiado por pruebas}: primero la prueba que falla y
+    después el código, ambos en el mismo cambio.
+  \item \textbf{Comentarios autocontenidos}: no se citan planes, fases,
+    tiques ni conversaciones. La justificación de una decisión se escribe en
+    un registro de decisión de arquitectura (ADR) y se cita por su ruta.
+  \item \textbf{La documentación viaja con el cambio}: el mismo
+    \emph{pull request} actualiza \archivo{docs/http-api.md} y
+    \archivo{docs/database-operations.md} cuando cambian rutas, permisos,
+    migraciones u operación.
+\end{itemize}
+
+Los mensajes de \emph{commit} siguen \emph{Conventional Commits}
+(\texttt{type(scope): summary}), con el resumen en imperativo, en minúsculas
+y sin punto final. Los tipos admitidos son \texttt{feat}, \texttt{fix}, \texttt{docs},
+\texttt{style}, \texttt{refactor}, \texttt{perf}, \texttt{test},
+\texttt{build}, \texttt{ci}, \texttt{chore} y \texttt{revert}. Cada
+\emph{commit} contiene un solo cambio lógico y se prepara indicando rutas
+explícitas; no se usa \texttt{git add -A} ni \texttt{git add .}. No se trabaja
+sobre \texttt{main}: las ramas se llaman \texttt{feat/<descripción>}
+(implementación) o \texttt{progress/<descripción>} (documentación y
+coordinación) y se integran mediante \emph{pull request} con
+\emph{squash merge}.
+
+Los registros de decisión (ADR) están en \archivo{docs/adr/} con el nombre
+\texttt{NNNN-titulo-corto.md} y las secciones Contexto, Decisión, Estado y
+Consecuencias. Cuando una decisión cambia, se conserva el registro anterior y
+el nuevo identifica al que sustituye o enmienda.
+
+\section{Verificación local antes de integrar}\label{sec:mant-verificacion}
+
+Se ejecuta una sola campaña de verificación a la vez: no se solapan
+compilaciones, pruebas, cobertura ni compilación de documentos. Si
+\archivo{/tmp} es un sistema de archivos en memoria, el entorno se prepara
+desde la raíz del repositorio:
+
+\begin{verbatim}
+mkdir -p output/tmp
+chmod 700 output/tmp
+export TMPDIR="$PWD/output/tmp"
+export CARGO_BUILD_JOBS=1
+export RUST_TEST_THREADS=1
+\end{verbatim}
+
+\subsection{Rust}\label{sec:mant-rust}
+
+Las pruebas nativas de formatos documentales requieren Linux x86\_64 y la
+biblioteca qpdf fijada, que se prepara antes de las pruebas. El cierre de una
+entrega exige estas comprobaciones:
+
+\begin{verbatim}
+export TT_TEST_QPDF_LIBRARY="$(bash scripts/setup-document-formats.sh)"
+cargo fmt --all
+cargo build --workspace
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+cargo deny check
+\end{verbatim}
+
+\texttt{cargo deny check} aplica \archivo{deny.toml} (avisos de seguridad,
+licencias, dependencias prohibidas y orígenes) y requiere tener instalado
+\texttt{cargo-deny}. La versión mínima de Rust (1.88) se declara en
+\archivo{Cargo.toml} y no se fija una cadena de herramientas local; la
+integración continua ejecuta \texttt{clippy} con la versión estable vigente.
+
+\importante{Las pruebas de los adaptadores de PostgreSQL y Redis terminan sin
+ejecutarse cuando faltan sus variables de entorno
+(\texttt{IDENTITY\_TEST\_DATABASE\_URL}, \texttt{IDENTITY\_TEST\_REDIS\_URL},
+\texttt{CASE\_TEST\_DATABASE\_URL} y \texttt{DOCUMENT\_TEST\_DATABASE\_URL}).
+Un resultado en verde de \texttt{cargo test} no prueba que se ejercitaron.
+Para ejecutarlas use \texttt{bash scripts/test-backends.sh}, que crea bases de
+datos aisladas y un Redis desechable y corre la suite completa.}
+
+\subsection{Interfaz web y pruebas de navegador}\label{sec:mant-web}
+
+Los dos módulos WASM se generan una vez desde la raíz y de nuevo cuando
+cambian sus fuentes en Rust; sin ellos, \texttt{npm run dev} y
+\texttt{npm run build} se detienen.
+
+\begin{verbatim}
+bash scripts/build-browser-crypto.sh
+bash scripts/build-evidence-verify.sh
+cd web
+npm ci
+npm run format:check
+npm test
+npm run test:ca
+npm run build
+npx playwright install chromium
+npm run test:e2e -- --workers=1
+\end{verbatim}
+
+\texttt{npm test} y \texttt{npm run test:ca} ejecutan las pruebas unitarias
+de Node de cada portal; \texttt{npm run test:e2e}, las de navegador con
+servicios simulados (Playwright). Las pruebas de navegador contra servicios
+reales y desechables (servidor Rust, PostgreSQL, Redis y TSA local) se lanzan
+desde la raíz con \texttt{bash scripts/web-demo.sh}. Para cambios en la CLI se
+ejecuta además \texttt{bash scripts/demo.sh} y, para cambios en el flujo HTTP
+integrado, \texttt{bash scripts/api-demo.sh}.
+
+\section{Integración continua}\label{sec:mant-ci}
+
+Los flujos de \archivo{.github/workflows/} se ejecutan en \emph{runners}
+propios del repositorio; su preparación está en
+\archivo{docs/ci-runner-operations.md}. Cuando una comprobación falla, se
+cancelan los trabajos restantes de la misma revisión.
+
+\begin{table}[H]
+  \centering
+  \caption{Flujos de integración continua.}\label{tab:mant-flujos}
+  \begin{tabularx}{\textwidth}{L{2.7cm} L{4.3cm} Y}
+    \toprule
+    \textbf{Flujo} & \textbf{Cuándo se ejecuta} & \textbf{Qué comprueba} \\
+    \midrule
+    \archivo{ci.yml} (CI)
+      & \emph{Pull requests} que tocan algo fuera de \archivo{web/}, cada
+        \emph{push} a \texttt{main}, una vez cada noche y a petición.
+      & Formato, \texttt{clippy} sin avisos, pruebas de Rust y de los
+        guiones, respaldo de despliegue, compilación con Rust 1.88,
+        \texttt{cargo deny check}, tamaño del binario \texttt{despacho-cli}
+        (máximo 25~MB) y cobertura. \\
+    \archivo{web.yml} (Web)
+      & \emph{Pull requests} y \emph{push} a \texttt{main} que tocan
+        \archivo{web/}, \archivo{crates/}, \archivo{migrations/},
+        \archivo{pki/} o los guiones que usa el flujo.
+      & Módulos WASM, formato, pruebas unitarias, compilación, pruebas de
+        navegador simuladas (dos particiones) y con servicios reales (tres
+        particiones). \\
+    \archivo{documents.yml} (Documents)
+      & Cambios en \archivo{latex/}, publicación de una versión y a
+        petición.
+      & Compila el reporte con \texttt{make -B -C latex}, lo conserva como
+        artefacto \texttt{report-pdf} y, en una versión publicada, lo adjunta
+        con su \texttt{SHA256SUMS}. \\
+    \archivo{deploy.yml} (Deploy version)
+      & Etiquetas \texttt{v*} y a petición.
+      & Reutiliza o repite las comprobaciones de CI y Web para el
+        \emph{commit}, empaqueta con \archivo{scripts/build-release.sh} y,
+        solo ante una etiqueta, despliega (\cref{cap:despliegue}). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\archivo{docs/adr/0088-ci-time-budget.md} fija un presupuesto de diez minutos
+por campaña de \emph{pull request}. Por ello, un \emph{pull request} que solo
+cambia \archivo{web/} no ejecuta CI, y el \emph{push} a \texttt{main} de un
+árbol ya probado en su \emph{pull request} reutiliza ese resultado en lugar de
+repetir las suites.
+
+\subsection{Cobertura nocturna y umbral}\label{sec:mant-cobertura}
+
+En el \emph{runner} dedicado, las pruebas de Rust de \emph{pull requests} y de
+\texttt{main} se ejecutan sin instrumentación. La cobertura se mide cada noche
+sobre \texttt{main} y cuando se lanza CI a mano con la entrada
+\texttt{coverage} activada. \archivo{scripts/coverage-gate.sh} exige al menos
+\textbf{90\,\%} de líneas cubiertas en cada uno de los crates \texttt{domain}, \texttt{application} e
+\texttt{infrastructure}. El crate \texttt{bin} se informa, pero no tiene
+umbral.
+
+\importante{La cobertura no bloquea la integración ni el despliegue: una
+caída por debajo del umbral aparece en la siguiente ejecución nocturna. Si un
+\emph{pull request} elimina pruebas, lance CI con \texttt{coverage} activada
+antes de integrarlo.}
+
+\section{Cómo agregar una migración}\label{sec:mant-migracion}
+
+Las migraciones no se leen del disco al ejecutar: el binario las incorpora al
+compilar y las aplica en un orden fijo. Agregar una requiere cambios en SQL y
+en Rust.
+
+\begin{enumerate}
+  \item Escriba primero la prueba que falla para el comportamiento nuevo.
+  \item Cree \archivo{migrations/NNNN_nombre.sql} con el siguiente número
+    libre. Los archivos de una misma entrega comparten número y se
+    distinguen por el nombre, como \archivo{0052_contracts.sql} y
+    \archivo{0052_contract_events.sql}.
+  \item Registre el archivo con \texttt{include\_str!} en la constante
+    \texttt{MIGRATIONS} del módulo de esquema correspondiente en
+    \archivo{crates/infrastructure/src/}, por ejemplo
+    \archivo{contract_schema/mod.rs}. Si el módulo es nuevo, agregue su
+    recorrido en \archivo{crates/infrastructure/src/postgres.rs}, que fija
+    el orden de aplicación.
+  \item Actualice en ese módulo la validación del catálogo
+    (\texttt{validate\_schema}) y los permisos del rol operativo
+    (\texttt{grant\_runtime} y \texttt{validate\_runtime}, en
+    \archivo{contract_schema/permissions.rs} para el ejemplo). El servidor
+    valida el esquema al arrancar y rechaza uno incompleto o alterado.
+  \item Ejecute \texttt{bash scripts/test-backends.sh} y aplique la
+    migración en una base de datos de prueba con una
+    \texttt{DATABASE\_URL} administrativa:
+\begin{verbatim}
+cargo build --workspace
+target/debug/despacho-cli database migrate \
+  --runtime-role tt_runtime
+\end{verbatim}
+  \item Documente el cambio y su procedimiento de aplicación en
+    \archivo{docs/database-operations.md}.
+\end{enumerate}
+
+En el ejemplo, \texttt{tt\_runtime} es el nombre del rol operativo de
+PostgreSQL; el comando no crea usuarios. La aplicación de una migración en un
+entorno desplegado, con escritores detenidos y respaldo previo, se describe
+en los \cref{cap:despliegue,cap:operacion}.
+
+\section{Compilación de los documentos}\label{sec:mant-documentos}
+
+Los tres documentos se compilan con LuaLaTeX y requieren TeX Live con las
+fuentes Times New Roman y DejaVu Sans Mono. El reporte necesita además
+\texttt{biber} y \texttt{makeglossaries}. Los PDF generados no se versionan.
+
+\begin{verbatim}
+make -C latex                 # reporte: latex/main.pdf
+cd manual-usuario             # o manual-tecnico
+latexmk -lualatex -outdir=build main.tex    # build/main.pdf
+\end{verbatim}
+
+Los detalles están en \archivo{latex/README.md},
+\archivo{manual-usuario/README.md} y \archivo{manual-tecnico/README.md}. El flujo
+Documents solo compila y publica el reporte: los dos manuales se compilan en
+local. Después de compilar, revise en el PDF la paginación, las referencias
+sin resolver y los glifos faltantes; las comprobaciones del reporte se
+registran en \archivo{docs/academic-report-verification.md}.

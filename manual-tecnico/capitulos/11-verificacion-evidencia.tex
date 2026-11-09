@@ -1,0 +1,199 @@
+\chapter{Verificación independiente de evidencia}\label{cap:verificacion}
+
+Cada versión sellada o firmada de un documento puede exportarse como un
+paquete de evidencia: un archivo ZIP que reúne el documento y el material
+público necesario para comprobarlo. Este capítulo describe su contenido y
+las tres vías para verificarlo. La explicación paso a paso, con salidas de
+referencia, está en el Anexo~C del reporte técnico (\emph{Guía de
+verificación independiente con OpenSSL},
+\archivo{latex/chapters/anexo-c-verificacion.tex}); el procedimiento para
+quien recibe el paquete está en el Manual de usuario, capítulos
+\emph{Validar evidencia} y \emph{Verificación independiente sin cuenta}.
+
+\importante{Un resultado correcto demuestra integridad y correspondencia
+técnica dentro de la confianza del prototipo, cuya CA y TSA son internas.
+No acredita identidad civil ni sustituye la constancia de un prestador de
+servicios de certificación autorizado. Incluir una raíz en el ZIP no la
+vuelve confiable: su autenticidad debe confirmarse por un canal
+independiente.}
+
+\section{Contenido del paquete}\label{sec:ver-contenido}
+
+El paquete es un ZIP de entradas planas, sin directorios y sin compresión
+(método almacenado), con salida determinista y nombres restringidos a un
+subconjunto ASCII. El formato se justifica en
+\archivo{docs/adr/0006-evidence-package-format.md}. Por ello el validador
+del navegador solo admite el archivo tal como se exportó: un ZIP
+descomprimido y vuelto a comprimir deja de reconocerse. El paquete se
+obtiene con \texttt{despacho-cli package export} (\cref{cap:cli}) o con la
+descarga autorizada por expediente
+\texttt{GET /api/v1/cases/\{case\_id\}/documents/\{document\_id\}/evidence}
+(\cref{cap:api}).
+
+\begin{table}[H]
+  \centering
+  \caption{Entradas del paquete de sellado del servidor.}
+  \label{tab:ver-contenido}
+  \begin{tabularx}{\textwidth}{L{4.3cm} Y}
+    \toprule
+    \textbf{Entrada} & \textbf{Contenido} \\
+    \midrule
+    \texttt{<documento>} & Documento original, byte a byte. \\
+    \texttt{<documento>.sig} & Firma separada RSA PKCS\#1 v1.5 sobre
+      SHA-256. \\
+    \texttt{<documento>.tsr} & Sello de tiempo RFC~3161 sobre el resumen
+      SHA-256 del documento. \\
+    \texttt{certificado.pem} & Certificado X.509 del firmante. \\
+    \texttt{ca.pem} & Certificado de la autoridad emisora. \\
+    \texttt{crl.pem} & Lista de revocación capturada con la evidencia;
+      exportar no la renueva. \\
+    \texttt{tsa-chain.pem} & Cadena de la autoridad de sellado, cuando
+      estaba disponible. En su ausencia el ancla del sello es
+      \texttt{ca.pem}. \\
+    \texttt{INSTRUCCIONES.md} & Instructivo con los comandos ya
+      instanciados para ese paquete. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El paquete de una \textbf{firma documental individual} conserva esos
+nombres (la firma y el certificado pertenecen al titular) y agrega
+\texttt{certificate-binding.bin} y \texttt{.sig} (vínculo entre
+certificado y cuenta), \texttt{binding-root.der} y
+\texttt{binding-crl.der} (confianza capturada al registrar el vínculo),
+\texttt{document-consent.bin} y \texttt{.sig} (consentimiento sobre la
+versión exacta) e \texttt{individual-signing.json} (metadatos públicos de
+lectura). Cuando la aceptación selló un manifiesto, siguen cuatro entradas:
+
+\begin{itemize}
+  \item \texttt{manifiesto.json}: JSON canónico (RFC~8785) que enumera
+        cada archivo cubierto con su función, tamaño y huella SHA-256.
+  \item \texttt{manifiesto.json.tsr}: sello RFC~3161 sobre la huella del
+        manifiesto.
+  \item \texttt{tsa-crl.pem}: lista de revocación del emisor del
+        certificado de la TSA, capturada al obtener ese sello.
+  \item \texttt{recibo-aceptacion.json}: repite la huella del manifiesto
+        y el instante de aceptación registrado por la aplicación.
+\end{itemize}
+
+Ningún sello cubre el recibo, \texttt{individual-signing.json} ni el
+instructivo, y el manifiesto no los enumera. El orden exacto de las
+entradas consta en \archivo{docs/http-api.md}; el formato del manifiesto,
+en \archivo{docs/adr/0085-in-browser-evidence-validation.md}. Los
+contratos bilaterales exportan su propio paquete, con un instructivo
+generado desde
+\archivo{crates/application/src/contracts/INSTRUCCIONES-CONTRATO.template.md}.
+
+\section{Vías de verificación}\label{sec:ver-vias}
+
+\begin{table}[H]
+  \centering
+  \caption{Vías para verificar la evidencia y de qué depende cada una.}
+  \label{tab:ver-vias}
+  \begin{tabularx}{\textwidth}{L{3.1cm} Y Y}
+    \toprule
+    \textbf{Vía} & \textbf{Qué hace} & \textbf{De qué depende} \\
+    \midrule
+    En la aplicación
+      & El servidor verifica la versión almacenada y reporta integridad,
+        firma, certificado y revocación, y sello de tiempo
+        (\texttt{POST .../verify}).
+      & Sesión con acceso al expediente y el servidor en operación. \\
+    Validador del navegador
+      & Procesa el ZIP en el equipo del usuario, sin enviarlo al
+        servidor, y entrega un resultado global (\emph{Completo},
+        \emph{Parcial}, \emph{Fallido} o \emph{No compatible}) y uno por
+        componente.
+      & Sesión en Qadra y confianza en el programa entregado al
+        navegador; las raíces vienen fijas en la versión publicada. \\
+    OpenSSL
+      & Cuatro comprobaciones con herramientas de terceros.
+      & Solo el ZIP, \texttt{unzip} y \texttt{openssl}; sin red ni
+        software del proyecto. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+El validador del navegador ejecuta el código de
+\archivo{crates/evidence-verify}, compilado a WebAssembly mediante
+\archivo{crates/evidence-verify-wasm} y
+\archivo{scripts/build-evidence-verify.sh}. Consulta
+\texttt{GET /api/v1/evidence/trust} únicamente para contrastar las raíces
+que admite el servidor con las fijas; una raíz que el servidor devuelve
+sin estar en esa lista deja el resultado en \emph{Parcial}. Como aplica
+perfiles estrictos, su veredicto sobre un paquete histórico puede diferir
+del que dio el servidor.
+
+\section{Secuencia mínima con OpenSSL}\label{sec:ver-openssl}
+
+La versión de referencia es OpenSSL~3.5.7; el instructivo de cada paquete
+cita la versión de la máquina que lo exportó. Los comandos se ejecutan
+dentro del directorio extraído. En los ejemplos el documento se llama
+\texttt{document.txt}, como en la ejecución de referencia del Anexo~C;
+sustitúyalo por el nombre real.
+
+\begin{verbatim}
+unzip -o evidencia.zip -d evidencia
+cd evidencia
+
+# 1. Integridad: comparar con el resumen de INSTRUCCIONES.md
+openssl dgst -sha256 document.txt
+
+# 2. Firma: debe responder "Verified OK"
+openssl x509 -in certificado.pem -pubkey -noout > firmante.pub.pem
+openssl dgst -sha256 -verify firmante.pub.pem \
+    -signature document.txt.sig document.txt
+
+# 3. Certificado y revocación: "certificado.pem: OK"
+cat ca.pem crl.pem > ca-y-crl.pem
+openssl verify -crl_check -CAfile ca-y-crl.pem certificado.pem
+
+# 4. Sello de tiempo: "Verification: OK"
+openssl ts -verify -data document.txt -in document.txt.tsr \
+    -CAfile tsa-chain.pem
+\end{verbatim}
+
+Si el paquete no trae \texttt{tsa-chain.pem}, el paso~4 usa
+\texttt{-CAfile ca.pem}. Para leer el instante aseverado por la TSA
+(\texttt{genTime}) y el resumen que cubre el sello:
+
+\begin{verbatim}
+openssl ts -reply -in document.txt.tsr -text
+\end{verbatim}
+
+Alterar un byte del documento hace fallar los pasos 1, 2 y 4; el paso~3 no
+depende del contenido. La suite fija este comportamiento en
+\archivo{crates/bin/tests/package_cli.rs}.
+
+\section{Verificación histórica}\label{sec:ver-historica}
+
+La CRL del paquete es la capturada con la evidencia y tiene fecha de
+caducidad. \texttt{openssl verify} evalúa por defecto en la fecha de
+ejecución, de modo que el paso~3 puede rechazar una lista que ya superó
+su próxima actualización aunque la firma se haya producido con el
+certificado vigente. Primero consulte la ventana de la lista:
+
+\begin{verbatim}
+openssl crl -in crl.pem -noout -lastupdate -nextupdate
+\end{verbatim}
+
+Si la lista ya venció, repita la comprobación en el instante de la firma,
+expresado en segundos Unix, con la opción \texttt{-attime}:
+
+\begin{verbatim}
+openssl verify -attime <segundos-unix> -crl_check \
+    -CAfile ca-y-crl.pem certificado.pem
+\end{verbatim}
+
+En el sellado del servidor, el instante de referencia es el
+\texttt{genTime} del sello verificado en el paso~4. En la firma
+individual, el instructivo del paquete ya trae los comandos con sus dos
+instantes (registro del vínculo y aceptación), que son capturas auditadas
+de la aplicación y no instantes autenticados por una TSA; si hay
+manifiesto, añade la verificación de su sello y de \texttt{tsa-crl.pem}.
+
+\nota{Registre el instante y la política con que evaluó. La verificación
+histórica reproduce el estado capturado; el estado actual del certificado
+se consulta por separado, con una lista vigente solicitada a la autoridad
+emisora (\cref{cap:ca}). La cadena de la TSA se evalúa con la política
+vigente de OpenSSL y puede rechazarse si su certificado expiró.}

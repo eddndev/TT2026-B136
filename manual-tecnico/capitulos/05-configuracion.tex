@@ -1,0 +1,288 @@
+\chapter{Configuración}\label{cap:configuracion}
+
+Qadra se configura por tres vías: variables de entorno, opciones del
+subcomando \archivo{serve} y archivos de material criptográfico que esas
+opciones señalan. No existe un archivo de configuración propio de la
+aplicación. Este capítulo resume cada vía; la instalación local se describe en
+el \cref{cap:instalacion} y el despliegue en el \cref{cap:despliegue}.
+
+\section{Origen de los valores}\label{sec:conf-origen}
+
+El binario \archivo{despacho-cli} lee las variables del entorno del proceso y,
+si existe, de un archivo \archivo{.env} situado en el directorio de trabajo o
+en uno de sus ascendentes.
+La plantilla versionada es \archivo{.env.example}; su preparación para un
+entorno local se muestra en la \cref{sec:inst-env}.
+
+Varias opciones de \archivo{serve} aceptan indistintamente un argumento o una
+variable de entorno. Las credenciales (cadenas de conexión, KEK y clave del
+proveedor de correo) se leen únicamente del entorno y nunca se pasan como
+argumentos.
+
+\section{Variables de entorno}\label{sec:conf-variables}
+
+La \cref{tab:conf-variables} indica para cada variable su propósito, si es
+obligatoria y un valor de ejemplo sin secretos. \enquote{Sí} se refiere al
+arranque de \archivo{serve}; las demás son opcionales o pertenecen a otro
+comando.
+
+{\small
+\begin{longtable}{L{4.3cm} L{5.9cm} L{0.9cm} L{3.9cm}}
+  \caption{Variables de entorno.}\label{tab:conf-variables} \\
+  \toprule
+  \textbf{Variable} & \textbf{Propósito} & \textbf{Req.} & \textbf{Ejemplo} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Variable} & \textbf{Propósito} & \textbf{Req.} & \textbf{Ejemplo} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endlastfoot
+  \multicolumn{4}{l}{\textbf{Base de datos, Redis y diagnóstico}} \\*
+  \archivo{DATABASE_URL}
+    & Conexión a PostgreSQL. \archivo{serve} y \texttt{database check}
+      exigen un rol restringido; los demás comandos \archivo{database}, uno
+      administrativo.
+    & Sí
+    & \archivo{postgres://despacho:CAMBIAR@localhost:5432/despacho} \\
+  \archivo{REDIS_URL}
+    & Conexión a Redis: sesiones revocables, desafíos y límites de
+      autenticación.
+    & Sí
+    & \archivo{redis://localhost:6379/} \\
+  \archivo{RUST_LOG}
+    & Nivel de diagnóstico, de \archivo{error} a \archivo{trace}; la salida
+      va a \archivo{stderr}.
+    & No
+    & \archivo{info} \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Almacén cifrado y claves}} \\*
+  \archivo{KEK_BASE64}
+    & Llave de cifrado de llaves: 32 bytes aleatorios en base64. Envuelve las
+      llaves de datos del contenido cifrado.
+    & Sí
+    & Salida de \texttt{openssl rand -base64 32} \\
+  \archivo{NEW_KEK_BASE64}
+    & Llave de reemplazo; la lee solo \texttt{vault rotate-kek}.
+    & No
+    & Mismo formato \\
+  \archivo{AUDIT_LOG_PATH}
+    & Bitácora de archivo de los comandos \archivo{audit} del flujo sin
+      servidor. La API audita en PostgreSQL.
+    & No
+    & \archivo{audit-log.jsonl} \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{PKI, sellado de tiempo y validación de formatos}} \\*
+  \archivo{PKI_CA_DIR}
+    & Directorio de trabajo de la CA interna para los comandos \archivo{pki}.
+      Contiene llaves privadas.
+    & No
+    & \archivo{pki-ca} (por defecto) \\
+  \archivo{TSA_DIR}
+    & Directorio de trabajo de la TSA local para el comando
+      \archivo{timestamp}.
+    & No
+    & \archivo{pki-tsa} (por defecto) \\
+  \archivo{CINCEL_BASE_URL}, \archivo{CINCEL_API_KEY}
+    & Proveedor externo de sellos de tiempo, usado solo por
+      \archivo{timestamp} sin \archivo{--mock}. \archivo{serve} no lo consulta.
+    & No
+    & Vacías \\
+  \archivo{DOCUMENT_QPDF_LIBRARY}
+    & Biblioteca qpdf fijada para validar PDF; equivale a
+      \archivo{--qpdf-library}, y una de las dos es obligatoria.
+    & Sí
+    & Ruta de la biblioteca \\
+  \archivo{TT_FFPROBE_PATH}, \archivo{TT_FFMPEG_PATH}
+    & Ejecutables multimedia verificados; equivalen a
+      \archivo{--ffprobe-path} y \archivo{--ffmpeg-path}.
+    & No
+    & \archivo{/opt/tt-media/bin/ffprobe}, \archivo{/opt/tt-media/bin/ffmpeg} \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Correo saliente}} \\*
+  \archivo{RESEND_API_KEY}
+    & Clave del proveedor de correo, común a todos los canales. Solo se lee
+      del entorno y por sí sola no habilita ningún envío.
+    & No
+    & Secreto \\
+  \archivo{INVITATION_EMAIL_FROM}, \archivo{INVITATION_PUBLIC_URL}
+    & Remitente y origen HTTPS público de los enlaces de invitación.
+    & No
+    & \archivo{avisos@despacho.example}, \archivo{https://qadra.example/} \\
+  \archivo{REPORT_EMAIL_FROM}, \archivo{REPORT_PUBLIC_URL}
+    & Remitente y origen público de los avisos de reporte listo y de
+      contratos.
+    & No
+    & Mismos formatos \\
+  \archivo{ALERT_EMAIL_FROM}, \archivo{ALERT_LOGIN_URL}
+    & Remitente y URL de acceso de los correos de alertas; se definen
+      ambas junto con la clave del proveedor o ninguna; un conjunto parcial
+      impide el arranque.
+    & No
+    & \archivo{https://qadra.example/login} \\
+  \midrule
+  \multicolumn{4}{l}{\textbf{Sesiones y proxy}} \\*
+  \archivo{TT_SESSION_IDLE_SECONDS}
+    & Expiración por inactividad, de 1 a 86400 segundos. Si se omite, solo
+      rige el límite absoluto de 24 horas.
+    & No
+    & \archivo{1800} \\
+  \archivo{TT_AUDIT_TRUST_LOOPBACK_PROXY}
+    & Con \archivo{true}, la auditoría de accesos toma la IP de
+      \archivo{X-Forwarded-For} si el par es \textit{loopback}; si no,
+      registra la IP del socket.
+    & No
+    & \archivo{true} tras un proxy inverso local \\
+\end{longtable}
+}
+
+En \archivo{serve}, las rutas de la CA, la CRL y la TSA no se toman de
+\archivo{PKI_CA_DIR} ni de \archivo{TSA_DIR}, sino de las opciones de la
+\cref{tab:conf-serve}. La preparación de qpdf y de los ejecutables multimedia
+se documenta en \archivo{docs/document-format-operations.md} y
+\archivo{docs/media-decoder-setup.md}. Las variables de correo solo se exigen
+cuando su función está habilitada (\cref{sec:conf-banderas}).
+
+La interfaz Qadra lee además dos variables al construirse o al servirse en
+desarrollo (\archivo{web/apps/qadra/astro.config.mjs}):
+\archivo{API_PROXY_TARGET}, destino de \archivo{/api} (\cref{sec:inst-web}),
+y \archivo{QADRA_PINNED_ROOTS}, raíces de confianza del validador
+(\cref{sec:ca-raices}). La API no define una lista de orígenes permitidos: la
+interfaz y la API se publican bajo un mismo origen y un proxy inverso encamina
+\archivo{/api} hacia la dirección de \archivo{--bind}.
+
+\section{Opciones del subcomando serve}\label{sec:conf-serve}
+
+El subcomando \archivo{serve} inicia la API HTTP. Sus únicas opciones
+obligatorias son el certificado y la llave del firmante y la biblioteca qpdf,
+que también puede indicarse con \archivo{DOCUMENT_QPDF_LIBRARY}. La
+\cref{tab:conf-serve} reúne las principales.
+
+\begin{table}[htbp]
+  \centering\small
+  \caption{Opciones principales de \texttt{serve}.}\label{tab:conf-serve}
+  \begin{tabularx}{\textwidth}{L{5.0cm} Y L{3.9cm}}
+    \toprule
+    \textbf{Opción} & \textbf{Uso} & \textbf{Valor por defecto} \\
+    \midrule
+    \archivo{--bind}
+      & Dirección TCP de escucha.
+      & \archivo{127.0.0.1:3000} \\
+    \archivo{--signer-cert}, \archivo{--signer-key}
+      & Certificado PEM y llave privada con que el servidor firma resúmenes
+        de documentos.
+      & Obligatorias \\
+    \archivo{--ca-cert}
+      & Certificado PEM de la CA interna.
+      & \archivo{pki-ca/ca.crt.pem} \\
+    \archivo{--crl}
+      & Lista de revocación vigente en PEM.
+      & \archivo{pki-ca/crl/crl.pem} \\
+    \archivo{--tsa-config}, \archivo{--tsa-dir}
+      & Configuración OpenSSL y directorio de trabajo de la TSA local.
+      & \archivo{pki/tsa.cnf}, \archivo{pki-tsa} \\
+    \archivo{--data-dir}
+      & Almacenamiento local anterior cuya importación se comprueba al
+        arrancar; no es el destino de documentos nuevos.
+      & \archivo{runtime-data} \\
+    \archivo{--max-in-flight-requests}
+      & Peticiones admitidas simultáneamente; sin capacidad, la API responde
+        \texttt{503 server\_busy}.
+      & 8 \\
+    \archivo{--max-blocking-operations}
+      & Operaciones bloqueantes concurrentes (por ejemplo, Argon2id).
+      & 2 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\importante{\archivo{serve} no ejecuta migraciones ni configura TLS. El
+esquema se prepara antes con \texttt{database migrate} y la conexión de
+\archivo{DATABASE_URL} debe corresponder a un rol sin privilegios
+administrativos; de lo contrario el arranque se rechaza. Aumentar los límites
+de concurrencia exige medir antes memoria y carga.}
+
+Los procesos de plazos y de alertas admiten además opciones de tamaño de
+ciclo y de pausa, con valores por defecto de 20 elementos y 1000 milisegundos:
+\mbox{\texttt{-{}-deadline-page-limit}}, \mbox{\texttt{-{}-deadline-poll-ms}},
+\mbox{\texttt{-{}-alert-page-limit}} y \mbox{\texttt{-{}-alert-poll-ms}}.
+
+\section{Funciones opcionales}\label{sec:conf-banderas}
+
+Las funciones que envían correo o abren una ruta pública adicional están
+deshabilitadas por defecto y se activan de forma independiente
+(\cref{tab:conf-banderas}). Una
+configuración incompleta o inválida de una función activada impide el
+arranque de \archivo{serve}.
+
+\begin{table}[H]
+  \centering\small
+  \caption{Banderas de funciones.}\label{tab:conf-banderas}
+  \begin{tabularx}{\textwidth}{L{4.9cm} Y L{4.4cm}}
+    \toprule
+    \textbf{Bandera} & \textbf{Función y requisitos} & \textbf{Referencia} \\
+    \midrule
+    \archivo{TT_INVITATIONS_ENABLED}
+      & Invitaciones de miembros por correo. Requiere remitente, origen
+        público y clave del proveedor.
+      & \archivo{docs/member-invitations-api.md} \\
+    \archivo{TT_PASSWORD_RESET_ENABLED}
+      & Recuperación de contraseña. Requiere todas las variables
+        \archivo{TT_PASSWORD_RESET_*} (remitente, origen, vigencia, cuotas y
+        tiempos de espera) y la clave del proveedor.
+      & \archivo{docs/password-reset-public.md} \\
+    \archivo{TT_OWNER_LOGIN_ENABLED}
+      & Inicio de sesión del Administrador con certificado como primer
+        factor; no sustituye al segundo factor. Requiere todas las cuotas y
+        tiempos \archivo{TT_OWNER_LOGIN_*}.
+      & \archivo{docs/owner-certificate-login-operations.md} \\
+    \archivo{TT_REPORT_EMAIL_ENABLED}
+      & Aviso por correo cuando un reporte de expediente está listo.
+      & \archivo{docs/database-operations.md} \\
+    \archivo{TT_CONTRACT_EMAIL_ENABLED}
+      & Avisos por correo de contratos bilaterales. Deshabilitada, los
+        avisos se guardan y se muestran dentro de Qadra.
+      & \archivo{docs/database-operations.md} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las tres primeras banderas tienen además una opción equivalente de
+\archivo{serve}, con el mismo nombre en minúsculas, sin el prefijo \archivo{TT_} y con
+guiones en lugar de guiones bajos; por ejemplo,
+\mbox{\texttt{-{}-invitations-enabled}}. Las dos
+últimas, igual que \archivo{TT_AUDIT_TRUST_LOOPBACK_PROXY}, solo admiten los
+valores exactos \archivo{true} y \archivo{false}; cualquier otro detiene el
+arranque. Ambas comparten \archivo{REPORT_EMAIL_FROM},
+\archivo{REPORT_PUBLIC_URL} y \archivo{RESEND_API_KEY}.
+
+\section{Manejo de secretos}\label{sec:conf-secretos}
+
+Son secretos las contraseñas incluidas en \archivo{DATABASE_URL} y
+\archivo{REDIS_URL}, las llaves \archivo{KEK_BASE64} y
+\archivo{NEW_KEK_BASE64}, las claves \archivo{RESEND_API_KEY} y
+\archivo{CINCEL_API_KEY}, y toda llave privada de la CA, de la TSA y del
+firmante. Ninguno se versiona. El archivo \archivo{.gitignore} excluye:
+
+\begin{itemize}
+  \item \archivo{.env} y \archivo{.env.*}, con la única excepción de la
+        plantilla \archivo{.env.example};
+  \item los archivos \archivo{*.key} y \archivo{*.pem} bajo \archivo{pki/},
+        salvo el ejemplo público de cadena;
+  \item los directorios de trabajo \archivo{pki-ca/}, \archivo{pki-tsa/} y
+        \archivo{runtime-data/};
+  \item los artefactos generados \archivo{*.tsr}, \archivo{*.enc} y
+        \archivo{*.sig}, salvo los de prueba que no contienen material
+        privado.
+\end{itemize}
+
+Genere una KEK distinta por entorno y consérvela fuera del repositorio: sin
+ella el contenido cifrado no puede recuperarse. No reutilice fuera de un
+equipo de desarrollo la contraseña \archivo{local-development-only} de
+\archivo{compose.yaml}, restrinja a su propietario los permisos del archivo de
+entorno y de los directorios con llaves privadas, y entregue los secretos al
+servicio por su entorno, no por argumentos visibles en la lista de procesos.
+La KEK se rota con \texttt{vault rotate-kek} (\cref{cap:cli}); en el
+despliegue por versiones los secretos los genera el aprovisionamiento
+(\cref{cap:despliegue}).

@@ -1,0 +1,308 @@
+\chapter{Solución de problemas}\label{cap:problemas}
+
+Este capítulo reúne los fallos más frecuentes al instalar, operar y mantener
+Qadra. Cada fila indica el síntoma observable, su causa probable y la acción
+recomendada, con la ruta del documento que contiene el procedimiento completo.
+Los mensajes que ve el usuario final en pantalla no se repiten aquí: están en
+el capítulo \enquote{Mensajes del sistema y solución de problemas} del Manual
+de usuario (parte \enquote{Referencia rápida}).
+
+\section{Cómo diagnosticar}\label{sec:prob-diagnostico}
+
+Toda respuesta de error de la API usa el mismo sobre JSON, con un código
+estable y un mensaje genérico que no expone detalles internos ni secretos:
+
+\begin{verbatim}
+{"error":{"code":"permission_denied","message":"permission denied"}}
+\end{verbatim}
+
+El código es el dato que debe buscarse en \archivo{docs/http-api.md} (sección
+de errores) y en las tablas siguientes. En una instalación desplegada, el
+estado de los servicios y los diagnósticos del servidor se consultan con los
+comandos de la \cref{sec:op-estado}.
+
+\nota{Un mensaje de error no confirma que una escritura anterior haya fallado
+ni que haya tenido éxito. Ante una respuesta perdida, consulte el estado
+actual del registro antes de repetir un alta, un sellado o una confirmación.}
+
+\needspace{9\baselineskip}
+\section{Arranque e instalación}\label{sec:prob-arranque}
+
+{\small
+\begin{longtable}{L{3.7cm} L{4.6cm} L{7.1cm}}
+  \caption{Problemas de arranque e instalación.}\label{tab:prob-arranque} \\
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+    \texttt{serve} no arranca o rechaza la conexión a la base
+      & El esquema no está aplicado, o \texttt{DATABASE\_URL} apunta a un rol
+        que puede administrar o reescribir la auditoría. El servidor no
+        ejecuta DDL.
+      & Aplique \texttt{database migrate -{}-runtime-role} con una conexión
+        administrativa y después cambie \texttt{DATABASE\_URL} al rol
+        operativo restringido (\cref{cap:instalacion};
+        \archivo{docs/database-operations.md}). \\
+    Un comando \texttt{pki} o \archivo{issue-tsa-cert.sh} termina con
+    \texttt{CA not initialized} o \texttt{certificate already exists}
+      & \texttt{PKI\_CA\_DIR} o \texttt{TSA\_DIR} no están exportadas en esa
+        terminal y el guion busca otro directorio, o el certificado ya se
+        emitió antes.
+      & Exporte de nuevo ambas variables (\cref{sec:inst-pki}). Un
+        certificado existente no se vuelve a emitir: úselo, o retire el
+        archivo que nombra el mensaje. \\
+    \texttt{npm run dev} o \texttt{npm run build} se detienen con
+    \texttt{artifact is stale}
+      & Un módulo Rust/WASM de la interfaz falta o no corresponde a sus
+        fuentes.
+      & Ejecute desde la raíz el guion que nombra el mensaje:
+        \archivo{scripts/build-browser-crypto.sh} o
+        \archivo{scripts/build-evidence-verify.sh}
+        (\cref{sec:inst-web}). \\
+    El alta inicial responde \texttt{409 bootstrap\_closed}
+      & La base ya contiene un usuario; el alta inicial se admite una sola
+        vez.
+      & Inicie sesión con la cuenta existente. Las demás cuentas las crea el
+        Administrador (\cref{sec:inst-owner}). \\
+    El arranque falla al comprobar la biblioteca qpdf
+      & Falta \texttt{DOCUMENT\_QPDF\_LIBRARY} (o \texttt{-{}-qpdf-library}),
+        o no apunta a la biblioteca qpdf 12.4.1 fijada. El validador nativo
+        requiere Linux x86\_64.
+      & Prepare la biblioteca con
+        \archivo{scripts/setup-document-formats.sh} y exporte su salida en
+        esa variable (\archivo{docs/document-format-operations.md}). \\
+    El arranque o la carga de audio y video falla por el decodificador
+      & Falta la instalación fijada bajo \archivo{/opt/tt-media}; un
+        \texttt{ffmpeg} del sistema no la sustituye.
+      & Ejecute la comprobación mostrada bajo esta tabla. Si usa otro prefijo,
+        indíquelo con \texttt{TT\_FFPROBE\_PATH} y \texttt{TT\_FFMPEG\_PATH}
+        (\archivo{docs/media-decoder-setup.md}). \\
+    Los documentos existentes no se descifran después de reinstalar
+      & Se generó una \texttt{KEK\_BASE64} nueva. Una llave nueva no descifra
+        los datos existentes.
+      & Restaure la KEK original de esa instalación. No genere otra para
+        conseguir el arranque (\cref{cap:configuracion}). \\
+\end{longtable}}
+
+\begin{verbatim}
+python3 -B scripts/install_media_decoder.py --verify --prefix /opt/tt-media
+\end{verbatim}
+
+\section{Acceso y segundo factor}\label{sec:prob-acceso}
+
+Los rechazos de autenticación responden siempre \texttt{401} con
+\texttt{mfa\_rejected}, sin motivo en el cuerpo. El motivo interno queda en el
+journal del servicio, en el evento \texttt{MFA access attempt}, y se
+correlaciona con la cabecera \texttt{X-Request-Id} de la respuesta; el
+comando para filtrarlo está en la \cref{sec:op-estado}.
+
+{\small
+\begin{longtable}{L{3.7cm} L{4.6cm} L{7.1cm}}
+  \caption{Problemas de acceso y MFA.}\label{tab:prob-acceso} \\
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+    \texttt{401 mfa\_rejected} con motivo
+      \archivo{invalid_code_or_outside_window} o
+      \archivo{code_already_used}
+      & Código TOTP incorrecto, fuera de ventana o ya utilizado. El
+        verificador no distingue las dos primeras causas.
+      & Pida al usuario iniciar sesión otra vez con un código nuevo y revisar
+        la hora de su dispositivo. No se amplían las ventanas TOTP. \\
+    Motivo \archivo{challenge_expired_consumed_or_unknown}
+      & El desafío venció, ya se consumió o no existe. El desafío se consume
+        antes de comprobar el segundo factor.
+      & El usuario debe empezar de nuevo desde correo y contraseña. \\
+    Motivo \archivo{credentials_changed} o \archivo{account_inactive}
+      & La cuenta cambió entre los dos pasos (incluye cambios de rol) o está
+        inactiva.
+      & Revise el estado y el rol de la cuenta en \textbf{Equipo} y solicite
+        un nuevo inicio de sesión. \\
+    No aparecen eventos \texttt{MFA access attempt} en el journal
+      & El filtro de \texttt{RUST\_LOG} suprime el target
+        \texttt{qadra::access}.
+      & Conserve ese target a nivel \texttt{info}, por ejemplo
+        \texttt{RUST\_LOG=info,qadra::access=info}
+        (\archivo{docs/mfa-access-logs.md}). \\
+    \texttt{429 account\_locked} al iniciar sesión
+      & Ventana de inicio de sesión bloqueada por intentos fallidos.
+      & Espere a que termine la ventana. Al restaurar Redis no borre las
+        claves \archivo{identity:password-failures:*}. \\
+    La recuperación de contraseña responde \texttt{503}
+      & Los componentes de recuperación y entrega de correo no están
+        configurados en ese servidor.
+      & Revise \texttt{TT\_PASSWORD\_RESET\_ENABLED} y la configuración de
+        correo (\archivo{docs/password-reset-public.md}). \\
+    Un alta de integrante quedó sin confirmar al vencer la sesión
+      & Se perdió la respuesta del envío. Autenticarse de nuevo no crea la
+        cuenta ni reenvía la solicitud.
+      & En \textbf{Equipo}, use \textbf{Retomar alta de integrante} y
+        \textbf{Consultar directorio para esta cuenta} antes de decidir
+        (\archivo{docs/member-enrollment-recovery.md}). Los demás
+        borradores se recuperan solo si la pestaña no se recargó
+        (\archivo{docs/session-editor-recovery.md}). \\
+\end{longtable}}
+
+\needspace{9\baselineskip}
+\section{Documentos y firma}\label{sec:prob-documentos}
+
+{\small
+\begin{longtable}{L{3.7cm} L{4.6cm} L{7.1cm}}
+  \caption{Problemas con documentos, sellado y firma.}\label{tab:prob-documentos} \\
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+    \texttt{503} \archivo{signing_trust_unavailable} al vincular un
+      certificado o firmar
+      & No hay una revisión de confianza publicada (raíz y CRL) que el
+        servidor pueda usar. No se escribió ningún estado.
+      & Compruebe la publicación en el portal de la CA
+        (\textbf{Publicación}, \textbf{Actualizar estado}) y publique la CRL
+        (\cref{cap:ca}). Después repita la operación. \\
+    \texttt{409} \archivo{signing_trust_changed}
+      & La revisión de confianza cambió entre la preparación y la
+        confirmación, por ejemplo por una renovación de CRL.
+      & Reinicie la firma desde su preparación. No reenvíe la confirmación
+        anterior (\archivo{docs/http-individual-signing.md}). \\
+    El sellado responde \texttt{500} y no guarda evidencia
+      & La CRL cargada al iniciar el servicio superó su \texttt{nextUpdate} y
+        el certificado firmante ya no se puede validar.
+      & Renueve la CRL con el procedimiento de
+        \archivo{docs/deployment-crl.md} y reinicie el servicio con la CRL
+        renovada (\cref{cap:operacion}). \\
+\end{longtable}}
+
+\needspace{9\baselineskip}
+\section{Despliegue, CRL y autoridad certificadora}\label{sec:prob-despliegue}
+
+{\small
+\begin{longtable}{L{3.7cm} L{4.6cm} L{7.1cm}}
+  \caption{Problemas de despliegue, migraciones, CRL y servicio de la CA.}\label{tab:prob-despliegue} \\
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+    El despliegue se detiene antes de apagar o migrar
+      & Cambió la huella de migraciones. Los cambios de esquema no forman
+        parte del despliegue automático.
+      & Realice el mantenimiento explícito: ensayo en copia aislada,
+        respaldo, migración y registro de la huella
+        (\archivo{docs/database-operations.md}). No edite la huella para
+        eludir el rechazo. \\
+    La activación de una versión falla
+      & La versión nueva no superó la comprobación de salud.
+      & El controlador restaura la versión anterior y devuelve el fallo; si
+        tampoco la recupera, detiene la entrada web. Revise el estado y el
+        journal antes de reintentar (\cref{cap:despliegue}). \\
+    La API no arranca y existe \archivo{config/crl-maintenance.json}
+      & Hay una renovación de CRL pendiente. El marcador bloquea arranque,
+        proxy, activación y rollback.
+      & No retire el marcador a mano. Revise \texttt{status} de
+        \texttt{renew\_crl.py} y ejecute \texttt{resume} con el UUID de la
+        operación (\archivo{docs/deployment-crl.md}). \\
+    La unidad \texttt{qadra-crl-renew} queda fallida o llega una alerta
+      & El recibo en \archivo{maintenance/crl-schedule/} indica
+        \archivo{blocked}, \archivo{busy_near_expiry}, \archivo{ca_expiring},
+        \texttt{failed} o \texttt{interrupted}.
+      & Lea el recibo y actúe según su resultado. El timer nunca reanuda una
+        operación pendiente: la recuperación es manual. \\
+    Una emisión, revocación o publicación quedó con respuesta incierta
+      & Se perdió la respuesta. La operación pendiente bloquea otras
+        mutaciones.
+      & En \textbf{Historial}, use \textbf{Retomar}: consulta o completa la
+        misma operación sin cambiar sus parámetros. No inicie otra para
+        eludirla (\archivo{docs/ca/operations.md}). \\
+    \textbf{Publicación} muestra mantenimiento pendiente y
+      \textbf{Historial} no tiene una publicación pendiente
+      & El marcador lo dejó la renovación programada o una renovación por
+        línea de comandos. El portal no puede retomarlo.
+      & Un administrador del host revisa \texttt{status} de
+        \texttt{renew\_crl.py} y ejecuta \texttt{resume} con el UUID
+        registrado. \\
+    El operador de la CA no puede entrar después de una restauración
+      & La KEK del servicio no es la que protege el TOTP restaurado.
+      & Restaure la configuración y la KEK del mismo conjunto. No ejecute
+        \texttt{enroll-operator} ni genere otro TOTP
+        (\archivo{docs/ca/restore.md}). \\
+\end{longtable}}
+
+Durante un mantenimiento de CRL no ejecute directamente
+\archivo{pki/gen-crl.sh}, \archivo{pki/revoke.sh} ni la emisión de
+certificados sobre esa CA: esos guiones no coordinan la publicación en la base
+ni el marcador. Ante una discrepancia o un estado parcial, el bloqueo se
+conserva y requiere investigación; no se bajan contadores ni se restaura SQL
+para deshacer una publicación confirmada.
+
+\needspace{9\baselineskip}
+\section{Respaldo y restauración}\label{sec:prob-respaldo}
+
+{\small
+\begin{longtable}{L{3.7cm} L{4.6cm} L{7.1cm}}
+  \caption{Problemas de respaldo y restauración.}\label{tab:prob-respaldo} \\
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Síntoma} & \textbf{Causa probable} & \textbf{Acción} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+    La restauración SQL falla por roles inexistentes
+      & Un \texttt{pg\_dump} de una base no incluye la creación de los roles
+        del clúster.
+      & Prepare los roles, propietarios y privilegios antes de restaurar
+        (\archivo{docs/deployment-backups.md}). \\
+    Redis ignora el RDB restaurado
+      & Con AOF y RDB presentes, Redis reconstruye desde el AOF.
+      & Cargue el RDB verificado en un directorio nuevo con
+        \texttt{appendonly no} y habilite AOF después con
+        \texttt{CONFIG SET appendonly yes}
+        (\archivo{docs/deployment-backups.md}). \\
+    Las sesiones anteriores siguen aceptándose tras restaurar
+      & No se invalidaron sesiones ni desafíos en Redis.
+      & Elimine solo las claves \archivo{identity:session:*} e
+        \archivo{identity:challenge:*}. No use \texttt{FLUSHDB} ni
+        \texttt{FLUSHALL}; conserve los controles TOTP y de intentos. \\
+    La captura de respaldo se rechaza
+      & Existe una operación de la CA pendiente.
+      & Termine o concilie la operación original antes de capturar. No borre
+        su journal (\archivo{docs/ca/restore.md}). \\
+\end{longtable}}
+
+\importante{No desactive guardas, no regenere claves y no modifique la huella
+de migraciones para conseguir que el servicio arranque después de una
+restauración. Conserve intactos los datos originales hasta aceptar el
+resultado (\cref{cap:operacion}).}
+
+Si el problema no aparece en este capítulo, localice el documento del tema en
+el \cref{cap:mapa} y, al solicitar soporte, comunique la operación, el código de
+error, el momento y el \texttt{X-Request-Id} cuando exista. No incluya
+contraseñas, códigos ni claves privadas en el reporte.

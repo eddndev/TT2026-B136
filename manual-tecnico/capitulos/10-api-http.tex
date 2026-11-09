@@ -1,0 +1,322 @@
+\chapter{API HTTP}\label{cap:api}
+
+La interfaz Qadra y cualquier cliente automatizado operan el sistema a través
+de la API HTTP que expone el subcomando \texttt{serve} (\cref{cap:cli}). Este
+capítulo resume las convenciones comunes a todas las rutas y señala qué
+documento del repositorio contiene el contrato completo de cada familia. El
+contrato general es \archivo{docs/http-api.md}; el índice por tema,
+\archivo{docs/README.md}.
+
+El portal de la autoridad certificadora tiene un contrato propio, servido
+por el binario \texttt{qadra-ca} y descrito en \archivo{docs/ca/api.md}
+(\cref{cap:ca}).
+
+\section{Base y versionado de rutas}\label{sec:api-base}
+
+Todas las rutas usan el prefijo \texttt{/api/v1}, con una sola excepción:
+\texttt{GET /healthz}, que es pública, informa el estado del proceso y queda
+fuera del control de admisión. Por omisión el servidor escucha únicamente en
+\texttt{127.0.0.1:3000}; la publicación hacia el exterior corresponde al proxy
+descrito en el \cref{cap:despliegue}.
+
+Los recursos de un expediente cuelgan de
+\texttt{/api/v1/cases/\{case\_id\}}. Las rutas documentales siempre incluyen
+el expediente: las antiguas rutas globales \texttt{/api/v1/documents}
+responden \texttt{404} y no son alias de las actuales. Los identificadores son
+UUID y los cuerpos de petición y respuesta son JSON, salvo la carga de
+documentos (binaria o \emph{multipart}) y las descargas de contenido y
+evidencia.
+
+\section{Autenticación por sesión con segundo factor}\label{sec:api-auth}
+
+El acceso se obtiene en dos pasos y produce un token opaco, no un JWT:
+
+\begin{enumerate}
+  \item \texttt{POST /api/v1/auth/login} verifica correo y contraseña y
+        devuelve un desafío MFA con vigencia de 5 minutos.
+  \item \texttt{POST /api/v1/auth/mfa/totp}, o bien la ruta
+        \archivo{/api/v1/auth/mfa/recovery} con un código de recuperación,
+        recibe \texttt{challenge\_token} y \texttt{code}, consume el
+        desafío y devuelve \texttt{access\_token}, \texttt{token\_type},
+        \texttt{expires\_in\_seconds}, \texttt{user} y los metadatos de
+        vigencia de la sesión.
+\end{enumerate}
+
+Las peticiones protegidas envían el token en la cabecera
+\texttt{Authorization}:
+
+\begin{verbatim}
+Authorization: Bearer <access_token>
+\end{verbatim}
+
+Con la sesión abierta, \texttt{GET} \archivo{/api/v1/auth/me} devuelve la
+identidad vigente, \texttt{GET} \archivo{/api/v1/auth/session} informa los
+plazos sin renovarlos y \texttt{POST} \archivo{/api/v1/auth/logout} revoca el
+token de inmediato. La primera cuenta de Administrador (rol \texttt{owner})
+se crea con \texttt{POST}
+\archivo{/api/v1/auth/bootstrap}, ruta pública solo mientras no exista ningún
+usuario (\cref{cap:instalacion}).
+
+Conviene tener presentes estas reglas al integrar un cliente o al diagnosticar
+un rechazo:
+
+\begin{itemize}
+  \item El token son 256 bits aleatorios. Redis conserva solo una clave
+        derivada con SHA-256, de modo que cerrar sesión lo revoca sin
+        almacenar el token en claro.
+  \item El rol y la pertenencia a un expediente no viajan en el token: cada
+        petición protegida recarga el estado de la cuenta en PostgreSQL y
+        confirma la sesión en Redis. Retirar una asignación o desactivar una
+        cuenta surte efecto sobre la sesión ya abierta.
+  \item La sesión vence a las 24 horas. El vencimiento por inactividad está
+        deshabilitado por omisión y se activa con
+        \texttt{-{}-session-idle-seconds} o
+        \texttt{TT\_SESSION\_IDLE\_SECONDS} (entero de 1 a 86400). Solo
+        \texttt{POST /api/v1/auth/activity} amplía ese plazo; las demás
+        peticiones no renuevan nada.
+  \item Cinco contraseñas rechazadas bloquean el correo durante 15 minutos
+        (\texttt{429 account\_locked}); un desafío MFA admite un solo
+        intento, aunque sea rechazado.
+\end{itemize}
+
+\subsection{Ejemplo de primer paso de acceso}\label{sec:api-ejemplo}
+
+Primer paso con \texttt{curl} y datos ficticios, tomado del contrato:
+
+{\small
+\begin{verbatim}
+base=http://127.0.0.1:3000
+curl --fail-with-body -X POST "$base/api/v1/auth/login" \
+  -H 'Content-Type: application/json' \
+  --data '{"email":"owner@example.com",
+           "password":"correct horse battery staple"}'
+\end{verbatim}
+}
+
+La respuesta contiene el desafío. El segundo paso envía
+\texttt{challenge\_token} y \texttt{code} a la ruta TOTP, y las llamadas
+posteriores (por ejemplo \texttt{GET /api/v1/auth/me}) llevan la cabecera
+\texttt{Authorization} mostrada arriba. El recorrido completo, incluidos
+permisos por rol, evidencia y revocación, se reproduce contra servicios
+temporales con \texttt{bash scripts/api-demo.sh}.
+
+\section{Cabeceras}\label{sec:api-cabeceras}
+
+\begin{itemize}
+  \item \texttt{Authorization}: esquema \texttt{Bearer}, sin distinguir
+        mayúsculas. Se rechazan cabeceras múltiples y tokens con espacios.
+  \item \texttt{Content-Type: application/json} en los cuerpos JSON, y
+        \texttt{X-Document-Name} con el nombre del archivo en la carga
+        binaria de documentos.
+  \item \texttt{Cache-Control: no-store} en las respuestas de la API.
+  \item \texttt{X-Request-Id} en las respuestas de las rutas MFA: lo genera
+        el servidor y permite localizar el intento en los registros
+        descritos en \archivo{docs/mfa-access-logs.md}.
+  \item \texttt{X-Document-Digest} en la descarga del paquete de evidencia.
+\end{itemize}
+
+El actor siempre se toma de la sesión: la API no acepta cabeceras ni campos
+que declaren identidad, rol o reloj del cliente. La dirección IP registrada en
+auditoría procede del \emph{socket}; \texttt{X-Forwarded-For} solo se
+considera con \texttt{TT\_AUDIT\_TRUST\_LOOPBACK\_PROXY=true} y un proxy en
+\emph{loopback} (\cref{cap:configuracion}).
+
+\section{Formato de errores}\label{sec:api-errores}
+
+Todos los errores comparten una envoltura estable. El campo \texttt{code} es
+el identificador que debe usar un cliente; \texttt{message} es descriptivo:
+
+\begin{verbatim}
+{"error":{"code":"permission_denied","message":"permission denied"}}
+\end{verbatim}
+
+\begin{table}[H]
+  \centering
+  \caption{Códigos de estado frecuentes.}\label{tab:api-estados}
+  \begin{tabularx}{\textwidth}{L{1.4cm} Y L{5.2cm}}
+    \toprule
+    \textbf{Estado} & \textbf{Significado} & \textbf{Ejemplos de \texttt{code}} \\
+    \midrule
+    \texttt{400} & UUID, JSON o parámetro mal formado; campos desconocidos o
+                   repetidos. & \texttt{invalid\_json} \\
+    \texttt{401} & Credenciales, segundo factor o sesión inválidos.
+                 & \texttt{invalid\_session}, \texttt{mfa\_rejected} \\
+    \texttt{403} & Rol autenticado sin permiso.
+                 & \texttt{permission\_denied} \\
+    \texttt{404} & Recurso inexistente, oculto o ajeno al expediente
+                   indicado.
+                 & \texttt{case\_not\_found}, \texttt{document\_not\_found} \\
+    \texttt{409} & Conflicto de revisión, expediente cerrado u operación ya
+                   realizada.
+                 & \texttt{case\_closed}, \texttt{document\_already\_sealed} \\
+    \texttt{413} & Cuerpo mayor que el límite de la ruta.
+                 & \texttt{document\_too\_large} \\
+    \texttt{422} & Valores sintácticamente correctos pero inválidos.
+                 & \texttt{invalid\_input} \\
+    \texttt{429} & Ventana de inicio de sesión bloqueada.
+                 & \texttt{account\_locked} \\
+    \texttt{500} & Fallo interno, sin detalles del \emph{backend}.
+                 & \texttt{internal\_error} \\
+    \texttt{503} & Presupuesto de peticiones agotado.
+                 & \texttt{server\_busy} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Límites, paginación y reintentos}\label{sec:api-limites}
+
+\paragraph{Admisión.} El servidor admite por omisión ocho peticiones
+simultáneas y dos operaciones bloqueantes; se ajustan con
+\texttt{-{}-max-in-flight-requests} y \texttt{-{}-max-blocking-operations}.
+Al agotarse el presupuesto, la siguiente petición recibe de inmediato
+\texttt{503 server\_busy}. No hay reintentos automáticos ni un tiempo de
+espera global.
+
+\paragraph{Tamaño de los cuerpos.} Cada ruta fija su propio límite: 16~KiB en
+identidad y alta básica de expedientes, de 8~KiB a 1~MiB en los demás cuerpos
+JSON según la familia, y 16~MiB en la carga de documentos. El detalle está en
+la sección \emph{Límites HTTP y sobrecarga} de \archivo{docs/http-api.md}.
+
+\paragraph{Paginación.} No existe un esquema único; cada contrato declara el
+suyo. Los listados de expedientes y documentos usan \texttt{limit} (de 1 a
+100) y \texttt{offset}. Otras colecciones, como el directorio de
+participantes, usan un cursor exclusivo (\texttt{after\_id},
+\texttt{before\_revision}) y devuelven \texttt{has\_more} con el cursor
+siguiente. No ofrecen un total global ni una instantánea entre páginas.
+
+\paragraph{Concurrencia y reintentos.} La API no usa una cabecera de
+idempotencia. La repetición segura se resuelve de tres maneras:
+
+\begin{itemize}
+  \item Asignar y retirar miembros de un expediente (\texttt{PUT} y
+        \texttt{DELETE}) son operaciones idempotentes.
+  \item Las ediciones envían la revisión esperada del recurso; una revisión
+        desactualizada produce \texttt{409} y el cliente debe revisar los
+        datos vigentes antes de reenviar.
+  \item Las escrituras con evidencia siguen el patrón \emph{preparar y
+        confirmar}: \texttt{POST \ldots/prepare} devuelve el comando
+        normalizado y su resumen sin escribir, y la confirmación deja un
+        recibo de operación consultable. Ante una respuesta incierta se
+        consulta ese recibo; no se repite la escritura a ciegas.
+\end{itemize}
+
+\importante{Un \texttt{500} no acredita que la operación se haya revertido:
+el registro de acceso se escribe después de la operación de negocio. Concilie
+con el recibo o con el estado actual del recurso antes de reenviar.}
+
+\section{Familias de rutas}\label{sec:api-familias}
+
+La \cref{tab:api-familias} relaciona cada familia con el archivo que
+contiene sus cuerpos, respuestas, permisos y errores; todos están en el
+directorio \archivo{docs/}. Las rutas se abrevian: llevan el prefijo
+\texttt{/api/v1}, y \texttt{\{c\}} equivale a
+\texttt{/cases/\{case\_id\}}.
+
+{\small
+\begin{longtable}{L{3.6cm} L{5.4cm} L{6.1cm}}
+  \caption{Familias de rutas y documento que las describe.}
+  \label{tab:api-familias}\\
+  \toprule
+  \textbf{Familia} & \textbf{Base de las rutas} & \textbf{Contrato} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Familia} & \textbf{Base de las rutas} & \textbf{Contrato} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+  Identidad y sesiones
+    & \archivo{/auth}, \archivo{/users}
+    & \archivo{http-api.md} \\
+  Recuperación de contraseña
+    & \archivo{/auth/password-reset}
+    & \archivo{password-reset-public.md} \\
+  Miembros y acceso
+    & \archivo{/users}, \archivo{{c}/members}
+    & \archivo{members-api.md} \\
+  Invitaciones
+    & \archivo{/member-invitations}, \archivo{/auth/invitations}
+    & \archivo{member-invitations-api.md} \\
+  Certificado del Administrador
+    & \archivo{/auth/certificate-bindings}, \archivo{/auth/certificate-login}
+    & \archivo{http-owner-certificates.md},
+      \archivo{owner-certificate-login-http.md} \\
+  Expedientes y administración
+    & \archivo{/cases}, \archivo{/penal-cases},
+      \archivo{/case-administrations}
+    & \archivo{http-api.md},
+      \archivo{case-administration-api.md} \\
+  Etapas procesales
+    & \archivo{{c}/stage}
+    & \archivo{case-stages-api.md} \\
+  Participantes
+    & \archivo{{c}/participants}, \archivo{{c}/subjects}
+    & \archivo{http-api.md},
+      \archivo{typed-participants-api.md} \\
+  Documentos y contenido
+    & \archivo{{c}/documents}, \archivo{/document-integrity-incidents}
+    & \archivo{http-api.md},
+      \archivo{document-upload-admission-api.md},
+      \archivo{document-content-api.md} \\
+  Firma individual
+    & \archivo{/identity/signing-certificates},
+      \archivo{{c}/documents/.../individual-signing}
+    & \archivo{http-individual-signing.md} \\
+  Contratos bilaterales
+    & \archivo{{c}/contracts}, \archivo{/contract-requests}
+    & \archivo{http-contract-signing.md} \\
+  Confianza de la evidencia
+    & \archivo{/evidence/trust}
+    & \archivo{http-api.md} \\
+  Audiencias y resultados
+    & \archivo{{c}/hearings}, \archivo{/hearings}
+    & \archivo{hearings-api.md},
+      \archivo{hearing-results-api.md} \\
+  Medidas cautelares
+    & \archivo{{c}/precautionary-hearings}, \archivo{{c}/measures},
+      \archivo{{c}/measure-decisions}
+    & \archivo{precautionary-hearings-api.md},
+      \archivo{measure-records-api.md},
+      \archivo{measure-decisions-api.md} \\
+  Resoluciones y notificaciones
+    & \archivo{{c}/resolutions}
+    & \archivo{procedural-facts-api.md} \\
+  Recursos procesales
+    & \archivo{{c}/procedural-resources}
+    & \archivo{procedural-resources-api.md},
+      \archivo{resource-activities-api.md},
+      \archivo{resource-deadlines-api.md},
+      \archivo{activity-resource-links-api.md} \\
+  Calendarios
+    & \archivo{/judicial-calendars}
+    & \archivo{judicial-calendars-api.md} \\
+  Plazos
+    & \archivo{{c}/deadlines}, \archivo{/deadline-profiles}
+    & \archivo{deadlines-api.md},
+      \archivo{deadline-tracking-api.md},
+      \archivo{deadline-profiles-api.md} \\
+  Agenda
+    & \archivo{/agenda}
+    & \archivo{agenda-api.md} \\
+  Alertas
+    & \archivo{/alerts}, \archivo{/alert-preferences}
+    & \archivo{alerts-api.md} \\
+  Tablero
+    & \archivo{/dashboard}
+    & \archivo{dashboard-api.md} \\
+  Informes
+    & \archivo{/case-reports}
+    & \archivo{case-reports-api.md} \\
+  Auditoría
+    & \archivo{/audit/events}, \archivo{/audit/verify}
+    & \archivo{audit-events-api.md} \\
+\end{longtable}
+}
+
+La recuperación pública de contraseña, las invitaciones y el acceso del
+Administrador con certificado permanecen deshabilitados mientras no se
+configuren de
+forma expresa; cada contrato indica sus variables. La matriz de permisos por
+ruta está en \archivo{docs/access-audit-matrix.md}, y cada petición admitida
+deja un evento de acceso en la bitácora de auditoría (\cref{cap:operacion}).

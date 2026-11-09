@@ -1,0 +1,361 @@
+\chapter{Instalación local}\label{cap:instalacion}
+
+Este capítulo lleva una máquina de desarrollo desde el repositorio recién
+clonado hasta el sistema completo en funcionamiento: base de datos, servidor
+de la API e interfaz Qadra con su primer Administrador. Los pasos se ejecutan
+en orden, porque cada uno depende del anterior. Todos los comandos parten de
+la raíz del repositorio, salvo que se indique otro directorio.
+
+Las herramientas necesarias se detallan en el \cref{cap:requisitos}: Linux
+x86\_64, Rust 1.88 o posterior con \texttt{rustup}, clang, Python~3,
+Node.js~24 con npm, OpenSSL, \texttt{psql}, \texttt{curl} y Podman Compose.
+
+\nota{Los valores de este capítulo son para desarrollo. La instalación en un
+servidor se describe en el \cref{cap:despliegue} y el significado de cada
+variable en el \cref{cap:configuracion}.}
+
+% ---------------------------------------------------------------------
+\section{Obtener el código}\label{sec:inst-clonar}
+
+Clone el repositorio con la dirección que le haya entregado el equipo y entre
+a su directorio:
+
+\begin{verbatim}
+git clone <URL-del-repositorio> qadra
+cd qadra
+\end{verbatim}
+
+\textbf{Resultado esperado:} la raíz contiene \archivo{Cargo.toml},
+\archivo{compose.yaml}, \archivo{.env.example} y los directorios
+\archivo{crates/}, \archivo{pki/}, \archivo{scripts/} y \archivo{web/}.
+
+% ---------------------------------------------------------------------
+\section{Levantar PostgreSQL y Redis}\label{sec:inst-servicios}
+
+El archivo \archivo{compose.yaml} define los dos servicios de desarrollo:
+PostgreSQL~16 en el puerto 5432 y Redis~7 en el puerto 6379.
+
+\begin{verbatim}
+podman-compose up -d postgres redis
+\end{verbatim}
+
+El servicio \texttt{postgres} crea la base \texttt{despacho} y el usuario
+administrativo \texttt{despacho}, con la contraseña de desarrollo escrita en
+\archivo{compose.yaml}. La primera vez tarda unos segundos en aceptar
+conexiones; si la consulta siguiente falla, repítala. Guarde esa conexión en una variable de la terminal y
+compruebe la codificación de la base:
+
+\begin{verbatim}
+ADMIN_URL='postgres://despacho:local-development-only@localhost/despacho'
+psql "$ADMIN_URL" -c 'SHOW server_encoding'
+\end{verbatim}
+
+\textbf{Resultado esperado:} la consulta devuelve \texttt{UTF8}. La
+migración y el arranque del servidor exigen esa codificación.
+
+% ---------------------------------------------------------------------
+\section{Crear el rol operativo de la base}\label{sec:inst-rol}
+
+El servidor no se conecta con el usuario administrativo: rechaza cualquier
+rol que pueda administrar la base o reescribir la auditoría. Cree un rol de
+conexión sin privilegios y asígnele una contraseña propia:
+
+\begin{verbatim}
+psql "$ADMIN_URL" -v ON_ERROR_STOP=1 -c \
+  "CREATE ROLE tt_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE
+   PASSWORD '<clave>'"
+\end{verbatim}
+
+\textbf{Resultado esperado:} \texttt{psql} responde \texttt{CREATE ROLE}.
+El rol todavía no tiene permisos sobre ninguna tabla; se los otorga la
+migración de la \cref{sec:inst-migrar}. La preparación completa del rol está
+en \archivo{docs/database-operations.md}, sección \enquote{Preparar un
+despliegue nuevo}.
+
+% ---------------------------------------------------------------------
+\section{Preparar el archivo \texttt{.env}}\label{sec:inst-env}
+
+El binario lee su configuración del entorno o de un archivo \archivo{.env}
+situado en el directorio desde el que se ejecuta o en uno superior. Copie
+la plantilla y genere la llave de cifrado de llaves (KEK):
+
+\begin{verbatim}
+cp .env.example .env
+openssl rand -base64 32
+\end{verbatim}
+
+Edite \archivo{.env} y deje, como mínimo, estos tres valores:
+
+\begin{verbatim}
+DATABASE_URL=postgres://tt_runtime:<clave>@localhost:5432/despacho
+REDIS_URL=redis://localhost:6379/
+KEK_BASE64=<salida de openssl rand -base64 32>
+\end{verbatim}
+
+Las demás variables de la plantilla pueden quedar como están: el sellador
+externo y los envíos de correo permanecen desactivados y el sistema usa la
+autoridad de sellado local.
+
+\importante{El archivo \archivo{.env} no se versiona. Conserve la KEK: los
+documentos se cifran con llaves envueltas por ella y una KEK distinta no
+descifra los datos ya guardados.}
+
+% ---------------------------------------------------------------------
+\section{Compilar}\label{sec:inst-compilar}
+
+\begin{verbatim}
+cargo build --workspace
+\end{verbatim}
+
+\textbf{Resultado esperado:} la compilación termina sin errores y deja el
+binario principal en \archivo{target/debug/despacho-cli}. Puede confirmarlo
+con \texttt{target/debug/despacho-cli -{}-help}, que lista los subcomandos
+descritos en el \cref{cap:cli}.
+
+% ---------------------------------------------------------------------
+\section{Aplicar el esquema de la base}\label{sec:inst-migrar}
+
+El arranque del servidor no ejecuta DDL. El esquema y los permisos del rol
+operativo se aplican una vez con el subcomando \texttt{database migrate} y
+la conexión \emph{administrativa}. Una variable definida en la terminal
+tiene prioridad sobre la de \archivo{.env}, por lo que basta anteponerla:
+
+\begin{verbatim}
+DATABASE_URL="$ADMIN_URL" target/debug/despacho-cli \
+  database migrate --runtime-role tt_runtime
+\end{verbatim}
+
+\textbf{Resultado esperado:} el comando termina con código de salida 0. A
+partir de aquí todos los comandos usan la conexión del rol
+\texttt{tt\_runtime} escrita en \archivo{.env}.
+
+% ---------------------------------------------------------------------
+\section{Preparar los validadores de documentos}\label{sec:inst-nativos}
+
+Antes de abrir el puerto, el servidor comprueba dos dependencias nativas
+fijadas por versión y suma de verificación: la biblioteca qpdf 12.4.1 y el
+decodificador multimedia (FFmpeg y ffprobe) instalado en
+\archivo{/opt/tt-media}.
+
+\begin{verbatim}
+export DOCUMENT_QPDF_LIBRARY="$(bash scripts/setup-document-formats.sh)"
+
+sudo python3 -B scripts/install_media_decoder.py \
+  --prefix /opt/tt-media --cache /var/cache/tt-media
+python3 -B scripts/install_media_decoder.py \
+  --verify --prefix /opt/tt-media
+\end{verbatim}
+
+El primer guion descarga qpdf a una caché del usuario e imprime la ruta de
+la biblioteca. El segundo compila el decodificador y se ejecuta una sola vez
+por máquina; requiere las herramientas de compilación de C que enumera
+\archivo{docs/media-decoder-setup.md}. El tercero es de solo lectura.
+
+\textbf{Resultado esperado:} \texttt{DOCUMENT\_QPDF\_LIBRARY} contiene una
+ruta absoluta y la verificación del decodificador termina con código 0.
+Un \texttt{ffmpeg} del sistema no sustituye a esta instalación. Los detalles
+están en \archivo{docs/document-format-operations.md}.
+
+% ---------------------------------------------------------------------
+\section{Generar la PKI de desarrollo}\label{sec:inst-pki}
+
+El servidor necesita una autoridad certificadora (CA) interna, un certificado
+firmante con su llave, una lista de revocación (CRL) y una autoridad de
+sellado de tiempo (TSA) local. Los guiones de \archivo{pki/} los crean con
+OpenSSL. Los directorios de trabajo contienen llaves privadas, así que deben
+quedar \emph{fuera} del repositorio:
+
+\begin{verbatim}
+export PKI_CA_DIR="$HOME/qadra-dev/pki-ca"
+export TSA_DIR="$HOME/qadra-dev/pki-tsa"
+mkdir -p "$HOME/qadra-dev"
+
+target/debug/despacho-cli pki init-ca
+target/debug/despacho-cli pki issue --cn "Sello Local"
+bash pki/issue-tsa-cert.sh
+target/debug/despacho-cli pki gen-crl
+\end{verbatim}
+
+\begin{table}[H]
+  \centering
+  \caption{Archivos que produce la PKI de desarrollo.}\label{tab:inst-pki}
+  \begin{tabularx}{\textwidth}{L{4.6cm} Y}
+    \toprule
+    \textbf{Comando} & \textbf{Resultado esperado} \\
+    \midrule
+    \texttt{pki init-ca}
+      & Certificado raíz en \archivo{$PKI_CA_DIR/ca.crt.pem} y su llave en
+        \archivo{private/}. Repetirlo no sobrescribe una CA existente. \\
+    \texttt{pki issue}
+      & Certificado \archivo{certs/sello-local.crt.pem} y llave
+        \archivo{private/sello-local.key.pem}; el nombre de archivo es el
+        nombre común en minúsculas y con guiones. \\
+    \texttt{issue-tsa-cert.sh}
+      & Llave, certificado y cadena de la TSA en \archivo{$TSA_DIR}. \\
+    \texttt{pki gen-crl}
+      & Lista de revocación en \archivo{$PKI_CA_DIR/crl/crl.pem}, válida
+        durante 7 días. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\nota{La CRL de desarrollo vence a los 7 días. Si la instalación local se
+usa durante más tiempo, repita \texttt{pki gen-crl}. La operación completa
+de la CA está en el \cref{cap:ca} y en \archivo{pki/README.md}.}
+
+% ---------------------------------------------------------------------
+\section{Arrancar el servidor}\label{sec:inst-serve}
+
+En la misma terminal, que conserva \texttt{DOCUMENT\_QPDF\_LIBRARY},
+\texttt{PKI\_CA\_DIR} y \texttt{TSA\_DIR}, inicie la API con el subcomando
+\texttt{serve}. En una terminal nueva, exporte de nuevo esas tres variables
+antes de arrancar el servidor o de repetir un comando \texttt{pki}:
+
+\begin{verbatim}
+target/debug/despacho-cli serve \
+  --bind 127.0.0.1:3000 \
+  --data-dir "$HOME/qadra-dev/runtime-data" \
+  --signer-cert "$PKI_CA_DIR/certs/sello-local.crt.pem" \
+  --signer-key "$PKI_CA_DIR/private/sello-local.key.pem" \
+  --ca-cert "$PKI_CA_DIR/ca.crt.pem" \
+  --crl "$PKI_CA_DIR/crl/crl.pem" \
+  --tsa-config pki/tsa.cnf \
+  --tsa-dir "$TSA_DIR"
+\end{verbatim}
+
+El proceso queda en primer plano y escribe sus diagnósticos en la salida de
+error, con el nivel que fije \texttt{RUST\_LOG}. Desde otra terminal,
+compruebe el punto de salud:
+
+\begin{verbatim}
+curl -fsS http://127.0.0.1:3000/healthz
+\end{verbatim}
+
+\textbf{Resultado esperado:} la respuesta es el texto \texttt{ok}. Si el
+servidor termina antes de escuchar, el mensaje de error nombra la
+comprobación que falló (conexión, privilegios del rol, biblioteca qpdf,
+decodificador o archivos de la PKI); consulte el \cref{cap:problemas}.
+
+% ---------------------------------------------------------------------
+\section{Arrancar la interfaz Qadra}\label{sec:inst-web}
+
+La interfaz incluye dos módulos Rust/WASM que se generan una vez desde la
+raíz del repositorio: la criptografía local del navegador y el validador de
+evidencia. El servidor de desarrollo se niega a iniciar si faltan o están
+desactualizados.
+
+\begin{verbatim}
+bash scripts/build-browser-crypto.sh
+bash scripts/build-evidence-verify.sh
+cd web
+npm ci
+npm run dev
+\end{verbatim}
+
+\textbf{Resultado esperado:} Astro sirve la interfaz en
+\texttt{http://127.0.0.1:4321} y reenvía las rutas \texttt{/api} al servidor
+de \texttt{http://127.0.0.1:3000}. Si la API escucha en otra dirección,
+defina \texttt{API\_PROXY\_TARGET} antes de \texttt{npm run dev}. Para
+revisar la versión compilada en lugar del servidor de desarrollo, use
+\texttt{npm run build} seguido de \texttt{npm run preview}; el resultado
+queda en \archivo{web/apps/qadra/dist}.
+
+\nota{Para que el validador de evidencia del navegador acepte la CA de
+desarrollo hay que fijar su raíz al construir la interfaz
+(\cref{sec:ca-raices}).}
+
+% ---------------------------------------------------------------------
+\section{Crear el primer Administrador}\label{sec:inst-owner}
+
+Mientras la base no contiene usuarios, el sistema admite una única alta
+inicial, que crea la cuenta con rol \texttt{owner} (Administrador). Hay dos
+formas equivalentes de hacerla:
+
+\begin{itemize}
+  \item \textbf{Desde la interfaz.} Abra \texttt{http://127.0.0.1:4321} y
+        use \textbf{Configurar acceso inicial}. El recorrido está en el
+        Manual de usuario, capítulo \enquote{Acceso al sistema}.
+  \item \textbf{Desde la API.} Envíe la petición de alta inicial:
+\end{itemize}
+
+\begin{verbatim}
+curl --fail-with-body -X POST \
+  http://127.0.0.1:3000/api/v1/auth/bootstrap \
+  -H 'Content-Type: application/json' \
+  --data '{"email":"owner@example.com","name":"Ana García",
+           "password":"correct horse battery staple"}'
+\end{verbatim}
+
+\textbf{Resultado esperado:} la respuesta tiene estado \texttt{201} e
+incluye el material para configurar el segundo factor (TOTP) y los códigos
+de recuperación. Una segunda alta inicial se rechaza, porque ya existe un
+usuario.
+
+\importante{El material TOTP y los códigos de recuperación se entregan una
+sola vez. Regístrelos en la app de autenticación y guárdelos antes de
+cerrar la pantalla o descartar la respuesta.}
+
+% ---------------------------------------------------------------------
+\section{Comprobar la instalación}\label{sec:inst-comprobar}
+
+La instalación está completa cuando se cumplen estas cuatro condiciones:
+
+\begin{enumerate}
+  \item \texttt{GET /healthz} en el puerto 3000 responde \texttt{ok}.
+  \item \texttt{GET /api/v1/auth/me} sin sesión responde \texttt{401}.
+  \item El Administrador inicia sesión en la interfaz con correo,
+        contraseña y código de 6 dígitos.
+  \item Un documento cargado en un expediente se puede sellar con la TSA
+        local y su paquete de evidencia se puede exportar.
+\end{enumerate}
+
+Estas condiciones cubren el sellado con el certificado del servidor. La
+firma individual requiere además publicar la
+confianza de la CA de desarrollo en la base (\cref{sec:ca-revocacion}) y
+emitir el certificado de cada titular (\cref{sec:ca-emision}).
+
+El archivo \archivo{/version.json} no existe en esta instalación: lo genera
+el empaquetado de despliegue (\cref{cap:despliegue}). El contrato de todas
+las rutas está en \archivo{docs/http-api.md} y se resume en el
+\cref{cap:api}.
+
+Para detener el entorno, interrumpa el servidor y Astro con
+\texttt{Ctrl+C}. Los datos de PostgreSQL y Redis se conservan en los
+volúmenes de \archivo{compose.yaml}.
+
+% ---------------------------------------------------------------------
+\section{Demostración rápida}\label{sec:inst-demo}
+
+Si solo se quiere comprobar que el prototipo funciona, el repositorio
+incluye tres guiones que se ejecutan desde la raíz y trabajan con PKI y TSA
+desechables, sin usar \archivo{compose.yaml}. Los dos últimos crean sus
+propias instancias de PostgreSQL y Redis con los ejecutables locales indicados en el
+\cref{cap:requisitos} y necesitan el decodificador multimedia de la
+\cref{sec:inst-nativos}; la biblioteca qpdf la preparan ellos mismos.
+
+\begin{table}[H]
+  \centering
+  \caption{Guiones de demostración.}\label{tab:inst-demo}
+  \begin{tabularx}{\textwidth}{L{5.6cm} Y}
+    \toprule
+    \textbf{Comando} & \textbf{Qué recorre} \\
+    \midrule
+    \texttt{bash scripts/demo.sh}
+      & Ciclo de evidencia por línea de comandos, sin servidor ni base de
+        datos. \\
+    \texttt{bash scripts/api-demo.sh}
+      & Aplicación HTTP completa sobre puertos efímeros, con usuarios de
+        los cuatro roles. Requiere además \texttt{jq},
+        \texttt{pdftotext}, \texttt{rg} y \texttt{stdbuf}. \\
+    \texttt{bash scripts/web-demo.sh}
+      & Aceptación en navegador de la interfaz Qadra contra el servidor
+        real. Requiere \texttt{jq}, los módulos WASM y \texttt{npm ci}
+        de la \cref{sec:inst-web}, y el navegador de Playwright
+        instalado. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\textbf{Resultado esperado:} cada guion termina con código de salida 0 o
+se detiene en la primera comprobación que no se cumple. Una transcripción
+del primero está en \archivo{docs/demo-transcript.md}.

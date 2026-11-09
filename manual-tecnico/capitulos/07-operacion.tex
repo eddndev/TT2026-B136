@@ -1,0 +1,352 @@
+\chapter{Operación}\label{cap:operacion}
+
+Este capítulo reúne las tareas recurrentes de una instalación ya desplegada
+según el \cref{cap:despliegue}. Cada sección indica cuándo se realiza la tarea,
+el comando o guion, la comprobación y el documento del repositorio que contiene
+el procedimiento completo. Lea ese documento antes de
+actuar sobre una instalación con datos.
+
+\section{Convenciones}\label{sec:op-convenciones}
+
+Los ejemplos suponen la instalación privada que prepara
+\archivo{ops/deploy/host.py}: una cuenta sin privilegios de administrador, una
+raíz privada (\texttt{RAIZ}, como en el \cref{cap:despliegue}) y cuatro unidades \texttt{systemd}
+de usuario: \texttt{qadra-api}, \texttt{qadra-web}, \texttt{qadra-postgres} y
+\texttt{qadra-redis}. Los comandos se ejecutan con esa cuenta, en el propio
+servidor o por SSH.
+
+Los controladores de \archivo{ops/deploy/} no se invocan directamente: se
+ejecutan por medio del lanzador, con el intérprete aprobado
+(\texttt{PYTHON}) y la huella aprobada del inventario
+(\texttt{SHA256\_APROBADO}), en la forma que muestra la
+\cref{sec:desp-activacion}; solo cambian el controlador
+(\mbox{\texttt{-{}-entrypoint}}) y sus argumentos. Si la huella no coincide,
+no la sustituya por una calculada en el destino: consulte
+\archivo{docs/deployment-controller-launcher.md}.
+
+\section{Estado de los servicios y registros}\label{sec:op-estado}
+
+\textbf{Cuándo.} Después de una activación, de una renovación de la CRL o de un
+reinicio del servidor, y como primer paso ante cualquier incidencia.
+
+\textbf{Comandos.} El estado de la versión activa se obtiene con la orden
+\texttt{status} de \texttt{release.py} (\cref{sec:desp-activacion}). Las unidades y sus registros se consultan con
+las herramientas de \texttt{systemd}; estas consultas no requieren el lanzador.
+
+\begin{verbatim}
+systemctl --user status qadra-api qadra-web \
+  qadra-postgres qadra-redis
+journalctl --user -u qadra-api -n 100 --no-pager
+tail -n 100 RAIZ/logs/nginx-error.log
+journalctl --user -u qadra-api --since "15 minutes ago" \
+  --no-pager -o cat --grep "MFA access attempt"
+\end{verbatim}
+
+La API escribe en la salida de error y \texttt{systemd} la recoge en el
+registro de \texttt{qadra-api}. El último comando filtra los intentos de
+segundo factor; para localizar uno concreto, filtre por el identificador que
+la API devuelve en la cabecera \texttt{X-Request-Id}.
+
+\textbf{Comprobación.} La orden \texttt{status} consulta PostgreSQL y
+Redis y exige una respuesta 401 en JSON del punto de acceso sin sesión, el HTML
+de la interfaz, una respuesta correcta del proxy y la versión y el commit exactos. Esto
+prueba disponibilidad, no todos los flujos de la aplicación.
+
+\textbf{Detalle.} \archivo{docs/deployment.md}, sección \emph{Acceso, estado
+y logs}, y \archivo{docs/mfa-access-logs.md}, que tabula los motivos de
+rechazo. Estos registros son diagnósticos, distintos de la cadena de auditoría
+(\cref{sec:op-auditoria}); su retención depende del registro del servidor y
+exigen conservar el nivel \texttt{info} del destino \texttt{qadra::access}.
+
+\section{Migraciones de esquema}\label{sec:op-migraciones}
+
+\textbf{Cuándo.} Cuando la versión que se va a instalar incluye migraciones
+nuevas. El arranque de \texttt{serve} no ejecuta DDL: valida el esquema, los
+privilegios y los inventarios, y se niega a iniciar si no coinciden. El
+despliegue automático tampoco migra; un cambio en la huella de migraciones lo
+detiene antes de apagar los servicios.
+
+\textbf{Procedimiento.} La migración es un mantenimiento explícito: ensayar
+migración y restauración en una copia aislada; respaldar base, roles y
+material privado (\cref{sec:op-respaldo}); cerrar el acceso y detener todo
+proceso que escriba en la base; migrar con el binario nuevo y una conexión
+administrativa; y validar con el rol restringido antes de reabrir.
+
+\begin{verbatim}
+# DATABASE_URL del rol administrativo
+despacho-cli database migrate --runtime-role ROL_DE_EJECUCION
+# DATABASE_URL del rol restringido de ejecución
+despacho-cli database check --json
+\end{verbatim}
+
+\texttt{ROL\_DE\_EJECUCION} es el rol restringido ya existente; el comando no
+crea usuarios de PostgreSQL. La conexión se recibe siempre por la variable de
+entorno \texttt{DATABASE\_URL}, nunca como argumento.
+
+\textbf{Comprobación.} \texttt{database check} devuelve
+\texttt{\{"validated":true\}} y rechaza una conexión del propietario
+administrativo. No autoriza por sí solo reabrir el acceso.
+
+\importante{Una migración no se revierte cambiando a un binario anterior. El
+retorno exige el respaldo previo a la migración y el procedimiento de
+restauración. No edite la huella de migraciones ni relaje las guardas del
+esquema para conseguir que el servicio arranque.}
+
+\textbf{Detalle.} \archivo{docs/database-operations.md} y
+\archivo{docs/deployment.md}, sección \emph{Recuperación y esquema}.
+
+\section{Respaldo}\label{sec:op-respaldo}
+
+\textbf{Cuándo.} El controlador \archivo{ops/deploy/release.py} captura un
+respaldo antes de activar cada versión, y \archivo{ops/deploy/renew_crl.py}
+antes de cada renovación de la CRL. En ambos casos toma el bloqueo exclusivo
+\texttt{deploy.lock} y exige que la API y la interfaz web estén detenidas. No
+existe una orden independiente de respaldo. También deben permanecer
+detenidos los procesos de línea de comandos iniciados fuera del controlador:
+el bloqueo no los detiene.
+
+\begin{table}[H]
+  \centering
+  \caption{Contenido de cada directorio bajo
+    \texttt{RAIZ/backups}.}\label{tab:op-respaldo}
+  \begin{tabularx}{\textwidth}{L{4.6cm} Y}
+    \toprule
+    \textbf{Archivo} & \textbf{Contenido} \\
+    \midrule
+    \archivo{database.dump}
+      & Respaldo de PostgreSQL en formato \emph{custom}, tomado con el rol
+        administrativo. \\
+    \archivo{redis.rdb}
+      & Instantánea de Redis: sesiones y controles de identidad con sus
+        vencimientos. \\
+    \archivo{private-state.tar.gz}
+      & Configuración y material privado de la CA y la TSA existente al
+        capturar. \\
+    \archivo{backup-manifest.json}
+      & Tamaños, huellas e identidad local declarada de la captura. \\
+    \archivo{COMPLETE}
+      & Marcador que se publica al terminar la captura, su validación y su
+        sincronización. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\textbf{Lo que el respaldo no incluye ni garantiza:}
+
+\begin{itemize}
+  \item La copia fuera del servidor: la hace el operador por SSH, hacia un
+        almacenamiento restringido, registrando tamaños y SHA-256 antes y
+        después de transferir.
+  \item Los roles del clúster: \texttt{pg\_dump} de una base no los crea;
+        hay que prepararlos antes de restaurar.
+  \item Los cambios posteriores a la captura, entre ellos los intentos
+        fallidos de contraseña y los códigos TOTP ya usados.
+  \item Autenticidad ni prueba de recuperación: \archivo{COMPLETE} no es una
+        firma, y un respaldo creado no demuestra que pueda restaurarse
+        (\cref{sec:op-restauracion}).
+  \item Retención: no se borran respaldos automáticamente, salvo los de
+        renovaciones programadas de la CRL que exceden los cuatro más recientes.
+\end{itemize}
+
+\textbf{Comprobación.} El directorio tiene modo \texttt{0700}, sus archivos
+\texttt{0600} y contiene \archivo{COMPLETE}. Un fallo de captura o de
+validación aborta la activación; no se omite Redis para continuar.
+
+\nota{La primera captura de una instalación es anterior a la inicialización
+de la CA y no contiene sus claves; se necesita una captura posterior.}
+
+\textbf{Detalle.} \archivo{docs/deployment-backups.md} y
+\archivo{docs/backup-capture-manifest.md}.
+
+\section{Restauración y su ensayo}\label{sec:op-restauracion}
+
+\textbf{Cuándo.} Ante pérdida o corrupción de datos. El ensayo debe hacerse
+antes, sobre procesos, puertos y directorios desechables, conservando intactos
+los datos originales hasta aceptar el resultado.
+
+\textbf{Procedimiento.} La restauración es manual; no hay un comando único
+que la ejecute. Los módulos \archivo{ops/deploy/restore_*.py} son piezas
+internas del controlador, no una interfaz de línea de comandos. El orden es:
+
+\begin{enumerate}
+  \item Cerrar el acceso y detener todo proceso que escriba en PostgreSQL o en
+        Redis. Verificar archivos, huellas de transferencia y versiones.
+  \item Restaurar SQL, configuración y claves del \emph{mismo} conjunto, con
+        sus propietarios, privilegios y esquema.
+  \item Si Redis sigue íntegro, conservarlo; si se perdió, cargar
+        \archivo{redis.rdb} en un directorio nuevo y privado. No copie
+        archivos sobre un Redis en ejecución ni sobre un directorio con AOF.
+  \item Invalidar sesiones y desafíos (\cref{sec:op-redis}) y cancelar las
+        capacidades de recuperación pendientes.
+  \item Validar esquema, privilegios, cadena de auditoría y confianza; comprobar
+        que un token anterior se rechaza y que el acceso nuevo exige
+        contraseña y segundo factor. Solo entonces reabrir el acceso.
+\end{enumerate}
+
+\begin{verbatim}
+pg_restore --dbname="$RESTORE_DATABASE_URL" --exit-on-error \
+  /ruta/segura/despacho.dump
+despacho-cli database check --json
+despacho-cli database invalidate-restored-password-resets \
+  --operation-id "$RESTORE_OPERATION_ID" \
+  --expected-database "$RESTORED_DATABASE" \
+  --expected-schema "$RESTORED_SCHEMA" \
+  --expected-audit-sequence "$ORIGINAL_AUDIT_SEQUENCE" \
+  --expected-audit-head "$ORIGINAL_AUDIT_HEAD" --json
+\end{verbatim}
+
+\texttt{database check} usa el rol restringido; la cancelación, el
+propietario administrativo de la base restaurada. El identificador de
+operación es un UUID que el operador genera y conserva. Para una cadena
+original vacía se usa \texttt{-{}-expected-empty-audit} en lugar de los dos
+argumentos de cabeza. \texttt{invalidate-restored-invitations} acepta los
+mismos argumentos para las invitaciones pendientes.
+
+\textbf{Comprobación.} La cancelación responde con un recibo JSON. Si la
+respuesta se pierde, repita la \emph{misma} solicitud sobre la misma base:
+\texttt{applied=false} indica que el recibo ya existía. No genere otro UUID
+ni sustituya la cabeza original por la actual.
+
+\textbf{Ensayo.} Dos recorridos desechables sin datos reales:
+\archivo{scripts/api-demo.sh} importa, restaura y compara exportaciones, y
+\archivo{scripts/tests/test_deployment_redis_snapshot.py} comprueba la
+instantánea de Redis, la invalidación selectiva y el reinicio desde AOF con
+Redis 7.4 o posterior.
+
+\importante{El \emph{rollback} de aplicación (\texttt{release.py rollback})
+no es una restauración: intercambia la versión activa por la anterior y
+conserva SQL y Redis actuales. Tampoco retrocede el esquema.}
+
+\textbf{Detalle.} \archivo{docs/deployment-backups.md} y
+\archivo{docs/database-restore-commands.md}; para las piezas internas, los
+cuatro documentos \archivo{docs/deployment-restore-*.md}; para el servicio de
+la CA, \archivo{docs/ca/restore.md}.
+
+\section{Gestión de sesiones en Redis}\label{sec:op-redis}
+
+\textbf{Cuándo.} Después de restaurar PostgreSQL y antes de reabrir el acceso.
+Restaurar la base puede retroceder la generación de autenticación de las
+cuentas, de modo que una sesión antigua podría volver a ser válida. En la
+operación normal no hace falta intervenir: las sesiones se revocan desde la
+aplicación y vencen por sí solas.
+
+\importante{No use \texttt{FLUSHDB} ni \texttt{FLUSHALL}. La instancia
+guarda también los límites de intentos de contraseña y las marcas de códigos
+TOTP ya usados, y el servicio de la CA (\cref{cap:ca}) la comparte con su
+propio espacio de claves.}
+
+Se eliminan únicamente las sesiones, los desafíos y las capturas de acceso
+por certificado del despacho (\archivo{identity:session:},
+\archivo{identity:challenge:}, \archivo{identity:certificate-login:}) y, al
+restaurar el servicio de la CA, sus sesiones y desafíos
+(\archivo{ca-identity:session:}, \archivo{ca-identity:challenge:}). Las
+demás claves, entre ellas \archivo{identity:password-failures:},
+\archivo{identity:totp-used:} e \archivo{identity:certificate-login-rate:},
+se conservan con sus valores y vencimientos.
+
+\textbf{Procedimiento.} Antes de borrar, verifique el PID, el directorio, el
+puerto y la base lógica \texttt{0} de la instancia. Recorra las claves con
+\texttt{SCAN} en lotes acotados y elimine solo las claves completas formadas
+por uno de los cinco prefijos eliminables seguido de 64 dígitos
+hexadecimales en minúsculas. La función interna \texttt{invalidate\_sessions} de
+\archivo{ops/deploy/restore_redis.py} implementa ese recorrido con límites
+explícitos; no es un comando.
+
+\textbf{Comprobación.} Un recorrido final no encuentra sesiones ni desafíos
+y, tras reiniciar esa instancia, no reaparecen. No reasigne vencimientos. Si
+la instancia se reconstruyó desde \archivo{redis.rdb}, habilite AOF sobre los
+datos ya depurados antes de reiniciar: con AOF y RDB presentes, Redis arranca
+desde AOF.
+
+\textbf{Detalle.} \archivo{docs/deployment-backups.md}, pasos 3 a 6;
+\archivo{docs/deployment-restore-capture.md}, sección
+\emph{Invalidación Redis}; y \archivo{docs/database-operations.md}, sección
+\emph{Acceso de miembros y restauración de identidad}.
+
+\section{Renovación de la CRL}\label{sec:op-crl}
+
+\textbf{Cuándo.} Los guiones de la CA generan listas de revocación con siete
+días de vigencia. Una CRL vencida impide juzgar el estado de un certificado,
+por lo que debe renovarse antes de su vencimiento. El temporizador de usuario
+\texttt{qadra-crl-renew.timer} lo hace sin intervención: se ejecuta a diario
+después de las 09:00 UTC, con un retraso aleatorio de hasta 30 minutos, y
+renueva cuando faltan menos de 72 horas. Requiere que la cuenta de despliegue
+tenga \emph{linger} habilitado.
+
+\textbf{Comandos.} La renovación manual usa el mismo controlador. Primero se
+consulta el estado y después se renueva indicando la revisión de confianza
+observada en esa consulta, no una copiada de un ejemplo.
+
+\begin{verbatim}
+PYTHON -I -B -S RAIZ/controller_launcher.py \
+  --root RAIZ --inventory-sha256 SHA256_APROBADO \
+  --entrypoint renew_crl.py -- --root RAIZ status
+# Misma invocación, con la orden:
+#   renew --expected-revision REVISION
+systemctl --user list-timers qadra-crl-renew.timer
+\end{verbatim}
+
+El controlador toma el bloqueo de despliegue, detiene la API y la interfaz
+web, captura un respaldo completo, instala la CRL nueva, publica la revisión
+de confianza con su evento de auditoría y arranca la misma versión. Conserva
+la CA, sus claves y las revocaciones previas. Las otras órdenes de uso manual
+son \texttt{resume UUID}, para reanudar una operación interrumpida, y
+\texttt{schedule-units}, que instala y habilita el temporizador y debe
+repetirse al instalar una nueva generación de controladores; \texttt{auto} y
+\texttt{alert} las invocan las unidades programadas.
+
+\textbf{Comprobación.} La última línea del ejemplo muestra la próxima
+ejecución del temporizador. Cada ejecución deja un recibo privado en
+\archivo{maintenance/crl-schedule/} con su resultado, entre ellos
+\texttt{skipped} (la CRL sigue vigente más allá del umbral), \texttt{renewed}, \texttt{busy} (el bloqueo estaba
+ocupado; se reintenta al día siguiente), \texttt{blocked} (hay un
+mantenimiento, una restauración o una operación de la CA pendiente) y
+\texttt{failed}; la lista completa está en el documento de detalle. Todo
+resultado distinto de \texttt{renewed}, \texttt{skipped} y \texttt{busy}
+marca la unidad como fallida y ejecuta \texttt{qadra-crl-alert.service}, que
+envía un correo genérico al destinatario de
+\archivo{config/crl-schedule.json}.
+
+\importante{Una renovación interrumpida deja el marcador
+\archivo{config/crl-maintenance.json}, que bloquea el arranque de la API, la
+activación y el \emph{rollback} incluso después de reiniciar el servidor. No
+lo retire a mano: revise \texttt{status} y ejecute \texttt{resume} con el UUID
+de la operación. El temporizador nunca reanuda una operación pendiente.
+Mientras dure el mantenimiento no ejecute directamente \texttt{gen-crl.sh},
+\texttt{revoke.sh} ni emisiones sobre esa CA.}
+
+\textbf{Detalle.} \archivo{docs/deployment-crl.md}. La emisión y la revocación
+de certificados se tratan en el \cref{cap:ca}.
+
+\section{Verificación de la cadena de auditoría}\label{sec:op-auditoria}
+
+\textbf{Cuándo.} Periódicamente, después de una restauración y siempre que se
+sospeche una alteración de la base. Los eventos de auditoría forman una sola
+cadena de huellas SHA-256 en PostgreSQL: cada evento incluye la huella del
+anterior, de modo que modificar o eliminar uno rompe la cadena a partir de él.
+
+\textbf{Comando.} La verificación la realiza el propio servidor a petición de
+una cuenta con rol de Administrador (\texttt{owner}) y sesión vigente. Desde la
+interfaz se usa la acción \textbf{Verificar cadena} del menú
+\textbf{Bitácora} (Manual de usuario, capítulo \emph{Funciones del
+Administrador}); por HTTP, a través del túnel SSH hacia el
+puerto local de la instalación:
+
+\begin{verbatim}
+curl -s -H "Authorization: Bearer $TOKEN_DE_SESION" \
+  http://127.0.0.1:18086/api/v1/audit/verify
+\end{verbatim}
+
+\textbf{Comprobación.} La respuesta contiene \texttt{valid},
+\texttt{entries} y \texttt{first\_broken\_index}. Con \texttt{valid} en
+\texttt{true}, \texttt{entries} es el número de eventos verificados; en caso
+contrario, \texttt{first\_broken\_index} señala el primer evento que no
+encadena. Los demás roles reciben un rechazo.
+
+\nota{El subcomando \texttt{despacho-cli audit verify-chain} verifica la
+bitácora de archivo del flujo sin servidor (\cref{cap:cli}), no la cadena de
+PostgreSQL de una instalación desplegada. La cadena no cuenta con un
+anclaje externo: el respaldo y los recibos no lo sustituyen.}
+
+\textbf{Detalle.} \archivo{docs/audit-events-api.md},
+\archivo{docs/http-api.md} y \archivo{docs/access-audit-matrix.md}.

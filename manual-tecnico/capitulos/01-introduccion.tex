@@ -1,0 +1,123 @@
+\chapter{Introducción}\label{cap:introduccion}
+
+\section{Propósito y alcance}\label{sec:intro-proposito}
+
+Este manual describe cómo instalar, configurar, desplegar, operar y mantener
+Qadra a partir de su repositorio de código, y remite por ruta a la
+documentación del repositorio cuando un tema requiere más detalle.
+
+Se dirige a quien instala y opera el sistema (administrador de sistemas o
+desarrollador con manejo de la línea de comandos de Linux, de PostgreSQL y de
+las herramientas de Rust y Node.js) y a quien revisa el trabajo, por ejemplo
+un sinodal, y necesita comprobar que el prototipo puede reconstruirse a partir
+de sus fuentes. Quedan fuera del alcance el uso de la interfaz, que
+corresponde al manual de usuario; la justificación del diseño, que corresponde
+al reporte técnico, y el registro de despliegues concretos o del estado de una
+instalación en particular.
+
+\section{Qué es Qadra}\label{sec:intro-qadra}
+
+Qadra es el \textbf{Prototipo de un sistema web para la gestión de
+expedientes digitales y actividad procesal de un despacho legal, con
+servicios de integridad y no repudio}, desarrollado como Trabajo Terminal
+2026-B136 en la ESCOM del IPN. Se compone de un servidor escrito en Rust
+(espacio de trabajo de Cargo en \archivo{crates/}), cuyo ejecutable
+principal atiende la API HTTP y ofrece además una interfaz de línea de
+comandos; de dos interfaces web en \archivo{web/apps/}, la del despacho
+(\archivo{qadra}) y la del portal de la autoridad certificadora
+(\archivo{ca}), que cuenta con un ejecutable propio en el mismo espacio de
+trabajo; de una base de datos PostgreSQL y un servicio Redis, y de una
+autoridad certificadora (CA) y una autoridad de sellado de tiempo (TSA)
+internas, cuyos \emph{scripts} están en \archivo{pki/}.
+
+\importante{Qadra es un prototipo académico. Su CA y su TSA son internas: los
+certificados, firmas y sellos de tiempo que produce sirven para demostrar los
+servicios de integridad y no repudio dentro del prototipo, y este manual no
+les atribuye validez jurídica ni equivalencia con servicios de certificación
+acreditados.}
+
+\section{Relación con el resto de la documentación}\label{sec:intro-relacion}
+
+El manual es un documento LaTeX independiente (\archivo{manual-tecnico/}),
+sin referencias cruzadas con los otros cuerpos de documentación del
+repositorio (\cref{tab:intro-documentos}). El \cref{cap:mapa} indica qué
+archivo de \archivo{docs/} consultar para cada tema.
+
+\begin{table}[H]
+  \centering
+  \caption{Otros cuerpos de documentación del
+    repositorio.}\label{tab:intro-documentos}
+  \begin{tabularx}{\textwidth}{L{3.4cm} L{3.4cm} Y}
+    \toprule
+    \textbf{Documento} & \textbf{Ubicación} & \textbf{Qué responde} \\
+    \midrule
+    Reporte técnico
+      & \archivo{latex/}
+      & Por qué el sistema es como es: análisis, diseño, implementación y
+        pruebas. Sus anexos B, C y D amplían capítulos de este manual. \\
+    Manual de usuario
+      & \archivo{manual-usuario/}
+      & Cómo realiza cada rol sus tareas frente a la pantalla. \\
+    Documentación del repositorio
+      & \archivo{docs/}, \archivo{README.md}
+      & El detalle de referencia: contratos HTTP, procedimientos de
+        despliegue y recuperación, informes de verificación y decisiones de
+        arquitectura. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Cómo leer este manual}\label{sec:intro-lectura}
+
+Los capítulos siguen el orden de una puesta en marcha, pero pueden consultarse
+por separado (\cref{tab:intro-lectura}). Para reconstruir
+el prototipo en un equipo propio bastan los
+\cref{cap:requisitos,cap:instalacion}, en ese orden.
+
+\begin{table}[H]
+  \centering
+  \caption{Capítulo que debe consultarse según la
+    necesidad.}\label{tab:intro-lectura}
+  \begin{tabularx}{\textwidth}{Y L{4.6cm}}
+    \toprule
+    \textbf{Si necesita\ldots} & \textbf{Consulte} \\
+    \midrule
+    Saber qué equipo y qué programas se requieren
+      & \Cref{cap:requisitos} \\
+    Entender los componentes y cómo se comunican
+      & \Cref{cap:arquitectura} \\
+    Levantar el sistema en su propio equipo
+      & \Cref{cap:instalacion} \\
+    Configurar el sistema
+      & \Cref{cap:configuracion} \\
+    Publicar una versión en un servidor
+      & \Cref{cap:despliegue} \\
+    Respaldar, restaurar y atender las tareas recurrentes del servicio
+      & \Cref{cap:operacion} \\
+    Administrar la CA y el sellado de tiempo internos
+      & \Cref{cap:ca} \\
+    Usar la interfaz de línea de comandos
+      & \Cref{cap:cli} \\
+    Consultar la API HTTP
+      & \Cref{cap:api} \\
+    Verificar un paquete de evidencia de forma independiente
+      & \Cref{cap:verificacion} \\
+    Dar mantenimiento al sistema o continuar su desarrollo
+      & \Cref{cap:mantenimiento} \\
+    Diagnosticar una falla
+      & \Cref{cap:problemas} \\
+    Localizar el documento de referencia de un tema
+      & \Cref{cap:mapa} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Convenciones}\label{sec:intro-convenciones}
+
+Las rutas, los comandos, las variables de entorno y los nombres de binarios
+aparecen en \texttt{tipografía fija}; las rutas son relativas a la raíz del
+repositorio, salvo que se indique otra cosa. Los dominios, cuentas y
+contraseñas de los ejemplos son ficticios. Los recuadros \textbf{Nota}
+aportan contexto; los recuadros \textbf{Importante} advierten de límites del
+prototipo y de acciones que no pueden deshacerse o que comprometen claves,
+respaldos o datos.
