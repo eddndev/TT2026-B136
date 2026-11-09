@@ -30,7 +30,7 @@
   }
 
   let commonName = '',
-    organization = 'Despacho Juridico Demo',
+    organization = 'Qadra',
     country = 'MX',
     password = '',
     passwordConfirmation = '',
@@ -75,7 +75,7 @@
     generation++;
     cryptoClient?.cancel();
     commonName = '';
-    organization = 'Despacho Juridico Demo';
+    organization = 'Qadra';
     country = 'MX';
     password = passwordConfirmation = checkPassword = error = '';
     generated = selectedFile = null;

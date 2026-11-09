@@ -45,7 +45,7 @@ class NativeFixture(unittest.TestCase):
         self.command(["openssl", "genpkey", "-algorithm", "RSA", "-pkeyopt", "rsa_keygen_bits:3072",
                       "-pkeyopt", "rsa_keygen_pubexp:65537", "-out", self.holder_key])
         self.command(["openssl", "req", "-new", "-sha256", "-key", self.holder_key, "-out", csr,
-                      "-subj", "/C=MX/O=Despacho Juridico Demo/CN=External Native Holder"])
+                      "-subj", "/C=MX/O=Qadra/CN=External Native Holder"])
         self.csr = csr.read_bytes()
         self.root_pem = (self.ca / "ca.crt.pem").read_bytes()
         self.executor = NativeExecutor(self.inspector, self.cli, REPOSITORY / "pki")

@@ -132,7 +132,7 @@ for party in client firm; do
   (
     umask 077
     openssl req -new -newkey rsa:3072 -nodes -sha256 \
-      -subj "/C=MX/O=Despacho Juridico Demo/CN=Contract Demo ${party^}" \
+      -subj "/C=MX/O=Qadra/CN=Contract Demo ${party^}" \
       -keyout "$WORK_DIR/$party/private.key.pem" -out "$WORK_DIR/$party/public.csr.pem" >/dev/null 2>&1
   )
   "$CLI" pki --scripts-dir "$PKI_SCRIPTS" issue-request \

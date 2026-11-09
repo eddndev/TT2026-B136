@@ -24,6 +24,16 @@ test('the release file is valid and pins the production root for every purpose',
   assert.ok(Object.isFrozen(roots) && Object.isFrozen(root));
 });
 
+test('the current root comes first and the retired root stays listed', () => {
+  const roots = parsePinnedRoots(JSON.parse(readFileSync(defaultFile, 'utf8')));
+  assert.equal(
+    roots[0].fingerprint,
+    '21089298db52cf8639647a35868894ff72fbb3a4b13356246b5db464da36c933',
+  );
+  assert.deepEqual(roots[0].purposes, ['server-seal', 'individual-signing', 'time-stamping']);
+  assert.equal(roots[1].fingerprint, production);
+});
+
 test('malformed entries are rejected', () => {
   const invalid = [
     entry({ fingerprint: production.toUpperCase() }),

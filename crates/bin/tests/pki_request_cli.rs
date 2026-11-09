@@ -7,7 +7,7 @@ use std::process::{Command, Output};
 use base64::{engine::general_purpose::STANDARD, Engine};
 
 const REQUEST_LIMIT: usize = 16 * 1024;
-const SUBJECT: &str = "/C=MX/O=Despacho Juridico Demo/CN=Independent Holder";
+const SUBJECT: &str = "/C=MX/O=Qadra/CN=Independent Holder";
 
 fn scripts() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../pki")

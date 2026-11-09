@@ -61,8 +61,8 @@ chmod 700 "$TSA_DIR/private"
 # the CA subject (dn_defaults in openssl.cnf) because the CA policy
 # requires them to match.
 SUBJECT="/C=MX/ST=Ciudad de Mexico/L=Ciudad de Mexico"
-SUBJECT="$SUBJECT/O=Despacho Juridico Demo/OU=Autoridad de Sellado de Tiempo"
-SUBJECT="$SUBJECT/CN=TSA Interna Despacho Juridico Demo"
+SUBJECT="$SUBJECT/O=Qadra/OU=Autoridad de Sellado de Tiempo"
+SUBJECT="$SUBJECT/CN=TSA Interna Qadra"
 
 # Generate the private key with restrictive permissions.
 (

@@ -23,7 +23,7 @@ solicitud** ofrece este recorrido:
 
 1. Introducir nombre comun, organizacion y pais. El nombre es declarado, no
    una acreditacion de identidad. Organizacion y pais deben corresponder a la
-   CA que revisara el CSR; los valores iniciales son `Despacho Juridico Demo`
+   CA que revisara el CSR; los valores iniciales son `Qadra`
    y `MX` y pueden corregirse antes de generar. Para una cuenta Cliente la
    organizacion queda fija, porque la politica de la CA copia la de la raiz;
    no indica afiliacion al despacho.

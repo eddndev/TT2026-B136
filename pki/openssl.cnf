@@ -67,9 +67,9 @@ distinguished_name  = dn_defaults
 C  = MX
 ST = Ciudad de Mexico
 L  = Ciudad de Mexico
-O  = Despacho Juridico Demo
+O  = Qadra
 OU = Autoridad Certificadora Interna
-CN = CA Raiz Interna Despacho Juridico Demo
+CN = CA Raiz Interna Qadra
 
 [ v3_root_ca ]
 # Extensions for the self-signed root CA certificate.

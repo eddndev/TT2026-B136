@@ -74,7 +74,7 @@ CERT_FILE="$PKI_CA_DIR/certs/$SLUG.crt.pem"
 # must match the CA subject (dn_defaults in openssl.cnf) because the
 # CA policy requires them to match.
 SUBJECT="/C=MX/ST=Ciudad de Mexico/L=Ciudad de Mexico"
-SUBJECT="$SUBJECT/O=Despacho Juridico Demo/OU=Personal del Despacho/CN=$CN"
+SUBJECT="$SUBJECT/O=Qadra/OU=Personal del Despacho/CN=$CN"
 
 # Generate the private key with restrictive permissions.
 (

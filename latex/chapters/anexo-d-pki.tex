@@ -75,7 +75,7 @@ La \cref{tab:pki-parametros} resume los valores exactos.
   \end{tabularx}
 \end{table}
 
-El sujeto por defecto (sección \texttt{dn\_defaults} de \texttt{openssl.cnf}) es una identidad de prototipo para un despacho jurídico mexicano: \texttt{C=MX}, \texttt{ST=Ciudad de Mexico}, \texttt{L=Ciudad de Mexico}, \texttt{O=Despacho Juridico Demo}, con \texttt{OU} y \texttt{CN} propios de cada pieza (autoridad, personal del despacho o autoridad de sellado).
+El sujeto por defecto (sección \texttt{dn\_defaults} de \texttt{openssl.cnf}) es una identidad de prototipo para un despacho jurídico mexicano: \texttt{C=MX}, \texttt{ST=Ciudad de Mexico}, \texttt{L=Ciudad de Mexico}, \texttt{O=Qadra}, con \texttt{OU} y \texttt{CN} propios de cada pieza (autoridad, personal del despacho o autoridad de sellado).
 
 \section{init-ca.sh: creación de la CA raíz}\label{sec:pki-init-ca}
 
@@ -170,7 +170,7 @@ printf '  Revoked certificates listed: %s\n' "$REVOKED_COUNT"
 
 \section{issue-tsa-cert.sh: certificado de la autoridad de sellado}\label{sec:pki-issue-tsa}
 
-Emite el certificado de la TSA local y prepara su directorio de trabajo, tomado de la variable \texttt{TSA\_DIR} (por defecto \texttt{pki-tsa}, junto al directorio de la CA). Genera la llave RSA 3\,072 de la TSA, crea el CSR con el sujeto \texttt{OU=Autoridad de Sellado de Tiempo, CN=TSA Interna Despacho Juridico Demo} y lo firma con la CA por 365 días, con la misma retrodatación de cinco minutos, pero con una diferencia esencial: las extensiones no provienen de \texttt{openssl.cnf} sino de \texttt{tsa.cnf} (\texttt{-extfile tsa.cnf -extensions v3\_tsa}), porque RFC 3161 \cite{adams2001} exige que el \texttt{extendedKeyUsage} de un certificado de sellado sea crítico y contenga \texttt{id-kp-timeStamping}. Finalmente prepara los dos archivos que \texttt{openssl ts -reply} lee en cada emisión de token: el archivo \texttt{serial} de tokens (inicia en \texttt{1000}) y \texttt{tsa-chain.pem}, la cadena que se adjunta a cada respuesta, que es una copia del certificado raíz de la CA.
+Emite el certificado de la TSA local y prepara su directorio de trabajo, tomado de la variable \texttt{TSA\_DIR} (por defecto \texttt{pki-tsa}, junto al directorio de la CA). Genera la llave RSA 3\,072 de la TSA, crea el CSR con el sujeto \texttt{OU=Autoridad de Sellado de Tiempo, CN=TSA Interna Qadra} y lo firma con la CA por 365 días, con la misma retrodatación de cinco minutos, pero con una diferencia esencial: las extensiones no provienen de \texttt{openssl.cnf} sino de \texttt{tsa.cnf} (\texttt{-extfile tsa.cnf -extensions v3\_tsa}), porque RFC 3161 \cite{adams2001} exige que el \texttt{extendedKeyUsage} de un certificado de sellado sea crítico y contenga \texttt{id-kp-timeStamping}. Finalmente prepara los dos archivos que \texttt{openssl ts -reply} lee en cada emisión de token: el archivo \texttt{serial} de tokens (inicia en \texttt{1000}) y \texttt{tsa-chain.pem}, la cadena que se adjunta a cada respuesta, que es una copia del certificado raíz de la CA.
 
 \begin{lstlisting}[language=bash, caption={Firma con extensiones de \texttt{tsa.cnf} y preparación del directorio TSA en \texttt{pki/issue-tsa-cert.sh}.}, label={lst:pki-issue-tsa}]
 # Sign the request with the CA. The extensions come from tsa.cnf, not

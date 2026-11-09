@@ -91,7 +91,7 @@ umask 077
 openssl genpkey -algorithm RSA -aes-256-cbc -pkeyopt rsa_keygen_bits:3072 \
     -pkeyopt rsa_keygen_pubexp:65537 -out signer-private.pem
 openssl req -new -sha256 -key signer-private.pem -out signer.csr.pem \
-    -subj '/C=MX/O=Despacho Juridico Demo/CN=Firma documental'
+    -subj '/C=MX/O=Qadra/CN=Firma documental'
 ```
 
 El administrador recibe solamente `signer.csr.pem`. Con `PKI_CA_DIR` apuntando
@@ -135,7 +135,7 @@ umask 077
 openssl genpkey -algorithm RSA -aes-256-cbc -pkeyopt rsa_keygen_bits:3072 \
     -pkeyopt rsa_keygen_pubexp:65537 -out owner-private.pem
 openssl req -new -sha256 -key owner-private.pem -out owner.csr.pem \
-    -subj '/C=MX/O=Despacho Juridico Demo/CN=Acceso Owner'
+    -subj '/C=MX/O=Qadra/CN=Acceso Owner'
 ```
 
 El administrador recibe solamente `owner.csr.pem` y selecciona Partner:

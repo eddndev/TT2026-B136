@@ -123,7 +123,7 @@ if [ "${TT_WEB_SESSION_ACCEPTANCE:-0}" = 0 ] && \
     (
       umask 077
       openssl req -new -newkey rsa:3072 -nodes -sha256 \
-        -subj "/C=MX/O=Despacho Juridico Demo/CN=Browser Individual $device" \
+        -subj "/C=MX/O=Qadra/CN=Browser Individual $device" \
         -keyout "$WORK_DIR/client-credentials/individual-$device.key.pem" \
         -out "$WORK_DIR/client-credentials/individual-$device.csr.pem" >/dev/null 2>&1
     )
