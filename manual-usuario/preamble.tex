@@ -31,6 +31,8 @@
 \graphicspath{{figures/}}
 \usepackage{float}
 \usepackage[font=small,labelfont=bf,margin=1cm]{caption}
+\DeclareCaptionLabelFormat{colored}{\textcolor{ipnvino}{#1 #2}}
+\captionsetup{labelformat=colored}
 
 % ---------- Tables ----------------------------------------------------
 \usepackage{booktabs}
@@ -55,23 +57,28 @@
 % Secondary color: Qadra light blue (brand-600 and brand-50 of the web design tokens).
 \definecolor{qadrablue}{HTML}{2563EB}
 \definecolor{qadrablue50}{HTML}{EFF6FF}
-% Accent color reserved for critical warnings only (\importante).
+% Accent color: IPN guinda, used for heading rules, numbers, labels and
+% critical warnings (\importante).
 \definecolor{ipnvino}{HTML}{6B1E3C}
 
 % ---------- Headings --------------------------------------------------
 \usepackage{titlesec}
 % Parts are named A (firm staff) and B (client and verification).
 \renewcommand{\thepart}{\Alph{part}}
+% Color scheme: navy titles, light blue labels, guinda rules and numbers.
 \titleformat{\part}[display]
   {\centering\sffamily\Huge\bfseries\color{qadranavy}}
-  {\Large\MakeUppercase{\partname}\ \thepart}{16pt}{}
+  {\Large\color{ipnvino}\MakeUppercase{\partname}\ \thepart}{16pt}{}
+  [\vspace{8pt}{\color{qadrablue}\titlerule[1.5pt]}]
 \titleformat{\chapter}[display]
   {\sffamily\huge\bfseries\color{qadranavy}}
-  {\sffamily\Large\bfseries\color{qadrablue}\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {\sffamily\Large\bfseries\color{qadrablue}\MakeUppercase{\chaptertitlename}\ \textcolor{ipnvino}{\thechapter}}
   {12pt}{\Huge}
+  [\vspace{6pt}{\color{ipnvino}\titlerule[1.2pt]}]
 \titlespacing*{\chapter}{0pt}{10pt}{24pt}
-\titleformat{\section}{\sffamily\Large\bfseries\color{qadranavy}}{\textcolor{qadrablue}{\thesection}}{1em}{}
-\titleformat{\subsection}{\sffamily\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\section}{\sffamily\Large\bfseries\color{qadranavy}}{\textcolor{ipnvino}{\thesection}}{1em}{}
+\titleformat{\subsection}{\sffamily\large\bfseries\color{qadrablue}}{\textcolor{ipnvino}{\thesubsection}}{1em}{}
+\titleformat{name=\subsection,numberless}{\sffamily\large\bfseries\color{qadrablue}}{}{0pt}{}
 
 % ---------- Running headers -------------------------------------------
 \usepackage{fancyhdr}
@@ -129,7 +136,7 @@
   \small\textbf{\color{ipnvino}Importante.} #1}}\par\smallskip}
 
 % Standard block labels of each screen description.
-\newcommand{\paraque}{\par\noindent\textbf{¿Para qué sirve?}\ }
-\newcommand{\disponible}{\par\noindent\textbf{Disponible para:}\ }
-\newcommand{\pasos}{\par\noindent\textbf{Pasos a seguir:}}
-\newcommand{\resultado}{\par\noindent\textbf{Resultado esperado:}\ }
+\newcommand{\paraque}{\par\noindent\textbf{\textcolor{qadranavy}{¿Para qué sirve?}}\ }
+\newcommand{\disponible}{\par\noindent\textbf{\textcolor{ipnvino}{Disponible para:}}\ }
+\newcommand{\pasos}{\par\noindent\textbf{\textcolor{qadrablue}{Pasos a seguir:}}}
+\newcommand{\resultado}{\par\noindent\textbf{\textcolor{qadranavy}{Resultado esperado:}}\ }
