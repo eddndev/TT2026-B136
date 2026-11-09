@@ -47,6 +47,9 @@
 
 % ---------- Colors ----------------------------------------------------
 \usepackage{xcolor}
+% Main color: Qadra navy, the same as the application sidebar.
+\definecolor{qadranavy}{HTML}{111344}
+% Accent color reserved for critical warnings only (\importante).
 \definecolor{ipnvino}{HTML}{6B1E3C}
 
 % ---------- Headings --------------------------------------------------
@@ -54,14 +57,14 @@
 % Parts are named A (firm staff) and B (client and verification).
 \renewcommand{\thepart}{\Alph{part}}
 \titleformat{\part}[display]
-  {\centering\sffamily\Huge\bfseries\color{ipnvino}}
+  {\centering\sffamily\Huge\bfseries\color{qadranavy}}
   {\Large\MakeUppercase{\partname}\ \thepart}{16pt}{}
 \titleformat{\chapter}[display]
-  {\sffamily\huge\bfseries\color{ipnvino}}
-  {\sffamily\Large\bfseries\color{ipnvino!70}\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {\sffamily\huge\bfseries\color{qadranavy}}
+  {\sffamily\Large\bfseries\color{qadranavy!70}\MakeUppercase{\chaptertitlename}\ \thechapter}
   {12pt}{\Huge}
 \titlespacing*{\chapter}{0pt}{10pt}{24pt}
-\titleformat{\section}{\sffamily\Large\bfseries\color{ipnvino}}{\thesection}{1em}{}
+\titleformat{\section}{\sffamily\Large\bfseries\color{qadranavy}}{\thesection}{1em}{}
 \titleformat{\subsection}{\sffamily\large\bfseries}{\thesubsection}{1em}{}
 
 % ---------- Running headers -------------------------------------------
@@ -80,7 +83,7 @@
 \hypersetup{
   pdftitle={Qadra: Manual de usuario},
   pdfauthor={Eduardo Alonso Sánchez; Hatziry Vitales Herrera},
-  colorlinks=true,linkcolor=ipnvino,urlcolor=ipnvino,
+  colorlinks=true,linkcolor=qadranavy,urlcolor=qadranavy,
 }
 \usepackage[nameinlink,spanish]{cleveref}
 \crefname{part}{parte}{partes}
@@ -107,8 +110,13 @@
 
 % Short highlighted note.
 \newcommand{\nota}[1]{\par\smallskip\noindent
-  \fcolorbox{ipnvino}{ipnvino!6}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
+  \fcolorbox{qadranavy}{qadranavy!6}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
   \small\textbf{Nota.} #1}}\par\smallskip}
+
+% Critical warning: actions that cannot be undone or information shown once.
+\newcommand{\importante}[1]{\par\smallskip\noindent
+  \fcolorbox{ipnvino}{ipnvino!8}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
+  \small\textbf{\color{ipnvino}Importante.} #1}}\par\smallskip}
 
 % Standard block labels of each screen description.
 \newcommand{\paraque}{\par\noindent\textbf{¿Para qué sirve?}\ }
