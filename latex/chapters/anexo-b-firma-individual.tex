@@ -18,7 +18,7 @@ openssl genpkey -algorithm RSA -aes-256-cbc \
   -out signer-private.pem
 openssl req -new -sha256 -key signer-private.pem \
   -out signer.csr.pem \
-  -subj '/C=MX/O=Despacho Juridico Demo/CN=Firma documental'
+  -subj '/C=MX/O=Qadra/CN=Firma documental'
 despacho-cli pki issue-request --csr signer.csr.pem \
   --name litigante-demo --json
 \end{lstlisting}

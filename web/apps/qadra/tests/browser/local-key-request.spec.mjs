@@ -40,7 +40,7 @@ async function fillRequest(form) {
   await form
     .getByLabel('Nombre com\u00fan (CN)', { exact: true })
     .fill('Disposable browser holder');
-  await form.getByLabel('Organizaci\u00f3n (O)', { exact: true }).fill('Despacho Juridico Demo');
+  await form.getByLabel('Organizaci\u00f3n (O)', { exact: true }).fill('Qadra');
   await form.getByLabel('Pa\u00eds (C)', { exact: true }).fill('MX');
   await form.getByLabel('Contrase\u00f1a de la nueva clave', { exact: true }).fill(password);
   await form.getByLabel('Confirmar contrase\u00f1a', { exact: true }).fill(password);
@@ -81,7 +81,7 @@ function verifyDownloadedMaterial(encrypted, csr) {
   );
   const subject = opensslRequest(csr, ['-subject', '-nameopt', 'RFC2253', '-noout']).stdout;
   expect(subject).toContain('CN=Disposable browser holder');
-  expect(subject).toContain('O=Despacho Juridico Demo');
+  expect(subject).toContain('O=Qadra');
   expect(subject).toContain('C=MX');
   return createPublicKey(key).export({ type: 'spki', format: 'der' });
 }

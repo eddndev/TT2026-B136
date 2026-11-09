@@ -16,7 +16,7 @@ individual_signing_demo() {
   (
     umask 077
     openssl req -new -newkey rsa:3072 -nodes -sha256 \
-      -subj '/C=MX/O=Despacho Juridico Demo/CN=API Individual Litigator' \
+      -subj '/C=MX/O=Qadra/CN=API Individual Litigator' \
       -keyout "$WORK_DIR/individual-client/private.key.pem" \
       -out "$WORK_DIR/individual-client/public.csr.pem" >/dev/null 2>&1
   )

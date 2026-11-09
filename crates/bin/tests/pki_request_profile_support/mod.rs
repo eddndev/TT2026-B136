@@ -53,7 +53,7 @@ pub fn request(directory: &Path) -> PathBuf {
         "-key",
         key.to_str().unwrap(),
         "-subj",
-        "/C=MX/O=Despacho Juridico Demo/CN=External Profile Holder",
+        "/C=MX/O=Qadra/CN=External Profile Holder",
         "-addext",
         "basicConstraints=critical,CA:TRUE",
         "-addext",

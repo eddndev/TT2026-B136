@@ -1,7 +1,12 @@
 [
   {
-    "fingerprint": "98f934f7152cd0b12ef1bf9b424a62d425a02496b531e218d2cde45a4130a4b6",
+    "fingerprint": "21089298db52cf8639647a35868894ff72fbb3a4b13356246b5db464da36c933",
     "purposes": ["server-seal", "individual-signing", "time-stamping"],
     "label": "Qadra qadra.com.mx"
+  },
+  {
+    "fingerprint": "98f934f7152cd0b12ef1bf9b424a62d425a02496b531e218d2cde45a4130a4b6",
+    "purposes": ["server-seal", "individual-signing", "time-stamping"],
+    "label": "Qadra qadra.com.mx (raiz anterior, hasta 2026-11)"
   }
 ]

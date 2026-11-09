@@ -28,7 +28,7 @@ umask 077
 openssl genpkey -algorithm RSA -aes-256-cbc -pkeyopt rsa_keygen_bits:3072 \
   -pkeyopt rsa_keygen_pubexp:65537 -out signer-private.pem
 openssl req -new -sha256 -key signer-private.pem -out signer.csr.pem \
-  -subj '/C=MX/O=Despacho Juridico Demo/CN=Firma documental'
+  -subj '/C=MX/O=Qadra/CN=Firma documental'
 ```
 
 Los valores C y O del ejemplo coinciden con la CA de demostracion. Si usas
