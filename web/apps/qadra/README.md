@@ -190,6 +190,17 @@ e informes siguen mostrando el correo
 recuentos de una página como totales del despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
 Las rutas usan fragmentos de URL y respetan atrás/adelante sin recargar la sesión.
 
+Las secciones del expediente son una fila de pestañas con icono que nunca se
+desplaza en horizontal: las que no caben pasan al menú **Más** al final de la
+fila, la sección actual siempre queda visible y en móvil la fila se sustituye
+por un selector.
+
+Los formularios que actúan sobre un registro ya mostrado (editar la ficha
+penal, corregir o retirar una resolución, un plazo, una audiencia o su
+resultado, un recurso o un registro de medida, y administrar el acceso de una
+cuenta) ocupan el lugar de la ficha de ese registro y la devuelven al guardar o
+cancelar. Los formularios que crean un registro se abren sobre la lista.
+
 La identidad visual, los recursos de marca, la tipografía, los colores, las
 proporciones de navegación y los componentes documentales se conservan. Las
 pantallas de expedientes reutilizan las tarjetas, controles, iconos y estados

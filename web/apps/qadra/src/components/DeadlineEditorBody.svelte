@@ -44,7 +44,7 @@
 </script>
 
 <section class="card case-editor fact-editor" aria-label="Formulario de plazo" aria-busy={pending}>
-  <h2>
+  <h2 tabindex="-1">
     {mode === 'register'
       ? 'Registrar plazo'
       : mode === 'correct'

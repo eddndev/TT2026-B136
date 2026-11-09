@@ -1,6 +1,6 @@
 <script>
   import Button from './Button.svelte';
-  import { getContext, onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy, tick } from 'svelte';
   import CaseReconciliation from './CaseReconciliation.svelte';
   import CaseFields from './CaseFields.svelte';
   import CaseValues from './CaseValues.svelte';
@@ -16,12 +16,16 @@
   export let record = null;
   export let complete = true;
   export let disabled = false;
+  // Embedded: the form takes the place of the read-only values inside the
+  // card that shows the record, so it brings no card or heading of its own.
+  export let embedded = false;
   export let onconfirmed;
   export let onobserved = () => {};
   export let oncancel;
   export let ondenied = () => {};
   let draft = caseDraft(record?.administration),
     fields,
+    root,
     candidate = null;
   let busy = false,
     conflict = false,
@@ -191,6 +195,10 @@
     } finally {
       if (alive) restoring = false;
     }
+    if (embedded && alive && !restoreBlocked) {
+      await tick();
+      root?.querySelector('input:not(:disabled), textarea:not(:disabled)')?.focus();
+    }
   }
   async function refresh() {
     if (busy || restoring || restoreBlocked || !admitted()) return;
@@ -259,17 +267,18 @@
 </script>
 
 <section
-  class="card case-editor"
+  bind:this={root}
+  class={embedded ? 'case-editor case-editor-embedded' : 'card case-editor'}
   aria-label="Formulario del expediente"
   aria-busy={busy || restoring}
 >
-  <h2>
-    {!original
-      ? 'Nuevo expediente penal'
-      : complete
-        ? 'Ficha penal'
-        : 'Datos b\u00e1sicos del expediente'}
-  </h2>
+  {#if !embedded}<h2>
+      {!original
+        ? 'Nuevo expediente penal'
+        : complete
+          ? 'Ficha penal'
+          : 'Datos b\u00e1sicos del expediente'}
+    </h2>{/if}
   <form class="stack" onsubmit={submit}>
     <CaseFields
       bind:this={fields}

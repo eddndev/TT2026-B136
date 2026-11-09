@@ -10,6 +10,7 @@
   import HearingResults from './HearingResults.svelte';
   import { caseState } from '../lib/case-state.mjs';
   import { canHearings, hearingDenied } from '../lib/hearings.mjs';
+  import { focusForm, focusCard } from '../lib/hearing-form-focus.mjs';
   export let api,
     user,
     record,
@@ -31,7 +32,8 @@
     selected = null,
     historical = false,
     action = null,
-    editorBase = null;
+    editorBase = null,
+    inPlace = false;
   let status = 'all',
     appliedStatus = 'all',
     cursors = [undefined],
@@ -153,10 +155,18 @@
           drafts.find(
             (row) => row.action === next && row.resourceId === (editorBase?.id ?? null),
           ) ?? null;
+        place();
         action = next;
         editorGeneration++;
       }
     }
+  }
+  // The slot is fixed while the form is open: a form acting on the hearing
+  // shown in the detail takes the place of that card, any other one opens
+  // above the list.
+  function place() {
+    inPlace = !!editorBase && selected?.id === editorBase.id;
+    if (inPlace) focusForm('.hearing-editor');
   }
   async function resume(saved) {
     if (locked) return;
@@ -165,6 +175,7 @@
       editorBase = saved.resourceId ? await scoped.get(saved.resourceId) : null;
       if (!alive || !session?.canAdmit()) return;
       savedDraft = saved;
+      place();
       action = saved.action;
       editorGeneration++;
     } catch (failure) {
@@ -180,6 +191,7 @@
     }
   }
   function closedEditor() {
+    if (action && inPlace) focusCard('.hearing-detail');
     action = null;
     savedDraft = null;
     drafts = pendingHearingDrafts(session, record.id);
@@ -238,7 +250,7 @@
 {#if context && (!context.profile_complete || !context.stage_revision)}<p class="notice">
     Completa la ficha penal y registra la etapa para programar una audiencia.
   </p>{/if}
-{#if action}{#key editorGeneration}<HearingEditor
+{#snippet editor()}{#key editorGeneration}<HearingEditor
       api={scoped}
       participantsApi={participants}
       typedApi={typed}
@@ -254,7 +266,8 @@
       oncontext={observeContext}
       oncancel={closedEditor}
       bind:pending={editorBusy}
-    />{/key}{/if}
+    />{/key}{/snippet}
+{#if action && !inPlace}{@render editor()}{/if}
 {#if !action}{#each drafts as saved (saved.key)}<Button
       variant="secondary"
       disabled={locked}
@@ -308,8 +321,10 @@
     </div>
   </div>
 </section>
+{#if action && inPlace}{@render editor()}{/if}
 {#if selected}{#key selected.id}<HearingDetail
       record={selected}
+      replaced={!!action && inPlace}
       api={scoped}
       ondenied={deny}
       onedit={edit}

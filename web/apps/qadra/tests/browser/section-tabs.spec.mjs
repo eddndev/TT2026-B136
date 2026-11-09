@@ -36,6 +36,29 @@ test('desktop case sections are links that mark the current one', async ({ page 
   );
 });
 
+test('case sections that do not fit wait in a menu instead of scrolling the row', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await setup(page);
+  await login(page, false, false);
+  await openFirstCase(page);
+  const nav = page.getByRole('navigation', { name: 'Secciones del expediente', exact: true });
+  await expect(nav.getByRole('link', { name: 'Resumen', exact: true })).toBeVisible();
+  const more = nav.getByRole('button', { name: 'M\u00e1s secciones del expediente' });
+  await expect(more).toBeVisible();
+  expect(await nav.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+  await expect(nav.getByRole('link', { name: 'Asignaciones', exact: true })).toHaveCount(0);
+  await more.click();
+  await expect(nav.getByRole('link', { name: 'Asignaciones', exact: true })).toHaveAttribute(
+    'href',
+    '#case-members',
+  );
+  await page.keyboard.press('Escape');
+  await expect(nav.getByRole('link', { name: 'Asignaciones', exact: true })).toHaveCount(0);
+  await expect(more).toBeFocused();
+});
+
 test('on a phone the case sections become a select that switches the view', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await setup(page);

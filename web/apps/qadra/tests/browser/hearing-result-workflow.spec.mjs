@@ -34,6 +34,9 @@ test('records multiple sessions separately from revisions without default event 
   await resultDetail(page)
     .getByRole('button', { name: 'Rectificar registro', exact: true })
     .click();
+  // The form takes the place of the record card instead of opening beside it.
+  await expect(editor).toBeVisible();
+  await expect(resultDetail(page)).toHaveCount(0);
   await editor.getByLabel('Relato del operador', { exact: true }).fill('Relato rectificado');
   await editor.getByLabel('Motivo', { exact: true }).fill('Precision comunicada');
   await confirmResult(page);

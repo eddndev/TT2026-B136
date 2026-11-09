@@ -80,6 +80,9 @@ test('resource conflict keeps the draft until the operator explicitly accepts th
   await openRecord(page, row);
   await resourceDetail(page).getByRole('button', { name: 'Corregir recurso', exact: true }).click();
   const editor = resourceEditor(page);
+  // The form takes the place of the record card instead of opening beside it.
+  await expect(editor).toBeVisible();
+  await expect(resourceDetail(page)).toHaveCount(0);
   await editor
     .getByLabel('T\u00edtulo organizativo', { exact: true })
     .fill('Mi borrador de recurso');

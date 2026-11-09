@@ -1,10 +1,13 @@
 <script>
   import Button from './Button.svelte';
-  import { getContext, onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy, tick } from 'svelte';
   import { roles } from '../lib/documents.mjs';
   import { memberAccessChange } from '../lib/members-values.mjs';
   import { createMemberAccessDraft, freshMemberAccess } from '../lib/member-access-draft.mjs';
   export let api, user, record, onconfirmed, oncancel, ondenied;
+  // Embedded, the form takes the place of the account row inside the directory card.
+  export let embedded = false;
+  let root;
   const scoped = api.members(),
     session = getContext('session-drafts'),
     principalId = user.id;
@@ -62,6 +65,10 @@
       }
     } finally {
       if (alive) busy = false;
+    }
+    if (embedded && admitted()) {
+      await tick();
+      (root?.querySelector('select:not(:disabled)') ?? root?.querySelector('h2'))?.focus();
     }
   }
   function fresh() {
@@ -179,11 +186,18 @@
   });
 </script>
 
-<section class="card member-access" aria-label="Acceso de cuenta" aria-busy={busy}>
+<section
+  bind:this={root}
+  class="member-access"
+  class:card={!embedded}
+  class:member-access-row={embedded}
+  aria-label="Acceso de cuenta"
+  aria-busy={busy}
+>
   <div class="section-heading">
     <div>
       <span class="eyebrow">Permisos de la cuenta</span>
-      <h2>{base.email}</h2>
+      <h2 tabindex="-1">{base.email}</h2>
       <p class="hint">Revisi&#243;n consultada {base.revision}</p>
     </div>
     <Button variant="text" disabled={busy} onclick={close}>Cerrar acceso de cuenta</Button>
@@ -260,6 +274,12 @@
 <style>
   .member-access {
     margin-block: 24px;
+  }
+  .member-access-row {
+    margin-block: 0;
+    padding-block: 18px;
+    border-bottom: 1px solid var(--color-line);
+    min-width: 0;
   }
   h2 {
     overflow-wrap: anywhere;
