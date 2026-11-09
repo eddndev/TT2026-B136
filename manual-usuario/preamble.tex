@@ -113,6 +113,9 @@
   \fbox{\parbox[c][5cm][c]{0.85\textwidth}{\centering
   \textbf{CAPTURA PENDIENTE}\\[2mm]\texttt{#1}\\[1mm]\small #2}}}
 
+% File name in monospace that may break at '-', '.', '_' and '/'.
+\newcommand{\archivo}[1]{{\def\UrlBreaks{\do\/\do\-\do\.\do\_}\path{#1}}}
+
 % Short highlighted note.
 \newcommand{\nota}[1]{\par\smallskip\noindent
   \fcolorbox{qadrablue}{qadrablue50}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
