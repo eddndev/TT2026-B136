@@ -31,6 +31,9 @@ test('profile conflict retains draft and explicit replacement preserves independ
   });
   await summary(page);
   await page.getByRole('button', { name: 'Editar ficha penal', exact: true }).click();
+  // The form takes the place of the values inside the summary card.
+  await expect(page.locator('.case-summary .case-editor')).toBeVisible();
+  await expect(page.locator('.case-summary .case-values')).toHaveCount(0);
   await page.getByLabel('T\u00edtulo del expediente', { exact: true }).fill('Mi borrador');
   await page.getByRole('button', { name: 'Guardar ficha penal', exact: true }).click();
   await expect(page.getByLabel('T\u00edtulo del expediente', { exact: true })).toHaveValue(

@@ -22,6 +22,10 @@ for (const action of ['correct', 'entered_in_error', 'replace_entered_in_error']
     await openAdministration(page, state, action);
     await fillAdministration(page, action);
     const editor = administrationEditor(page);
+    // The form takes the place of the record summary instead of opening beside it.
+    await expect(
+      page.getByRole('region', { name: 'Registro exacto de medida', exact: true }),
+    ).toHaveCount(0);
     if (action !== 'correct')
       await expect(editor.getByLabel('Condiciones', { exact: true })).toHaveCount(0);
     await prepareAdministration(page);

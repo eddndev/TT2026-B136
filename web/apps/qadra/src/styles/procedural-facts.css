@@ -56,7 +56,8 @@
     flex-direction: column;
   }
 }
-/* Any record form that follows a card keeps the same distance as the card it replaces. */
+/* A record form that follows a card keeps the distance and the width of the card it replaces. */
 .card + .fact-editor {
   margin-top: 16px;
+  max-width: none;
 }

@@ -207,7 +207,8 @@ export async function openAccess(page, row) {
   await directory(page)
     .getByRole('button', { name: `Administrar acceso de ${row.email}`, exact: true })
     .click();
-  await expect(editor(page)).toBeVisible();
+  // Access is edited in the row of the account, inside the directory.
+  await expect(directory(page).getByRole('region', { name: 'Acceso de cuenta' })).toBeVisible();
   await expect(editor(page)).toHaveAttribute('aria-busy', 'false');
 }
 export async function reviewAccess(page, role, active) {

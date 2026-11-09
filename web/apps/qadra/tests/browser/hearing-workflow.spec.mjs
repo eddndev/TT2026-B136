@@ -32,6 +32,11 @@ test('programs a hearing with exact participants and preserves local time throug
     page.getByRole('region', { name: 'Detalle de audiencia', exact: true }),
   ).toContainText('09:02:03 / UTC-06:00');
   await page.getByRole('button', { name: 'Corregir o reprogramar', exact: true }).click();
+  // The form takes the place of the record card instead of opening beside it.
+  await expect(editor).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Detalle de audiencia', exact: true })).toHaveCount(
+    0,
+  );
   await editor.getByLabel('Fecha', { exact: true }).fill('2026-10-02');
   await editor.getByLabel('Motivo del cambio', { exact: true }).fill('Nueva fecha comunicada');
   await confirmHearing(page);

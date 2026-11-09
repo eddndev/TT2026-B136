@@ -58,6 +58,9 @@ test('records corrects and withdraws a resolution while keeping its exact origin
   await factDetail(page)
     .getByRole('button', { name: 'Corregir resoluci\u00f3n', exact: true })
     .click();
+  // The form takes the place of the record card instead of opening beside it.
+  await expect(factEditor(page)).toBeVisible();
+  await expect(factDetail(page)).toHaveCount(0);
   await factEditor(page)
     .getByLabel('Resumen de la resoluci\u00f3n', { exact: true })
     .fill('Texto precisado posteriormente');

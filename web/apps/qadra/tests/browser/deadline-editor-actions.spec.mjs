@@ -71,6 +71,9 @@ test('conflicting correction preserves its draft and requires an explicit curren
     state = await setupDeadlines(page, { deadlines: [initial] });
   await openCurrent(page, state);
   await detailPanel(page).getByRole('button', { name: 'Corregir plazo', exact: true }).click();
+  // The form takes the place of the record card instead of opening beside it.
+  await expect(editor(page)).toBeVisible();
+  await expect(detailPanel(page)).toHaveCount(0);
   await editor(page)
     .getByLabel('T\u00edtulo del plazo', { exact: true })
     .fill('Borrador que debe conservarse');
