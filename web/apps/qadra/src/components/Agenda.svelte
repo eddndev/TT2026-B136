@@ -30,10 +30,11 @@
   let chosen = initial.filters,
     applied = initial.query,
     range = initial.range;
-  // First month shown by the calendar, the only one below md. It opens on
-  // the reference date of each applied view (a custom range on its first
-  // day), so a week that starts in the previous month still shows the chosen
-  // day; the month controls move it without querying again.
+  // Month shown by the calendar beside the list. It opens on the reference
+  // date of each applied view (a custom range on its first day), so a week
+  // that starts in the previous month still shows the chosen day; the month
+  // controls move it without querying again, and a clicked day moves the
+  // period.
   const anchorMonth = (filters, period) =>
     monthOf(filters.view === 'custom' ? period.from : filters.date);
   let visibleMonth = anchorMonth(chosen, range);
@@ -231,52 +232,55 @@
 >
   <AgendaFilters value={chosen} onapply={apply} />
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
-  <MonthCalendar
-    label="Calendario de la agenda"
-    month={visibleMonth}
-    {today}
-    selected={chosen.view === 'custom' ? null : chosen.date}
-    describe={describeDay}
-    onselect={chooseDay}
-    onmonth={(month) => (visibleMonth = month)}
-  />
-  <div class="mt-8">
-    <UpcomingList
-      title="Actividades en el periodo"
-      rows={listed}
-      {empty}
-      onselect={open}
-      disabled={busy || opening}
-    >
-      <div slot="header" class="mt-1 grid gap-2">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <p class="hint">{range.from} hasta {range.until} (excluido) / UTC{chosen.offset}</p>
-          <Button variant="secondary" disabled={busy} onclick={() => load()}
-            >Actualizar Agenda</Button
-          >
+  <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div class="min-w-0">
+      <UpcomingList
+        title="Actividades en el periodo"
+        rows={listed}
+        {empty}
+        onselect={open}
+        disabled={busy || opening}
+      >
+        <div slot="header" class="mt-1 grid gap-2">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <p class="hint">{range.from} hasta {range.until} (excluido) / UTC{chosen.offset}</p>
+            <Button variant="secondary" disabled={busy} onclick={() => load()}
+              >Actualizar Agenda</Button
+            >
+          </div>
+          {#if checkedAt}<p class="hint">
+              &#218;ltima consulta: {deadlineInstantLabel(checkedAt)}
+            </p>{/if}
+          {#if busy}<p role="status">Consultando Agenda...</p>{/if}
+          {#if !complete && !error && checkedAt}
+            <p class="notice" role="status">Consulta parcial: faltan actividades por consultar.</p>
+          {/if}
         </div>
-        {#if checkedAt}<p class="hint">
-            &#218;ltima consulta: {deadlineInstantLabel(checkedAt)}
-          </p>{/if}
-        {#if busy}<p role="status">Consultando Agenda...</p>{/if}
-        {#if !complete && !error && checkedAt}
-          <p class="notice" role="status">Consulta parcial: faltan actividades por consultar.</p>
+      </UpcomingList>
+      <div class="pagination">
+        <span class="hint">{rows.length} actividades cargadas</span>
+        {#if !complete && next !== null}
+          <Button variant="secondary" disabled={busy || opening} onclick={() => load(true)}
+            >Cargar m&#225;s actividades</Button
+          >
         {/if}
       </div>
-    </UpcomingList>
+      <p class="hint">
+        Las actividades pueden cambiar entre consultas. Actualiza la agenda antes de actuar. Los
+        plazos que requieren revisi&#243;n se consultan dentro de su expediente.
+      </p>
+    </div>
+    <MonthCalendar
+      label="Calendario de la agenda"
+      months={1}
+      month={visibleMonth}
+      {today}
+      selected={chosen.view === 'custom' ? null : chosen.date}
+      describe={describeDay}
+      onselect={chooseDay}
+      onmonth={(month) => (visibleMonth = month)}
+    />
   </div>
-  <div class="pagination">
-    <span class="hint">{rows.length} actividades cargadas</span>
-    {#if !complete && next !== null}
-      <Button variant="secondary" disabled={busy || opening} onclick={() => load(true)}
-        >Cargar m&#225;s actividades</Button
-      >
-    {/if}
-  </div>
-  <p class="hint">
-    Las actividades pueden cambiar entre consultas. Actualiza la agenda antes de actuar. Los plazos
-    que requieren revisi&#243;n se consultan dentro de su expediente.
-  </p>
 </section>
 {#if ownDetail}
   {#if ownKind === 'precautionary_hearing'}

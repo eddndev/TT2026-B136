@@ -177,10 +177,6 @@
     <p>&#193;mbitos, fuentes y clasificaci&#243;n civil con historia exacta.</p>
   </div>
 </div>
-<p class="notice">
-  Estas reglas declaradas no calculan vencimientos ni determinan notificaciones. Su aplicabilidad
-  requiere el &#225;mbito y las fuentes expresos.
-</p>
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
 <CalendarList

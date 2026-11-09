@@ -77,6 +77,7 @@ test('mobile case filters and document search preserve useful widths without ove
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   const title = await page.getByLabel('Buscar por t\u00edtulo').boundingBox();
+  await page.getByText('M\u00e1s filtros', { exact: true }).click();
   const nuc = await page.getByLabel('NUC exacto').boundingBox();
   expect(title.width).toBeGreaterThan(200);
   expect(title.y + title.height).toBeLessThan(nuc.y);

@@ -8,6 +8,7 @@
 @import './documents.css';
 @import './detail.css';
 @import './evidence-validation.css';
+@import './filter-bar.css';
 @import './responsive.css';
 @import './cases.css';
 @import './versions.css';
@@ -17,7 +18,6 @@
 @import './stages.css';
 @import './hearings.css';
 @import './hearing-results.css';
-@import './agenda.css';
 @import './alerts.css';
 @import './audit-events.css';
 @import './case-reports.css';

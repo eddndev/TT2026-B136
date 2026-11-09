@@ -5,20 +5,9 @@
   min-width: 0;
 }
 .alerts-workspace .page-heading,
-.alerts-workspace > .notice {
+.alerts-workspace > .notice,
+.alerts-workspace > .filter-note {
   margin: 0;
-}
-.alerts-filters {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 12px;
-}
-.alerts-filters label {
-  min-width: 165px;
-}
-.alerts-query > .hint {
-  margin: 12px 0 0;
 }
 .alert-card {
   min-width: 0;
@@ -131,13 +120,6 @@
   margin-bottom: 14px;
 }
 @media (max-width: 600px) {
-  .alerts-filters {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .alerts-filters label {
-    min-width: 0;
-  }
   .alert-card {
     padding: 16px;
   }

@@ -1,9 +1,0 @@
-.agenda-period-actions {
-  flex-wrap: wrap;
-}
-@media (max-width: 600px) {
-  .agenda-period-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-}

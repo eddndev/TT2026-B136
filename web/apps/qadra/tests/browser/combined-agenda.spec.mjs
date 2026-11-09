@@ -51,8 +51,16 @@ for (const width of [1440, 390])
         true,
       );
     }
+    // The calendar beside the list moves the period: a day of the next month
+    // becomes the reference date of the applied month view.
     await queryAgenda(page, 'month', '2026-01-31');
-    await page.getByRole('button', { name: 'Periodo siguiente', exact: true }).click();
+    await calendar.getByRole('button', { name: 'Mes siguiente', exact: true }).click();
+    await calendar
+      .getByRole('button', {
+        name: '28 de febrero de 2026: fuera del periodo consultado',
+        exact: true,
+      })
+      .click();
     await expect(page.getByLabel('Fecha de referencia', { exact: true })).toHaveValue('2026-02-28');
     await expect
       .poll(() => state.calls.at(-1)?.searchParams.get('from'))
@@ -73,7 +81,7 @@ test('the agenda calendar marks the queried day and queries a clicked day', asyn
   );
   const count = state.calls.length;
   await calendar.getByRole('button', { name: 'Mes siguiente', exact: true }).click();
-  await expect(calendar.getByRole('heading', { name: 'marzo de 2026', exact: true })).toHaveCount(
+  await expect(calendar.getByRole('heading', { name: 'febrero de 2026', exact: true })).toHaveCount(
     1,
   );
   await expect(calendar.getByRole('heading', { name: 'enero de 2026', exact: true })).toHaveCount(

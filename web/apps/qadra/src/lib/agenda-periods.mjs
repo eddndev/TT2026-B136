@@ -58,21 +58,6 @@ export function agendaPeriod(view, date) {
   return { from: civilDate(from), until: civilDate(until) };
 }
 
-export function shiftAgendaPeriod(view, date, direction) {
-  periodView(view);
-  if (direction !== -1 && direction !== 1)
-    throw new Error('Selecciona el periodo anterior o el siguiente.');
-  const selected = civilMilliseconds(date);
-  if (view !== 'month') {
-    const days = view === 'week' ? 7 : 1;
-    return civilDate(selected + direction * days * dayMilliseconds);
-  }
-  const next = monthStart(selected, direction);
-  const lastDay = new Date(monthStart(next, 1) - dayMilliseconds).getUTCDate();
-  const day = Math.min(new Date(selected).getUTCDate(), lastDay);
-  return civilDate(next + (day - 1) * dayMilliseconds);
-}
-
 function instantMilliseconds(instant) {
   if (instant !== null && typeof instant === 'object') {
     const value = deadlineInstant(instant);

@@ -1,5 +1,7 @@
 <script>
   import Button from './Button.svelte';
+  import FilterBar from './FilterBar.svelte';
+  import FilterField from './FilterField.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import AlertCard from './AlertCard.svelte';
@@ -214,10 +216,6 @@
       Preferencias de alertas
     </Button>
   </div>
-  <p class="notice">
-    La fecha capturada no acredita la vigencia actual. Abre la revisi&#243;n de origen para
-    consultar el expediente y contrastar su estado.
-  </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
   {#if preferencesOpen}<AlertPreferences
@@ -241,25 +239,30 @@
         <ResourceHearingDetail value={ownDetail} caseRecord={ownCase} onclose={closeDetail} />
       {/if}
     {/if}
-    <section class="card alerts-query" aria-label="Consulta de alertas">
-      <form class="alerts-filters" onsubmit={apply}>
-        <label
+    <section aria-label="Consulta de alertas">
+      <FilterBar as="form" onsubmit={apply}>
+        <FilterField
           >Lectura<select bind:value={read}
             ><option value="all">Todas</option><option value="unread">Sin leer</option></select
-          ></label
+          ></FilterField
         >
-        <label
+        <FilterField
           >Estado de alerta<select bind:value={state}
             ><option value="active">Activas</option><option value="all">Activas y resueltas</option
             ></select
-          ></label
+          ></FilterField
         >
-        <Button variant="primary" type="submit">Consultar alertas</Button>
-        <Button variant="secondary" type="button" disabled={busy || opening} onclick={() => load()}
-          ><Icon name="clock" size={16} />Actualizar alertas</Button
-        >
-      </form>
-      {#if checked}<p class="hint">Consulta comprobada: {alertTimeLabel(checked)}</p>{/if}
+        <div class="filter-actions">
+          <Button variant="primary" type="submit">Consultar alertas</Button>
+          <Button
+            variant="secondary"
+            type="button"
+            disabled={busy || opening}
+            onclick={() => load()}><Icon name="clock" size={16} />Actualizar alertas</Button
+          >
+        </div>
+      </FilterBar>
+      {#if checked}<p class="filter-note">Consulta comprobada: {alertTimeLabel(checked)}</p>{/if}
     </section>
     {#if busy}<p role="status">Consultando alertas...</p>{/if}
     {#if opening}<p role="status">Consultando el expediente y la revisi&#243;n de origen...</p>{/if}
@@ -283,5 +286,9 @@
           >Cargar m&#225;s alertas</Button
         >
       </div>{/if}
+    <p class="filter-note">
+      La fecha capturada no acredita la vigencia actual. Abre la revisi&#243;n de origen para
+      consultar el expediente y contrastar su estado.
+    </p>
   {/if}
 </section>
