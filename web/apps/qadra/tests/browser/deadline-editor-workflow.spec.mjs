@@ -15,7 +15,7 @@ test('deadline capture retains unknown source and absent quantity and requires e
   await page.getByRole('button', { name: 'Registrar plazo', exact: true }).click();
   const form = editor(page);
   await expect(
-    form.getByRole('combobox', { name: 'El ambito del perfil aplica', exact: true }),
+    form.getByRole('combobox', { name: 'El \u00e1mbito del perfil aplica', exact: true }),
   ).toHaveValue('');
   await expect(
     form.getByRole('combobox', { name: 'Existe una incidencia sin resolver', exact: true }),
@@ -44,13 +44,13 @@ test('unknown applicability requires its reason and is never silently false', as
     .getByRole('combobox', { name: 'Cuando cambie el perfil', exact: true })
     .selectOption('follow');
   await form
-    .getByRole('combobox', { name: 'El ambito del perfil aplica', exact: true })
+    .getByRole('combobox', { name: 'El \u00e1mbito del perfil aplica', exact: true })
     .selectOption('unknown');
   await form.getByRole('button', { name: 'Preparar plazo', exact: true }).click();
   await expect(form.getByRole('alert')).toBeVisible();
   expect(state.calls.filter((row) => row.path.endsWith('/prepare'))).toHaveLength(0);
   await form
-    .getByLabel('Motivo: El ambito del perfil aplica', { exact: true })
+    .getByLabel('Motivo: El \u00e1mbito del perfil aplica', { exact: true })
     .fill('Alcance pendiente de confirmar');
   await form.getByRole('button', { name: 'Preparar plazo', exact: true }).click();
   await expect(form.getByRole('button', { name: 'Confirmar plazo', exact: true })).toBeVisible();
@@ -84,7 +84,9 @@ test('uncertain commit checks its exact revision without automatically resubmitt
     editor(page).getByRole('heading', { name: 'Resultado incierto', exact: true }),
   ).toBeVisible();
   expect(state.submissions).toHaveLength(1);
-  await editor(page).getByRole('button', { name: 'Consultar envio exacto', exact: true }).click();
+  await editor(page)
+    .getByRole('button', { name: 'Consultar env\u00edo exacto', exact: true })
+    .click();
   await expect(editor(page)).toHaveCount(0);
   expect(state.submissions).toHaveLength(1);
   expect(state.calls.some((row) => row.path.endsWith('/revisions/1'))).toBeTruthy();

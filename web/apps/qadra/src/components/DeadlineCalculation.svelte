@@ -64,7 +64,7 @@
       {#if traceOpen}<DeadlineTrace trace={result.arithmetic.trace} />{/if}
     </details>{/if}
   {#if prospective}<p class="hint">
-      Esta revision no acredita una escritura ni un vencimiento operativo en Agenda o Alertas.
+      Esta revisi&#243;n no acredita una escritura ni un vencimiento operativo en Agenda o Alertas.
     </p>
   {:else if !compact}<p class="hint">
       Resultado conservado al registrar esta revisi&#243;n, junto con el perfil y las fuentes

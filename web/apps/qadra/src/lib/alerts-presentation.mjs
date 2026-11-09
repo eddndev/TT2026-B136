@@ -46,12 +46,12 @@ export const alertTimeLabel = (value) => deadlineInstantLabel(value).replace('.0
 export function alertFailure(error) {
   return (
     {
-      alert_not_found: 'La alerta ya no esta disponible para tu cuenta.',
+      alert_not_found: 'La alerta ya no est\u00e1 disponible para tu cuenta.',
       permission_denied: 'Tu cuenta ya no tiene acceso a esta consulta.',
       alert_revision_conflict:
         'Las preferencias cambiaron. Consulta los valores actuales y compara tus cambios.',
       alert_operation_conflict:
-        'Esta operacion no coincide con el guardado registrado. Consulta las preferencias actuales.',
+        'Esta operaci\u00f3n no coincide con el guardado registrado. Consulta las preferencias actuales.',
       invalid_alert: 'Revisa las horas, los canales y los filtros de alertas.',
     }[error?.code] ||
     error?.message ||

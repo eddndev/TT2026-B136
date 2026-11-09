@@ -112,7 +112,7 @@
         selectedIds.includes(exact.reference.id)}
       onclick={() => {
         if (canApply()) onselected(exact);
-      }}>Vincular esta revision</Button
+      }}>Vincular esta revisi&#243;n</Button
     >
   {/if}
   <Button variant="text" disabled={busy} onclick={oncancel}>Cerrar selector de medidas</Button>

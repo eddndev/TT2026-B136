@@ -72,7 +72,7 @@
       <Button
         variant="secondary"
         disabled={pending || disabled || closed || blocked}
-        onclick={retry}>Reintentar envio exacto</Button
+        onclick={retry}>Reintentar env&#237;o exacto</Button
       >
     {/if}
   {:else if mode === 'conflict'}

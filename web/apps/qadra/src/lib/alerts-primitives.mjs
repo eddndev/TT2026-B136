@@ -7,7 +7,7 @@ import { deadlineInstant } from './deadline-time.mjs';
 
 export { object, same };
 export const alertMaximumRevision = 4294967295;
-export function alertInvalid(message = 'La respuesta de alertas no conserva datos validos.') {
+export function alertInvalid(message = 'La respuesta de alertas no conserva datos v\u00e1lidos.') {
   throw new Error(message);
 }
 export function alertUuid(value) {

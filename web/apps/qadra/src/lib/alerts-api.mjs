@@ -11,7 +11,7 @@ export function alertsApi(request, actor) {
   uuid(actor);
   let active = true;
   const assertActive = () => {
-    if (!active) invalid('Esta consulta personal de alertas ya no esta abierta.');
+    if (!active) invalid('Esta consulta personal de alertas ya no est\u00e1 abierta.');
   };
   async function call(path, options) {
     assertActive();

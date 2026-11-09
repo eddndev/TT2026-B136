@@ -134,7 +134,7 @@
         });
         if (!admitted()) return;
         if (result.status !== 'restored')
-          throw new Error('No se pudo recuperar la decision cautelar.');
+          throw new Error('No se pudo recuperar la decisi\u00f3n cautelar.');
       } else {
         context = await fresh();
         if (!context || !admitted()) return;
@@ -251,11 +251,16 @@
   });
 </script>
 
-<section class="card case-editor fact-editor" aria-label="Decision cautelar" aria-busy={pending}>
-  <h2>Registrar decision cautelar</h2>
+<section
+  class="card case-editor fact-editor"
+  aria-label="Decisi&#243;n cautelar"
+  aria-busy={pending}
+>
+  <h2>Registrar decisi&#243;n cautelar</h2>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if closed}<p class="notice">
-      Expediente cerrado administrativamente. Puedes consultar el resultado de un envio anterior.
+      Expediente cerrado administrativamente. Puedes consultar el resultado de un env&#237;o
+      anterior.
     </p>{/if}
   {#if blocked || closed}<Button
       variant="secondary"
@@ -264,25 +269,25 @@
     >{/if}
   {#if mode === 'uncertain'}
     <h3>Resultado incierto</h3>
-    <p>Consulta la operacion original antes de decidir un reintento.</p>
+    <p>Consulta la operaci&#243;n original antes de decidir un reintento.</p>
     <Button variant="primary" disabled={pending || disabled || blocked} onclick={actions.check}
       >Consultar resultado</Button
     >
     {#if retryAvailable}<Button
         variant="secondary"
         disabled={pending || disabled || blocked || closed}
-        onclick={actions.retry}>Reintentar envio exacto</Button
+        onclick={actions.retry}>Reintentar env&#237;o exacto</Button
       >{/if}
     <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
   {:else if mode === 'review' && prepared}
     <MeasureDecisionReview value={prepared} />
     <label class="checkbox"
-      ><input type="checkbox" bind:checked={acknowledged} disabled={frozen} />Reconozco la decision
-      y las fuentes seleccionadas</label
+      ><input type="checkbox" bind:checked={acknowledged} disabled={frozen} />Reconozco la
+      decisi&#243;n y las fuentes seleccionadas</label
     >
     <div class="action-row">
       <Button variant="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
-        >Confirmar decision</Button
+        >Confirmar decisi&#243;n</Button
       >
       <Button
         variant="secondary"
@@ -295,7 +300,7 @@
       >
     </div>
   {/if}
-  {#if blocked}<p role="status">Confirma tu acceso actual antes de recuperar la decision.</p>
+  {#if blocked}<p role="status">Confirma tu acceso actual antes de recuperar la decisi&#243;n.</p>
   {:else if !['review', 'confirmed'].includes(mode)}
     <MeasureDecisionFields
       {api}
@@ -312,7 +317,7 @@
       disabled={frozen || mode !== 'draft'}
     />
     <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
-      >Revisar decision</Button
+      >Revisar decisi&#243;n</Button
     >
   {/if}
   <Button variant="text" disabled={pending || disabled} onclick={close}>Cerrar formulario</Button>

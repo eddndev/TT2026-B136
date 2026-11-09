@@ -12,7 +12,7 @@
   $: change = value.command.change;
 </script>
 
-<section class="case-comparison" aria-label="Revision de convocatoria cautelar">
+<section class="case-comparison" aria-label="Revisi&#243;n de convocatoria cautelar">
   <h3>
     {precautionaryHearingActions[change.action]} / {precautionaryHearingPurposes[values.purpose]}
   </h3>
@@ -44,7 +44,7 @@
   {#if change.reason}<h4>Motivo del cambio</h4>
     <p class="case-multiline">{change.reason}</p>{/if}
   {#if values.review_targets.length}
-    <section class="case-comparison" aria-label="Medidas seleccionadas para revision">
+    <section class="case-comparison" aria-label="Medidas seleccionadas para revisi&#243;n">
       <h4>Medidas seleccionadas para revisi&#243;n</h4>
       {#each values.review_targets as target (target.id)}
         <details>
@@ -67,7 +67,7 @@
     <summary>Contexto de la convocatoria</summary>
     <FactAdministrativeCapture
       value={value.scheduling_context.administration}
-      label="Administracion de la convocatoria"
+      label="Administraci&#243;n de la convocatoria"
     />
     <p>
       Etapa: {stageLabels[value.scheduling_context.stage.stage]} / Revisi&#243;n {value
@@ -75,7 +75,7 @@
     </p>
     <FactAdministrativeCapture
       value={value.observed_context.administration}
-      label="Administracion observada al preparar"
+      label="Administraci&#243;n observada al preparar"
     />
     <p>
       Etapa observada: {stageLabels[value.observed_context.stage.stage]} / Revisi&#243;n {value

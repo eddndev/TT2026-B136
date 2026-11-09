@@ -265,7 +265,9 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
               typeof session.access_token !== 'string' ||
               !session.access_token)
           )
-            throw new Error('La sesion no corresponde a la cuenta Owner seleccionada.');
+            throw new Error(
+              'La sesi\u00f3n no corresponde a la cuenta de administrador seleccionada.',
+            );
           token = session.access_token;
           principalId = session.user?.id ?? null;
           locallyClosed = false;
@@ -302,7 +304,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       return signingCertificatesApi((path, options) => {
         assertSession(version);
         if (principalId !== accountId)
-          throw new Error('La cuenta del certificado no corresponde a la sesion.');
+          throw new Error('La cuenta del certificado no corresponde a la sesi\u00f3n.');
         return request(path, options);
       }, accountId);
     },
@@ -311,7 +313,7 @@ export function createApi(fetcher = globalThis.fetch, onExpired = () => {}) {
       return ownerCertificatesApi((path, options) => {
         assertSession(version);
         if (principalId !== null && principalId !== ownerId)
-          throw new Error('La cuenta del certificado no corresponde a la sesion.');
+          throw new Error('La cuenta del certificado no corresponde a la sesi\u00f3n.');
         return request(path, options);
       }, ownerId);
     },

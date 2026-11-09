@@ -152,7 +152,7 @@
     } catch {
       if (active(request))
         error =
-          'Selecciona un solo certificado publico PEM, hasta 16 KiB, sin claves privadas ni otros bloques.';
+          'Selecciona un solo certificado p\u00fablico PEM, hasta 16 KiB, sin claves privadas ni otros bloques.';
     } finally {
       if (alive && request === generation) busy = false;
     }
@@ -262,8 +262,8 @@
       mode = result === 'absent' ? 'absent' : 'conflict';
       error =
         result === 'absent'
-          ? 'La consulta no encontro este registro. Puedes reenviar explicitamente el mismo intento.'
-          : 'El recibo no coincide con la evidencia original. El envio sigue bloqueado.';
+          ? 'La consulta no encontr\u00f3 este registro. Puedes reenviar expl\u00edcitamente el mismo intento.'
+          : 'El recibo no coincide con la evidencia original. El env\u00edo sigue bloqueado.';
     } catch (failure) {
       if (active(request)) {
         error = ownerFailure(failure);

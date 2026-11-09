@@ -21,17 +21,17 @@ export async function rectifyWithLostResponse(page, scenario, before, action) {
     .click();
   const form = administrationEditor(page);
   await form
-    .getByLabel('Motivo de rectificacion', { exact: true })
+    .getByLabel('Motivo de rectificaci\u00f3n', { exact: true })
     .fill('Rectificacion administrativa declarada en soporte');
   if (action === 'correct') {
     await form
       .getByLabel('Condiciones', { exact: true })
       .fill('Presentarse en la sede rectificada del soporte');
     await form
-      .getByLabel('Declaracion de vigencia', { exact: true })
+      .getByLabel('Declaraci\u00f3n de vigencia', { exact: true })
       .fill('Vigencia textual rectificada sin nuevo termino');
     await form
-      .getByLabel('Texto de supervision', { exact: true })
+      .getByLabel('Texto de supervisi\u00f3n', { exact: true })
       .fill('Texto rectificado sin autoridad supervisora declarada');
   } else {
     await form.getByRole('button', { name: 'Elegir sujeto', exact: true }).click();
@@ -49,8 +49,8 @@ export async function rectifyWithLostResponse(page, scenario, before, action) {
     page,
     form,
     base,
-    'rectificacion',
-    'Reconozco la rectificacion y su alcance administrativo',
+    'rectificaci\u00f3n',
+    'Reconozco la rectificaci\u00f3n y su alcance administrativo',
   );
   expect(prepared.command.target).toEqual(before.reference);
   expect(prepared.command.action.kind).toBe(action);
@@ -76,7 +76,7 @@ export async function rectifyWithLostResponse(page, scenario, before, action) {
   });
   try {
     await Promise.all([
-      form.getByRole('button', { name: 'Confirmar rectificacion', exact: true }).click(),
+      form.getByRole('button', { name: 'Confirmar rectificaci\u00f3n', exact: true }).click(),
       intercepted,
     ]);
     await expect(

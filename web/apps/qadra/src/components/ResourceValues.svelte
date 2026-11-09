@@ -35,7 +35,7 @@
     </div>
   {:else}
     <div class="case-value-wide">
-      <dt>Titulo organizativo</dt>
+      <dt>T&#237;tulo organizativo</dt>
       <dd>{values.title}</dd>
     </div>
     <div class="case-value-wide">

@@ -9,8 +9,8 @@ import {
 import { hearingTimeParts } from './hearing-time.mjs';
 
 export const resourceHearingKinds = {
-  appeal_arguments: 'Alegatos aclaratorios de apelacion',
-  written_revocation: 'Audiencia de revocacion escrita',
+  appeal_arguments: 'Alegatos aclaratorios de apelaci\u00f3n',
+  written_revocation: 'Audiencia de revocaci\u00f3n escrita',
 };
 export function resourceHearingUuid(value) {
   if (uuid(value) !== value) invalid('La identidad debe conservar su forma exacta.');

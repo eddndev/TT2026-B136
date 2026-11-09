@@ -77,7 +77,7 @@
   />
 </div>
 <label
-  >Titulo organizativo<input
+  >T&#237;tulo organizativo<input
     bind:value={values.title}
     maxlength="200"
     disabled={disabled || busy}

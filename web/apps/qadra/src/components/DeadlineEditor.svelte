@@ -253,7 +253,7 @@
     if (writing && (deadlineUncertain(failure) || failure.code === 'deadline_operation_conflict')) {
       step = 'uncertain';
       error =
-        'No se pudo confirmar el resultado. Conservamos el envio para consultar su revision exacta.';
+        'No se pudo confirmar el resultado. Conservamos el env\u00edo para consultar su revisi\u00f3n exacta.';
     } else {
       last = null;
       if (failure.code === 'deadline_revision_exhausted') step = 'exhausted';
@@ -285,7 +285,8 @@
       await onsaved(value, exact);
     } catch {
       if (alive)
-        error = 'El plazo se guardo. Consulta de nuevo sin reenviar si faltan datos en pantalla.';
+        error =
+          'El plazo se guard\u00f3. Consulta de nuevo sin reenviar si faltan datos en pantalla.';
     }
   }
   $: allowed = canDeadlines(user?.role, 'manage');

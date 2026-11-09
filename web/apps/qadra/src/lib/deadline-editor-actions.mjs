@@ -73,14 +73,14 @@ export function createDeadlineActions({
       else if (checked.state === 'absent')
         update({
           error:
-            'La revision aun no esta disponible. El resultado sigue incierto; puedes consultar de nuevo.',
+            'La revisi\u00f3n a\u00fan no est\u00e1 disponible. El resultado sigue incierto; puedes consultar de nuevo.',
         });
       else
         update({
           step: 'conflict',
           candidate: checked.record,
           compared: false,
-          error: 'La revision pertenece a otro envio. Conservamos tu borrador.',
+          error: 'La revisi\u00f3n pertenece a otro env\u00edo. Conservamos tu borrador.',
         });
     } catch (failure) {
       if (admitted()) report(failure);

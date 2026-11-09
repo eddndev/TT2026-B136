@@ -19,12 +19,12 @@ export function resourceActivitiesApi(request, caseId, resourceId) {
   const base = `/cases/${caseId}/procedural-resources/${resourceId}/activities`;
   let active = true;
   function assertActive() {
-    if (!active) invalid('La consulta del recurso ya no esta abierta.');
+    if (!active) invalid('La consulta del recurso ya no est\u00e1 abierta.');
   }
   async function call(suffix = '', options) {
     assertActive();
     if (options?.data && new TextEncoder().encode(JSON.stringify(options.data)).length > 16384)
-      invalid('La solicitud supera el limite permitido.');
+      invalid('La solicitud supera el l\u00edmite permitido.');
     try {
       const value = await request(base + suffix, options);
       assertActive();
@@ -171,7 +171,7 @@ export function resourceActivitiesApi(request, caseId, resourceId) {
       );
       scope(value);
       if (!same(value.command, command) || !same(value.recorded_by, actor))
-        invalid('El borrador no corresponde a la operacion e identidad enviadas.');
+        invalid('El borrador no corresponde a la operaci\u00f3n e identidad enviadas.');
       return value;
     },
     async submit(raw) {
@@ -186,7 +186,7 @@ export function resourceActivitiesApi(request, caseId, resourceId) {
       });
       if (!resourceActivityMatches(row, draft))
         invalid(
-          'No se pudo confirmar el recibo exacto de la asociacion. Consulta la revision enviada.',
+          'No se pudo confirmar el recibo exacto de la asociaci\u00f3n. Consulta la revisi\u00f3n enviada.',
         );
       return row;
     },

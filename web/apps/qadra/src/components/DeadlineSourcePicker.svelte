@@ -129,7 +129,7 @@
           variant="secondary"
           disabled={disabled || busy}
           onclick={() => chooseResolution(row.id)}
-          aria-label={`Consultar ${family === 'resolution' ? 'revisiones' : 'notificaciones'} de resolucion ${row.id}`}
+          aria-label={`Consultar ${family === 'resolution' ? 'revisiones' : 'notificaciones'} de resoluci\u00f3n ${row.id}`}
         >
           {family === 'resolution'
             ? 'Consultar revisiones de la fuente'

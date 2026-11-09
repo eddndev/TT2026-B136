@@ -138,7 +138,8 @@
           loaded = true;
         });
         if (!admitted()) return;
-        if (result.status !== 'restored') throw new Error('No se pudo recuperar la rectificacion.');
+        if (result.status !== 'restored')
+          throw new Error('No se pudo recuperar la rectificaci\u00f3n.');
       } else {
         context = await fresh();
         if (!context || !admitted()) return;
@@ -257,20 +258,21 @@
 
 <section
   class="card case-editor fact-editor"
-  aria-label="Rectificacion de medida"
+  aria-label="Rectificaci&#243;n de medida"
   aria-busy={pending}
 >
   <h2>Rectificar registro de medida</h2>
   {#if !blocked && base}<details class="case-comparison">
       <summary
         >Registro exacto que se rectifica: {base.record.capture.result.projection.subject
-          .display_name} / Revision {base.reference.revision}</summary
+          .display_name} / Revisi&#243;n {base.reference.revision}</summary
       >
       <MeasureRecordSummary value={base} />
     </details>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if closed}<p class="notice">
-      Expediente cerrado administrativamente. Puedes consultar el resultado de un envio anterior.
+      Expediente cerrado administrativamente. Puedes consultar el resultado de un env&#237;o
+      anterior.
     </p>{/if}
   {#if blocked || closed}<Button
       variant="secondary"
@@ -279,21 +281,21 @@
     >{/if}
   {#if mode === 'uncertain'}
     <h3>Resultado incierto</h3>
-    <p>Consulta la operacion original antes de decidir un reintento.</p>
+    <p>Consulta la operaci&#243;n original antes de decidir un reintento.</p>
     <Button variant="primary" disabled={pending || disabled || blocked} onclick={actions.check}
       >Consultar resultado</Button
     >
     {#if retryAvailable}<Button
         variant="secondary"
         disabled={pending || disabled || blocked || closed}
-        onclick={actions.retry}>Reintentar envio exacto</Button
+        onclick={actions.retry}>Reintentar env&#237;o exacto</Button
       >{/if}
     <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
   {:else if mode === 'review' && prepared}
     <MeasureAdministrationReview value={prepared} bind:confirmed={acknowledged} disabled={frozen} />
     <div class="action-row">
       <Button variant="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
-        >Confirmar rectificacion</Button
+        >Confirmar rectificaci&#243;n</Button
       >
       <Button
         variant="secondary"
@@ -306,7 +308,9 @@
       >
     </div>
   {/if}
-  {#if blocked}<p role="status">Confirma tu acceso actual antes de recuperar la rectificacion.</p>
+  {#if blocked}<p role="status">
+      Confirma tu acceso actual antes de recuperar la rectificaci&#243;n.
+    </p>
   {:else if !['review', 'confirmed'].includes(mode)}
     <MeasureAdministrationFields
       {api}
@@ -322,7 +326,7 @@
       disabled={frozen || mode !== 'draft'}
     />
     <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
-      >Revisar rectificacion</Button
+      >Revisar rectificaci&#243;n</Button
     >
   {/if}
   <Button variant="text" disabled={pending || disabled} onclick={close}>Cerrar formulario</Button>

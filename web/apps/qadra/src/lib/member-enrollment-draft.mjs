@@ -59,13 +59,15 @@ export async function findEnrollmentAccount(api, members, principalId, email, ad
     });
     if (!admitted()) return null;
     for (const row of page.items) {
-      if (row.id <= previous) throw new Error('El directorio cambio de orden. Consulta de nuevo.');
+      if (row.id <= previous)
+        throw new Error('El directorio cambi\u00f3 de orden. Consulta de nuevo.');
       previous = row.id;
       if (row.email === prefix) found = true;
     }
     cursor = page.next_cursor;
     if (cursor) {
-      if (cursors.has(cursor)) throw new Error('La continuacion del directorio no es valida.');
+      if (cursors.has(cursor))
+        throw new Error('La continuaci\u00f3n del directorio no es v\u00e1lida.');
       cursors.add(cursor);
     }
   } while (cursor !== null);
@@ -95,7 +97,7 @@ export function createMemberEnrollmentDraft({ session, principalId, capture }) {
     session.principal()?.role === 'owner' &&
     session.canAdmit();
   function register() {
-    if (!admitted()) throw new Error('La sesion no admite este borrador de alta.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite este borrador de alta.');
     registration ??= session.registry.register(descriptor, {
       fields,
       capture: () => value(capture()),
@@ -131,7 +133,7 @@ export function createMemberEnrollmentDraft({ session, principalId, capture }) {
           }
         },
         apply(input) {
-          if (!admitted()) throw new Error('La sesion ya no admite el alta.');
+          if (!admitted()) throw new Error('La sesi\u00f3n ya no admite el alta.');
           const saved = value(input);
           apply(saved);
           register();

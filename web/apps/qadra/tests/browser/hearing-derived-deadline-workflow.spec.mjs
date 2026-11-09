@@ -13,7 +13,7 @@ test('starts a combined result and deadline with its source fixed to the prospec
     .getByRole('button', { name: 'Registrar resultado y plazo', exact: true })
     .click();
   await expect(editor(page)).toBeVisible();
-  await expect(editor(page)).toContainText('Resultado prospectivo / Revision 1');
+  await expect(editor(page)).toContainText('Resultado prospectivo / Revisi\u00f3n 1');
   await expect(
     editor(page).getByRole('combobox', { name: 'Tipo de fuente', exact: true }),
   ).toHaveCount(0);

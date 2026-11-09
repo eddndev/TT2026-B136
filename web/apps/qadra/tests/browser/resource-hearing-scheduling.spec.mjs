@@ -97,22 +97,24 @@ test('requires a declared basis before preparing and offers only already capture
   await openHearingForm(page, state);
   await fillHearingForm(page);
   const editor = hearingEditor(page);
-  await editor.getByLabel('Base de senalamiento', { exact: true }).fill('');
+  await editor.getByLabel('Base de se\u00f1alamiento', { exact: true }).fill('');
   const select = editor.getByRole('combobox', {
-    name: 'Soporte admitido del senalamiento',
+    name: 'Soporte admitido del se\u00f1alamiento',
     exact: true,
   });
   await expect(
     select.locator('option').filter({ hasText: 'senalamiento-del-acto.pdf' }),
   ).toHaveCount(0);
   await expect(editor.getByRole('button', { name: /Subir|Cargar archivo/ })).toHaveCount(0);
-  await editor.getByRole('button', { name: 'Preparar audiencia y vinculo', exact: true }).click();
+  await editor
+    .getByRole('button', { name: 'Preparar audiencia y v\u00ednculo', exact: true })
+    .click();
   await expect(
-    editor.getByRole('region', { name: 'Revision de audiencia y vinculo', exact: true }),
+    editor.getByRole('region', { name: 'Revisi\u00f3n de audiencia y v\u00ednculo', exact: true }),
   ).toHaveCount(0);
   expect(state.calls.filter((call) => call.method === 'POST')).toHaveLength(0);
   await editor
-    .getByLabel('Base de senalamiento', { exact: true })
+    .getByLabel('Base de se\u00f1alamiento', { exact: true })
     .fill('Senalamiento de recurso sin acto');
   await prepareHearing(page);
   const command = state.calls.findLast((call) => call.path.endsWith('/prepare')).body;

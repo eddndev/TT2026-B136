@@ -16,7 +16,7 @@ export const route = (scenario) =>
 export async function openActivities(page, scenario) {
   expect(await openResource(page, scenario)).toEqual(scenario.resource);
   await expect(
-    panel(page).getByRole('region', { name: 'Vinculos registrados', exact: true }),
+    panel(page).getByRole('region', { name: 'V\u00ednculos registrados', exact: true }),
   ).toHaveAttribute('aria-busy', 'false');
 }
 export async function chooseTarget(page, scenario, kind) {

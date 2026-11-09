@@ -2,7 +2,7 @@ import { hearingTimeParts } from './hearing-time.mjs';
 import { factUuid as uuid } from './procedural-fact-primitives.mjs';
 
 export function agendaInvalid() {
-  throw new Error('La consulta de agenda no conserva un rango, orden o seguimiento valido.');
+  throw new Error('La consulta de agenda no conserva un rango, orden o seguimiento v\u00e1lido.');
 }
 export function utcSeconds(value) {
   const parts = hearingTimeParts(value);

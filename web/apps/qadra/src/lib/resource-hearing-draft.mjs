@@ -77,7 +77,7 @@ function validate(value) {
     )
       invalid();
   }
-  if (value.mode === 'uncertain' && !value.last) invalid('Falta el envio exacto retenido.');
+  if (value.mode === 'uncertain' && !value.last) invalid('Falta el env\u00edo exacto retenido.');
   if (value.last) {
     const last = resourceHearingPrepared(value.last),
       command = last.command;
@@ -147,7 +147,7 @@ export function createResourceHearingDraft({ session, caseId, resourceId, captur
       invalid();
   }
   function register(baseRevision) {
-    if (!admitted()) invalid('La sesion no admite el borrador de audiencia.');
+    if (!admitted()) invalid('La sesi\u00f3n no admite el borrador de audiencia.');
     resourceHearingActor({ id: principal.id, email: principal.email });
     revision(baseRevision);
     if (registration && root.baseRevision !== baseRevision) {

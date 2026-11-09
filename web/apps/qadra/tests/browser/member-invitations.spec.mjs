@@ -37,17 +37,17 @@ test('recipient confirms real MFA step and receives no session before normal log
     });
   });
   await page.goto(`/#invitation=${token}`);
-  await expect(page.getByRole('heading', { name: 'Acepta tu invitacion' })).toBeVisible({
+  await expect(page.getByRole('heading', { name: 'Acepta tu invitaci\u00f3n' })).toBeVisible({
     timeout: 5000,
   });
   await expect(page).toHaveURL(/\/$/);
   expect(calls).toHaveLength(0);
-  await page.getByLabel('Tu contrasena', { exact: true }).fill(password);
+  await page.getByLabel('Tu contrase\u00f1a', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Preparar segundo factor', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Confirma tu segundo factor' })).toBeVisible();
-  await page.getByLabel('Ya guarde mis codigos de recuperacion').check();
-  await page.getByLabel('Tu contrasena', { exact: true }).fill(password);
-  await page.getByLabel('Codigo de 6 digitos', { exact: true }).fill('123456');
+  await page.getByLabel('Ya guard\u00e9 mis c\u00f3digos de recuperaci\u00f3n').check();
+  await page.getByLabel('Tu contrase\u00f1a', { exact: true }).fill(password);
+  await page.getByLabel('C\u00f3digo de 6 d\u00edgitos', { exact: true }).fill('123456');
   await page.getByRole('button', { name: 'Confirmar alta', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Cuenta creada');
   expect(calls).toHaveLength(2);
@@ -58,6 +58,6 @@ test('recipient confirms real MFA step and receives no session before normal log
   for (const secret of [token, password, enrollment.totp_secret_base32, 'recovery-one'])
     expect(stored).not.toContain(secret);
   await expect(page.locator('input[type="password"]')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Ir a iniciar sesion', exact: true }).click();
+  await page.getByRole('button', { name: 'Ir a iniciar sesi\u00f3n', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
 });

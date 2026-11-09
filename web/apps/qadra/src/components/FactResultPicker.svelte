@@ -161,7 +161,7 @@
         <p>
           {hearingResultTimeLabel(row.event_time)} / {row.status === 'withdrawn'
             ? 'Retirado'
-            : 'Registrado'} / Revision {row.revision}
+            : 'Registrado'} / Revisi&#243;n {row.revision}
         </p>
         <details><summary>Identidad del resultado</summary><code>{row.id}</code></details>
         <Button
@@ -183,7 +183,9 @@
   {/if}
   {#if resultId}<h5>Revisiones del resultado seleccionado</h5>
     {#each revisions as row}<div class="hearing-result-picker-row">
-        <p>Revision {row.revision} / {row.status === 'withdrawn' ? 'Retirado' : 'Registrado'}</p>
+        <p>
+          Revisi&#243;n {row.revision} / {row.status === 'withdrawn' ? 'Retirado' : 'Registrado'}
+        </p>
         <Button
           type="button"
           variant="secondary"
@@ -201,7 +203,7 @@
   {/if}
   {#if exact}<div class="case-comparison">
       <p>
-        Revision exacta {exact.revision} / {exact.status === 'withdrawn'
+        Revisi&#243;n exacta {exact.revision} / {exact.status === 'withdrawn'
           ? 'Retirado'
           : 'Registrado'}
       </p>

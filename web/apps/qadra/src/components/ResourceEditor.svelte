@@ -132,7 +132,7 @@
         const exact = await scoped.revision(id, selectedAct.resourceRevision);
         if (!admitted()) return;
         if (exact.act?.id !== actId || exact.act.revision !== selectedAct.revision)
-          throw new Error('El acto no coincide con su revision conservada.');
+          throw new Error('El acto no coincide con su revisi\u00f3n conservada.');
       }
       if (
         !savedDraft ||
@@ -265,7 +265,7 @@
     try {
       await onconfirmed(value, exact);
     } catch {
-      if (alive) error = 'El registro se guardo. Consulta de nuevo sin reenviar.';
+      if (alive) error = 'El registro se guard\u00f3. Consulta de nuevo sin reenviar.';
     }
   }
   async function submit() {
@@ -293,11 +293,11 @@
       if (result.state === 'matched') await finish(result.record, true);
       else if (result.state === 'absent')
         error =
-          'La revision aun no esta disponible. El resultado sigue incierto; puedes consultar de nuevo.';
+          'La revisi\u00f3n a\u00fan no est\u00e1 disponible. El resultado sigue incierto; puedes consultar de nuevo.';
       else {
         mode = 'conflict';
         candidate = null;
-        error = 'La revision corresponde a otro envio. Tu borrador se conserva.';
+        error = 'La revisi\u00f3n corresponde a otro env\u00edo. Tu borrador se conserva.';
       }
     } catch (failure) {
       if (admitted()) {

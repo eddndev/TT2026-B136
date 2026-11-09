@@ -5,14 +5,14 @@
   export let value, profile;
 </script>
 
-<section aria-label="Revision del plazo y vinculo">
+<section aria-label="Revisi&#243;n del plazo y v&#237;nculo">
   <h3>Revisar antes de confirmar</h3>
   <p>
     El plazo y su v&#237;nculo se guardar&#225;n juntos. Revisa el resultado del c&#243;mputo y las
     capturas exactas.
   </p>
   <DeadlineFieldsReview value={value.deadline} {profile} />
-  <section class="case-comparison" aria-label="Capturas del nuevo vinculo">
+  <section class="case-comparison" aria-label="Capturas del nuevo v&#237;nculo">
     <h3>Capturas del nuevo v&#237;nculo</h3>
     <p>Recurso / Revisi&#243;n {value.association.resource.revision}</p>
     <ResourceValues values={value.association.resource.values} />

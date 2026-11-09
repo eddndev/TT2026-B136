@@ -89,7 +89,7 @@ export function createReportRequestDraft({ session, user, capture }) {
     );
   }
   function register() {
-    if (!admitted()) throw new Error('La sesion no admite la solicitud pendiente.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite la solicitud pendiente.');
     registration ??= session.registry.register(descriptor, {
       fields: ['draft', 'pending', 'role'],
       capture: () => reportDraftValue(capture(), user.role),
@@ -118,7 +118,7 @@ export function createReportRequestDraft({ session, user, capture }) {
         },
         apply(value) {
           try {
-            if (!admitted()) throw new Error('La sesion ya no admite la solicitud pendiente.');
+            if (!admitted()) throw new Error('La sesi\u00f3n ya no admite la solicitud pendiente.');
             const saved = reportDraftValue(value, user.role);
             register();
             apply(saved, context);

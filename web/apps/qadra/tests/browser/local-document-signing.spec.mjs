@@ -31,9 +31,9 @@ for (const { name, viewport } of localSigningViewports) {
     if (await menu.isVisible()) await menu.click();
     await page.getByRole('button', { name: 'Mi firma digital', exact: true }).click();
     await page
-      .getByLabel('Certificado publico PEM', { exact: true })
+      .getByLabel('Certificado p\u00fablico PEM', { exact: true })
       .setInputFiles(localFile('browser-test-certificate.pem', material.certificatePem));
-    await page.getByRole('button', { name: 'Preparar vinculo', exact: true }).click();
+    await page.getByRole('button', { name: 'Preparar v\u00ednculo', exact: true }).click();
     const local = page.getByRole('region', { name: /^Firma local:/ });
     await expect(local).toHaveCount(1);
     await signLocally(local, material);
@@ -43,9 +43,9 @@ for (const { name, viewport } of localSigningViewports) {
     expect(state.writes.filter((value) => value.path.endsWith('/register'))).toEqual([]);
     await captureLocalSignature(local, testInfo, `litigator-binding-${name}`);
     await confirmation.check();
-    await page.getByRole('button', { name: 'Registrar vinculo', exact: true }).click();
+    await page.getByRole('button', { name: 'Registrar v\u00ednculo', exact: true }).click();
     await expect(
-      page.getByRole('heading', { name: 'Vinculo registrado', exact: true }),
+      page.getByRole('heading', { name: 'V\u00ednculo registrado', exact: true }),
     ).toBeVisible();
     const registered = JSON.parse(
       state.writes.find((value) => value.path.endsWith('/register')).body,
@@ -63,7 +63,7 @@ for (const { name, viewport } of localSigningViewports) {
     await openDocument(page);
     await page.getByRole('button', { name: 'Firmar personalmente', exact: true }).click();
     await page.getByRole('button', { name: 'Revisar PDF', exact: true }).click();
-    await expect(page.getByTitle('PDF exacto de esta version')).toBeVisible();
+    await expect(page.getByTitle('PDF exacto de esta versi\u00f3n')).toBeVisible();
     await page.getByLabel('He revisado este PDF y confirmo su contenido').check();
     const localPdf = page.getByRole('region', { name: 'Firma local: PDF', exact: true });
     await signLocally(localPdf, material);
@@ -91,7 +91,9 @@ for (const { name, viewport } of localSigningViewports) {
         Buffer.from(prepared.pdf_signature_base64, 'base64'),
       ),
     ).toBe(true);
-    const finalConfirmation = page.getByLabel('Confirmo firmar esta version con mi certificado');
+    const finalConfirmation = page.getByLabel(
+      'Confirmo firmar esta versi\u00f3n con mi certificado',
+    );
     await expect(finalConfirmation).toBeEnabled();
     await expect(finalConfirmation).not.toBeChecked();
     await expect(

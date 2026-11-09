@@ -131,7 +131,7 @@
   {#if !editing}{#each drafts as saved (saved.key)}<Button
         variant="secondary"
         disabled={locked}
-        onclick={() => edit(saved.action, saved)}>Retomar rectificacion de medida</Button
+        onclick={() => edit(saved.action, saved)}>Retomar rectificaci&#243;n de medida</Button
       >{/each}{/if}
   {#each rows as row (row.reference.id)}<div class="case-comparison">
       <p>
@@ -179,15 +179,15 @@
               capture_digest: row.capture_digest,
             })}
         >
-          Consultar medida revision {row.result.revision}</Button
+          Consultar medida revisi&#243;n {row.result.revision}</Button
         >{/each}
       {#each head.record_history.records.administrative as row (row.origin.operation_id)}
         <Button
           variant="secondary"
           disabled={locked}
           onclick={() => original(row.origin.operation_id)}
-          aria-label={`Consultar rectificacion ${row.origin.operation_id}`}
-          >Consultar rectificacion</Button
+          aria-label={`Consultar rectificaci\u00f3n ${row.origin.operation_id}`}
+          >Consultar rectificaci&#243;n</Button
         >
       {/each}
     </details>

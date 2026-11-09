@@ -38,7 +38,7 @@ export function measureRecordsApi(request, caseId) {
   const base = `/cases/${caseId}/measures`;
   let active = true;
   const assertActive = () => {
-    if (!active) invalid('La consulta de medidas ya no esta abierta.');
+    if (!active) invalid('La consulta de medidas ya no est\u00e1 abierta.');
   };
   async function read(path) {
     assertActive();

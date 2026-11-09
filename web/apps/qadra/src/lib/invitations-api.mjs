@@ -4,7 +4,7 @@ const roles = new Set(['litigator', 'paralegal', 'client']);
 const statuses = new Set(['pending', 'pending_mfa', 'accepted', 'expired']);
 const deliveries = new Set(['pending', 'sent', 'uncertain', 'rejected']);
 function invalid() {
-  throw new Error('La respuesta de invitaciones no es valida.');
+  throw new Error('La respuesta de invitaciones no es v\u00e1lida.');
 }
 function summary(value, id) {
   if (!value || typeof value !== 'object') invalid();

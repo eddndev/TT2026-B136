@@ -85,7 +85,7 @@ export function createMeasureAdministrationActions({
         update({
           retryAvailable: true,
           error:
-            'El resultado sigue incierto. La ausencia del recibo no confirma que el envio fallo.',
+            'El resultado sigue incierto. La ausencia del recibo no confirma que el env\u00edo fall\u00f3.',
         });
     } catch (failure) {
       if (admitted()) fail(failure, true, true);

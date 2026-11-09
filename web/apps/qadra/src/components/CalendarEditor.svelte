@@ -75,7 +75,7 @@
         }
       }
       if (context.current && context.current.revision < base.revision)
-        throw new Error('La cabeza actual no confirma la revision original del calendario.');
+        throw new Error('La cabeza actual no confirma la revisi\u00f3n original del calendario.');
       if (
         mode !== 'uncertain' &&
         ((context.current?.revision ?? 0) !== (base?.revision ?? 0) ||

@@ -9,7 +9,7 @@
 <section class="case-comparison" aria-label="Registro exacto de medida">
   <h4>{measureKinds[values.kind]}</h4>
   <p><strong>{result.projection.subject.display_name}</strong></p>
-  <p>Ultima acci&#243;n judicial registrada: {measureActions[value.last_action]}</p>
+  <p>&#218;ltima acci&#243;n judicial registrada: {measureActions[value.last_action]}</p>
   {#if value.validity === 'entered_in_error'}<p class="notice">
       Captura marcada como registrada por error.
     </p>{/if}

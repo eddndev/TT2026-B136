@@ -123,7 +123,7 @@
         const current = await scoped.get(selected.id);
         if (!alive) return;
         if (current.status !== 'active') {
-          error = 'El recurso esta archivado; consulta su registro actual.';
+          error = 'El recurso est\u00e1 archivado; consulta su registro actual.';
           return;
         }
         editorBase = current;

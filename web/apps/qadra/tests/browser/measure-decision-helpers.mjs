@@ -12,11 +12,11 @@ import {
 
 export { clone };
 export const decisionEditor = (page) =>
-  page.getByRole('region', { name: 'Decision cautelar', exact: true });
+  page.getByRole('region', { name: 'Decisi\u00f3n cautelar', exact: true });
 export const decisionPanel = (page) =>
   page.getByRole('region', { name: 'Medidas cautelares', exact: true });
 export const decisionDetail = (page) =>
-  page.getByRole('region', { name: 'Detalle de decision cautelar', exact: true });
+  page.getByRole('region', { name: 'Detalle de decisi\u00f3n cautelar', exact: true });
 const fail = (route, code, status = 409) => route.fulfill({ status, json: { error: { code } } });
 const paged = (items, id, url) => {
   const after = url.searchParams.get('after_id'),
@@ -212,7 +212,7 @@ export async function openMeasures(page) {
   await expect(decisionPanel(page)).toBeVisible();
 }
 export async function newDecision(page) {
-  await page.getByRole('button', { name: 'Registrar decision cautelar', exact: true }).click();
+  await page.getByRole('button', { name: 'Registrar decisi\u00f3n cautelar', exact: true }).click();
   await expect(decisionEditor(page)).toBeVisible();
 }
 export async function fillDecisionCommon(page) {
@@ -269,16 +269,18 @@ export async function fillImposition(page) {
 }
 export async function prepareDecision(page) {
   const editor = decisionEditor(page);
-  await editor.getByRole('button', { name: 'Revisar decision', exact: true }).click();
-  const submit = editor.getByRole('button', { name: 'Confirmar decision', exact: true });
+  await editor.getByRole('button', { name: 'Revisar decisi\u00f3n', exact: true }).click();
+  const submit = editor.getByRole('button', { name: 'Confirmar decisi\u00f3n', exact: true });
   await expect(submit).toBeDisabled();
   await editor
     .getByRole('checkbox', {
-      name: 'Reconozco la decision y las fuentes seleccionadas',
+      name: 'Reconozco la decisi\u00f3n y las fuentes seleccionadas',
       exact: true,
     })
     .check();
   await expect(submit).toBeEnabled();
 }
 export const submitDecision = (page) =>
-  decisionEditor(page).getByRole('button', { name: 'Confirmar decision', exact: true }).click();
+  decisionEditor(page)
+    .getByRole('button', { name: 'Confirmar decisi\u00f3n', exact: true })
+    .click();

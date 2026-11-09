@@ -25,7 +25,7 @@ export function resourceHearingsApi(request, caseId, resourceId) {
   const base = `/cases/${caseId}/procedural-resources/${resourceId}/activities/resource-hearings`;
   let active = true;
   const assertActive = () => {
-    if (!active) invalid('La consulta de audiencia de recurso ya no esta abierta.');
+    if (!active) invalid('La consulta de audiencia de recurso ya no est\u00e1 abierta.');
   };
   function scope(value) {
     if (value.case_id !== caseId || value.resource_id !== resourceId) invalid();
@@ -108,7 +108,7 @@ export function resourceHearingsApi(request, caseId, resourceId) {
         await call('/prepare', { method: 'POST', data: command }),
       );
       if (!same(draft.command, command) || !same(draft.recorded_by, actor))
-        invalid('La preparacion no corresponde al comando y la identidad enviados.');
+        invalid('La preparaci\u00f3n no corresponde al comando y la identidad enviados.');
       return draft;
     },
     async submit(raw) {

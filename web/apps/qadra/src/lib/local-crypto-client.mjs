@@ -1,18 +1,18 @@
 const messages = {
-  key: 'No se pudo abrir la clave cifrada. Comprueba el archivo y su contrasena.',
-  certificate: 'El certificado no es valido o no corresponde a la clave.',
+  key: 'No se pudo abrir la clave cifrada. Comprueba el archivo y su contrase\u00f1a.',
+  certificate: 'El certificado no es v\u00e1lido o no corresponde a la clave.',
   request: 'La solicitud de certificado no corresponde a esta clave.',
-  input: 'Los datos de la operacion local no son validos.',
+  input: 'Los datos de la operaci\u00f3n local no son v\u00e1lidos.',
   entropy: 'El navegador no ofrece una fuente segura para generar la clave.',
 };
-const unavailable = 'No se pudo iniciar la criptografia local en este navegador.';
+const unavailable = 'No se pudo iniciar la criptograf\u00eda local en este navegador.';
 export function createLocalCrypto(
   factory = () =>
     new Worker(new URL('./local-crypto-worker.mjs', import.meta.url), { type: 'module' }),
 ) {
   let current = null;
   function cancel() {
-    current?.finish(new DOMException('Operacion local cancelada.', 'AbortError'));
+    current?.finish(new DOMException('Operaci\u00f3n local cancelada.', 'AbortError'));
   }
   function run(type, payload) {
     cancel();

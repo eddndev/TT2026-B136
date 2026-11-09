@@ -25,7 +25,7 @@ export function invitationOwnerDraft(session, api, principalId, capture) {
     session.principal()?.id === principalId &&
     session.principal()?.role === 'owner';
   function register() {
-    if (!admitted()) throw new Error('La sesion no admite invitaciones.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite invitaciones.');
     registration ??= session.registry.register(descriptor, { fields: ['intent'], capture });
   }
   function close() {
@@ -44,7 +44,7 @@ export function invitationOwnerDraft(session, api, principalId, capture) {
           entry.schemaVersion === schemaVersion &&
           (await authorizeEnrollment(api, principalId, admitted)),
         apply(value) {
-          if (!admitted()) throw new Error('La sesion termino.');
+          if (!admitted()) throw new Error('La sesi\u00f3n termin\u00f3.');
           apply(value.intent);
           register();
         },

@@ -41,8 +41,8 @@
   <h2>Crear audiencia de recurso</h2>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if closed}<p class="notice">
-      Expediente cerrado administrativamente. Consulta el resultado historico; no se admite una
-      nueva programacion.
+      Expediente cerrado administrativamente. Consulta el resultado hist&#243;rico; no se admite una
+      nueva programaci&#243;n.
     </p>{/if}
   {#if blocked || closed}<Button
       variant="secondary"
@@ -58,7 +58,7 @@
     {#if retryAvailable}<Button
         variant="secondary"
         disabled={pending || disabled || blocked || closed}
-        onclick={actions.retry}>Reintentar envio exacto</Button
+        onclick={actions.retry}>Reintentar env&#237;o exacto</Button
       >{/if}
     <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
   {:else if mode === 'conflict'}
@@ -85,11 +85,11 @@
     <ResourceHearingReview value={prepared} />
     <label class="checkbox"
       ><input type="checkbox" bind:checked={acknowledged} disabled={frozen} />Reconozco la
-      programacion y las capturas seleccionadas</label
+      programaci&#243;n y las capturas seleccionadas</label
     >
     <div class="action-row">
       <Button variant="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
-        >Confirmar audiencia y vinculo</Button
+        >Confirmar audiencia y v&#237;nculo</Button
       >
       <Button
         variant="secondary"
@@ -104,7 +104,7 @@
   {/if}
   {#if blocked}
     <p role="status">Confirma tu acceso actual antes de recuperar las capturas.</p>
-    <Button variant="primary" disabled>Preparar audiencia y vinculo</Button>
+    <Button variant="primary" disabled>Preparar audiencia y v&#237;nculo</Button>
   {:else if !['review', 'confirmed'].includes(mode)}
     <ResourceHearingFields
       {api}
@@ -121,7 +121,7 @@
       disabled={frozen || mode !== 'draft'}
     />
     <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
-      >Preparar audiencia y vinculo</Button
+      >Preparar audiencia y v&#237;nculo</Button
     >
   {/if}
   <Button variant="text" disabled={pending || disabled} onclick={close}>Cerrar formulario</Button>

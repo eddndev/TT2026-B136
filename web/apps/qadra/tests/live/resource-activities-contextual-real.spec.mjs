@@ -40,7 +40,9 @@ test('real resource act creates one deadline and association visible in the agen
   await fillContextualDeadline(page, scenario, actor, 'Plazo contextual con acto exacto');
   const base = '/api/v1' + route(scenario) + '/deadlines';
   const preparing = responseTo(page, base + '/prepare', 'POST');
-  await editor(page).getByRole('button', { name: 'Preparar plazo y vinculo', exact: true }).click();
+  await editor(page)
+    .getByRole('button', { name: 'Preparar plazo y v\u00ednculo', exact: true })
+    .click();
   const preparedResponse = await preparing;
   expect(preparedResponse.status()).toBe(200);
   expect(preparedResponse.headers()['cache-control']).toBe('no-store');
@@ -62,7 +64,7 @@ test('real resource act creates one deadline and association visible in the agen
   expect(draft.deadline.calculation.result.blocks).toEqual([]);
   expect(draft.deadline.calculation.result.due_at).toEqual(scenario.dueAt);
   const confirm = editor(page).getByRole('button', {
-    name: 'Confirmar plazo y vinculo',
+    name: 'Confirmar plazo y v\u00ednculo',
     exact: true,
   });
   await expect(confirm).toBeDisabled();

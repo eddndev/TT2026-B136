@@ -9,7 +9,7 @@ export function hearingDerivedDeadlinesApi(request, caseId, hearingId) {
   const base = `/cases/${caseId}/hearings/${hearingId}/results/derived-deadline`;
   let active = true;
   function assertActive() {
-    if (!active) invalid('El contexto de la audiencia ya no esta abierto.');
+    if (!active) invalid('El contexto de la audiencia ya no est\u00e1 abierto.');
   }
   async function call(suffix, data) {
     assertActive();
@@ -35,7 +35,8 @@ export function hearingDerivedDeadlinesApi(request, caseId, hearingId) {
       const value = await call('/prepare', command);
       if (value?.state === 'ready') return derivedReady(value, command, actor.id);
       object(value, ['state', 'record']);
-      if (value.state !== 'replay') invalid('La respuesta no identifica una revision o captura.');
+      if (value.state !== 'replay')
+        invalid('La respuesta no identifica una revisi\u00f3n o captura.');
       return { state: 'replay', record: derivedRecord(value.record, command, actor.id) };
     },
     async submit(raw, principal) {

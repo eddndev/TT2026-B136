@@ -88,10 +88,10 @@ export function createResourceDeadlineActions({
         retryAvailable: ['paired', 'absent'].includes(checked.state),
         error:
           checked.state === 'paired'
-            ? 'Los recibos coinciden. Confirma el mismo envio para verificar que se guardaron juntos.'
+            ? 'Los recibos coinciden. Confirma el mismo env\u00edo para verificar que se guardaron juntos.'
             : checked.state === 'absent'
-              ? 'Ninguna revision esta disponible todavia. La ausencia no confirma que el envio fallo.'
-              : 'Los dos recibos no corresponden al mismo envio confirmado. Conserva el borrador y consulta de nuevo.',
+              ? 'Ninguna revisi\u00f3n est\u00e1 disponible todav\u00eda. La ausencia no confirma que el env\u00edo fall\u00f3.'
+              : 'Los dos recibos no corresponden al mismo env\u00edo confirmado. Conserva el borrador y consulta de nuevo.',
       });
     } catch (failure) {
       if (admitted()) report(failure);

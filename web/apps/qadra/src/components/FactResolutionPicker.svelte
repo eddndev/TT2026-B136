@@ -74,7 +74,7 @@
   <h4>Revisiones de la resoluci&#243;n vinculada</h4>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#each revisions as row}<div class="hearing-result-picker-row">
-      <p>Revision {row.revision} / {row.status === 'withdrawn' ? 'Retirada' : 'Registrada'}</p>
+      <p>Revisi&#243;n {row.revision} / {row.status === 'withdrawn' ? 'Retirada' : 'Registrada'}</p>
       <Button
         type="button"
         variant="secondary"

@@ -30,14 +30,14 @@ export function measureAdministrationCommand(raw) {
   revision(value.context.administration_revision);
   revision(value.context.stage_revision);
   digest(value.context.context_digest);
-  value.reason = text(value.reason, 'Motivo de rectificacion');
+  value.reason = text(value.reason, 'Motivo de rectificaci\u00f3n');
   const action = value.action;
   if (action?.kind === 'correct') {
     object(action, ['kind', 'values']);
     const values = action.values;
     object(values, ['conditions', 'validity', 'supervision_text']);
     values.conditions = text(values.conditions, 'Condiciones');
-    values.supervision_text = text(values.supervision_text, 'Supervision');
+    values.supervision_text = text(values.supervision_text, 'Supervisi\u00f3n');
     object(values.validity, ['start', 'statement', 'end']);
     values.validity.statement = text(values.validity.statement, 'Vigencia');
     time(values.validity.start);

@@ -187,7 +187,9 @@ export async function openHearingForm(page, state, historical = true) {
     await resourceDetail(page)
       .getByRole('button', { name: 'Ver historial de recurso', exact: true })
       .click();
-    await page.getByRole('button', { name: 'Consultar recurso revision 1', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Consultar recurso revisi\u00f3n 1', exact: true })
+      .click();
   }
   await activityPanel(page)
     .getByRole('button', { name: 'Crear audiencia de recurso', exact: true })
@@ -202,7 +204,7 @@ export async function fillHearingForm(page) {
   await editor.getByLabel('Sede o enlace', { exact: true }).fill('Sala propia del recurso');
   await editor.getByLabel('Nota', { exact: true }).fill('Programacion exacta conservada');
   await editor
-    .getByLabel('Base de senalamiento', { exact: true })
+    .getByLabel('Base de se\u00f1alamiento', { exact: true })
     .fill('Senalamiento declarado con evidencia admitida');
 }
 export async function selectActSupportAndParticipant(page, state) {
@@ -212,8 +214,8 @@ export async function selectActSupportAndParticipant(page, state) {
   await editor.getByRole('button', { name: 'Usar este acto', exact: true }).click();
   const support = state.activities.act.act.supports[0];
   await editor
-    .getByRole('combobox', { name: 'Soporte admitido del senalamiento', exact: true })
-    .selectOption({ label: `${support.name} / Version ${support.version}` });
+    .getByRole('combobox', { name: 'Soporte admitido del se\u00f1alamiento', exact: true })
+    .selectOption({ label: `${support.name} / Versi\u00f3n ${support.version}` });
   await editor.getByRole('button', { name: 'Elegir participante', exact: true }).click();
   await editor
     .getByRole('button', { name: `Consultar ficha: ${participant.display_name}`, exact: true })
@@ -222,18 +224,20 @@ export async function selectActSupportAndParticipant(page, state) {
 }
 export async function prepareHearing(page) {
   const editor = hearingEditor(page);
-  await editor.getByRole('button', { name: 'Preparar audiencia y vinculo', exact: true }).click();
+  await editor
+    .getByRole('button', { name: 'Preparar audiencia y v\u00ednculo', exact: true })
+    .click();
   await expect(
-    editor.getByRole('region', { name: 'Revision de audiencia y vinculo', exact: true }),
+    editor.getByRole('region', { name: 'Revisi\u00f3n de audiencia y v\u00ednculo', exact: true }),
   ).toBeVisible();
   const confirm = editor.getByRole('button', {
-    name: 'Confirmar audiencia y vinculo',
+    name: 'Confirmar audiencia y v\u00ednculo',
     exact: true,
   });
   await expect(confirm).toBeDisabled();
   await editor
     .getByRole('checkbox', {
-      name: 'Reconozco la programacion y las capturas seleccionadas',
+      name: 'Reconozco la programaci\u00f3n y las capturas seleccionadas',
       exact: true,
     })
     .check();
@@ -241,5 +245,5 @@ export async function prepareHearing(page) {
 }
 export const submitHearing = (page) =>
   hearingEditor(page)
-    .getByRole('button', { name: 'Confirmar audiencia y vinculo', exact: true })
+    .getByRole('button', { name: 'Confirmar audiencia y v\u00ednculo', exact: true })
     .click();

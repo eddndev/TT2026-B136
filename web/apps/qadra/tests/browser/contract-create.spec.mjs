@@ -89,7 +89,7 @@ test('a litigator creates a contract from an unsealed PDF and sees readiness blo
   await form.getByLabel('Firma por el despacho').selectOption(inputs.firm_account_id);
   await form.getByLabel('Folio de la hoja de huella firmada').fill('HF-0001');
   await form.getByRole('button', { name: 'Solicitar firmas', exact: true }).click();
-  const blockers = form.getByRole('region', { name: 'Lista de preparacion' });
+  const blockers = form.getByRole('region', { name: 'Lista de preparaci\u00f3n' });
   await expect(blockers).toContainText('La cuenta del Cliente no est\u00e1 lista');
   await expect(blockers).toContainText('su vigencia no ha empezado');
   expect(state.writes).toHaveLength(2);

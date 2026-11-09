@@ -101,7 +101,7 @@
       disabled={pending || closed || state.uncertain || state.conflict || state.exhausted}
       onclick={actions.prepare}>Preparar registro</Button
     >{/if}
-  {#each stale as key}<section aria-label="Decision anterior sin aplicar">
+  {#each stale as key}<section aria-label="Decisi&#243;n anterior sin aplicar">
       <p>
         Esta decisi&#243;n corresponde a otra revisi&#243;n y no se aplica a los candidatos
         actuales.

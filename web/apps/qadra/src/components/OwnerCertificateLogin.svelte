@@ -217,7 +217,7 @@
       <dl class="selected-receipt">
         <dt>Nombre declarado en el recibo</dt>
         <dd>{selected.subject}</dd>
-        <dt>Cuenta Owner</dt>
+        <dt>Cuenta de administrador</dt>
         <dd class="font-mono">{selected.ownerId}</dd>
         <dt>V&iacute;nculo</dt>
         <dd class="font-mono">{selected.bindingId}</dd>
@@ -235,7 +235,7 @@
           contextKey={localContext}
           input={localInput}
           certificateFingerprint={selected.leafFingerprint}
-          purpose="acceso Owner"
+          purpose="acceso de administrador"
           disabled={busy}
           onsignature={localSignature}
           oninvalidate={invalidateLocal}

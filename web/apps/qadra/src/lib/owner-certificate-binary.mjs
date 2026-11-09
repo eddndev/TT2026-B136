@@ -3,7 +3,7 @@ export const OWNER_SIGNATURE_BYTES = 384;
 export const OWNER_STATEMENT_BYTES = 150;
 
 export function ownerCertificateInvalid() {
-  throw new Error('La evidencia del certificado no corresponde a la operacion solicitada.');
+  throw new Error('La evidencia del certificado no corresponde a la operaci\u00f3n solicitada.');
 }
 
 export function ownerBase64(value, minimum, maximum = minimum) {

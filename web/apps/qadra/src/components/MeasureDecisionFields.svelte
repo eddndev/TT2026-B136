@@ -58,13 +58,16 @@
   <MeasureTimeFields
     bind:this={time}
     bind:value={fields.declaredAt}
-    label="decision"
+    label="decisi&#243;n"
     inputs={inputs?.time}
     {disabled}
   />
   <label
-    >Justificacion<textarea rows="3" maxlength="1000" bind:value={fields.justification} {disabled}
-    ></textarea></label
+    >Justificaci&#243;n<textarea
+      rows="3"
+      maxlength="1000"
+      bind:value={fields.justification}
+      {disabled}></textarea></label
   >
   <label
     >Localizador<textarea rows="2" maxlength="1000" bind:value={fields.locator} {disabled}
@@ -113,7 +116,7 @@
   >
   {#if fields.outcome === 'no_measure_change'}
     <label
-      >Declaracion sin cambios<textarea
+      >Declaraci&#243;n sin cambios<textarea
         rows="3"
         maxlength="1000"
         bind:value={fields.statement}

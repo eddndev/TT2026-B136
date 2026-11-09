@@ -63,7 +63,7 @@ function references(value) {
 
 function retainedReady(value) {
   if (value.mode === 'uncertain' && value.last === null)
-    invalid('Falta la revision completa del envio incierto.');
+    invalid('Falta la revisi\u00f3n completa del env\u00edo incierto.');
   if (value.last === null) return;
   const last = value.last;
   const command = derivedCommand(
@@ -79,7 +79,7 @@ function retainedReady(value) {
     !same(value.anchor, last.result.anchor) ||
     !same(value.continuation, last.result.continuation)
   )
-    invalid('La revision conservada no pertenece a este borrador.');
+    invalid('La revisi\u00f3n conservada no pertenece a este borrador.');
   // Only retained, previously reviewed input is formalized; incomplete edits remain raw.
   const result = derivedResultValues(hearingResultValues(value.draft, 253402300799999));
   if (
@@ -90,7 +90,7 @@ function retainedReady(value) {
       command.deadline.change.tracking,
     )
   )
-    invalid('Los campos no corresponden al envio exacto conservado.');
+    invalid('Los campos no corresponden al env\u00edo exacto conservado.');
 }
 
 export function captureHearingDerivedDeadlineDraft(state) {

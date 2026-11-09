@@ -35,14 +35,14 @@ function measure(value) {
   const supervision = value.supervision;
   if (supervision?.kind === 'unknown') {
     object(supervision, ['kind', 'reason']);
-    supervision.reason = text(supervision.reason, 'Motivo de supervision desconocida');
+    supervision.reason = text(supervision.reason, 'Motivo de supervisi\u00f3n desconocida');
   } else {
     object(supervision, ['kind', 'participant', 'statement']);
     if (supervision.kind !== 'known') invalid();
     object(supervision.participant, ['participant_id', 'revision']);
     uuid(supervision.participant.participant_id);
     revision(supervision.participant.revision);
-    supervision.statement = text(supervision.statement, 'Supervision');
+    supervision.statement = text(supervision.statement, 'Supervisi\u00f3n');
   }
 }
 

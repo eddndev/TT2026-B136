@@ -64,13 +64,15 @@ for (const { name, viewport } of localSigningViewports) {
       await expect(local.getByRole('alert')).toBeVisible();
       await expect(register(form)).toBeDisabled();
       await expect(local.getByLabel('Clave privada cifrada', { exact: true })).toHaveValue('');
-      await expect(local.getByLabel('Contrasena de la clave', { exact: true })).toHaveValue('');
+      await expect(local.getByLabel('Contrase\u00f1a de la clave', { exact: true })).toHaveValue(
+        '',
+      );
       expect(state.ownerWrites).toEqual([]);
     }
     await signLocally(local, material);
     await expect(register(form)).toBeEnabled();
     await expect(local.getByLabel('Clave privada cifrada', { exact: true })).toHaveValue('');
-    await expect(local.getByLabel('Contrasena de la clave', { exact: true })).toHaveValue('');
+    await expect(local.getByLabel('Contrase\u00f1a de la clave', { exact: true })).toHaveValue('');
     expect(state.ownerWrites).toEqual([]);
     await captureLocalSignature(local, testInfo, `owner-binding-${name}`);
     state.nextOwnerWrite = { action: 'register' };

@@ -42,7 +42,7 @@ export function measureAdministrationsApi(request, caseId) {
   const base = `/cases/${caseId}/measure-administrative-operations`;
   let active = true;
   const assertActive = () => {
-    if (!active) invalid('La consulta de rectificaciones ya no esta abierta.');
+    if (!active) invalid('La consulta de rectificaciones ya no est\u00e1 abierta.');
   };
   async function send(path, options) {
     assertActive();
@@ -65,7 +65,7 @@ export function measureAdministrationsApi(request, caseId) {
   function confirmed(value, prepared) {
     measureAdministrationOperation(value, caseId, prepared.command.operation_id);
     if (!same(value.capture.review, prepared))
-      invalid('El recibo no corresponde a la rectificacion completa revisada.');
+      invalid('El recibo no corresponde a la rectificaci\u00f3n completa revisada.');
     return value;
   }
   return {

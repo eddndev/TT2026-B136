@@ -45,7 +45,7 @@ function proposal(value) {
     values_digest: subject.values_digest,
   };
   if (values.supervision.kind === 'known') {
-    if (!value.supervisor) throw new Error('Selecciona la ficha exacta de supervision.');
+    if (!value.supervisor) throw new Error('Selecciona la ficha exacta de supervisi\u00f3n.');
     values.supervision.participant = {
       participant_id: value.supervisor.id,
       revision: value.supervisor.revision,
@@ -71,9 +71,9 @@ function effect(row) {
 }
 export function decisionFormCommand(value, context) {
   const { fields, support, anchor } = value;
-  if (!support) throw new Error('Selecciona el soporte exacto de la decision.');
+  if (!support) throw new Error('Selecciona el soporte exacto de la decisi\u00f3n.');
   if (!anchor && value.inputs?.anchor?.kind && value.inputs.anchor.kind !== 'independent')
-    throw new Error('Selecciona la revision exacta de la audiencia de origen.');
+    throw new Error('Selecciona la revisi\u00f3n exacta de la audiencia de origen.');
   let selected = null;
   if (anchor?.kind === 'initial') {
     const row = anchor.record;
@@ -134,14 +134,15 @@ export async function checkDecisionPredecessors(scoped, effects, admitted) {
   return admitted();
 }
 export function decisionEditorFailure(error) {
-  if (error.status === 413) return 'La decision supera el limite de 4 MiB.';
+  if (error.status === 413) return 'La decisi\u00f3n supera el l\u00edmite de 4 MiB.';
   const messages = {
     measure_editor_base_changed:
-      'La medida cambio. Conserva el borrador y selecciona expresamente la revision que corresponde.',
+      'La medida cambi\u00f3. Conserva el borrador y selecciona expresamente la revisi\u00f3n que corresponde.',
     measure_decision_operation_conflict:
-      'La operacion ya fue utilizada. Consulta su resultado exacto.',
-    measure_decision_review_mismatch: 'Las fuentes cambiaron. Revisa la decision de nuevo.',
-    measure_decision_submission_mismatch: 'El envio no coincide con la preparacion conservada.',
+      'La operaci\u00f3n ya fue utilizada. Consulta su resultado exacto.',
+    measure_decision_review_mismatch: 'Las fuentes cambiaron. Revisa la decisi\u00f3n de nuevo.',
+    measure_decision_submission_mismatch:
+      'El env\u00edo no coincide con la preparaci\u00f3n conservada.',
   };
   return messages[error.code] || factFailure(error);
 }

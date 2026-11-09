@@ -211,8 +211,8 @@
   </div>
   <p>
     Crea una clave protegida por contrase&#241;a y una solicitud p&#250;blica (CSR) para
-    {purpose === 'partner' ? 'acceso Owner' : 'firma documental'}. La clave y su contrase&#241;a
-    permanecen en tu equipo. El responsable de la CA revisa y emite el certificado.
+    {purpose === 'partner' ? 'acceso de administrador' : 'firma documental'}. La clave y su
+    contrase&#241;a permanecen en tu equipo. El responsable de la CA revisa y emite el certificado.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if !generated}

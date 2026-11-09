@@ -79,7 +79,7 @@ export function reportEstimate(value) {
 
 export const reportEmailStatus = (value) =>
   ({
-    pending: 'Aviso por correo pendiente. Aun no hay aceptaci\u00f3n del proveedor.',
+    pending: 'Aviso por correo pendiente. A\u00fan no hay aceptaci\u00f3n del proveedor.',
     accepted:
       'Correo aceptado por el proveedor. Esto no confirma entrega en la bandeja de entrada.',
     rejected: 'El proveedor rechaz\u00f3 el correo.',

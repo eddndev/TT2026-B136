@@ -67,7 +67,7 @@ export function createDeadlineDraft({ session, caseId, action, capture }) {
     );
   }
   function register(resourceId, revision) {
-    if (!admitted()) throw new Error('La sesion no admite el borrador de plazo.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite el borrador de plazo.');
     const next = {
       principalId,
       contextId: caseId,
@@ -133,7 +133,7 @@ export function createDeadlineDraft({ session, caseId, action, capture }) {
               value.last.command.change.action !== action ||
               value.last.command.change.expected_revision !== saved.baseRevision)
           )
-            throw new Error('El envio no pertenece a este borrador.');
+            throw new Error('El env\u00edo no pertenece a este borrador.');
           captureDeadline(value);
           register(saved.resourceId, saved.baseRevision);
           apply(value, context);

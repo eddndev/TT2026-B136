@@ -143,7 +143,7 @@ export function measureRecord(value, caseId, id, selected = null) {
       administrative ? result.last_judicial : { owner, reference: value.reference },
     )
   )
-    invalid('La lectura no conserva la declaracion y procedencia de su captura exacta.');
+    invalid('La lectura no conserva la declaraci\u00f3n y procedencia de su captura exacta.');
   measureRecordValues(result, caseId);
   // The authorized server validates the complete owning history and its digests.
   history(value.record_history);

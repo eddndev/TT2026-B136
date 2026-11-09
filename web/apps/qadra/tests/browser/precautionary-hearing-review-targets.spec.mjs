@@ -15,7 +15,7 @@ import {
 const inCase = (value) => JSON.parse(JSON.stringify(value).replaceAll(measureCaseId, caseId));
 const selectedTargets = (page) =>
   precautionaryEditor(page).getByRole('region', {
-    name: 'Medidas seleccionadas para revision',
+    name: 'Medidas seleccionadas para revisi\u00f3n',
     exact: true,
   });
 
@@ -75,7 +75,7 @@ test('a review appointment selects the listed exact measure and retains it after
   await expect(picker).toContainText(/Presentaci[o\u00f3]n peri[o\u00f3]dica/);
   await expect(picker).toContainText(result.values.conditions);
   await expect(picker).toContainText(reference.capture_digest);
-  await picker.getByRole('button', { name: 'Vincular esta revision', exact: true }).click();
+  await picker.getByRole('button', { name: 'Vincular esta revisi\u00f3n', exact: true }).click();
   await expect(picker).toHaveCount(0);
   await expect(selectedTargets(page)).toContainText(reference.capture_digest);
   const exactPath = `${base}/${reference.id}/revisions/${reference.revision}`;
@@ -88,7 +88,7 @@ test('a review appointment selects the listed exact measure and retains it after
   ).toBe(true);
   await preparePrecautionary(page);
   await expect(
-    editor.getByRole('region', { name: 'Revision de convocatoria cautelar', exact: true }),
+    editor.getByRole('region', { name: 'Revisi\u00f3n de convocatoria cautelar', exact: true }),
   ).toContainText(reference.capture_digest);
   await submitPrecautionary(page);
   await expect(precautionaryDetail(page)).toContainText(/Revisi[o\u00f3]n exacta consultada: 1/);

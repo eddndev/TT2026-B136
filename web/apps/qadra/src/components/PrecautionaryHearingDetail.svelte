@@ -50,13 +50,13 @@
         <dd class="case-multiline">{values.note}</dd>
       </div>{/if}
   </dl>
-  <section class="case-comparison" aria-label="Base de senalamiento">
+  <section class="case-comparison" aria-label="Base de se&#241;alamiento">
     <h3>Base de se&#241;alamiento declarada</h3>
     <p class="case-multiline">{values.scheduling_basis.statement}</p>
     <p class="case-multiline">Localizador: {values.scheduling_basis.locator}</p>
   </section>
   {#if values.review_targets.length}
-    <section class="case-comparison" aria-label="Medidas seleccionadas para revision">
+    <section class="case-comparison" aria-label="Medidas seleccionadas para revisi&#243;n">
       <h3>Medidas seleccionadas para revisi&#243;n</h3>
       {#each values.review_targets as target (target.id)}
         <details>

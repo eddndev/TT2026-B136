@@ -104,7 +104,7 @@ function participant(value, source, selected, caseId) {
     overview.directory_status !== snapshot.status ||
     !['active', 'archived'].includes(snapshot.status)
   )
-    invalid('La ficha no corresponde al participante historico seleccionado.');
+    invalid('La ficha no corresponde al participante hist\u00f3rico seleccionado.');
   digest(snapshot.values_digest);
   for (const field of ['display_name', 'procedural_role', 'organization']) {
     if (source[field] !== overview[field]) invalid();

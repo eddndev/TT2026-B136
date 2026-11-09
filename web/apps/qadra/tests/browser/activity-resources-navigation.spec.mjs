@@ -35,7 +35,7 @@ for (const kind of ['hearing', 'deadline'])
     });
     await expect(resource).toContainText(/revisi[o\u00f3]n 1.*consultada exactamente/i);
     await expect(association).toContainText(
-      /v[i\u00ed]nculo.*revisi[o\u00f3]n 1.*consulta historica exacta/i,
+      /v[i\u00ed]nculo.*revisi[o\u00f3]n 1.*consulta hist\u00f3rica exacta/i,
     );
     const calls = state.activities.resources.calls.map((call) => call.path);
     expect(calls).toContain(

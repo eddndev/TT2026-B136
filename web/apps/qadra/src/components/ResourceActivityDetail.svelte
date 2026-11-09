@@ -28,7 +28,7 @@
   </div>
   <p>
     V&#237;nculo / Revisi&#243;n {record.revision} / {historical
-      ? 'Consulta historica exacta'
+      ? 'Consulta hist\u00f3rica exacta'
       : 'Actual al consultar'}
   </p>
   {#if historical}<Button
@@ -48,7 +48,7 @@
     <p>{record.recorded_by.email} / {record.recorded_at}</p>
     <FactAdministrativeCapture
       value={record.recorded_administration}
-      label={'Administracion al vincular'}
+      label={'Administraci\u00f3n al vincular'}
     />
     <p>Cabeza del recurso al confirmar: revisi&#243;n {record.recorded_resource_head.revision}</p>
     <p>Identidad: <code>{record.id}</code></p>

@@ -55,5 +55,5 @@ test('correction exposes missing profile conditions without inventing their decl
   });
   assert.match(html, /Sin declaraci[o\u00f3]n guardada/);
   assert.match(html, /Agregar declaraci[o\u00f3]n de condici[o\u00f3]n/);
-  assert.doesNotMatch(html, /Se cumple la condicion 1/);
+  assert.doesNotMatch(html, /Se cumple la condici\u00f3n 1/);
 });

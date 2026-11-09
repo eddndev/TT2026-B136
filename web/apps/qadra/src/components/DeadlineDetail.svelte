@@ -50,7 +50,7 @@
   <DeadlineReceipt value={record} compact />
   <DeadlineTrackingSummary value={record} {historical} />
   <DeadlineCalculation calculation={record.calculation} />
-  <section aria-label="Atencion del plazo">
+  <section aria-label="Atenci&#243;n del plazo">
     <h3>Atenci&#243;n declarada</h3>
     {#if record.attention.status === 'recorded'}<p>{factTimeLabel(record.attention.occurred_at)}</p>
       <p class="case-multiline">{record.attention.statement}</p>

@@ -20,13 +20,14 @@ export const denyOwnerDrafts = (session) => session?.registry.denyContext(contex
 
 export function ownerFailure(error) {
   if (error?.status === 401)
-    return 'La sesion termino. Vuelve a ingresar para comprobar el resultado.';
+    return 'La sesi\u00f3n termin\u00f3. Vuelve a ingresar para comprobar el resultado.';
   if (error?.status === 403) return 'Tu cuenta ya no tiene permiso para esta consulta.';
-  if (error?.status === 404) return 'No se encontro un recibo para este vinculo.';
-  if (error?.status === 409) return 'El estado cambio. Conserva el intento y comprueba su recibo.';
+  if (error?.status === 404) return 'No se encontr\u00f3 un recibo para este v\u00ednculo.';
+  if (error?.status === 409)
+    return 'El estado cambi\u00f3. Conserva el intento y comprueba su recibo.';
   if ([400, 413, 422].includes(error?.status))
-    return 'El servidor no admitio el material. Revisa el certificado publico y la firma separada.';
-  return 'No se pudo confirmar la operacion. Conserva el intento y consulta su recibo exacto.';
+    return 'El servidor no admiti\u00f3 el material. Revisa el certificado p\u00fablico y la firma separada.';
+  return 'No se pudo confirmar la operaci\u00f3n. Conserva el intento y consulta su recibo exacto.';
 }
 
 export async function ownerBlobBase64(blob) {
@@ -59,12 +60,13 @@ function validate(value, descriptor) {
   let expected = null;
   if (descriptor.action === 'register') {
     if (descriptor.baseRevision !== 0 || value.original !== null)
-      throw new Error('Borrador invalido.');
+      throw new Error('Borrador inv\u00e1lido.');
     if (value.prepared) {
       ownerPreparation(value.prepared, descriptor.principalId, descriptor.resourceId);
       if (value.signatureBase64)
         expected = registrationIntent(value.prepared, value.signatureBase64);
-    } else if (value.signatureBase64 || value.command) throw new Error('Falta la preparacion.');
+    } else if (value.signatureBase64 || value.command)
+      throw new Error('Falta la preparaci\u00f3n.');
   } else {
     if (
       descriptor.baseRevision !== 1 ||
@@ -72,7 +74,7 @@ function validate(value, descriptor) {
       value.signatureBase64 ||
       value.signatureName
     )
-      throw new Error('Borrador invalido.');
+      throw new Error('Borrador inv\u00e1lido.');
     expected = withdrawalIntent(
       ownerReceipt(value.original, descriptor.principalId, descriptor.resourceId, true),
     );
@@ -106,7 +108,7 @@ export function createOwnerBindingDraft({ session, principalId, bindingId, actio
     session.principal()?.role === 'owner' &&
     session.canAdmit();
   function register() {
-    if (!admitted()) throw new Error('La sesion no admite este borrador.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite este borrador.');
     registration ??= session.registry.register(descriptor, { fields, capture });
   }
   return {
@@ -127,7 +129,7 @@ export function createOwnerBindingDraft({ session, principalId, bindingId, actio
           }
         },
         apply(value) {
-          if (!admitted()) throw new Error('La sesion termino.');
+          if (!admitted()) throw new Error('La sesi\u00f3n termin\u00f3.');
           validate(value, saved);
           apply(value, context);
           register();

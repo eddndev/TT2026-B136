@@ -40,7 +40,7 @@ const EVENTS = {
 };
 export const BLOCKERS = {
   client_not_ready:
-    'La cuenta del Cliente no est\u00e1 lista: debe existir por invitaci\u00f3n, estar activa y tener su firma vinculada en Mi firma.',
+    'La cuenta del Cliente no est\u00e1 lista: debe existir por invitaci\u00f3n, estar activa y tener su firma vinculada en Mi firma digital.',
   firm_signer_not_ready:
     'Quien firma por el despacho no tiene una firma documental vinculada y vigente, o no es miembro del expediente.',
   document_not_ready:

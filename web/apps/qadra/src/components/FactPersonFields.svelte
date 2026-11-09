@@ -104,7 +104,7 @@
       </p>{/if}
     {#if person.id}<details>
         <summary>Referencia de la ficha</summary><code>{person.id}</code>
-        <p>Revision {person.revision}</p>
+        <p>Revisi&#243;n {person.revision}</p>
       </details>{/if}
     <Button type="button" variant="secondary" disabled={pending} onclick={() => (choosing = true)}
       >Elegir ficha: {label}</Button

@@ -62,7 +62,7 @@
         variant="secondary"
         disabled={pending || disabled || blocked || (closed && !paired)}
         onclick={actions.retry}
-        >{paired ? 'Confirmar origen del env\u00edo' : 'Reintentar envio exacto'}</Button
+        >{paired ? 'Confirmar origen del env\u00edo' : 'Reintentar env\u00edo exacto'}</Button
       >{/if}
   {:else if mode === 'conflict'}
     <h3>El registro cambi&#243;</h3>
@@ -92,7 +92,7 @@
     >
     <div class="action-row">
       <Button variant="primary" disabled={frozen || !acknowledged} onclick={actions.submit}
-        >Confirmar plazo y vinculo</Button
+        >Confirmar plazo y v&#237;nculo</Button
       >
       <Button
         variant="secondary"
@@ -107,7 +107,7 @@
   {/if}
   {#if blocked}
     <label>T&#237;tulo del plazo<input disabled value="" /></label>
-    <Button variant="primary" disabled>Preparar plazo y vinculo</Button>
+    <Button variant="primary" disabled>Preparar plazo y v&#237;nculo</Button>
   {:else if mode !== 'review' && mode !== 'confirmed'}
     <ResourceDeadlineContext
       bind:this={context}
@@ -135,7 +135,7 @@
       disabled={frozen || mode !== 'draft'}
     />
     <Button variant="primary" disabled={frozen || mode !== 'draft'} onclick={actions.prepare}
-      >Preparar plazo y vinculo</Button
+      >Preparar plazo y v&#237;nculo</Button
     >
   {/if}
   <Button variant="text" disabled={pending || disabled} onclick={close}>Cerrar formulario</Button>

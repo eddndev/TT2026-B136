@@ -43,7 +43,7 @@
 <fieldset class="case-offenses" disabled={disabled || pending}>
   <legend>Fuente exacta del inicio</legend>
   {#if prospective}
-    <p>Resultado prospectivo / Revision 1</p>
+    <p>Resultado prospectivo / Revisi&#243;n 1</p>
     <p>El resultado se registra junto con este plazo; no existe una captura previa.</p>
     <label
       >Acuerdo del resultado propuesto<select
@@ -97,7 +97,7 @@
           </p>{/if}
         {#if family === 'hearing_result'}<p>
             {value.source.value.agreement_id === null
-              ? 'Resultado completo, sin acuerdo especifico'
+              ? 'Resultado completo, sin acuerdo espec\u00edfico'
               : 'Acuerdo exacto seleccionado'}
           </p>{/if}
         <details>

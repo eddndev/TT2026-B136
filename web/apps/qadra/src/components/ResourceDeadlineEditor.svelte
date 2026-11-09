@@ -311,7 +311,7 @@
     try {
       await onconfirmed(value.association, exact);
     } catch {
-      if (alive) error = 'El plazo y vinculo se guardaron. Consulta de nuevo sin reenviar.';
+      if (alive) error = 'El plazo y v\u00ednculo se guardaron. Consulta de nuevo sin reenviar.';
     }
   }
   onMount(initialize);

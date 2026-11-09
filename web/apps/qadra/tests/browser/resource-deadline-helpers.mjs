@@ -135,10 +135,12 @@ export async function prepareResourceDeadline(page) {
   });
   await Promise.all([
     prepared,
-    editor(page).getByRole('button', { name: 'Preparar plazo y vinculo', exact: true }).click(),
+    editor(page)
+      .getByRole('button', { name: 'Preparar plazo y v\u00ednculo', exact: true })
+      .click(),
   ]);
   await expect(
-    editor(page).getByRole('button', { name: 'Confirmar plazo y vinculo', exact: true }),
+    editor(page).getByRole('button', { name: 'Confirmar plazo y v\u00ednculo', exact: true }),
   ).toBeDisabled();
   await editor(page)
     .getByRole('checkbox', {
@@ -149,6 +151,6 @@ export async function prepareResourceDeadline(page) {
 }
 export async function submitResourceDeadline(page) {
   await editor(page)
-    .getByRole('button', { name: 'Confirmar plazo y vinculo', exact: true })
+    .getByRole('button', { name: 'Confirmar plazo y v\u00ednculo', exact: true })
     .click();
 }

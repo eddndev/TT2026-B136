@@ -93,7 +93,8 @@
       if (!value) return;
       ({ head, closed } = value);
       if (!saved && (closed || head.status !== 'active' || !compatible)) {
-        error = 'La programacion requiere un caso activo y un recurso escrito compatible y activo.';
+        error =
+          'La programaci\u00f3n requiere un caso activo y un recurso escrito compatible y activo.';
         return;
       }
       savedDraft = saved;
@@ -120,7 +121,8 @@
       await oncreated(value);
     } catch (failure) {
       if (admitted())
-        error = 'La audiencia y su vinculo se registraron. Consulta el resultado sin reenviar.';
+        error =
+          'La audiencia y su v\u00ednculo se registraron. Consulta el resultado sin reenviar.';
     } finally {
       if (alive) opening = false;
     }
@@ -162,8 +164,8 @@
         {/each}{/if}
     </div>
     {#if initialized && !compatible}<p class="hint">
-        La programacion propia admite apelacion escrita o revocacion escrita, con modalidad
-        declarada en el recurso y en su cabeza actual.
+        La programaci&#243;n propia admite apelaci&#243;n escrita o revocaci&#243;n escrita, con
+        modalidad declarada en el recurso y en su cabeza actual.
       </p>{/if}
   {/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}

@@ -23,7 +23,7 @@ export async function freshCalendarOwner({ api, scoped, principalId, resourceId,
   if (!admitted()) return null;
   if (principal?.id !== principalId || principal.role !== 'owner')
     throw Object.assign(
-      new Error('Ya no tienes permiso para administrar calendarios como Owner.'),
+      new Error('Ya no tienes permiso para administrar calendarios como administrador.'),
       {
         status: 403,
         code: 'permission_denied',
@@ -43,7 +43,7 @@ export function createCalendarDraft({ session, principalId, capture }) {
     );
   }
   function register(action, resourceId, revision) {
-    if (!admitted()) throw new Error('La sesion no admite el borrador de calendario.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite el borrador de calendario.');
     const descriptor = {
       principalId,
       contextId,
@@ -83,7 +83,8 @@ export function createCalendarDraft({ session, principalId, capture }) {
           }
         },
         apply(value) {
-          if (!admitted()) throw new Error('La sesion ya no admite el borrador de calendario.');
+          if (!admitted())
+            throw new Error('La sesi\u00f3n ya no admite el borrador de calendario.');
           validateCalendarDraft(value, saved);
           register(saved.action, saved.resourceId, saved.baseRevision);
           apply(value, context);

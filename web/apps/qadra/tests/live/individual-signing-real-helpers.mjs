@@ -76,23 +76,23 @@ export async function registerSigningCertificate(page, scenario, testInfo) {
   await navigate(page, 'Mi firma digital');
   expect(await jsonResponse(current)).toEqual({ binding: null });
   await page
-    .getByLabel('Certificado publico PEM', { exact: true })
+    .getByLabel('Certificado p\u00fablico PEM', { exact: true })
     .setInputFiles(scenario.certificatePath);
   const preparation = page.waitForResponse(
     (response) =>
       new URL(response.url()).pathname.startsWith(bindingsPath + '/') &&
       response.url().endsWith('/prepare'),
   );
-  await button(page, 'Preparar vinculo').click();
+  await button(page, 'Preparar v\u00ednculo').click();
   const prepared = await jsonResponse(preparation);
   expect(prepared.account_id).toBe(scenario.litigator.id);
   const proof = await signedDownload(
     page,
-    'Descargar declaracion del vinculo',
+    'Descargar declaraci\u00f3n del v\u00ednculo',
     scenario,
     testInfo,
     'certificate-binding.bin',
-    'Firma externa del vinculo',
+    'Firma externa del v\u00ednculo',
   );
   expect(proof.bytes).toHaveLength(142);
   expect(proof.bytes.subarray(0, 10)).toEqual(Buffer.from('DOCBIND1\x01\x01', 'binary'));
@@ -105,7 +105,7 @@ export async function registerSigningCertificate(page, scenario, testInfo) {
     bindingsPath + '/' + prepared.binding_id + '/register',
     'POST',
   );
-  await button(page, 'Registrar vinculo').click();
+  await button(page, 'Registrar v\u00ednculo').click();
   const receipt = await jsonResponse(registration);
   expect(receipt).toMatchObject({
     account_id: scenario.litigator.id,
@@ -114,7 +114,7 @@ export async function registerSigningCertificate(page, scenario, testInfo) {
     signature_base64: proof.signature.toString('base64'),
     withdrawn_at: null,
   });
-  await expect(page.getByText('Vinculo registrado', { exact: true })).toBeVisible();
+  await expect(page.getByText('V\u00ednculo registrado', { exact: true })).toBeVisible();
   return receipt;
 }
 
@@ -129,7 +129,7 @@ export async function preparePersonalSignature(page, scenario, testInfo) {
   );
   expect(digest(pdf.bytes)).toBe(scenario.document.digest);
   expect(pdf.bytes.subarray(0, 5).toString()).toBe('%PDF-');
-  await expect(page.getByTitle('PDF exacto de esta version')).toBeVisible();
+  await expect(page.getByTitle('PDF exacto de esta versi\u00f3n')).toBeVisible();
   await page.getByLabel('He revisado este PDF y confirmo su contenido').check();
   const signaturePath = testInfo.outputPath('document.sig');
   execFileSync(
@@ -167,7 +167,7 @@ export async function preparePersonalSignature(page, scenario, testInfo) {
     document_digest: scenario.document.digest,
     pdf_signature_digest: digest(pdfSignature),
   });
-  const confirmation = page.getByLabel('Confirmo firmar esta version con mi certificado');
+  const confirmation = page.getByLabel('Confirmo firmar esta versi\u00f3n con mi certificado');
   await expect(confirmation).toBeEnabled();
   await confirmation.check();
   const proof = await signedDownload(

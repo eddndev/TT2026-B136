@@ -47,7 +47,7 @@ export function createFactDraft({ session, caseId, family, parentId, capture, re
       : null;
   }
   function register(action, resourceId, revision) {
-    if (!admitted()) throw new Error('La sesion no admite el borrador.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite el borrador.');
     const next = {
       principalId,
       contextId: caseId,
@@ -84,7 +84,7 @@ export function createFactDraft({ session, caseId, family, parentId, capture, re
         }
       },
       apply(value) {
-        if (!admitted()) throw new Error('La sesion ya no admite el borrador.');
+        if (!admitted()) throw new Error('La sesi\u00f3n ya no admite el borrador.');
         validateFactDraft(value, saved, family, parentId);
         register(saved.action, saved.resourceId, saved.baseRevision);
         apply(value, context);

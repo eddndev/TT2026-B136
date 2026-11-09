@@ -294,7 +294,10 @@
   {#if last && ['uncertain', 'conflict'].includes(mode)}
     <div class="case-comparison">
       <h3>Resultado incierto</h3>
-      <p>Conservamos el mismo intento. Una ausencia temporal no confirma que el envio fallo.</p>
+      <p>
+        Conservamos el mismo intento. Una ausencia temporal no confirma que el env&#237;o
+        fall&#243;.
+      </p>
       <HearingResultValues
         values={last.result.values}
         attendees={last.result.attendees}
@@ -302,10 +305,10 @@
       />
       <p>Plazo solicitado: {last.command.deadline.change.definition.title}</p>
       <Button variant="primary" disabled={pending || blocked || disabled} onclick={actions.check}
-        >Consultar envio exacto</Button
+        >Consultar env&#237;o exacto</Button
       >
       {#if retryAvailable}<Button variant="secondary" disabled={frozen} onclick={actions.retry}
-          >Reintentar el mismo envio</Button
+          >Reintentar el mismo env&#237;o</Button
         >{/if}
       <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
     </div>

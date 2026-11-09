@@ -27,11 +27,11 @@
     accepted: 'Cuenta creada',
     expired: 'Enlace vencido o retirado',
   };
-  const roles = { litigator: 'Litigante', paralegal: 'Asistente', client: 'Cliente' };
+  const roles = { litigator: 'Litigante', paralegal: 'Asistente legal', client: 'Cliente' };
   const delivery = {
     pending: 'Correo pendiente',
     sent: 'Correo aceptado por el proveedor',
-    uncertain: 'Envio por comprobar',
+    uncertain: 'Env\u00edo por comprobar',
     rejected: 'Correo rechazado',
   };
   async function refresh(more = false) {
@@ -65,7 +65,7 @@
     confirming = null;
     pending = false;
     email = name = '';
-    notice = `Invitacion registrada para ${row.email}.`;
+    notice = `Invitaci\u00f3n registrada para ${row.email}.`;
     items = [row, ...items.filter((item) => item.id !== row.id)].sort((a, b) =>
       a.id.localeCompare(b.id),
     );
@@ -82,7 +82,7 @@
       if (admitted()) confirmed(row);
     } catch {
       if (admitted())
-        error = 'No se confirmo la invitacion. Comprueba el intento antes de continuar.';
+        error = 'No se confirm\u00f3 la invitaci\u00f3n. Comprueba el intento antes de continuar.';
     } finally {
       if (alive) busy = false;
     }
@@ -126,11 +126,11 @@
       if (row.operation_id === intent.data.operation_id) confirmed(row);
       else
         error =
-          'La invitacion tiene otro envio vigente. Reintentar el mismo intento permite consultar su recibo original.';
+          'La invitaci\u00f3n tiene otro env\u00edo vigente. Reintentar el mismo intento permite consultar su recibo original.';
     } catch {
       if (admitted())
         error =
-          'No se pudo confirmar este intento. Puedes reintentar el mismo envio o consultar mas tarde.';
+          'No se pudo confirmar este intento. Puedes reintentar el mismo env\u00edo o consultar m\u00e1s tarde.';
     } finally {
       if (alive) busy = false;
     }
@@ -145,7 +145,7 @@
       });
       if (admitted() && result.status === 'restored') pending = false;
     } catch {
-      if (admitted()) error = 'No se pudo recuperar la invitacion con los permisos actuales.';
+      if (admitted()) error = 'No se pudo recuperar la invitaci\u00f3n con los permisos actuales.';
     } finally {
       if (alive) busy = false;
     }
@@ -173,31 +173,33 @@
 <section class="card admin-panel" aria-label="Invitaciones al despacho" aria-busy={busy}>
   <h2>Invitaciones al despacho</h2>
   <p>
-    El integrante elegira su contrasena y confirmara su segundo factor desde el enlace privado del
-    correo.
+    El integrante elegir&#225; su contrase&#241;a y confirmar&#225; su segundo factor desde el
+    enlace privado del correo.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice" role="status">{notice}</p>{/if}
   {#if pending}
-    <p>Hay una invitacion por comprobar de esta cuenta.</p>
-    <Button variant="secondary" disabled={busy} onclick={restore}>Retomar invitacion</Button>
+    <p>Hay una invitaci&#243;n por comprobar de esta cuenta.</p>
+    <Button variant="secondary" disabled={busy} onclick={restore}>Retomar invitaci&#243;n</Button>
   {:else if intent}
     <p>Se conserva el identificador de este intento para comprobarlo sin crear otro.</p>
-    <Button variant="secondary" disabled={busy} onclick={consult}>Comprobar invitacion</Button>
-    <Button variant="secondary" disabled={busy} onclick={send}>Reintentar el mismo envio</Button>
+    <Button variant="secondary" disabled={busy} onclick={consult}>Comprobar invitaci&#243;n</Button>
+    <Button variant="secondary" disabled={busy} onclick={send}
+      >Reintentar el mismo env&#237;o</Button
+    >
     <Button variant="text" disabled={busy} onclick={discard}>Cerrar intento</Button>
   {:else if confirming}
     <p>
-      El enlace anterior dejara de funcionar, junto con su preparacion MFA. Se enviara un nuevo
-      enlace a {confirming.email}.
+      El enlace anterior dejar&#225; de funcionar, junto con su preparaci&#243;n MFA. Se
+      enviar&#225; un nuevo enlace a {confirming.email}.
     </p>
-    <Button variant="primary" disabled={busy} onclick={resend}>Confirmar reenvio</Button>
+    <Button variant="primary" disabled={busy} onclick={resend}>Confirmar reenv&#237;o</Button>
     <Button
       variant="text"
       disabled={busy}
       onclick={() => {
         confirming = null;
-      }}>Cancelar reenvio</Button
+      }}>Cancelar reenv&#237;o</Button
     >
   {:else}
     <form class="stack" onsubmit={issue}>
@@ -211,7 +213,7 @@
         /></label
       >
       <label
-        >Correo de la invitacion<input
+        >Correo de la invitaci&#243;n<input
           type="email"
           required
           maxlength="254"
@@ -221,12 +223,13 @@
         /></label
       >
       <label
-        >Rol de la invitacion<select bind:value={role} disabled={busy}
-          ><option value="paralegal">Asistente</option><option value="litigator">Litigante</option
+        >Rol de la invitaci&#243;n<select bind:value={role} disabled={busy}
+          ><option value="paralegal">Asistente legal</option><option value="litigator"
+            >Litigante</option
           ><option value="client">Cliente</option></select
         ></label
       >
-      <Button variant="primary" disabled={busy}>Enviar invitacion</Button>
+      <Button variant="primary" disabled={busy}>Enviar invitaci&#243;n</Button>
     </form>
   {/if}
   <Button variant="secondary" disabled={busy} onclick={() => refresh()}
@@ -250,6 +253,6 @@
     {/each}
   </ul>
   {#if next}<Button variant="secondary" disabled={busy} onclick={() => refresh(true)}
-      >Cargar mas invitaciones</Button
+      >Cargar m&#225;s invitaciones</Button
     >{/if}
 </section>

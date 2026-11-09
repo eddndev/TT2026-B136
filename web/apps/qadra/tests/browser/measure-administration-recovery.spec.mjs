@@ -23,7 +23,7 @@ async function leaveAndResume(page) {
   await openSection(page, 'Medidas cautelares');
   await expect(measurePanel(page)).toBeVisible();
   const resume = measurePanel(page).getByRole('button', {
-    name: 'Retomar rectificacion de medida',
+    name: 'Retomar rectificaci\u00f3n de medida',
     exact: true,
   });
   await expect(resume).toBeEnabled();
@@ -73,7 +73,7 @@ test('a mobile incomplete correction restores raw offset fields and the original
   await expect(editor).toContainText(state.target.reference.id);
   await expect(editor).toContainText(state.target.reference.capture_digest);
   await expect(
-    editor.getByRole('button', { name: 'Confirmar rectificacion', exact: true }),
+    editor.getByRole('button', { name: 'Confirmar rectificaci\u00f3n', exact: true }),
   ).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   for (const control of await editor.locator('input, textarea, select, button').all()) {

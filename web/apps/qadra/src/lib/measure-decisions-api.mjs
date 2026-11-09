@@ -42,7 +42,7 @@ export function measureDecisionsApi(request, caseId) {
   const base = `/cases/${caseId}/measure-decisions`;
   let active = true;
   const assertActive = () => {
-    if (!active) invalid('La consulta de decisiones cautelares ya no esta abierta.');
+    if (!active) invalid('La consulta de decisiones cautelares ya no est\u00e1 abierta.');
   };
   async function send(path, options) {
     assertActive();
@@ -66,7 +66,7 @@ export function measureDecisionsApi(request, caseId) {
     const { command } = prepared.review;
     measureDecisionOperation(value, caseId, command.decision_id, command.operation_id);
     if (value.family !== prepared.family || !same(value.group.review, prepared.review))
-      invalid('El recibo no corresponde a la decision completa revisada.');
+      invalid('El recibo no corresponde a la decisi\u00f3n completa revisada.');
     return value;
   }
   return {

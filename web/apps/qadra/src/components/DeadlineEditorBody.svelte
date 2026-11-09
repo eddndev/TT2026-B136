@@ -50,7 +50,7 @@
       : mode === 'correct'
         ? 'Corregir plazo'
         : mode === 'set_attention'
-          ? 'Declarar atencion'
+          ? 'Declarar atenci\u00f3n'
           : 'Retirar plazo'}
   </h2>
   <p class="hint">
@@ -69,7 +69,7 @@
       <h3>Resultado incierto</h3>
       <p>Una ausencia temporal no confirma que la escritura haya fallado.</p>
       <Button variant="primary" disabled={pending || blocked || !last} onclick={actions.check}
-        >Consultar envio exacto</Button
+        >Consultar env&#237;o exacto</Button
       >
       <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
     </section>
@@ -101,7 +101,7 @@
     </section>
   {/if}
   {#if prepared}
-    <section class="case-comparison" aria-label="Revision del plazo a confirmar">
+    <section class="case-comparison" aria-label="Revisi&#243;n del plazo a confirmar">
       <h3>Revisa el plazo a confirmar</h3>
       <p>Revisi&#243;n a registrar: {prepared.result_revision}</p>
       <DeadlineFieldsReview value={prepared} {profile} />
@@ -111,8 +111,8 @@
       <label class="checkbox"
         ><input type="checkbox" bind:checked={acknowledge} disabled={frozen} />
         {prepared.calculation.result.blocks.length
-          ? 'Revise las declaraciones, fuentes y politicas; confirmo guardar el plazo con estos bloqueos'
-          : 'Revise las declaraciones, fuentes, politicas y el resultado a guardar'}</label
+          ? 'Revis\u00e9 las declaraciones, fuentes y pol\u00edticas; confirmo guardar el plazo con estos bloqueos'
+          : 'Revis\u00e9 las declaraciones, fuentes, pol\u00edticas y el resultado a guardar'}</label
       >
       <div class="action-row">
         <Button variant="secondary" disabled={pending} onclick={onback}>Volver al borrador</Button>

@@ -66,7 +66,7 @@ export function deadlinePoliciesCommand(state, definition) {
       if (absent[dependency]) return [dependency, 'undetermined'];
       const choice = reconciled[dependency];
       if (!choice.key || !explicit(choice.value))
-        invalid(`Selecciona como dar seguimiento ${labels[dependency]}.`);
+        invalid(`Selecciona c\u00f3mo dar seguimiento ${labels[dependency]}.`);
       return [dependency, choice.value];
     }),
   );

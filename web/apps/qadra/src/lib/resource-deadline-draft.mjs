@@ -68,7 +68,7 @@ export function createResourceDeadlineDraft({ session, caseId, resourceId, captu
     );
   }
   function register(revision) {
-    if (!admitted()) throw new Error('La sesion no admite el plazo del recurso.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite el plazo del recurso.');
     if (registration && revision !== root.baseRevision) {
       registration.dispose();
       registration = null;
@@ -131,7 +131,7 @@ export function createResourceDeadlineDraft({ session, caseId, resourceId, captu
               value.last.command.deadline.deadline_id !== value.deadlineId ||
               value.last.command.expected_resource_revision !== saved.baseRevision)
           )
-            throw new Error('El envio no pertenece a este borrador.');
+            throw new Error('El env\u00edo no pertenece a este borrador.');
           captureResourceDeadline(value);
           register(value.base.revision);
           apply(value, context);

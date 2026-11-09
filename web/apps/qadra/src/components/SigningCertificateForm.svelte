@@ -14,10 +14,10 @@
 </script>
 
 {#if state.action === 'withdraw'}<section class="card stack">
-    <h2>Retirar mi vinculo</h2>
+    <h2>Retirar mi v&#237;nculo</h2>
     <label
       ><input type="checkbox" bind:checked={confirmed} disabled={busy} />
-      Confirmo retirar el vinculo para futuras firmas</label
+      Confirmo retirar el v&#237;nculo para futuras firmas</label
     >
     <div class="action-row">
       <Button variant="primary" disabled={busy || !confirmed} onclick={onwithdraw}
@@ -30,13 +30,13 @@
     <h2>Registrar certificado documental</h2>
     <SigningPublicFile
       kind="certificate"
-      label="Certificado publico PEM"
+      label="Certificado p&#250;blico PEM"
       disabled={busy}
       onvalue={oncertificate}
       {onerror}
     />
     <Button variant="secondary" disabled={busy || !certificate} onclick={onprepare}
-      >Preparar vinculo</Button
+      >Preparar v&#237;nculo</Button
     >
     {#if state.prepared}<SigningBindingDetails value={state.prepared} />
       {#key localContext}<LocalSignature
@@ -44,7 +44,7 @@
           input={localInput}
           certificateDerBase64={state.prepared.certificate.der_base64}
           certificateFingerprint={state.prepared.certificate.fingerprint}
-          purpose="vinculo documental"
+          purpose="v&#237;nculo documental"
           disabled={busy}
           onsignature={onlocalsignature}
           oninvalidate={onlocalinvalidate}
@@ -58,11 +58,11 @@
             download(
               signingStatementDownload(state.prepared.statement_base64, 'binding'),
               'certificate-binding.bin',
-            )}>Descargar declaracion del vinculo</Button
+            )}>Descargar declaraci&#243;n del v&#237;nculo</Button
         >
         <SigningExternalInstructions kind="binding" />
         <SigningPublicFile
-          label="Firma externa del vinculo"
+          label="Firma externa del v&#237;nculo"
           disabled={busy}
           onvalue={onsignature}
           {onerror}
@@ -76,7 +76,7 @@
         />Confirmo vincular este certificado a mi cuenta</label
       >
       <Button variant="primary" disabled={busy || !confirmed || !state.signature} onclick={onsubmit}
-        >Registrar vinculo</Button
+        >Registrar v&#237;nculo</Button
       >
     {/if}
   </section>{/if}

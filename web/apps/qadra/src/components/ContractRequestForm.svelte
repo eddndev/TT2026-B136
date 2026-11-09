@@ -89,7 +89,7 @@
     <select required bind:value={firmSignerId} disabled={busy}>
       <option value="">Elige una cuenta</option>
       {#each firmSigners as signer}<option value={signer.account_id}
-          >{signer.email} ({signer.role === 'owner' ? 'Owner' : 'Litigante'})</option
+          >{signer.email} ({signer.role === 'owner' ? 'Administrador' : 'Litigante'})</option
         >{/each}
     </select>
   </label>
@@ -101,7 +101,7 @@
     >Folio de la hoja de huella firmada
     <input required maxlength="80" bind:value={ceremonyReference} disabled={busy} />
   </label>
-  {#if blockers.length}<section class="notice stack" aria-label="Lista de preparacion">
+  {#if blockers.length}<section class="notice stack" aria-label="Lista de preparaci&#243;n">
       <h4>Antes de solicitar las firmas</h4>
       <ul>
         {#each blockers as line}<li>{line}</li>{/each}

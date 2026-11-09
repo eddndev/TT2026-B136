@@ -101,13 +101,13 @@ export async function fillEditor(page, title, timed) {
     .fill('Supuesto sintetico para verificar el recorrido, sin efecto juridico');
   await form.getByLabel('Localizador de aplicabilidad', { exact: true }).fill('Ejemplo declarado');
   await form
-    .getByRole('combobox', { name: 'El ambito del perfil aplica', exact: true })
+    .getByRole('combobox', { name: 'El \u00e1mbito del perfil aplica', exact: true })
     .selectOption('yes');
   await form
     .getByRole('combobox', { name: 'Existe una incidencia sin resolver', exact: true })
     .selectOption('no');
   await form
-    .getByRole('combobox', { name: 'Se cumple la condicion 1', exact: true })
+    .getByRole('combobox', { name: 'Se cumple la condici\u00f3n 1', exact: true })
     .selectOption('yes');
   await form
     .getByLabel('Localizador de condici\u00f3n 1', { exact: true })

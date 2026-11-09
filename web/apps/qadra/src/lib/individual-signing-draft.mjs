@@ -26,7 +26,7 @@ export function createSigningDraft(session, context, kind, capture) {
     roles.includes(session.principal()?.role) &&
     session.canAdmit();
   function register() {
-    if (!admitted()) throw new Error('La sesion no admite este intento.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite este intento.');
     registration ??= session.registry.register(descriptor, {
       fields: ['state', 'digest'],
       capture,

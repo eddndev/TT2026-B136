@@ -35,7 +35,9 @@ for (const width of [1440, 390])
     await resourceDetail(page)
       .getByRole('button', { name: 'Ver historial de recurso', exact: true })
       .click();
-    await page.getByRole('button', { name: 'Consultar recurso revision 1', exact: true }).click();
+    await page
+      .getByRole('button', { name: 'Consultar recurso revisi\u00f3n 1', exact: true })
+      .click();
     await expect(resourceDetail(page)).toContainText('Consultada exactamente');
     await expect(
       resourceDetail(page).getByRole('button', { name: 'Archivar recurso', exact: true }),

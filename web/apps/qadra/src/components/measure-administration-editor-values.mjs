@@ -44,18 +44,18 @@ export function assertAdministrationBase(base, current) {
 export function administrationEditorFailure(error) {
   const messages = {
     measure_administrative_stale_head:
-      'La medida cambio. Consulta la revision actual antes de iniciar otra rectificacion.',
+      'La medida cambi\u00f3. Consulta la revisi\u00f3n actual antes de iniciar otra rectificaci\u00f3n.',
     measure_administrative_known_dependants:
-      'La captura ya tiene referencias posteriores y no admite esta rectificacion. Consulta su historia.',
+      'La captura ya tiene referencias posteriores y no admite esta rectificaci\u00f3n. Consulta su historia.',
 
     measure_administration_base_changed:
-      'La medida cambio o fue marcada por error. Conserva el borrador y consulta la revision actual antes de iniciar otra rectificacion.',
+      'La medida cambi\u00f3 o fue marcada por error. Conserva el borrador y consulta la revisi\u00f3n actual antes de iniciar otra rectificaci\u00f3n.',
     measure_administrative_operation_conflict:
-      'La operacion ya fue utilizada. Consulta su resultado exacto.',
+      'La operaci\u00f3n ya fue utilizada. Consulta su resultado exacto.',
     measure_administrative_review_mismatch:
-      'Las fuentes cambiaron. Revisa la rectificacion de nuevo.',
+      'Las fuentes cambiaron. Revisa la rectificaci\u00f3n de nuevo.',
     measure_administrative_submission_mismatch:
-      'El envio no coincide con la preparacion conservada.',
+      'El env\u00edo no coincide con la preparaci\u00f3n conservada.',
   };
   return messages[error.code] || factFailure(error);
 }

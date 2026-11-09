@@ -61,7 +61,9 @@
     <div class="case-comparison">
       <h3>Resultado incierto</h3>
       <p>Consulta el recibo del env&#237;o. Una ausencia temporal no confirma que fall&#243;.</p>
-      <Button variant="primary" disabled={pending} onclick={check}>Consultar envio exacto</Button>
+      <Button variant="primary" disabled={pending} onclick={check}
+        >Consultar env&#237;o exacto</Button
+      >
     </div>
   {:else if !blocked && mode === 'conflict'}
     <div class="case-comparison">
