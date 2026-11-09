@@ -36,11 +36,11 @@ fn request_with_subject(subject: &str) -> Vec<u8> {
 fn issuer_policy_rejects_invalid_subject_before_calling_the_signing_script() {
     for subject in [
         "CN=External Holder",
-        "CN=External Holder,O=Despacho Juridico Demo",
+        "CN=External Holder,O=Qadra",
         "CN=External Holder,C=MX",
-        "CN=External Holder,O=Despacho Juridico Demo,C=US",
+        "CN=External Holder,O=Qadra,C=US",
         "CN=External Holder,O=Another Office,C=MX",
-        "O=Despacho Juridico Demo,C=MX",
+        "O=Qadra,C=MX",
     ] {
         let directory = tempfile::tempdir().unwrap();
         let ca = directory.path().join("ca");
@@ -79,11 +79,11 @@ fn issuer_policy_rejects_invalid_subject_before_calling_the_signing_script() {
 fn issuer_policy_reports_signed_subject_mismatch_without_losing_public_identity() {
     for subject in [
         "CN=External Holder",
-        "CN=External Holder,O=Despacho Juridico Demo",
+        "CN=External Holder,O=Qadra",
         "CN=External Holder,C=MX",
-        "CN=External Holder,O=Despacho Juridico Demo,C=US",
+        "CN=External Holder,O=Qadra,C=US",
         "CN=External Holder,O=Another Office,C=MX",
-        "O=Despacho Juridico Demo,C=MX",
+        "O=Qadra,C=MX",
     ] {
         let csr = request_with_subject(subject);
         let found = inspect_ca_request(&csr, &fixture().root).unwrap();
@@ -99,10 +99,10 @@ fn issuer_policy_reports_signed_subject_mismatch_without_losing_public_identity(
 #[test]
 fn issuer_policy_uses_the_adopted_root_and_every_repeated_subject_attribute() {
     for subject in [
-        "CN=External Holder,O=Despacho Juridico Demo,C=MX",
-        "C=MX,CN=External Holder,O=Despacho Juridico Demo",
-        "CN=External Holder+O=Despacho Juridico Demo,C=MX",
-        "CN=External Holder,O=Despacho Juridico Demo,O=Despacho Juridico Demo,C=MX",
+        "CN=External Holder,O=Qadra,C=MX",
+        "C=MX,CN=External Holder,O=Qadra",
+        "CN=External Holder+O=Qadra,C=MX",
+        "CN=External Holder,O=Qadra,O=Qadra,C=MX",
     ] {
         assert!(
             inspect_ca_request(&request_with_subject(subject), &fixture().root)
@@ -118,7 +118,7 @@ fn issuer_policy_uses_the_adopted_root_and_every_repeated_subject_attribute() {
     for (subject, expected) in [
         ("CN=External Holder,O=Alternate Office,C=US", true),
         ("CN=External Holder,O=Second Office,C=US", true),
-        ("CN=External Holder,O=Despacho Juridico Demo,C=MX", false),
+        ("CN=External Holder,O=Qadra,C=MX", false),
         (
             "CN=External Holder,O=Alternate Office,O=Another Office,C=US",
             false,
@@ -137,7 +137,7 @@ fn issuer_policy_uses_the_adopted_root_and_every_repeated_subject_attribute() {
 
 #[test]
 fn issuer_policy_compares_asn1_types_and_does_not_turn_bad_proofs_into_rejections() {
-    let printable = der::asn1::PrintableStringRef::new("Despacho Juridico Demo")
+    let printable = der::asn1::PrintableStringRef::new("Qadra")
         .unwrap()
         .to_der()
         .unwrap()
