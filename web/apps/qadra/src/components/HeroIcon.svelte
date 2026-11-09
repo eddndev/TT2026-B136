@@ -27,6 +27,12 @@
   import arrow from 'heroicons/24/outline/arrow-right.svg?raw';
   import clock from 'heroicons/24/outline/clock.svg?raw';
   import download from 'heroicons/24/outline/arrow-down-tray.svg?raw';
+  import flag from 'heroicons/24/outline/flag.svg?raw';
+  import scale from 'heroicons/24/outline/scale.svg?raw';
+  import hand from 'heroicons/24/outline/hand-raised.svg?raw';
+  import documentCheck from 'heroicons/24/outline/document-check.svg?raw';
+  import appeal from 'heroicons/24/outline/arrow-uturn-left.svg?raw';
+  import userGroup from 'heroicons/24/outline/user-group.svg?raw';
   // Panel toggle drawn in the same 24px, 1.5 stroke outline style.
   const sidebar =
     '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><rect x="3" y="4.5" width="18" height="15" rx="2.25"/><path stroke-linecap="round" d="M9.75 4.5v15"/></svg>';
@@ -59,6 +65,12 @@
     arrow,
     clock,
     download,
+    flag,
+    scale,
+    hand,
+    documentCheck,
+    appeal,
+    userGroup,
   };
   export let name;
   let className = 'size-6';

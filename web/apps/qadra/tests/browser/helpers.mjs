@@ -244,10 +244,14 @@ export async function openSection(page, name) {
     .or(page.getByRole('tab', { name, exact: true }))
     .filter({ visible: true });
   const select = page.getByRole('combobox', { name: /^Secciones / }).filter({ visible: true });
+  // Sections that do not fit the row wait in the menu at its end.
+  const more = page.getByRole('button', { name: /^M\u00e1s secciones / }).filter({ visible: true });
   // Wait until the page shows one of them before choosing.
-  await expect(link.or(select).first()).toBeVisible();
+  await expect(link.or(select).or(more).first()).toBeVisible();
   if (await link.count()) return link.first().click();
-  await select.selectOption({ label: name });
+  if (await select.count()) return select.selectOption({ label: name });
+  await more.click();
+  await link.first().click();
 }
 
 export async function selectCase(page, title = 'Defensa inicial') {
