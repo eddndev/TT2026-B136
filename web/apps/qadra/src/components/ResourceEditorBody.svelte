@@ -47,7 +47,7 @@
   aria-label="Formulario de recurso"
   aria-busy={pending}
 >
-  <h2>{resourceActions[action]}</h2>
+  <h2 tabindex="-1">{resourceActions[action]}</h2>
   <p class="hint">
     Conserva lo declarado y sus fuentes. El registro no determina efectos jur&#237;dicos ni inicia
     plazos.

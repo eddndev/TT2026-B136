@@ -50,7 +50,7 @@
   aria-label={`Formulario de ${singular}`}
   aria-busy={pending}
 >
-  <h2>
+  <h2 tabindex="-1">
     {action === 'record' ? 'Registrar' : action === 'correct' ? 'Corregir' : 'Retirar'}
     {singular}
   </h2>

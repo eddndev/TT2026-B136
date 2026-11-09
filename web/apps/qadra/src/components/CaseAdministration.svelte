@@ -6,6 +6,7 @@
   import CaseHistory from './CaseHistory.svelte';
   import { manageCase } from '../lib/case-administration.mjs';
   import { caseState } from '../lib/case-state.mjs';
+  import { tick } from 'svelte';
   export let api, scoped, user, record, onupdate, ondenied, onrefresh, onnavigate;
   export let statusUncertain = false;
   const state = caseState();
@@ -13,9 +14,17 @@
     statusDialog,
     history = false;
   $: current = record.administration;
+  let actions;
+  // The form replaces the values inside the same card; leaving it returns
+  // focus to the button that opened it.
+  async function close() {
+    editing = null;
+    await tick();
+    actions?.querySelector('button:not(:disabled)')?.focus();
+  }
   function confirmed(result) {
     onupdate(result);
-    editing = null;
+    close();
   }
 </script>
 
@@ -30,7 +39,7 @@
 <section class="card case-summary">
   <div class="section-heading">
     <h2>{current.profile ? 'Ficha penal completa' : 'Ficha penal pendiente'}</h2>
-    {#if manageCase(user.role)}<div class="action-row">
+    {#if manageCase(user.role)}<div class="action-row" bind:this={actions}>
         <Button
           variant="secondary"
           disabled={$state.closed || !!editing}
@@ -53,7 +62,18 @@
       Este expediente a&#250;n no tiene una ficha penal completa. La referencia interna conserva su
       significado original.
     </p>{/if}
-  <CaseValues record={current} />
+  {#if editing}<CaseEditor
+      embedded
+      {api}
+      {record}
+      complete={editing === 'profile'}
+      disabled={$state.closed}
+      onconfirmed={confirmed}
+      onobserved={onupdate}
+      oncancel={close}
+      {ondenied}
+    />
+  {:else}<CaseValues record={current} />{/if}
   <p class="hint">
     Creado: <time datetime={record.created_at} title={record.created_at}
       >{new Date(record.created_at).toLocaleString('es-MX')}</time
@@ -73,16 +93,6 @@
   >
   {#if history}{#key current.revision}<CaseHistory api={scoped} {ondenied} />{/key}{/if}
 </section>
-{#if editing}<CaseEditor
-    {api}
-    {record}
-    complete={editing === 'profile'}
-    disabled={$state.closed}
-    onconfirmed={confirmed}
-    onobserved={onupdate}
-    oncancel={() => (editing = null)}
-    {ondenied}
-  />{/if}
 <section class="card case-stage">
   <span class="eyebrow">Registro inicial de etapa</span>
   {#if record.initial_stage}<h2>Investigaci&#243;n</h2>

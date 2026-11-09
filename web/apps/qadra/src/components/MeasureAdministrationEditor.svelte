@@ -24,6 +24,9 @@
     savedDraft = null,
     disabled = false,
     pending = false,
+    // Embedded: the form takes the place of the record summary inside the
+    // card that lists the records, so it brings no card of its own.
+    embedded = false,
     ondenied,
     onconfirmed,
     oncancel;
@@ -257,11 +260,11 @@
 </script>
 
 <section
-  class="card case-editor fact-editor"
+  class={embedded ? 'case-editor case-editor-embedded fact-editor' : 'card case-editor fact-editor'}
   aria-label="Rectificaci&#243;n de medida"
   aria-busy={pending}
 >
-  <h2>Rectificar registro de medida</h2>
+  <h2 tabindex="-1">Rectificar registro de medida</h2>
   {#if !blocked && base}<details class="case-comparison">
       <summary
         >Registro exacto que se rectifica: {base.record.capture.result.projection.subject

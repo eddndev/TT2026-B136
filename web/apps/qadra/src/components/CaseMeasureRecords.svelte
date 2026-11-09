@@ -1,6 +1,6 @@
 <script>
   import Button from './Button.svelte';
-  import { getContext, onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy, tick } from 'svelte';
   import MeasureAdministrationEditor from './MeasureAdministrationEditor.svelte';
   import MeasureAdministrationDetail from './MeasureAdministrationDetail.svelte';
   import { pendingMeasureAdministrationDrafts } from '../lib/measure-administration-draft.mjs';
@@ -30,6 +30,9 @@
     savedDraft = null,
     editorBusy = false,
     editorGeneration = 0,
+    inPlace = false,
+    panel,
+    actionRow,
     detail = null,
     drafts = pendingMeasureAdministrationDrafts(session, caseId);
   let alive = true,
@@ -52,8 +55,22 @@
     savedDraft = saved;
     base = saved ? null : structuredClone(selected);
     detail = null;
+    // The form takes the place of the summary of the record it acts on. The
+    // slot is fixed while the form is open so the form is never remounted.
+    inPlace = !saved || selected?.reference.id === saved.resourceId;
     editing = true;
     editorGeneration++;
+    if (inPlace) tick().then(() => panel?.querySelector('.fact-editor h2')?.focus());
+  }
+  // Leaving the form without a result returns focus to the record it replaced.
+  async function cancel() {
+    closeEditor();
+    if (!inPlace) return;
+    await tick();
+    (
+      actionRow?.querySelector('button:not(:disabled)') ??
+      panel?.querySelector('details ~ button:not(:disabled)')
+    )?.focus();
   }
   function closeEditor() {
     editing = false;
@@ -125,7 +142,26 @@
   });
 </script>
 
-<section class="card hearing-index" aria-label="Registros de medidas" aria-busy={busy}>
+{#snippet editor()}{#key editorGeneration}<MeasureAdministrationEditor
+      {api}
+      {caseId}
+      {user}
+      {action}
+      {base}
+      {savedDraft}
+      {disabled}
+      embedded={inPlace}
+      bind:pending={editorBusy}
+      {ondenied}
+      onconfirmed={confirmed}
+      oncancel={cancel}
+    />{/key}{/snippet}
+<section
+  class="card hearing-index"
+  aria-label="Registros de medidas"
+  aria-busy={busy}
+  bind:this={panel}
+>
   <h2>Registros de medidas</h2>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if !editing}{#each drafts as saved (saved.key)}<Button
@@ -159,15 +195,16 @@
       }}>Siguientes medidas</Button
     >
   </div>
-  {#if selected}<MeasureRecordSummary value={selected} />
-    {#if canFacts(user.role, 'manage')}<div class="action-row">
+  {#if editing && inPlace}{@render editor()}
+  {:else if selected}<MeasureRecordSummary value={selected} />
+    {#if canFacts(user.role, 'manage')}<div class="action-row" bind:this={actionRow}>
         {#each Object.entries(actions) as [kind, label]}<Button
             variant="secondary"
             disabled={locked || !manage || !current}
             onclick={() => edit(kind)}>{label}</Button
           >{/each}
-      </div>{/if}
-    <details>
+      </div>{/if}{/if}
+  {#if selected}<details>
       <summary>Historia de la medida</summary>
       {#each captures as row (row.result.revision)}<Button
           variant="secondary"
@@ -197,19 +234,7 @@
   {/if}
 </section>
 
-{#if editing}{#key editorGeneration}<MeasureAdministrationEditor
-      {api}
-      {caseId}
-      {user}
-      {action}
-      {base}
-      {savedDraft}
-      {disabled}
-      bind:pending={editorBusy}
-      {ondenied}
-      onconfirmed={confirmed}
-      oncancel={closeEditor}
-    />{/key}{:else if detail}<MeasureAdministrationDetail
+{#if editing && !inPlace}{@render editor()}{:else if !editing && detail}<MeasureAdministrationDetail
     value={detail}
     onclose={() => (detail = null)}
   />{/if}

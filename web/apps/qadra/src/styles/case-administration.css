@@ -6,6 +6,11 @@
 .case-editor {
   max-width: 950px;
 }
+/* The form that takes the place of the values inside the summary card. */
+.case-editor-embedded {
+  max-width: none;
+  margin: 24px 0;
+}
 .case-summary .section-heading {
   flex-wrap: wrap;
   gap: 16px;

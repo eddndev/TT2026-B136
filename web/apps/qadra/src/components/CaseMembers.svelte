@@ -1,6 +1,6 @@
 <script>
   import Button from './Button.svelte';
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   import MemberFilters from './MemberFilters.svelte';
   import MemberCard from './MemberCard.svelte';
   export let api, caseId, ondenied;
@@ -18,7 +18,22 @@
   let error = '',
     message = '',
     alive = true,
-    generation = 0;
+    generation = 0,
+    root;
+  // Closing the confirmation returns focus to its row, or to the filters when
+  // that account left the current selection.
+  async function land(id) {
+    await tick();
+    (
+      root?.querySelector(`[data-user-id="${CSS.escape(id)}"] button:not(:disabled)`) ??
+      root?.querySelector('input:not(:disabled), select:not(:disabled)')
+    )?.focus();
+  }
+  function cancel() {
+    const id = choice.record.id;
+    choice = null;
+    land(id);
+  }
   function fail(failure) {
     error = failure.message;
     if (failure.status === 403 || failure.code === 'case_not_found') {
@@ -61,15 +76,18 @@
       if (alive && request === generation) busy = false;
     }
   }
-  function select(row) {
+  async function select(row) {
     if (busy || writing || denied || choice) return;
     error = '';
     message = '';
     choice = { record: structuredClone(row), selection: query.selection };
     uncertain = false;
+    await tick();
+    root?.querySelector('.member-confirmation h2')?.focus();
   }
   async function confirm() {
     if (!choice || busy || writing || uncertain || denied) return;
+    const id = choice.record.id;
     writing = true;
     error = '';
     try {
@@ -82,22 +100,28 @@
           : 'Retiro de asignaci\u00f3n confirmado.';
       choice = null;
       await load();
+      if (alive) land(id);
     } catch (failure) {
       if (alive) {
         fail(failure);
         if (!failure.status || failure.status >= 500) uncertain = true;
-        else if (!denied) choice = null;
+        else if (!denied) {
+          choice = null;
+          land(id);
+        }
       }
     } finally {
       if (alive) writing = false;
     }
   }
-  function reconcile() {
+  async function reconcile() {
     if (writing || busy) return;
+    const id = choice.record.id;
     choice = null;
     uncertain = false;
     message = 'Consulta las asignaciones actuales antes de decidir otra acci\u00f3n.';
-    load();
+    await load();
+    if (alive) land(id);
   }
   onMount(() => {
     load();
@@ -111,7 +135,32 @@
   });
 </script>
 
-<section aria-label="Asignaciones" aria-busy={busy || writing}>
+{#snippet confirmation()}<div class="notice member-confirmation">
+    <h2 tabindex="-1">
+      {choice.selection === 'available' ? 'Asignar cuenta' : 'Retirar asignaci\u00f3n'}
+    </h2>
+    <p>{choice.record.email}</p>
+    <p>
+      {choice.selection === 'available'
+        ? 'La cuenta acceder\u00e1 conforme a los permisos de su rol.'
+        : 'Se retirar\u00e1 esta asignaci\u00f3n; la cuenta y las capturas hist\u00f3ricas se conservan.'}
+    </p>
+    {#if uncertain}<p>
+        No se confirm&#243; el resultado. Consulta la lista antes de realizar otra acci&#243;n.
+      </p>
+      <Button variant="secondary" disabled={busy || writing} onclick={reconcile}
+        >Consultar asignaciones actuales</Button
+      >
+    {:else}<div class="action-row">
+        <Button variant="primary" disabled={busy || writing} onclick={confirm}>
+          {choice.selection === 'available'
+            ? 'Confirmar asignaci\u00f3n'
+            : 'Confirmar retiro'}</Button
+        >
+        <Button variant="secondary" disabled={busy || writing} onclick={cancel}>Cancelar</Button>
+      </div>{/if}
+  </div>{/snippet}
+<section bind:this={root} aria-label="Asignaciones" aria-busy={busy || writing}>
   <div class="page-heading">
     <div>
       <span class="eyebrow">Acceso al expediente</span>
@@ -146,7 +195,7 @@
         assignment={query.selection}
         disabled={busy || writing || denied || !!choice}
         onopen={select}
-      />{/each}
+      />{#if choice?.record.id === record.id}{@render confirmation()}{/if}{/each}
     {#if loaded && !busy && !error && !rows.length}<p class="hint">
         No hay cuentas para esta selecci&#243;n y filtros.
       </p>{/if}
@@ -157,41 +206,13 @@
           onclick={() => load(true)}>Cargar m&#225;s asignaciones</Button
         >
       </div>{/if}
-    {#if choice}<div class="notice member-confirmation">
-        <h2>{choice.selection === 'available' ? 'Asignar cuenta' : 'Retirar asignaci\u00f3n'}</h2>
-        <p>{choice.record.email}</p>
-        <p>
-          {choice.selection === 'available'
-            ? 'La cuenta acceder\u00e1 conforme a los permisos de su rol.'
-            : 'Se retirar\u00e1 esta asignaci\u00f3n; la cuenta y las capturas hist\u00f3ricas se conservan.'}
-        </p>
-        {#if uncertain}<p>
-            No se confirm&#243; el resultado. Consulta la lista antes de realizar otra acci&#243;n.
-          </p>
-          <Button variant="secondary" disabled={busy || writing} onclick={reconcile}
-            >Consultar asignaciones actuales</Button
-          >
-        {:else}<div class="action-row">
-            <Button variant="primary" disabled={busy || writing} onclick={confirm}>
-              {choice.selection === 'available'
-                ? 'Confirmar asignaci\u00f3n'
-                : 'Confirmar retiro'}</Button
-            >
-            <Button
-              variant="secondary"
-              disabled={busy || writing}
-              onclick={() => {
-                choice = null;
-              }}>Cancelar</Button
-            >
-          </div>{/if}
-      </div>{/if}
+    {#if choice && !rows.some((row) => row.id === choice.record.id)}{@render confirmation()}{/if}
   </div>
 </section>
 
 <style>
   .member-confirmation {
-    margin-top: 22px;
+    margin-block: 18px;
   }
   .member-confirmation p {
     overflow-wrap: anywhere;

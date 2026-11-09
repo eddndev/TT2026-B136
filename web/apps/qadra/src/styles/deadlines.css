@@ -65,3 +65,7 @@
     flex-wrap: wrap;
   }
 }
+/* The form that takes the place of the detail card keeps its distance from the list card. */
+.deadline-collection > .card + .fact-editor {
+  margin-top: 16px;
+}

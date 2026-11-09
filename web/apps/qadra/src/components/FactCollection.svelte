@@ -1,6 +1,6 @@
 <script>
   import Button from './Button.svelte';
-  import { getContext, onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy, tick } from 'svelte';
   import { pendingFactDrafts } from '../lib/fact-draft.mjs';
   import FactEditor from './FactEditor.svelte';
   import FactDetail from './FactDetail.svelte';
@@ -34,7 +34,9 @@
     action = null,
     editorBase = null,
     editorKey = 0,
-    notices = false;
+    notices = false,
+    inPlace = false,
+    root;
   let status = 'all',
     applied = 'all',
     cursors = [undefined],
@@ -108,6 +110,19 @@
       if (alive && request === detailGeneration) opening = false;
     }
   }
+  // The form for the record shown in the detail takes the place of that card;
+  // a new record, or a draft for another record, opens above the list. The
+  // placement is fixed when the form opens so that it never moves afterwards.
+  async function place() {
+    inPlace = !!editorBase && selected?.id === editorBase.id;
+    await tick();
+    root?.querySelector(':scope > .fact-editor h2')?.focus();
+  }
+  async function restoreFocus() {
+    await tick();
+    await tick();
+    root?.querySelector(':scope > .fact-detail .action-row button:not(:disabled)')?.focus();
+  }
   function edit(nextAction) {
     if (pending || disabled || !manage) return;
     editorBase = nextAction === 'record' ? null : selected;
@@ -117,6 +132,7 @@
       ) ?? null;
     action = nextAction;
     editorKey++;
+    place();
   }
   async function resume(saved) {
     if (pending || disabled) return;
@@ -127,6 +143,7 @@
       savedDraft = saved;
       action = saved.action;
       editorKey++;
+      place();
     } catch (failure) {
       if (alive) {
         if (failure.status === 404 && failure.code === 'procedural_fact_not_found') {
@@ -140,6 +157,7 @@
     }
   }
   function closedEditor() {
+    if (action && inPlace) restoreFocus();
     action = null;
     savedDraft = null;
     drafts = pendingFactDrafts(session, caseId, family, parentId);
@@ -174,7 +192,25 @@
   });
 </script>
 
-<section class="fact-collection" aria-label={plural}>
+{#snippet editor()}
+  {#key editorKey}<FactEditor
+      {api}
+      {caseId}
+      {user}
+      {family}
+      {resolution}
+      {action}
+      {savedDraft}
+      record={editorBase}
+      {ondenied}
+      {disabled}
+      onconfirmed={confirmed}
+      oncancel={closedEditor}
+      bind:pending={editorBusy}
+    />{/key}
+{/snippet}
+
+<section class="fact-collection" aria-label={plural} bind:this={root}>
   <div class="section-heading">
     <h2>{plural}</h2>
     {#if canFacts(user.role, 'manage')}<Button
@@ -188,27 +224,13 @@
     </p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
-  {#if action}{#key editorKey}<FactEditor
-        {api}
-        {caseId}
-        {user}
-        {family}
-        {resolution}
-        {action}
-        {savedDraft}
-        record={editorBase}
-        {ondenied}
-        {disabled}
-        onconfirmed={confirmed}
-        oncancel={closedEditor}
-        bind:pending={editorBusy}
-      />{/key}{/if}
+  {#if action && !inPlace}{@render editor()}{/if}
   {#if !action}{#each drafts as saved (saved.key)}<Button
         variant="secondary"
         disabled={disabled || pending}
         onclick={() => resume(saved)}>Retomar borrador de {singular}</Button
       >{/each}{/if}
-  <section class="card" aria-label={`${plural} registradas`} aria-busy={busy || opening}>
+  <section class="card fact-list" aria-label={`${plural} registradas`} aria-busy={busy || opening}>
     <div class="section-heading">
       <h3>Registros disponibles</h3>
       <Button variant="secondary" disabled={disabled || pending} onclick={reset}
@@ -272,17 +294,17 @@
       >
     </div>
   </section>
-  {#if selected}{#key `${selected.id}:${selected.revision}:${historical}`}<FactDetail
-        record={selected}
-        {family}
-        api={scoped}
-        {ondenied}
-        disabled={disabled || pending}
-        canManage={manage}
-        {historical}
-        onedit={edit}
-        onselect={open}
-      />{/key}
+  {#if selected}{#if action && inPlace}{@render editor()}{:else}{#key `${selected.id}:${selected.revision}:${historical}`}<FactDetail
+          record={selected}
+          {family}
+          api={scoped}
+          {ondenied}
+          disabled={disabled || pending}
+          canManage={manage}
+          {historical}
+          onedit={edit}
+          onselect={open}
+        />{/key}{/if}
     {#if family === 'resolution'}<Button
         variant="secondary"
         class="fact-notification-toggle"

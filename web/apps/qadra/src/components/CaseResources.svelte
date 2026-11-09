@@ -1,6 +1,6 @@
 <script>
   import Button from './Button.svelte';
-  import { getContext, onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy, tick } from 'svelte';
   import { pendingResourceDrafts } from '../lib/resource-draft.mjs';
   import ResourceEditor from './ResourceEditor.svelte';
   import ResourceDetail from './ResourceDetail.svelte';
@@ -35,7 +35,17 @@
     action = null,
     editorBase = null,
     selectedAct = null,
-    editorKey = 0;
+    editorKey = 0,
+    inPlace = false,
+    returnTo = null,
+    root;
+  const openers = {
+    record_act: 'Registrar acto',
+    correct: 'Corregir recurso',
+    correct_act: 'Corregir este acto',
+    archive: 'Archivar recurso',
+    reactivate: 'Reactivar recurso',
+  };
   let kind = 'all',
     status = 'all',
     applied = { kind, status },
@@ -142,9 +152,39 @@
             row.resourceId === (editorBase?.id ?? null) &&
             row.instanceId === (nextAction === 'correct_act' ? selectedAct?.id : null),
         ) ?? null;
+      inPlace = !!editorBase;
       action = nextAction;
       editorKey++;
+      reveal();
     }
+  }
+  // A form that acts on the record shown in the detail takes the place of
+  // that card: it is brought into view and its heading receives focus.
+  async function reveal() {
+    if (!inPlace) return;
+    await tick();
+    const form = root?.querySelector('[aria-label="Formulario de recurso"]');
+    form?.scrollIntoView({ block: 'start' });
+    form?.querySelector('h2')?.focus();
+  }
+  // Leaving the form shows the detail card again. Its buttons stay disabled
+  // while any request is in flight, so focus waits for them: it returns to
+  // the button that opened the form, or to the first available action,
+  // unless the user has already moved focus elsewhere on the page.
+  $: if (!selected || action) returnTo = null;
+  $: if (returnTo !== null && !action && !pending) focusDetail();
+  async function focusDetail() {
+    const label = returnTo;
+    returnTo = null;
+    await tick();
+    const active = document.activeElement;
+    if (active && active !== document.body && !root?.contains(active)) return;
+    const buttons = [
+      ...(root?.querySelectorAll(
+        '[aria-label="Detalle de recurso"] .action-row button:not(:disabled)',
+      ) ?? []),
+    ];
+    (buttons.find((button) => button.textContent.trim() === label) ?? buttons[0])?.focus();
   }
   async function resume(saved) {
     if (pending || !session?.canAdmit()) return;
@@ -155,8 +195,10 @@
       if (!alive || !session.canAdmit()) return;
       selectedAct = null;
       savedDraft = saved;
+      inPlace = !!editorBase && selected?.id === editorBase.id;
       action = saved.action;
       editorKey++;
+      reveal();
     } catch (failure) {
       if (alive) {
         if (failure.status === 404) {
@@ -170,7 +212,9 @@
     }
   }
   function closeEditor() {
+    const label = action && inPlace ? (openers[action] ?? '') : null;
     action = null;
+    returnTo = label;
     savedDraft = null;
     drafts = pendingResourceDrafts(session, caseId);
   }
@@ -209,7 +253,20 @@
     <p>Revocaci&#243;n y apelaci&#243;n con sus actos, personas y fuentes hist&#243;ricas.</p>
   </div>
 </div>
-<section class="fact-collection" aria-label="Recursos procesales del expediente">
+{#snippet editorForm()}{#key editorKey}<ResourceEditor
+      {api}
+      {caseId}
+      {user}
+      {action}
+      {savedDraft}
+      record={editorBase}
+      {selectedAct}
+      {ondenied}
+      onconfirmed={confirmed}
+      oncancel={closeEditor}
+      bind:pending={editorBusy}
+    />{/key}{/snippet}
+<section class="fact-collection" aria-label="Recursos procesales del expediente" bind:this={root}>
   <div class="section-heading">
     <h2>Recursos del expediente</h2>
     {#if canResources(user.role, 'manage')}<Button
@@ -220,19 +277,7 @@
   </div>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
-  {#if action}{#key editorKey}<ResourceEditor
-        {api}
-        {caseId}
-        {user}
-        {action}
-        {savedDraft}
-        record={editorBase}
-        {selectedAct}
-        {ondenied}
-        onconfirmed={confirmed}
-        oncancel={closeEditor}
-        bind:pending={editorBusy}
-      />{/key}{/if}
+  {#if action && !inPlace}{@render editorForm()}{/if}
   {#if !action}{#each drafts as saved (saved.key)}<Button
         variant="secondary"
         disabled={pending}
@@ -305,16 +350,17 @@
       >
     </div>
   </section>
-  {#if selected}{#key `${selected.id}:${selected.revision}:${historical}`}<ResourceDetail
-        record={selected}
-        api={scoped}
-        {ondenied}
-        onedit={edit}
-        onselect={open}
-        canManage={manage}
-        disabled={pending}
-        {historical}
-      /><ResourceActivities
+  {#if action && inPlace}{@render editorForm()}{/if}
+  {#if selected}{#key `${selected.id}:${selected.revision}:${historical}`}{#if !(action && inPlace && editorBase?.id === selected.id)}<ResourceDetail
+          record={selected}
+          api={scoped}
+          {ondenied}
+          onedit={edit}
+          onselect={open}
+          canManage={manage}
+          disabled={pending}
+          {historical}
+        />{/if}<ResourceActivities
         {api}
         {user}
         {caseId}

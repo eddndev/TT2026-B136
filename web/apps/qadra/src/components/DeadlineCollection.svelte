@@ -1,6 +1,6 @@
 <script>
   import Button from './Button.svelte';
-  import { getContext, onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy, tick } from 'svelte';
   import ActivityResources from './ActivityResources.svelte';
   import DeadlineEditor from './DeadlineEditor.svelte';
   import DeadlineDetail from './DeadlineDetail.svelte';
@@ -21,6 +21,8 @@
     historical = false,
     mode = null,
     base = null,
+    inPlace = false,
+    root,
     editorKey = 0,
     savedDraft = null,
     drafts = pendingDeadlineDrafts(session, caseId);
@@ -55,6 +57,7 @@
       rows = [];
       selected = null;
       mode = null;
+      inPlace = false;
       ondenied(failure);
     }
   }
@@ -102,6 +105,15 @@
       if (alive && request === detailGeneration) opening = false;
     }
   }
+  // An action on the record shown in the detail opens its form in the slot of
+  // that card. The slot is fixed when the form opens, so later changes to the
+  // selection never move or remount the form.
+  async function place() {
+    inPlace = mode !== 'register' && !!base && selected?.id === base.id;
+    if (!inPlace) return;
+    await tick();
+    root?.querySelector('.fact-editor h2')?.focus();
+  }
   function edit(action) {
     if (pending || !manage) return;
     base = action === 'register' ? null : selected;
@@ -109,6 +121,7 @@
       drafts.find((row) => row.action === action && row.resourceId === (base?.id ?? null)) ?? null;
     mode = action;
     editorKey++;
+    place();
   }
   async function resume(saved) {
     if (pending) return;
@@ -119,6 +132,7 @@
       savedDraft = saved;
       mode = saved.action;
       editorKey++;
+      place();
     } catch (failure) {
       if (alive) {
         if (failure.status === 404 && failure.code === 'deadline_not_found') {
@@ -131,10 +145,15 @@
       if (alive) opening = false;
     }
   }
-  function closedEditor() {
+  async function closedEditor() {
+    const returning = inPlace;
     mode = null;
+    inPlace = false;
     savedDraft = null;
     drafts = pendingDeadlineDrafts(session, caseId);
+    if (!returning) return;
+    await tick();
+    root?.querySelector('.deadline-detail .action-row button:not(:disabled)')?.focus();
   }
   async function saved(value, exact = false) {
     if (!alive) return;
@@ -164,7 +183,21 @@
   });
 </script>
 
-<section class="fact-collection deadline-collection" aria-label="Plazos">
+{#snippet editor()}
+  {#key editorKey}<DeadlineEditor
+      {api}
+      {user}
+      {caseId}
+      {base}
+      {mode}
+      {savedDraft}
+      {ondenied}
+      onsaved={saved}
+      oncancel={closedEditor}
+      bind:pending={editorBusy}
+    />{/key}
+{/snippet}
+<section class="fact-collection deadline-collection" aria-label="Plazos" bind:this={root}>
   <div class="section-heading">
     <h2>Seguimiento de plazos</h2>
     {#if canDeadlines(user.role, 'manage')}<Button
@@ -182,18 +215,7 @@
       >
     {/each}
   {/if}
-  {#if mode}{#key editorKey}<DeadlineEditor
-        {api}
-        {user}
-        {caseId}
-        {base}
-        {mode}
-        {savedDraft}
-        {ondenied}
-        onsaved={saved}
-        oncancel={closedEditor}
-        bind:pending={editorBusy}
-      />{/key}{/if}
+  {#if mode && !inPlace}{@render editor()}{/if}
   <section class="card" aria-label="Plazos registrados" aria-busy={busy || opening}>
     <div class="section-heading">
       <h3>Registros disponibles</h3>
@@ -272,17 +294,18 @@
       >
     </div>
   </section>
-  {#if selected}{#key `${selected.id}:${selected.revision}`}<DeadlineDetail
-        {api}
-        {scoped}
-        record={selected}
-        {historical}
-        canManage={manage}
-        disabled={pending}
-        onedit={edit}
-        onselect={open}
-        ondenied={fail}
-      /><ActivityResources
+  {#if mode && inPlace}{@render editor()}{/if}
+  {#if selected}{#key `${selected.id}:${selected.revision}`}{#if !(mode && inPlace && selected.id === base?.id)}<DeadlineDetail
+          {api}
+          {scoped}
+          record={selected}
+          {historical}
+          canManage={manage}
+          disabled={pending}
+          onedit={edit}
+          onselect={open}
+          ondenied={fail}
+        />{/if}<ActivityResources
         {api}
         {caseId}
         kind="deadline"

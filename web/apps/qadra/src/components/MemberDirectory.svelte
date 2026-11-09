@@ -1,6 +1,6 @@
 <script>
   import Button from './Button.svelte';
-  import { getContext, onMount, onDestroy } from 'svelte';
+  import { getContext, onMount, onDestroy, tick } from 'svelte';
   import MemberFilters from './MemberFilters.svelte';
   import MemberCard from './MemberCard.svelte';
   import MemberAccessEditor from './MemberAccessEditor.svelte';
@@ -21,7 +21,22 @@
   let error = '',
     message = '',
     alive = true,
-    generation = 0;
+    generation = 0,
+    root;
+  // Leaving the form returns focus to the row it replaced, or to the filters
+  // when that account is no longer listed.
+  async function land(id) {
+    await tick();
+    (
+      root?.querySelector(`[data-user-id="${CSS.escape(id)}"] button:not(:disabled)`) ??
+      root?.querySelector('input:not(:disabled), select:not(:disabled)')
+    )?.focus();
+  }
+  function cancel() {
+    const id = selected.id;
+    selected = null;
+    land(id);
+  }
   const admitted = () =>
     alive &&
     (!session ||
@@ -102,9 +117,11 @@
   }
   async function confirmed() {
     if (!alive || (session && session.principal()?.id !== principalId)) return;
+    const id = selected?.id;
     selected = null;
     message = 'Los permisos de la cuenta se confirmaron.';
     if (admitted()) await load();
+    if (alive && id) land(id);
   }
   onMount(() => {
     load();
@@ -118,7 +135,17 @@
   });
 </script>
 
+{#snippet access(embedded)}{#key selected.id}<MemberAccessEditor
+      {embedded}
+      {api}
+      {user}
+      record={selected}
+      onconfirmed={confirmed}
+      oncancel={cancel}
+      ondenied={deny}
+    />{/key}{/snippet}
 <section
+  bind:this={root}
   class="card member-directory"
   aria-label="Directorio de cuentas"
   aria-busy={busy || opening}
@@ -142,11 +169,12 @@
   {#if message}<p class="notice success" role="status">{message}</p>{/if}
   {#if busy}<p role="status">Consultando cuentas...</p>{/if}
   {#if opening}<p role="status">Consultando el acceso actual...</p>{/if}
-  {#each rows as record (record.id)}<MemberCard
-      {record}
-      onopen={open}
-      disabled={busy || opening || !!selected || denied}
-    />{/each}
+  {#each rows as record (record.id)}{#if selected?.id === record.id}{@render access(true)}
+    {:else}<MemberCard
+        {record}
+        onopen={open}
+        disabled={busy || opening || !!selected || denied}
+      />{/if}{/each}
   {#if loaded && !busy && !error && !rows.length}<p class="hint">
       No hay cuentas para estos filtros.
     </p>{/if}
@@ -158,16 +186,7 @@
       >
     </div>{/if}
 </section>
-{#if selected}{#key selected.id}<MemberAccessEditor
-      {api}
-      {user}
-      record={selected}
-      onconfirmed={confirmed}
-      oncancel={() => {
-        selected = null;
-      }}
-      ondenied={deny}
-    />{/key}{/if}
+{#if selected && !rows.some((row) => row.id === selected.id)}{@render access(false)}{/if}
 
 <style>
   .member-directory {

@@ -12,6 +12,7 @@
   import { hearingResultTimeLabel } from '../lib/hearing-result-time.mjs';
   import { resultStatus, resultOccurrence, resultExtent } from '../lib/hearing-result-errors.mjs';
   import { hearingDenied } from '../lib/hearings.mjs';
+  import { focusForm, focusCard } from '../lib/hearing-form-focus.mjs';
   export let api,
     caseId,
     user,
@@ -36,6 +37,7 @@
     historical = false,
     action = null,
     editorBase = null,
+    inPlace = false,
     continuation = null,
     editorKey = 0;
   let status = 'all',
@@ -140,12 +142,21 @@
           row.resourceId === (editorBase?.id ?? null) &&
           (next !== 'record' || row.instanceId === resultDraftIntent(hearing.id, continuation)),
       ) ?? null;
+    place();
     action = next;
     editorKey++;
+  }
+  // The slot is fixed while the form is open: a form acting on the record
+  // shown in the detail takes the place of that card, any other one opens
+  // above the list.
+  function place(base = editorBase) {
+    inPlace = !!base && selected?.id === base.id;
+    if (inPlace) focusForm('.hearing-result-editor');
   }
   function createDerived() {
     if (pending || disabled || !manage || !canDeadlines(user.role, 'manage')) return;
     savedDraft = derivedDrafts[0] ?? null;
+    place(null);
     action = 'derived';
     compound = null;
     editorKey++;
@@ -157,6 +168,7 @@
       if (saved.editorKind === 'hearing-derived-deadline') {
         if (!alive || !session?.canAdmit() || !canDeadlines(user.role, 'manage')) return;
         savedDraft = saved;
+        place(null);
         action = 'derived';
         compound = null;
         editorKey++;
@@ -166,6 +178,7 @@
       if (!alive || !session?.canAdmit()) return;
       savedDraft = saved;
       continuation = null;
+      place();
       action = saved.action;
       editorKey++;
     } catch (failure) {
@@ -181,6 +194,7 @@
     }
   }
   function closedEditor() {
+    if (action && inPlace) focusCard('.hearing-result-detail');
     action = null;
     savedDraft = null;
     drafts = pendingHearingDrafts(session, caseId, true, hearing.id);
@@ -236,6 +250,21 @@
     }}>{expanded ? 'Ocultar sesiones y resultados' : 'Ver sesiones y resultados'}</Button
   >
 </div>
+{#snippet editor()}{#key editorKey}<HearingResultEditor
+      {api}
+      {caseId}
+      {user}
+      {hearing}
+      {action}
+      {savedDraft}
+      record={editorBase}
+      {continuation}
+      {ondenied}
+      {disabled}
+      onconfirmed={confirmed}
+      oncancel={closedEditor}
+      bind:pending={editorBusy}
+    />{/key}{/snippet}
 {#if expanded}<section class="hearing-results" aria-label="Sesiones y resultados declarados">
     <div class="section-heading">
       <div>
@@ -272,21 +301,7 @@
           oncancel={closedEditor}
           bind:pending={editorBusy}
         />{/key}
-    {:else if action}{#key editorKey}<HearingResultEditor
-          {api}
-          {caseId}
-          {user}
-          {hearing}
-          {action}
-          {savedDraft}
-          record={editorBase}
-          {continuation}
-          {ondenied}
-          {disabled}
-          onconfirmed={confirmed}
-          oncancel={closedEditor}
-          bind:pending={editorBusy}
-        />{/key}{/if}
+    {:else if action && !inPlace}{@render editor()}{/if}
     {#if !action}{#each derivedDrafts as saved (saved.key)}<Button
           variant="secondary"
           disabled={disabled || pending}
@@ -364,8 +379,10 @@
         >
       </div>
     </section>
+    {#if action && inPlace}{@render editor()}{/if}
     {#if selected}{#key `${selected.id}:${selected.revision}:${historical}`}<HearingResultDetail
           record={selected}
+          replaced={!!action && inPlace}
           api={scoped}
           {ondenied}
           disabled={disabled || pending}
