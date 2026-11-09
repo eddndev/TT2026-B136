@@ -8,13 +8,13 @@ export const hearingEditor = (page) =>
 export const hearingDetail = (page) =>
   page.getByRole('region', { name: 'Detalle de audiencia cautelar', exact: true });
 export const decisionEditor = (page) =>
-  page.getByRole('region', { name: 'Decision cautelar', exact: true });
+  page.getByRole('region', { name: 'Decisi\u00f3n cautelar', exact: true });
 export const decisionDetail = (page) =>
-  page.getByRole('region', { name: 'Detalle de decision cautelar', exact: true });
+  page.getByRole('region', { name: 'Detalle de decisi\u00f3n cautelar', exact: true });
 export const administrationEditor = (page) =>
-  page.getByRole('region', { name: 'Rectificacion de medida', exact: true });
+  page.getByRole('region', { name: 'Rectificaci\u00f3n de medida', exact: true });
 export const administrationDetail = (page) =>
-  page.getByRole('region', { name: 'Detalle de rectificacion', exact: true });
+  page.getByRole('region', { name: 'Detalle de rectificaci\u00f3n', exact: true });
 export const measurePanel = (page) =>
   page.getByRole('region', { name: 'Registros de medidas', exact: true });
 export const caseRoute = (scenario) => `/cases/${scenario.case.id}`;
@@ -158,7 +158,7 @@ export async function scheduleHearing(page, scenario) {
 export async function declareMeasure(page, scenario, hearing, anchorKind) {
   await openCase(page, scenario.case);
   await openSection(page, 'Medidas cautelares');
-  await page.getByRole('button', { name: 'Registrar decision cautelar', exact: true }).click();
+  await page.getByRole('button', { name: 'Registrar decisi\u00f3n cautelar', exact: true }).click();
   const form = decisionEditor(page);
   await form.getByLabel('Autoridad', { exact: true }).fill('Juzgado declarado en soporte');
   await form
@@ -173,7 +173,7 @@ export async function declareMeasure(page, scenario, hearing, anchorKind) {
   await form.getByLabel('Localizador', { exact: true }).fill('Pagina 1');
   await chooseSupport(form, scenario.support);
   await form
-    .getByRole('combobox', { name: 'Vinculo de audiencia', exact: true })
+    .getByRole('combobox', { name: 'V\u00ednculo de audiencia', exact: true })
     .selectOption(anchorKind);
   if (anchorKind === 'initial') {
     const picker = form.getByRole('region', {
@@ -197,7 +197,7 @@ export async function declareMeasure(page, scenario, hearing, anchorKind) {
     await expect(picker.getByRole('button', { name: /^Consultar convocatoria / })).toHaveCount(1);
     await picker.getByRole('button', { name: /^Consultar convocatoria / }).click();
     await picker
-      .getByRole('button', { name: 'Usar audiencia cautelar revision 1', exact: true })
+      .getByRole('button', { name: 'Usar audiencia cautelar revisi\u00f3n 1', exact: true })
       .click();
   }
   const effect = form.getByRole('group', { name: 'Efecto 1', exact: true });
@@ -236,10 +236,10 @@ export async function declareMeasure(page, scenario, hearing, anchorKind) {
     page,
     form,
     path,
-    'decision',
-    'Reconozco la decision y las fuentes seleccionadas',
+    'decisi\u00f3n',
+    'Reconozco la decisi\u00f3n y las fuentes seleccionadas',
   );
-  const operation = await submitAction(page, form, path, 'decision', prepared.review);
+  const operation = await submitAction(page, form, path, 'decisi\u00f3n', prepared.review);
   await expect(decisionDetail(page)).toBeVisible();
   const anchor = prepared.review.command.anchor;
   expect(anchor).toEqual(

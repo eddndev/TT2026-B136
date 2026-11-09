@@ -12,7 +12,7 @@
     record = null;
   let heading;
   const actions = {
-    correct: 'Rectificacion de texto',
+    correct: 'Rectificaci\u00f3n de texto',
     entered_in_error: 'Registro marcado por error',
     replace_entered_in_error: 'Identidad registrada corregida mediante reemplazo',
   };
@@ -38,10 +38,10 @@
   onMount(() => heading?.focus());
 </script>
 
-<section class="card hearing-detail fact-detail" aria-label="Detalle de rectificacion">
+<section class="card hearing-detail fact-detail" aria-label="Detalle de rectificaci&#243;n">
   <div class="section-heading">
     <h2 tabindex="-1" bind:this={heading}>Rectificaci&#243;n administrativa registrada</h2>
-    <Button variant="secondary" onclick={onclose}>Cerrar detalle de rectificacion</Button>
+    <Button variant="secondary" onclick={onclose}>Cerrar detalle de rectificaci&#243;n</Button>
   </div>
   {#if record}<p><strong>{record.title}</strong> / {record.reference}</p>{/if}
   {#if record?.administration?.administrative_status === 'closed'}
@@ -59,7 +59,7 @@
     Registrado por {review.actor.email} /
     <time datetime={capture.recorded_at}>{capture.recorded_at}</time>
   </p>
-  <section class="case-comparison" aria-label="Registro seleccionado para rectificacion">
+  <section class="case-comparison" aria-label="Registro seleccionado para rectificaci&#243;n">
     <h3>Registro exacto seleccionado</h3>
     <p>Medida: <code>{command.target.id}</code> / Revisi&#243;n {command.target.revision}</p>
     <p>Captura seleccionada: <code>{command.target.capture_digest}</code></p>
@@ -99,9 +99,9 @@
       <p>
         Operaci&#243;n judicial de origen: <code>{row.result.judicial_origin.operation_id}</code>
       </p>
-      <p>Ultima acci&#243;n judicial capturada: {measureActions[row.result.last_action]}</p>
+      <p>&#218;ltima acci&#243;n judicial capturada: {measureActions[row.result.last_action]}</p>
       <p>
-        Ultima medida judicial capturada: <code>{row.result.last_judicial.reference.id}</code>
+        &#218;ltima medida judicial capturada: <code>{row.result.last_judicial.reference.id}</code>
         / Revisi&#243;n {row.result.last_judicial.reference.revision}
       </p>
       <p>Captura judicial: <code>{row.result.last_judicial.reference.capture_digest}</code></p>
@@ -186,7 +186,7 @@
     <summary>Contexto y recibo original</summary>
     <FactAdministrativeCapture
       value={review.context.administration}
-      label="Administracion al registrar"
+      label="Administraci&#243;n al registrar"
     />
     <p>
       Etapa: {stageLabels[review.context.stage.stage]} / Revisi&#243;n {review.context.stage

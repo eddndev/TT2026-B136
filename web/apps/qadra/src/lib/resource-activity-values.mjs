@@ -37,7 +37,7 @@ export function resourceActivitySelection(value, resourceId, headRevision) {
     (headRevision !== undefined &&
       (resource.revision > headRevision || (act && act.resource_revision > headRevision)))
   )
-    invalid('La seleccion no corresponde al recurso y cabeza consultados.');
+    invalid('La selecci\u00f3n no corresponde al recurso y cabeza consultados.');
   return { resource, act, target: resourceActivityTarget(value.target) };
 }
 export function resourceActivityCommand(raw) {

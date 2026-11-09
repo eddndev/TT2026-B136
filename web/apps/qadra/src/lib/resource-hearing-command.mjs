@@ -11,7 +11,7 @@ import {
 
 export function resourceHearingBudget(value) {
   if (new TextEncoder().encode(JSON.stringify(value)).length > 65536)
-    invalid('La solicitud supera el limite de 64 KiB.');
+    invalid('La solicitud supera el l\u00edmite de 64 KiB.');
 }
 
 export function resourceHearingCommand(row) {

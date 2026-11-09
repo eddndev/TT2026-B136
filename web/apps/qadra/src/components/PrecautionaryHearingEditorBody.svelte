@@ -63,7 +63,7 @@
     {#if retryAvailable}<Button
         variant="secondary"
         disabled={pending || disabled || blocked || closed}
-        onclick={actions.retry}>Reintentar envio exacto</Button
+        onclick={actions.retry}>Reintentar env&#237;o exacto</Button
       >{/if}
     <p class="hint">Cerrar descarta el borrador local; no cancela una escritura en curso.</p>
   {:else if mode === 'conflict'}

@@ -125,18 +125,18 @@
     {#if canFacts(user.role, 'manage')}<Button
         variant="primary"
         disabled={locked || !manage}
-        onclick={() => edit()}>Registrar decision cautelar</Button
+        onclick={() => edit()}>Registrar decisi&#243;n cautelar</Button
       >{/if}
   </div>
   <p>
-    Conserva la ultima declaracion registrada y sus fuentes. El estado del expediente no determina
-    la vigencia juridica.
+    Conserva la &#250;ltima declaraci&#243;n registrada y sus fuentes. El estado del expediente no
+    determina la vigencia jur&#237;dica.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if !editing}{#each drafts as saved (saved.key)}<Button
         variant="secondary"
         disabled={locked}
-        onclick={() => edit(saved)}>Retomar decision cautelar</Button
+        onclick={() => edit(saved)}>Retomar decisi&#243;n cautelar</Button
       >{/each}{/if}
   {#if busy}<p role="status">Consultando decisiones...</p>{/if}
   {#each rows as row (row.origin.decision_id)}
@@ -147,8 +147,8 @@
       <Button
         variant="secondary"
         disabled={locked}
-        aria-label={`Consultar decision cautelar ${row.origin.decision_id}`}
-        onclick={() => open(row.origin.decision_id)}>Consultar decision cautelar</Button
+        aria-label={`Consultar decisi\u00f3n cautelar ${row.origin.decision_id}`}
+        onclick={() => open(row.origin.decision_id)}>Consultar decisi&#243;n cautelar</Button
       >
     </div>
   {/each}

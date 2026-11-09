@@ -55,9 +55,10 @@
   }
   async function read(file, limit) {
     if (!file || file.size < 1 || file.size > limit)
-      throw new Error('Selecciona un archivo valido.');
+      throw new Error('Selecciona un archivo v\u00e1lido.');
     const bytes = new Uint8Array(await file.arrayBuffer());
-    if (bytes.length !== file.size || bytes.length > limit) throw new Error('El archivo cambio.');
+    if (bytes.length !== file.size || bytes.length > limit)
+      throw new Error('El archivo cambi\u00f3.');
     return bytes;
   }
   async function sign() {
@@ -71,7 +72,7 @@
     oninvalidate(contextKey);
     try {
       if (new TextEncoder().encode(password).length > 1024)
-        throw new Error('La contrasena supera el limite admitido.');
+        throw new Error('La contrase\u00f1a supera el l\u00edmite admitido.');
       const encryptedKeyPem = new TextDecoder('utf-8', { fatal: true }).decode(
         await read(keyInput?.files?.[0], 65536),
       );
@@ -113,7 +114,7 @@
 
 <section class="stack local-signature" aria-label={'Firma local: ' + purpose} aria-busy={busy}>
   <h3>Firmar en este dispositivo</h3>
-  <p>{purpose}. La clave y su contrasena se usan solamente en este navegador.</p>
+  <p>{purpose}. La clave y su contrase&#241;a se usan solamente en este navegador.</p>
   <small class="fingerprint">Certificado esperado: {certificateFingerprint}</small>
   {#if !certificateDerBase64}
     <label
@@ -138,7 +139,7 @@
     />
   </label>
   <label
-    >Contrasena de la clave
+    >Contrase&#241;a de la clave
     <input
       type="password"
       autocomplete="off"
@@ -156,7 +157,7 @@
     >
   </div>
   {#if busy}<p role="status">Firmando en este dispositivo...</p>{/if}
-  {#if signed}<p role="status">Firma local preparada. Revisa y confirma la operacion.</p>{/if}
+  {#if signed}<p role="status">Firma local preparada. Revisa y confirma la operaci&#243;n.</p>{/if}
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 </section>
 

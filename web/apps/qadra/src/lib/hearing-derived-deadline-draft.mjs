@@ -82,7 +82,7 @@ export function createHearingDerivedDeadlineDraft({ session, caseId, hearingId, 
   }
 
   function register(resultId, anchorRevision) {
-    if (!admitted()) invalid('La sesion no admite el borrador conjunto.');
+    if (!admitted()) invalid('La sesi\u00f3n no admite el borrador conjunto.');
     uuid(resultId);
     revision(anchorRevision);
     const next = {
@@ -138,7 +138,7 @@ export function createHearingDerivedDeadlineDraft({ session, caseId, hearingId, 
         }
       },
       apply(stored) {
-        if (!admitted()) invalid('La sesion ya no admite el borrador.');
+        if (!admitted()) invalid('La sesi\u00f3n ya no admite el borrador.');
         const value = captureHearingDerivedDeadlineDraft(stored);
         validateHearingDerivedDeadlineDraft(value, descriptor, principalId);
         register(value.resultId, descriptor.baseRevision);

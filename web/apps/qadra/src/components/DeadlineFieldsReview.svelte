@@ -3,22 +3,26 @@
   import DeadlineTrackingSummary from './DeadlineTrackingSummary.svelte';
   import DeadlineReceipt from './DeadlineReceipt.svelte';
   import { factTimeLabel } from '../lib/procedural-fact-time.mjs';
+  import { roles } from '../lib/documents.mjs';
   export let value,
     profile = null;
   $: definition = value.definition;
   $: selection = definition.input.selection;
   const declaration = (v) =>
-    v.kind === 'unknown' ? `No consta: ${v.reason}` : v.value ? 'Si' : 'No';
+    v.kind === 'unknown' ? `No consta: ${v.reason}` : v.value ? 'S\u00ed' : 'No';
   const families = {
-    resolution: 'Resolucion',
-    notification: 'Notificacion',
+    resolution: 'Resoluci\u00f3n',
+    notification: 'Notificaci\u00f3n',
     hearing_result: 'Resultado de audiencia',
   };
 </script>
 
 <div class="calendar-values">
   <h4>{definition.title}</h4>
-  <p>Responsable: {value.responsible.email} / {value.responsible.role}</p>
+  <p>
+    Responsable: {value.responsible.email} / {roles[value.responsible.role] ??
+      value.responsible.role}
+  </p>
   <DeadlineTrackingSummary {value} prepared={!!value.command} historical={!value.command} />
   <DeadlineReceipt {value} compact />
   <p>Perfil: {value.calculation.profile.title} / Revisi&#243;n {definition.profile.revision}</p>
@@ -31,7 +35,7 @@
       </p>{/if}
     {#if selection.source.value.family === 'hearing_result'}<p>
         {selection.source.value.agreement_id === null
-          ? 'Resultado completo, sin acuerdo especifico'
+          ? 'Resultado completo, sin acuerdo espec\u00edfico'
           : `Acuerdo: ${selection.source.value.agreement_id}`}
       </p>{/if}
     <details>
@@ -46,7 +50,7 @@
     </p>{/if}
   <p>
     Calendario: {value.calculation.material.calendar
-      ? `${value.calculation.material.calendar.title} / Revision ${definition.input.calendar.revision}`
+      ? `${value.calculation.material.calendar.title} / Revisi\u00f3n ${definition.input.calendar.revision}`
       : 'Sin calendario seleccionado'}
   </p>
   <p>Cantidad ordenada: {definition.input.ordered_quantity ?? 'Ausente'}</p>

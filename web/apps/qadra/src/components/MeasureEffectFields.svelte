@@ -106,7 +106,7 @@
 <fieldset class="case-offenses" {disabled}>
   <legend>Efecto {index}</legend>
   <label
-    >Accion de medida {index}<select
+    >Acci&#243;n de medida {index}<select
       value={row.action}
       disabled={disabled || pending}
       onchange={(event) => action(event.currentTarget.value)}

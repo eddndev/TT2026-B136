@@ -69,7 +69,7 @@ export async function refreshFactReferences(api, caseId, values, admitted) {
           reference.agreement_id !== null &&
           !row.values.agreements.some((item) => item.id === reference.agreement_id)
         )
-          throw new Error('El acuerdo ya no corresponde a la revision seleccionada.');
+          throw new Error('El acuerdo ya no corresponde a la revisi\u00f3n seleccionada.');
       } finally {
         results.dispose();
       }
@@ -88,7 +88,7 @@ export async function refreshFactReferences(api, caseId, values, admitted) {
         row.version !== support.version ||
         row.digest !== support.digest
       )
-        throw new Error('El soporte no coincide con su version conservada.');
+        throw new Error('El soporte no coincide con su versi\u00f3n conservada.');
     } catch (failure) {
       throw Object.assign(new Error(failure.message), {
         code: failure.code,

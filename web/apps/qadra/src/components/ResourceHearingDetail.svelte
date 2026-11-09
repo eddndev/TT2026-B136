@@ -39,7 +39,7 @@
     </p>
     <FactAdministrativeCapture
       value={hearing.recorded_administration}
-      label={'Administracion al registrar'}
+      label={'Administraci\u00f3n al registrar'}
     />
     <p>
       Cabeza del recurso observada al registrar: revisi&#243;n {hearing.recorded_resource_head

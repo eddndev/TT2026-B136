@@ -74,7 +74,7 @@
 
 <section
   class="case-comparison"
-  aria-label="Medidas seleccionadas para revision"
+  aria-label="Medidas seleccionadas para revisi&#243;n"
   aria-busy={pending}
 >
   <h3>Medidas seleccionadas para revisi&#243;n ({references.length}/32)</h3>

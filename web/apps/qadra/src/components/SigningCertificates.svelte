@@ -79,7 +79,7 @@
     const principal = await api.me();
     if (!admitted()) return false;
     if (principal.id !== accountId || !parties.includes(principal.role))
-      throw Object.assign(new Error('La cuenta cambio.'), { status: 403 });
+      throw Object.assign(new Error('La cuenta cambi\u00f3.'), { status: 403 });
     const value = await scoped.current();
     if (!admitted()) return false;
     current = value;
@@ -126,7 +126,7 @@
     if (!certificate || saved || state.mode !== 'editing') return;
     run(async () => {
       if (!(await fresh())) return;
-      if (current && !current.withdrawn_at) throw new Error('Ya existe un vinculo activo.');
+      if (current && !current.withdrawn_at) throw new Error('Ya existe un v\u00ednculo activo.');
       const value = await scoped.prepare(state.bindingId, certificate);
       if (admitted()) {
         state = { ...state, prepared: value, signature: '' };
@@ -147,7 +147,8 @@
     if (!confirmed || !state.prepared || !state.signature || state.mode !== 'editing') return;
     run(async () => {
       if (!(await fresh())) return;
-      if (current && !current.withdrawn_at) throw new Error('Consulta el vinculo ya registrado.');
+      if (current && !current.withdrawn_at)
+        throw new Error('Consulta el v\u00ednculo ya registrado.');
       const data = Object.freeze({
         statement_base64: state.prepared.statement_base64,
         certificate_der_base64: state.prepared.certificate.der_base64,
@@ -162,12 +163,12 @@
       const result = await draft.restore(fresh, (value) => {
         const restored = value.state;
         if (!['register', 'withdraw'].includes(restored.action))
-          throw new Error('Intento invalido.');
+          throw new Error('Intento inv\u00e1lido.');
         if (restored.mode === 'uncertain') {
           const original = restored.action === 'register' ? restored.prepared : restored.original;
           const canonical = decodeSigningStatement(original.statement_base64, 'binding');
           if (canonical.accountId !== accountId || canonical.bindingId !== restored.bindingId)
-            throw new Error('Intento invalido.');
+            throw new Error('Intento inv\u00e1lido.');
           if (restored.action === 'register') ownerBase64(restored.signature, 384);
           state = restored;
         } else state = blank();
@@ -191,7 +192,7 @@
       )
         throw new Error('El recibo no coincide con este intento.');
       if (state.action === 'withdraw' && !value.withdrawn_at)
-        throw new Error('El retiro no esta confirmado.');
+        throw new Error('El retiro no est\u00e1 confirmado.');
       complete(value);
     });
   }
@@ -240,14 +241,15 @@
       class="notice error"
       role="alert"
     >
-      Tu certificado vencio. Genera una clave nueva o renueva el certificado y vuelve a vincularlo.
+      Tu certificado venci&#243;. Genera una clave nueva o renueva el certificado y vuelve a
+      vincularlo.
     </p>
   {:else if current && !current.withdrawn_at && certificateRenewalDue(current)}<p
       class="notice"
       role="status"
     >
-      Tu certificado vence en menos de 30 dias. Renuevalo y vuelve a vincularlo; una solicitud
-      abierta con el certificado anterior debe rehacerse.
+      Tu certificado vence en menos de 30 d&#237;as. Renu&#233;valo y vuelve a vincularlo; una
+      solicitud abierta con el certificado anterior debe rehacerse.
     </p>{/if}
   <KeyRequest
     contextKey={accountId}
@@ -257,19 +259,19 @@
     accountEmail={user.email}
   />
   {#if saved}<section class="card stack">
-      <h2>Intento pendiente del vinculo</h2>
-      <p>Recuperarlo comprueba tu cuenta y conserva su identificador. No lo envia.</p>
+      <h2>Intento pendiente del v&#237;nculo</h2>
+      <p>Recuperarlo comprueba tu cuenta y conserva su identificador. No lo env&#237;a.</p>
       <Button variant="secondary" disabled={busy} onclick={recover}
-        >Recuperar intento del vinculo</Button
+        >Recuperar intento del v&#237;nculo</Button
       >
       <Button variant="secondary" disabled={busy} onclick={discard}
         >Descartar intento pendiente</Button
       >
     </section>{/if}
   {#if receipt}<section class="card stack">
-      <h2>{receipt.withdrawn_at ? 'Vinculo retirado' : 'Vinculo registrado'}</h2>
+      <h2>{receipt.withdrawn_at ? 'V\u00ednculo retirado' : 'V\u00ednculo registrado'}</h2>
       <SigningBindingDetails value={receipt} />
-      <p>Retirar el vinculo impide futuras firmas y conserva su evidencia historica.</p>
+      <p>Retirar el v&#237;nculo impide futuras firmas y conserva su evidencia hist&#243;rica.</p>
       <div class="action-row">
         <Button
           variant="secondary"
@@ -278,21 +280,21 @@
             download(
               new Blob([JSON.stringify(receipt)], { type: 'application/json' }),
               'certificate-binding-receipt.json',
-            )}>Descargar recibo del vinculo</Button
+            )}>Descargar recibo del v&#237;nculo</Button
         >
         {#if !receipt.withdrawn_at && state.mode !== 'uncertain' && state.action !== 'withdraw'}
           <Button variant="secondary" disabled={busy || !!saved} onclick={startWithdrawal}
-            >Retirar vinculo</Button
+            >Retirar v&#237;nculo</Button
           >{/if}
       </div>
     </section>{/if}
   {#if state.mode === 'uncertain'}<section class="card stack">
       <h2>Resultado pendiente de confirmar</h2>
-      <p>Conserva este intento y consulta su recibo antes de cualquier otra operacion.</p>
+      <p>Conserva este intento y consulta su recibo antes de cualquier otra operaci&#243;n.</p>
       <code>{state.bindingId}</code><Button
         variant="secondary"
         disabled={busy}
-        onclick={checkReceipt}>Consultar recibo del vinculo</Button
+        onclick={checkReceipt}>Consultar recibo del v&#237;nculo</Button
       >
     </section>
   {:else if !saved && ((state.action === 'withdraw' && state.mode === 'editing') || !current || current.withdrawn_at)}

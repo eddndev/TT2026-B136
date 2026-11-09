@@ -85,13 +85,13 @@ export async function signLocally(region, material) {
   await region
     .getByLabel('Clave privada cifrada', { exact: true })
     .setInputFiles(localFile('browser-test-encrypted-key.pem', material.encryptedKey));
-  await region.getByLabel('Contrasena de la clave', { exact: true }).fill(material.password);
+  await region.getByLabel('Contrase\u00f1a de la clave', { exact: true }).fill(material.password);
   await region.getByRole('button', { name: 'Firmar localmente', exact: true }).click();
 }
 
 export async function captureLocalSignature(region, testInfo, name) {
   await expect(region.getByLabel('Clave privada cifrada', { exact: true })).toHaveValue('');
-  await expect(region.getByLabel('Contrasena de la clave', { exact: true })).toHaveValue('');
+  await expect(region.getByLabel('Contrase\u00f1a de la clave', { exact: true })).toHaveValue('');
   const path = testInfo.outputPath(`${name}.png`);
   await region.screenshot({ path, animations: 'disabled' });
   await testInfo.attach(name, { path, contentType: 'image/png' });

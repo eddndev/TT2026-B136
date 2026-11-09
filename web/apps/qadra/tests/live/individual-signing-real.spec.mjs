@@ -129,9 +129,9 @@ for (const [name, width, height] of [['desktop', 1440, 1000]]) {
       // must read it as complete.
       if (name === 'desktop') await validateEvidence(page, evidence.path);
       await navigate(page, 'Mi firma digital');
-      await expect(page.getByText('Vinculo registrado', { exact: true })).toBeVisible();
-      await button(page, 'Retirar vinculo').click();
-      await page.getByLabel('Confirmo retirar el vinculo para futuras firmas').check();
+      await expect(page.getByText('V\u00ednculo registrado', { exact: true })).toBeVisible();
+      await button(page, 'Retirar v\u00ednculo').click();
+      await page.getByLabel('Confirmo retirar el v\u00ednculo para futuras firmas').check();
       const withdrawn = responseTo(
         page,
         bindingsPath + '/' + binding.binding_id + '/withdraw',
@@ -139,7 +139,7 @@ for (const [name, width, height] of [['desktop', 1440, 1000]]) {
       );
       await button(page, 'Confirmar retiro').click();
       expect((await jsonResponse(withdrawn)).withdrawn_at).not.toBeNull();
-      await expect(page.getByText('Vinculo retirado', { exact: true })).toBeVisible();
+      await expect(page.getByText('V\u00ednculo retirado', { exact: true })).toBeVisible();
       await openSigningDocument(page, scenario);
       const checked = responseTo(page, documentPath(scenario) + '/individual-signing/verification');
       await button(page, 'Consultar estado de la firma').click();
@@ -148,9 +148,11 @@ for (const [name, width, height] of [['desktop', 1440, 1000]]) {
       expect(report.historical.verdict).toBe('valid');
       expect(report.signing).toEqual(original);
       expect(report.binding_withdrawn_at).not.toBeNull();
-      await expect(page.getByText('Validez historica: valida', { exact: true })).toBeVisible();
       await expect(
-        page.getByText('Vinculo retirado posteriormente', { exact: true }),
+        page.getByText('Validez hist\u00f3rica: v\u00e1lida', { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByText('V\u00ednculo retirado posteriormente', { exact: true }),
       ).toBeVisible();
       await screenshotSigning(page, testInfo, name + '-historical-after-withdrawal');
       expect(writes.map((call) => call.path)).toEqual([

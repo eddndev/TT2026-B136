@@ -53,7 +53,7 @@
       if (result.alert.read_at !== null) onread(result.alert, result.checked_at);
       else
         error =
-          'La consulta no confirma la lectura. Puedes marcarla de nuevo con la misma operacion.';
+          'La consulta no confirma la lectura. Puedes marcarla de nuevo con la misma operaci\u00f3n.';
     } catch (failure) {
       if (alive) {
         error = alertFailure(failure);

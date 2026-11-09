@@ -2,6 +2,7 @@
   import Button from './Button.svelte';
   import { onMount, onDestroy } from 'svelte';
   import { deadlineDenied, deadlineFailure } from '../lib/deadline-errors.mjs';
+  import { roles } from '../lib/documents.mjs';
   export let api,
     caseId,
     onselected,
@@ -51,11 +52,7 @@
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#each rows as row}<div class="hearing-result-picker-row">
       <p>
-        {row.email} / {row.role === 'owner'
-          ? 'Owner'
-          : row.role === 'litigator'
-            ? 'Litigator'
-            : 'Paralegal'}
+        {row.email} / {roles[row.role] ?? row.role}
       </p>
       <Button
         type="button"

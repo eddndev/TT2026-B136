@@ -83,7 +83,7 @@ test('an existing initial hearing anchors the decision and exposes captured part
     .getByLabel(/Declaraci[o\u00f3]n sin cambios/, { exact: true })
     .fill('Decision vinculada a la audiencia inicial existente');
   await editor
-    .getByRole('combobox', { name: 'Vinculo de audiencia', exact: true })
+    .getByRole('combobox', { name: 'V\u00ednculo de audiencia', exact: true })
     .selectOption('initial');
   const picker = editor.getByRole('region', {
     name: /Elegir programaci[o\u00f3]n hist[o\u00f3]rica/,
@@ -96,7 +96,7 @@ test('an existing initial hearing anchors the decision and exposes captured part
     .click();
   await prepareDecision(page);
   const anchor = editor.getByRole('region', {
-    name: 'Audiencia de origen de la decision',
+    name: 'Audiencia de origen de la decisi\u00f3n',
     exact: true,
   });
   await expect(anchor.getByText(captured.display_name, { exact: true })).toBeVisible();
@@ -122,7 +122,7 @@ test('an existing initial hearing anchors the decision and exposes captured part
 async function selectEffect(page, index, action, references) {
   const effect = decisionEditor(page).getByRole('group', { name: `Efecto ${index}`, exact: true });
   await effect
-    .getByRole('combobox', { name: `Accion de medida ${index}`, exact: true })
+    .getByRole('combobox', { name: `Acci\u00f3n de medida ${index}`, exact: true })
     .selectOption(action);
   for (const reference of references) {
     await effect.getByRole('button', { name: 'Elegir medida', exact: true }).click();
@@ -131,7 +131,7 @@ async function selectEffect(page, index, action, references) {
       .getByRole('button', { name: `Consultar medida ${reference.id}`, exact: true })
       .click();
     await expect(picker).toContainText(reference.capture_digest);
-    await picker.getByRole('button', { name: 'Vincular esta revision', exact: true }).click();
+    await picker.getByRole('button', { name: 'Vincular esta revisi\u00f3n', exact: true }).click();
     await expect(picker).toHaveCount(0);
   }
   return effect;
@@ -197,7 +197,10 @@ test('one reviewed group confirms ceases and substitutes two prior measures with
     'Permanecer en el ambito declarado en soporte',
   );
   await prepareDecision(page);
-  const review = editor.getByRole('region', { name: 'Revision de decision cautelar', exact: true });
+  const review = editor.getByRole('region', {
+    name: 'Revisi\u00f3n de decisi\u00f3n cautelar',
+    exact: true,
+  });
   await expect(review.getByRole('heading', { name: /^Confirmaci[o\u00f3]n \// })).toBeVisible();
   await expect(review.getByRole('heading', { name: /^Cese \// })).toBeVisible();
   await expect(review.getByRole('heading', { name: /^Sustituida \// })).toHaveCount(2);

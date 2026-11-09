@@ -82,7 +82,7 @@ test('notification selector keeps the exact historical parent resolution revisio
   await form.getByRole('button', { name: 'Elegir fuente exacta', exact: true }).click();
   await form
     .getByRole('button', {
-      name: `Consultar notificaciones de resolucion ${resolutionId}`,
+      name: `Consultar notificaciones de resoluci\u00f3n ${resolutionId}`,
       exact: true,
     })
     .click();

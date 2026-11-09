@@ -36,7 +36,7 @@ function explicitOffsetMinutes(offset) {
   try {
     hearingInstant({ date: '2000-01-02', time: '00:00:00', offset });
   } catch {
-    throw new Error('Declara un desfase UTC entre -14:00 y +14:00; -00:00 no es valido.');
+    throw new Error('Declara un desfase UTC entre -14:00 y +14:00; -00:00 no es v\u00e1lido.');
   }
   const minutes = Number(offset.slice(1, 3)) * 60 + Number(offset.slice(4));
   return offset[0] === '-' ? -minutes : minutes;
@@ -73,7 +73,7 @@ function instantMilliseconds(instant) {
   try {
     hearingTimeParts(wholeSecond);
   } catch {
-    throw new Error('Revisa el instante; su fecha, hora o desfase UTC no son validos.');
+    throw new Error('Revisa el instante; su fecha, hora o desfase UTC no son v\u00e1lidos.');
   }
   return Date.parse(wholeSecond);
 }
@@ -91,6 +91,6 @@ export function agendaDays(from, until) {
   const boundary = civilMilliseconds(until);
   const count = (boundary - first) / dayMilliseconds;
   if (count < 1 || count > maximumDays)
-    throw new Error('El intervalo de la agenda debe contener entre 1 y 366 dias.');
+    throw new Error('El intervalo de la agenda debe contener entre 1 y 366 d\u00edas.');
   return Array.from({ length: count }, (_, index) => civilDate(first + index * dayMilliseconds));
 }

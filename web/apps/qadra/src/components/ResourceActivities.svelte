@@ -127,7 +127,8 @@
       const value = await resources.get(resource.id);
       if (!alive || (createDeadline && session && !session.canAdmit())) return;
       if (!record && value.status !== 'active') {
-        error = 'El recurso esta archivado. Consulta su historia o reactivalo para vincular.';
+        error =
+          'El recurso est\u00e1 archivado. Consulta su historia o react\u00edvalo para vincular.';
         return;
       }
       head = value;
@@ -184,7 +185,7 @@
     if (!alive) return;
     closeEditor();
     selected = null;
-    notice = 'Vinculo guardado.';
+    notice = 'V\u00ednculo guardado.';
     cursors = [undefined];
     await load();
     if (alive && !error) {
@@ -278,7 +279,7 @@
         oncancel={closeEditor}
         bind:pending={editorBusy}
       />{/key}{/if}
-  <section class="card" aria-label="Vinculos registrados" aria-busy={busy || opening}>
+  <section class="card" aria-label="V&#237;nculos registrados" aria-busy={busy || opening}>
     <div class="section-heading">
       <h3>V&#237;nculos registrados</h3>
       <Button variant="secondary" disabled={disabled || pending} onclick={reset}

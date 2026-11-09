@@ -15,7 +15,7 @@ export function resourceDeadlinesApi(request, caseId, resourceId) {
   const base = `/cases/${caseId}/procedural-resources/${resourceId}/activities/deadlines`;
   let active = true;
   function assertActive() {
-    if (!active) invalid('El contexto del recurso ya no esta abierto.');
+    if (!active) invalid('El contexto del recurso ya no est\u00e1 abierto.');
   }
   function scope(command) {
     if (command.case_id !== caseId || command.resource_id !== resourceId)
@@ -50,7 +50,7 @@ export function resourceDeadlinesApi(request, caseId, resourceId) {
         value.deadline.actor_id !== actorId ||
         value.deadline.author.email !== principal.email
       )
-        invalid('La preparacion no corresponde al comando y la identidad enviados.');
+        invalid('La preparaci\u00f3n no corresponde al comando y la identidad enviados.');
       return value;
     },
     async submit(raw) {
@@ -63,7 +63,9 @@ export function resourceDeadlinesApi(request, caseId, resourceId) {
         expected_submission_digest: draft.submission_digest,
       });
       if (!resourceDeadlineMatches(result, draft))
-        invalid('No se pudieron confirmar ambos recibos exactos. Consulta el resultado del envio.');
+        invalid(
+          'No se pudieron confirmar ambos recibos exactos. Consulta el resultado del env\u00edo.',
+        );
       return result;
     },
   };

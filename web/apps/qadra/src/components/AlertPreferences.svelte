@@ -189,7 +189,7 @@
       if (mode === 'uncertain' && result.revision === command.expected_revision) {
         mode = 'not_observed';
         error =
-          'La consulta no confirma este guardado. Puedes reintentar explicitamente la misma operacion.';
+          'La consulta no confirma este guardado. Puedes reintentar expl\u00edcitamente la misma operaci\u00f3n.';
       } else {
         candidate = result;
         mode = 'conflict';

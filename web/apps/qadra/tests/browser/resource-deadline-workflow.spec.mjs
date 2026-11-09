@@ -60,7 +60,9 @@ test('keeps the declared deadline and old resource capture when accepting a chan
   correction.change.values = structuredClone(state.activities.resource.values);
   correction.change.values.title = 'Recurso concurrente';
   state.activities.resources.commit(state.activities.resources.prepare(correction));
-  await editor(page).getByRole('button', { name: 'Preparar plazo y vinculo', exact: true }).click();
+  await editor(page)
+    .getByRole('button', { name: 'Preparar plazo y v\u00ednculo', exact: true })
+    .click();
   await editor(page)
     .getByRole('button', { name: 'Comparar con registro actual', exact: true })
     .click();

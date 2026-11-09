@@ -44,12 +44,14 @@ for (const stage of ['selected-secret', 'pending-worker']) {
       await local
         .getByLabel('Clave privada cifrada', { exact: true })
         .setInputFiles(localFile('browser-test-key.pem', material.encryptedKey));
-      await local.getByLabel('Contrasena de la clave', { exact: true }).fill(material.password);
+      await local
+        .getByLabel('Contrase\u00f1a de la clave', { exact: true })
+        .fill(material.password);
     }
     await visibility(page, 'hidden');
     await expect(page.locator('.app-layout')).toHaveAttribute('inert', '');
     await expect(local.getByLabel('Clave privada cifrada', { exact: true })).toHaveValue('');
-    await expect(local.getByLabel('Contrasena de la clave', { exact: true })).toHaveValue('');
+    await expect(local.getByLabel('Contrase\u00f1a de la clave', { exact: true })).toHaveValue('');
     if (stage === 'pending-worker')
       await expect.poll(() => page.evaluate(() => window.localSigningTerminated)).toBe(true);
     expect(state.ownerWrites).toEqual([]);

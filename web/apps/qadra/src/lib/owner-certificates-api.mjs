@@ -17,7 +17,7 @@ export function ownerCertificatesApi(request, ownerId) {
   let active = true;
   const base = '/auth/certificate-bindings';
   const assertActive = () => {
-    if (!active) throw new Error('La consulta del certificado ya no esta abierta.');
+    if (!active) throw new Error('La consulta del certificado ya no est\u00e1 abierta.');
   };
   async function call(suffix, options) {
     assertActive();

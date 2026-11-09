@@ -149,14 +149,14 @@
   <fieldset class="case-offenses" disabled={disabled || pending}>
     <legend>Base de se&#241;alamiento</legend>
     <label
-      >Base de senalamiento<textarea rows="3" maxlength="1000" bind:value={fields.statement}
+      >Base de se&#241;alamiento<textarea rows="3" maxlength="1000" bind:value={fields.statement}
       ></textarea></label
     >
     <label
-      >Soporte admitido del senalamiento<select bind:value={fields.supportKey}>
-        <option value="">Selecciona una version exacta admitida</option>
+      >Soporte admitido del se&#241;alamiento<select bind:value={fields.supportKey}>
+        <option value="">Selecciona una versi&#243;n exacta admitida</option>
         {#each supports as row (supportKey(row))}<option value={supportKey(row)}
-            >{row.name} / Version {row.version}</option
+            >{row.name} / Versi&#243;n {row.version}</option
           >{/each}
       </select></label
     >

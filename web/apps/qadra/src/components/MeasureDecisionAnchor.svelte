@@ -41,7 +41,7 @@
 <fieldset class="case-offenses" {disabled}>
   <legend>Audiencia de origen</legend>
   <label
-    >Vinculo de audiencia<select
+    >V&#237;nculo de audiencia<select
       bind:value={kind}
       disabled={pending}
       onchange={(event) => {
@@ -50,14 +50,14 @@
         choosing = kind !== 'independent';
       }}
     >
-      <option value="independent">Decision independiente</option>
+      <option value="independent">Decisi&#243;n independiente</option>
       <option value="initial">Audiencia inicial existente</option>
       <option value="precautionary">Audiencia cautelar existente</option>
     </select></label
   >
   {#if value}
     <p>
-      {kind === 'initial' ? 'Audiencia inicial' : 'Audiencia cautelar'} / Revision
+      {kind === 'initial' ? 'Audiencia inicial' : 'Audiencia cautelar'} / Revisi&#243;n
       {kind === 'initial' ? value.record.revision : value.record.capture.review.result_revision}
     </p>
     <p>
@@ -93,6 +93,6 @@
       oncancel={() => (choosing = false)}
     />{/if}
   {#if kind !== 'independent' && !value}<p class="notice">
-      Selecciona la revision exacta de la audiencia.
+      Selecciona la revisi&#243;n exacta de la audiencia.
     </p>{/if}
 </fieldset>

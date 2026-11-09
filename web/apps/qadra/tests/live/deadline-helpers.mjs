@@ -59,7 +59,10 @@ export async function fill(page, kind, title) {
     .selectOption('resolution');
   await form.getByRole('button', { name: 'Elegir fuente exacta', exact: true }).click();
   await form
-    .getByRole('button', { name: `Consultar revisiones de resolucion ${source.id}`, exact: true })
+    .getByRole('button', {
+      name: `Consultar revisiones de resoluci\u00f3n ${source.id}`,
+      exact: true,
+    })
     .click();
   await form
     .getByRole('button', { name: 'Consultar resoluci\u00f3n revisi\u00f3n 1', exact: true })
@@ -119,13 +122,13 @@ export async function fill(page, kind, title) {
     .getByLabel('Localizador de aplicabilidad', { exact: true })
     .fill('Fuente sintetica, pagina 2');
   await form
-    .getByRole('combobox', { name: 'El ambito del perfil aplica', exact: true })
+    .getByRole('combobox', { name: 'El \u00e1mbito del perfil aplica', exact: true })
     .selectOption('yes');
   await form
     .getByRole('combobox', { name: 'Existe una incidencia sin resolver', exact: true })
     .selectOption('no');
   await form
-    .getByRole('combobox', { name: 'Se cumple la condicion 1', exact: true })
+    .getByRole('combobox', { name: 'Se cumple la condici\u00f3n 1', exact: true })
     .selectOption('yes');
   await form
     .getByLabel('Localizador de condici\u00f3n 1', { exact: true })
@@ -146,7 +149,7 @@ export async function acknowledge(page) {
     editor(page).getByRole('button', { name: 'Confirmar plazo', exact: true }),
   ).toBeDisabled();
   await editor(page)
-    .getByRole('checkbox', { name: /Revise las declaraciones/ })
+    .getByRole('checkbox', { name: /Revis\u00e9 las declaraciones/ })
     .check();
 }
 export async function submit(page, draft, expected = 201) {

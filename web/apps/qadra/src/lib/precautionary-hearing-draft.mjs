@@ -74,7 +74,7 @@ function validate(value) {
   if (value.support !== null && !plainRecord(value.support)) invalid();
   if (!Array.isArray(value.reviewTargets) || value.reviewTargets.length > 32) invalid();
   if (value.inputs !== null && !plainRecord(value.inputs)) invalid();
-  if (value.mode === 'uncertain' && !value.last) invalid('Falta el envio exacto retenido.');
+  if (value.mode === 'uncertain' && !value.last) invalid('Falta el env\u00edo exacto retenido.');
   if (value.last) {
     const last = precautionaryHearingPrepared(value.last),
       command = last.command,
@@ -88,7 +88,7 @@ function validate(value) {
           change.expected_revision !== baseRevision(value) ||
           change.expected_capture_digest !== value.base.capture.capture_digest))
     )
-      invalid('El envio retenido no corresponde al borrador y su base.');
+      invalid('El env\u00edo retenido no corresponde al borrador y su base.');
   }
 }
 
@@ -147,7 +147,7 @@ export function createPrecautionaryHearingDraft({ session, caseId, action, heari
       invalid('El borrador no corresponde a la identidad y el expediente actuales.');
   }
   function register(selectedRevision) {
-    if (!admitted()) invalid('La sesion no admite el borrador de audiencia.');
+    if (!admitted()) invalid('La sesi\u00f3n no admite el borrador de audiencia.');
     resourceHearingActor({ id: principal.id, email: principal.email });
     if (action === 'schedule') {
       if (selectedRevision !== 0) invalid();

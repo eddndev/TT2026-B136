@@ -48,11 +48,11 @@ function validate(value) {
   measureDecisionRows(value.effects);
   if (value.effects.some((row) => !plainRecord(row))) invalid();
   if (value.inputs !== null && !plainRecord(value.inputs)) invalid();
-  if (value.mode === 'uncertain' && !value.last) invalid('Falta el envio exacto retenido.');
+  if (value.mode === 'uncertain' && !value.last) invalid('Falta el env\u00edo exacto retenido.');
   if (value.last) {
     const { command } = measureDecisionPrepared(value.last).review;
     if (command.decision_id !== value.decisionId || command.operation_id !== value.operationId)
-      invalid('El envio retenido no corresponde al borrador de decision.');
+      invalid('El env\u00edo retenido no corresponde al borrador de decisi\u00f3n.');
   }
 }
 
@@ -113,7 +113,7 @@ export function createMeasureDecisionDraft({ session, caseId, decisionId, captur
       invalid('El borrador no corresponde a la identidad y el expediente actuales.');
   }
   function register() {
-    if (!admitted()) invalid('La sesion no admite el borrador de decision.');
+    if (!admitted()) invalid('La sesi\u00f3n no admite el borrador de decisi\u00f3n.');
     precautionaryHearingPrincipal(principal);
     root = {
       principalId: principal.id,

@@ -146,7 +146,7 @@
         onclick={() => history(selectedId, historyCursor)}>Revisiones anteriores del {noun}</Button
       >{/if}
   {/if}
-  {#if exact}<section class="case-comparison" aria-label={`Revision exacta del ${noun}`}>
+  {#if exact}<section class="case-comparison" aria-label={`Revisi\u00f3n exacta del ${noun}`}>
       <h5>
         {family === 'profile' ? exact.definition.title : exact.values.scope.title} / Revisi&#243;n {exact.revision}
       </h5>

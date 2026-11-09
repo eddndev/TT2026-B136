@@ -15,9 +15,9 @@ export const administrativeActions = {
   replace_entered_in_error: 'Corregir identidad registrada',
 };
 export const administrationEditor = (page) =>
-  page.getByRole('region', { name: 'Rectificacion de medida', exact: true });
+  page.getByRole('region', { name: 'Rectificaci\u00f3n de medida', exact: true });
 export const administrationDetail = (page) =>
-  page.getByRole('region', { name: 'Detalle de rectificacion', exact: true });
+  page.getByRole('region', { name: 'Detalle de rectificaci\u00f3n', exact: true });
 export const measurePanel = (page) =>
   page.getByRole('region', { name: 'Registros de medidas', exact: true });
 const fail = (route, code, status = 409) => route.fulfill({ status, json: { error: { code } } });
@@ -189,12 +189,12 @@ export async function fillAdministration(page, action) {
 }
 export async function prepareAdministration(page) {
   const editor = administrationEditor(page);
-  await editor.getByRole('button', { name: 'Revisar rectificacion', exact: true }).click();
-  const submit = editor.getByRole('button', { name: 'Confirmar rectificacion', exact: true });
+  await editor.getByRole('button', { name: 'Revisar rectificaci\u00f3n', exact: true }).click();
+  const submit = editor.getByRole('button', { name: 'Confirmar rectificaci\u00f3n', exact: true });
   await expect(submit).toBeDisabled();
   await editor
     .getByRole('checkbox', {
-      name: 'Reconozco la rectificacion y su alcance administrativo',
+      name: 'Reconozco la rectificaci\u00f3n y su alcance administrativo',
       exact: true,
     })
     .check();
@@ -202,5 +202,5 @@ export async function prepareAdministration(page) {
 }
 export const submitAdministration = (page) =>
   administrationEditor(page)
-    .getByRole('button', { name: 'Confirmar rectificacion', exact: true })
+    .getByRole('button', { name: 'Confirmar rectificaci\u00f3n', exact: true })
     .click();

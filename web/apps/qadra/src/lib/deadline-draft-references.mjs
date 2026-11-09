@@ -33,7 +33,7 @@ export async function refreshDeadlineReferences(api, caseId, definition, admitte
         source = api.caseNotifications(caseId, value.resolution.id);
         const row = await source.revision(value.id, value.revision);
         if (row.values.resolution.revision !== value.resolution.revision)
-          throw new Error('La notificacion no conserva la resolucion seleccionada.');
+          throw new Error('La notificaci\u00f3n no conserva la resoluci\u00f3n seleccionada.');
       } else if (value.family === 'hearing_result' && value.revision) {
         source = api.caseHearingResults(caseId, value.hearing_id);
         const row = await source.revision(value.result_id, value.revision);

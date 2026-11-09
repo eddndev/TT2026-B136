@@ -114,11 +114,11 @@
         disabled={disabled || participantBusy || supportBusy}
       />
     {:else if reviewTargets.length}
-      <p class="notice">La imposicion requiere quitar las referencias de revision.</p>
+      <p class="notice">La imposici&#243;n requiere quitar las referencias de revisi&#243;n.</p>
       <Button
         variant="secondary"
         disabled={disabled || pending}
-        onclick={() => (reviewTargets = [])}>Quitar referencias de revision</Button
+        onclick={() => (reviewTargets = [])}>Quitar referencias de revisi&#243;n</Button
       >
     {/if}
     <HearingDate bind:value={fields} disabled={disabled || pending} />

@@ -62,7 +62,7 @@ async function choosePriorMeasure(page, reference, action) {
     .getByRole('button', { name: `Consultar medida ${reference.id}`, exact: true })
     .click();
   await expect(picker).toContainText(reference.capture_digest);
-  await picker.getByRole('button', { name: 'Vincular esta revision', exact: true }).click();
+  await picker.getByRole('button', { name: 'Vincular esta revisi\u00f3n', exact: true }).click();
   await expect(picker).toHaveCount(0);
   return effect;
 }
@@ -165,14 +165,14 @@ for (const [role, closed] of [
     await openMeasures(page);
     const id = state.seed.operation.origin.decision_id;
     await page
-      .getByRole('button', { name: `Consultar decision cautelar ${id}`, exact: true })
+      .getByRole('button', { name: `Consultar decisi\u00f3n cautelar ${id}`, exact: true })
       .click();
     await expect(decisionDetail(page)).toContainText('Persona declarada');
     await expect(decisionDetail(page)).toContainText('contrato.pdf');
     await expect(decisionDetail(page)).toContainText(state.seed.operation.origin.operation_id);
     await expect(
       page
-        .getByRole('button', { name: 'Registrar decision cautelar', exact: true })
+        .getByRole('button', { name: 'Registrar decisi\u00f3n cautelar', exact: true })
         .and(page.locator(':enabled')),
     ).toHaveCount(0);
     await expect(decisionEditor(page)).toHaveCount(0);

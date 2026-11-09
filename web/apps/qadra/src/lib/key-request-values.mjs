@@ -45,7 +45,7 @@ export function generatedKeyRequest(result) {
     typeof result.spkiSha256 !== 'string' ||
     !/^[0-9a-f]{64}$/.test(result.spkiSha256)
   )
-    throw new Error('La criptografia local devolvio un resultado no valido.');
+    throw new Error('La criptograf\u00eda local devolvi\u00f3 un resultado no v\u00e1lido.');
   return result;
 }
 

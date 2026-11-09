@@ -14,6 +14,6 @@ export async function checkedSigningPdf(blob, expectedDigest) {
     new TextDecoder().decode(bytes.subarray(0, 5)) !== '%PDF-' ||
     (await signingHash(bytes)) !== expectedDigest
   )
-    throw new Error('El PDF no coincide con el resumen de esta version.');
+    throw new Error('El PDF no coincide con el resumen de esta versi\u00f3n.');
   return new Blob([bytes], { type: 'application/pdf' });
 }

@@ -40,20 +40,22 @@
 {#if result}<section class="card stack">
     <h3>{result.kind === 'individual' ? 'Firma individual' : 'Sello del servidor'}</h3>
     <p>
-      Validez historica: {result.historical.verdict === 'valid' ? 'valida' : 'requiere revision'}
+      Validez hist&#243;rica: {result.historical.verdict === 'valid'
+        ? 'v\u00e1lida'
+        : 'requiere revisi\u00f3n'}
     </p>
     {#if result.kind === 'individual'}
       <p>Estado actual del certificado: {currentLabels[result.certificate_current.status]}</p>
       {#if result.certificate_current.reason}<p>
           Motivo actual: {result.certificate_current.reason}
         </p>{/if}
-      {#if result.binding_withdrawn_at}<p>Vinculo retirado posteriormente</p>
+      {#if result.binding_withdrawn_at}<p>V&#237;nculo retirado posteriormente</p>
         <p>{result.binding_withdrawn_at}</p>{/if}
-      <p>El estado actual y el retiro no cambian la evidencia historica capturada.</p>
+      <p>El estado actual y el retiro no cambian la evidencia hist&#243;rica capturada.</p>
       <SigningConsentDetails value={result.signing} />
     {:else}<p>Esta evidencia corresponde al sellado del servidor.</p>{/if}
     <p>
-      El sello de tiempo acredita el resumen del contenido; no demuestra por si solo cuando existio
-      la firma personal.
+      El sello de tiempo acredita el resumen del contenido; no demuestra por s&#237; solo
+      cu&#225;ndo existi&#243; la firma personal.
     </p>
   </section>{/if}

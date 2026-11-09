@@ -44,11 +44,11 @@ function validate(value, descriptor) {
     ['hearing_upcoming', 'deadline_upcoming'].some((key) => typeof value.hours[key] !== 'string') ||
     (value.mode === 'uncertain' && !value.command)
   )
-    throw new Error('El borrador no conserva su revision o sus horas originales.');
+    throw new Error('El borrador no conserva su revisi\u00f3n o sus horas originales.');
   if (value.command) {
     alertPreferenceCommand(value.command);
     if (value.command.expected_revision < value.base.revision)
-      throw new Error('El comando no corresponde a la revision del borrador.');
+      throw new Error('El comando no corresponde a la revisi\u00f3n del borrador.');
   }
 }
 
@@ -76,7 +76,7 @@ export function createAlertPreferenceDraft({ session, principalId, capture }) {
     );
   }
   function register(revision) {
-    if (!admitted()) throw new Error('La sesion no admite el borrador de preferencias.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite el borrador de preferencias.');
     if (registration && root.baseRevision !== revision) {
       registration.dispose();
       registration = null;
@@ -113,7 +113,7 @@ export function createAlertPreferenceDraft({ session, principalId, capture }) {
           }
         },
         apply(value) {
-          if (!admitted()) throw new Error('La sesion ya no admite estas preferencias.');
+          if (!admitted()) throw new Error('La sesi\u00f3n ya no admite estas preferencias.');
           validate(value, saved);
           register(saved.baseRevision);
           apply(value, context);

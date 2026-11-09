@@ -78,13 +78,13 @@ test('joint review exposes the selected agreement, declared start, quantity and 
     .selectOption('known');
   await form.getByLabel('Cantidad declarada', { exact: true }).fill('48');
   await form
-    .getByRole('combobox', { name: 'Se cumple la condicion 1', exact: true })
+    .getByRole('combobox', { name: 'Se cumple la condici\u00f3n 1', exact: true })
     .selectOption('no');
   await form
     .getByLabel('Localizador de condici\u00f3n 1', { exact: true })
     .fill('Acuerdo, inciso B');
   await form.getByRole('button', { name: 'Preparar resultado y plazo', exact: true }).click();
-  const review = form.locator('[aria-label="Revision conjunta"]');
+  const review = form.locator('[aria-label="Revisi\u00f3n conjunta"]');
   await expect(review).toBeVisible();
   await expect(review).toContainText('Acuerdo seleccionado: Acuerdo con respuesta escrita');
   await expect(review).toContainText('Inicio declarado del periodo concedido');

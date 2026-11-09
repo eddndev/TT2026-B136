@@ -349,7 +349,7 @@
           disabled={busy || fieldsBusy || readonly}
           bind:pending={candidatesBusy}
         />{/if}
-      {#each staleDecisions as key}<section aria-label="Decision anterior sin aplicar">
+      {#each staleDecisions as key}<section aria-label="Decisi&#243;n anterior sin aplicar">
           <p>
             Esta decisi&#243;n corresponde a otra revisi&#243;n del candidato. No se aplica a las
             coincidencias actuales.

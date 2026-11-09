@@ -138,7 +138,7 @@
       mode = result === 'unconfirmed' ? 'unconfirmed' : 'conflict';
       error =
         result === 'unconfirmed'
-          ? 'El recibo conserva este vinculo sin retirar. Puedes confirmar de nuevo el mismo retiro.'
+          ? 'El recibo conserva este v\u00ednculo sin retirar. Puedes confirmar de nuevo el mismo retiro.'
           : 'El recibo no coincide con la evidencia original. El retiro sigue bloqueado.';
     } catch (failure) {
       if (active(request)) {

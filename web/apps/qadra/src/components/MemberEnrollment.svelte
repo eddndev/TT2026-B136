@@ -52,7 +52,8 @@
       ready = false;
       error = 'Tu cuenta ya no tiene permiso para crear integrantes.';
     } else
-      error = 'No se pudo consultar el acceso o el directorio. Vuelve a consultar explicitamente.';
+      error =
+        'No se pudo consultar el acceso o el directorio. Vuelve a consultar expl\u00edcitamente.';
   }
   async function authorize() {
     if (busy || !admitted()) return;
@@ -134,7 +135,7 @@
       if (!writing || failure.status === 403) fail(failure);
       else
         error =
-          'No se pudo confirmar el alta. Consulta el directorio; no se enviara otra vez este intento.';
+          'No se pudo confirmar el alta. Consulta el directorio; no se enviar\u00e1 otra vez este intento.';
     } finally {
       if (alive && request === generation) {
         password = '';
@@ -220,10 +221,10 @@
       {#if observed !== null}<p role="status">
           {observed
             ? 'Existe una cuenta con este correo.'
-            : 'No se encontro una cuenta con este correo.'}
+            : 'No se encontr\u00f3 una cuenta con este correo.'}
         </p>{/if}
       <p class="hint">
-        La consulta del directorio no confirma este envio ni recupera el segundo factor.
+        La consulta del directorio no confirma este env&#237;o ni recupera el segundo factor.
       </p>
       <Button variant="secondary" disabled={busy || !ready} onclick={consult}
         >Consultar directorio para esta cuenta</Button

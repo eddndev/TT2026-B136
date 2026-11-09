@@ -56,7 +56,7 @@ export function createHearingDraft({
       : null;
   }
   function register(action, resourceId, revision) {
-    if (!admitted()) throw new Error('La sesion no admite el borrador.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite el borrador.');
     const next = {
       principalId,
       contextId: caseId,
@@ -93,7 +93,7 @@ export function createHearingDraft({
         }
       },
       apply(value) {
-        if (!admitted()) throw new Error('La sesion ya no admite el borrador.');
+        if (!admitted()) throw new Error('La sesi\u00f3n ya no admite el borrador.');
         validateHearingDraft(value, saved, result);
         register(saved.action, saved.resourceId, saved.baseRevision);
         apply(value, context);
@@ -197,7 +197,7 @@ export async function refreshHearingReferences(
         value.version !== ref.version ||
         value.digest !== ref.digest
       )
-        throw new Error('El soporte no coincide con la version conservada.');
+        throw new Error('El soporte no coincide con la versi\u00f3n conservada.');
     } catch (failure) {
       throw Object.assign(new Error(failure.message), {
         code: failure.code,
@@ -237,7 +237,7 @@ export async function readResultDraftSources(api, hearings, caseId, anchor, sour
     origin.values_digest !== anchor.values_digest ||
     origin.receipt.submission_digest !== anchor.submission_digest
   )
-    throw new Error('La programacion no coincide con la referencia conservada.');
+    throw new Error('La programaci\u00f3n no coincide con la referencia conservada.');
   if (source) {
     const previousApi = api.caseHearingResults(caseId, source.hearing_id);
     try {

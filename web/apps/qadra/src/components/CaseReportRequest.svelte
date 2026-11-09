@@ -54,7 +54,7 @@
   </div>
   {#if state.saved}
     <div class="notice">
-      <p>Hay una solicitud pendiente conservada en esta pestana.</p>
+      <p>Hay una solicitud pendiente conservada en esta pesta&#241;a.</p>
       <Button
         type="button"
         variant="secondary"

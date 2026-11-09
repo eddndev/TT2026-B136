@@ -12,7 +12,7 @@ export function signingCertificatesApi(request, accountId) {
   signingUuid(accountId);
   let active = true;
   const assertActive = () => {
-    if (!active) throw new Error('La consulta del vinculo ya no esta abierta.');
+    if (!active) throw new Error('La consulta del v\u00ednculo ya no est\u00e1 abierta.');
   };
   async function call(suffix, options) {
     assertActive();

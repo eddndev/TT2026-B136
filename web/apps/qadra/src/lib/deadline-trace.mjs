@@ -21,7 +21,7 @@ function day(raw) {
     if (raw.classification !== null || raw.explanation !== null || ids.length) invalid();
   } else {
     choice(raw.classification, ['countable', 'excluded', 'unresolved']);
-    text(raw.explanation, 'Explicacion', 256);
+    text(raw.explanation, 'Explicaci\u00f3n', 256);
     if (raw.origin.kind === 'weekly_pattern') {
       object(raw.origin, ['kind', 'weekday']);
       integer(raw.origin.weekday, 1, 7);

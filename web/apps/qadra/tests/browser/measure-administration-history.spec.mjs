@@ -38,7 +38,9 @@ test('historical measure consultation retains original rectification access with
     panel.getByRole('button', { name: 'Rectificar registro', exact: true }),
   ).toBeEnabled();
   await panel.getByText('Historia de la medida', { exact: true }).click();
-  await panel.getByRole('button', { name: 'Consultar medida revision 1', exact: true }).click();
+  await panel
+    .getByRole('button', { name: 'Consultar medida revisi\u00f3n 1', exact: true })
+    .click();
   for (const name of Object.values(administrativeActions))
     await expect(panel.getByRole('button', { name, exact: true })).toBeDisabled();
   await expect(
@@ -46,7 +48,7 @@ test('historical measure consultation retains original rectification access with
   ).toContainText(values.conditions);
   await panel
     .getByRole('button', {
-      name: `Consultar rectificacion ${receipt.origin.operation_id}`,
+      name: `Consultar rectificaci\u00f3n ${receipt.origin.operation_id}`,
       exact: true,
     })
     .click();

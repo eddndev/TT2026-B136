@@ -28,7 +28,7 @@ async function fillResource(page, resolution) {
     .getByRole('combobox', { name: 'Modalidad del recurso', exact: true })
     .selectOption('written');
   await editor
-    .getByLabel('Titulo organizativo', { exact: true })
+    .getByLabel('T\u00edtulo organizativo', { exact: true })
     .fill('Revocacion escrita declarada');
   await editor
     .getByRole('button', { name: 'Elegir resoluci\u00f3n hist\u00f3rica', exact: true })

@@ -82,7 +82,7 @@ export const viewLabels = {
   'integrity-incidents': 'Incidentes de integridad',
   'judicial-calendars': 'Calendarios jurisdiccionales',
   team: 'Equipo',
-  'signing-certificates': 'Mi firma documental',
+  'signing-certificates': 'Mi firma digital',
   'owner-certificates': 'Mi certificado',
   audit: 'Auditor\u00eda',
   guide: 'Gu\u00eda de uso',

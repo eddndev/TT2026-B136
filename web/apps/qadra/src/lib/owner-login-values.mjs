@@ -6,7 +6,7 @@ const RECEIPT_BYTES =
 const I64_MAX = 9223372036854775807n;
 const invalid = () => {
   throw new Error(
-    'El material de acceso con certificado no es valido. Selecciona el recibo publico o prepara un nuevo intento.',
+    'El material de acceso con certificado no es v\u00e1lido. Selecciona el recibo p\u00fablico o prepara un nuevo intento.',
   );
 };
 const hex = (bytes) => Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');

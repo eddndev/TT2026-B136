@@ -88,27 +88,28 @@ export function hearingFormCommand(value) {
 }
 export const resourceHearingFailure = (failure = {}) =>
   failure.status === 413
-    ? 'La solicitud supera el limite de 64 KiB.'
+    ? 'La solicitud supera el l\u00edmite de 64 KiB.'
     : failure.code === 'invalid_resource_hearing'
-      ? 'Revisa la programacion, sus participantes y el soporte exacto del senalamiento.'
+      ? 'Revisa la programaci\u00f3n, sus participantes y el soporte exacto del se\u00f1alamiento.'
       : resourceActivityFailure(failure);
 
 export async function refreshHearingSources(resources, typed, value, admitted) {
   const resource = await resources.revision(value.resource.id, value.resource.revision);
   if (!admitted()) return null;
   if (!factSame(resource, value.resource))
-    throw new Error('La captura seleccionada del recurso cambio.');
+    throw new Error('La captura seleccionada del recurso cambi\u00f3.');
   let act = null;
   if (value.act) {
     act = await resources.revision(value.resource.id, value.act.revision);
     if (!admitted()) return null;
-    if (!factSame(act, value.act)) throw new Error('La captura seleccionada del acto cambio.');
+    if (!factSame(act, value.act)) throw new Error('La captura seleccionada del acto cambi\u00f3.');
   }
   const participants = [];
   for (const row of value.participants) {
     const exact = await typed.participantRevision(row.id, row.revision);
     if (!admitted()) return null;
-    if (!factSame(exact, row)) throw new Error('La ficha seleccionada del participante cambio.');
+    if (!factSame(exact, row))
+      throw new Error('La ficha seleccionada del participante cambi\u00f3.');
     participants.push(exact);
   }
   return { resource, act, participants };

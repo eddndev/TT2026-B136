@@ -41,12 +41,12 @@ test('Owner issues and explicitly resends without ever seeing recipient secrets'
     .getByLabel('Nombre de la persona invitada', { exact: true })
     .fill(' Persona Invitada ');
   await region(page)
-    .getByLabel('Correo de la invitacion', { exact: true })
+    .getByLabel('Correo de la invitaci\u00f3n', { exact: true })
     .fill('recipient@example.test');
   await region(page)
-    .getByRole('combobox', { name: 'Rol de la invitacion', exact: true })
+    .getByRole('combobox', { name: 'Rol de la invitaci\u00f3n', exact: true })
     .selectOption('litigator');
-  await region(page).getByRole('button', { name: 'Enviar invitacion', exact: true }).click();
+  await region(page).getByRole('button', { name: 'Enviar invitaci\u00f3n', exact: true }).click();
   await expect(region(page)).toContainText('recipient@example.test');
   await expect(region(page)).toContainText('Correo pendiente');
   await expect(region(page).locator('input[type="password"]')).toHaveCount(0);
@@ -57,9 +57,9 @@ test('Owner issues and explicitly resends without ever seeing recipient secrets'
   await region(page)
     .getByRole('button', { name: 'Reenviar a recipient@example.test', exact: true })
     .click();
-  await expect(region(page)).toContainText('El enlace anterior dejara de funcionar');
-  await region(page).getByRole('button', { name: 'Confirmar reenvio', exact: true }).click();
-  await expect(region(page).getByRole('status')).toContainText('Invitacion registrada');
+  await expect(region(page)).toContainText('El enlace anterior dejar\u00e1 de funcionar');
+  await region(page).getByRole('button', { name: 'Confirmar reenv\u00edo', exact: true }).click();
+  await expect(region(page).getByRole('status')).toContainText('Invitaci\u00f3n registrada');
   expect(calls).toHaveLength(2);
   expect(calls[1].data.expected_revision).toBe('1');
   expect(calls[1].data.operation_id).not.toBe(calls[0].data.operation_id);

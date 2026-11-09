@@ -50,7 +50,7 @@ function validate(value) {
     invalid();
   if (value.subject !== null && !plainRecord(value.subject)) invalid();
   if (value.inputs !== null && !plainRecord(value.inputs)) invalid();
-  if (value.mode === 'uncertain' && !value.last) invalid('Falta el envio exacto retenido.');
+  if (value.mode === 'uncertain' && !value.last) invalid('Falta el env\u00edo exacto retenido.');
   if (value.last) {
     const { command } = measureAdministrationPrepared(value.last);
     if (
@@ -61,7 +61,7 @@ function validate(value) {
       (value.action === 'replace_entered_in_error' &&
         command.action.replacement_id !== value.replacementId)
     )
-      invalid('El envio retenido no corresponde al borrador y su base exacta.');
+      invalid('El env\u00edo retenido no corresponde al borrador y su base exacta.');
   }
 }
 
@@ -118,7 +118,7 @@ export function createMeasureAdministrationDraft({ session, caseId, measureId, a
       invalid('El borrador no corresponde a la identidad, medida y expediente actuales.');
   }
   function register(baseRevision) {
-    if (!admitted()) invalid('La sesion no admite el borrador de rectificacion.');
+    if (!admitted()) invalid('La sesi\u00f3n no admite el borrador de rectificaci\u00f3n.');
     precautionaryHearingPrincipal(principal);
     revision(baseRevision);
     if (registration && root.baseRevision !== baseRevision) {

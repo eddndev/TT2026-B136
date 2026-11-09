@@ -86,7 +86,7 @@ export function resourceHearingCreationScope(value, caseId, resourceId) {
       target: { kind: 'resource_hearing', record: row },
     })
   )
-    invalid('La asociacion original no corresponde a la captura de audiencia.');
+    invalid('La asociaci\u00f3n original no corresponde a la captura de audiencia.');
   const receipt = association.receipt;
   object(receipt, [
     'operation_id',
@@ -129,7 +129,7 @@ export function resourceHearingSubmission(value, draft) {
     !same(row.sources, { resource: draft.resource, act: draft.act, ...draft.sources })
   )
     invalid(
-      'La captura no corresponde al envio retenido. Conserva el comando para consultar su resultado.',
+      'La captura no corresponde al env\u00edo retenido. Conserva el comando para consultar su resultado.',
     );
   return value;
 }

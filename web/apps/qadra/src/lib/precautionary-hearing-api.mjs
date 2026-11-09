@@ -56,7 +56,7 @@ export function precautionaryHearingsApi(request, caseId) {
   const base = `/cases/${caseId}/precautionary-hearings`;
   let active = true;
   const assertActive = () => {
-    if (!active) invalid('La consulta de audiencia cautelar ya no esta abierta.');
+    if (!active) invalid('La consulta de audiencia cautelar ya no est\u00e1 abierta.');
   };
   function scope(selected) {
     if (selected.case_id !== caseId) invalid('La audiencia no pertenece al expediente consultado.');
@@ -86,7 +86,7 @@ export function precautionaryHearingsApi(request, caseId) {
   function confirmed(value, review) {
     precautionaryHearingRecord(value, caseId, review.command.hearing_id, review.result_revision);
     if (!same(value.capture.review, review))
-      invalid('El recibo no corresponde a la revision completa confirmada.');
+      invalid('El recibo no corresponde a la revisi\u00f3n completa confirmada.');
     return value;
   }
   return {
@@ -119,7 +119,7 @@ export function precautionaryHearingsApi(request, caseId) {
       const value = await send(`${base}/prepare`, { method: 'POST', data: command });
       const review = precautionaryHearingPrepared(value);
       if (!same(review.command, command) || !same(review.actor, actor))
-        invalid('La revision no corresponde al comando y principal declarados.');
+        invalid('La revisi\u00f3n no corresponde al comando y principal declarados.');
       return review;
     },
     async submit(raw) {

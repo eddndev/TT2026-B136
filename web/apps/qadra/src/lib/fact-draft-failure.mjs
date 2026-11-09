@@ -8,7 +8,7 @@ export function factDraftFailure(failure, writing) {
   ) {
     value.mode = 'uncertain';
     value.error =
-      'No se pudo confirmar el resultado. Conservamos el envio para consultar su revision exacta.';
+      'No se pudo confirmar el resultado. Conservamos el env\u00edo para consultar su revisi\u00f3n exacta.';
   } else if (failure.code === 'procedural_fact_revision_exhausted') value.mode = 'exhausted';
   else if (
     [

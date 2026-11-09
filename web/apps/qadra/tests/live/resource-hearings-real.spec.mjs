@@ -64,7 +64,7 @@ for (const [name, width, role, code] of [['desktop', 1440, 'owner', 7]]) {
       const base = '/api/v1' + ownRoute(scenario);
       const preparing = responseTo(page, base + '/prepare', 'POST');
       await ownEditor(page)
-        .getByRole('button', { name: 'Preparar audiencia y vinculo', exact: true })
+        .getByRole('button', { name: 'Preparar audiencia y v\u00ednculo', exact: true })
         .click();
       const preparedResponse = await preparing;
       expect(preparedResponse.status()).toBe(200);
@@ -72,13 +72,13 @@ for (const [name, width, role, code] of [['desktop', 1440, 'owner', 7]]) {
       const draft = await preparedResponse.json();
       assertOwnDraft(draft, scenario, actor, participant, schedule);
       const confirm = ownEditor(page).getByRole('button', {
-        name: 'Confirmar audiencia y vinculo',
+        name: 'Confirmar audiencia y v\u00ednculo',
         exact: true,
       });
       await expect(confirm).toBeDisabled();
       await ownEditor(page)
         .getByRole('checkbox', {
-          name: 'Reconozco la programacion y las capturas seleccionadas',
+          name: 'Reconozco la programaci\u00f3n y las capturas seleccionadas',
           exact: true,
         })
         .check();

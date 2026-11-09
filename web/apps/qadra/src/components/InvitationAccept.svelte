@@ -57,7 +57,7 @@
     if (busy || !operations || !token) return;
     const size = new TextEncoder().encode(password).length;
     if (size < 12 || size > 1024) {
-      error = 'Usa entre 12 y 1024 bytes para tu contrasena.';
+      error = 'Usa entre 12 y 1024 bytes para tu contrase\u00f1a.';
       return;
     }
     if (mode === 'finish' && (!saved || !/^[0-9]{6}$/.test(code))) return;
@@ -101,44 +101,50 @@
   }
 </script>
 
-<h2>{mode === 'finish' ? 'Confirma tu segundo factor' : 'Acepta tu invitacion'}</h2>
+<h2>{mode === 'finish' ? 'Confirma tu segundo factor' : 'Acepta tu invitaci\u00f3n'}</h2>
 {#if error}<div class="notice error" role="alert">{error}</div>{/if}
 {#if mode === 'invalid'}
-  <p>El enlace no es valido. Abre el correo original o solicita un reenvio al administrador.</p>
+  <p>
+    El enlace no es v&#225;lido. Abre el correo original o solicita un reenv&#237;o al
+    administrador.
+  </p>
 {:else if mode === 'accepted'}
   <div class="notice" role="status">
-    Cuenta creada: {receipt.email}. Ya puedes iniciar sesion con tu contrasena y segundo factor.
+    Cuenta creada: {receipt.email}. Ya puedes iniciar sesi&#243;n con tu contrase&#241;a y segundo
+    factor.
   </div>
 {:else}
   {#if mode === 'prepare'}
-    <p>Elige tu contrasena. La cuenta se activara al confirmar tu segundo factor.</p>
-    <p>Si ya empezaste este registro, usa la misma contrasena para recuperarlo.</p>
+    <p>Elige tu contrase&#241;a. La cuenta se activar&#225; al confirmar tu segundo factor.</p>
+    <p>Si ya empezaste este registro, usa la misma contrase&#241;a para recuperarlo.</p>
   {:else if mode === 'receipt'}
-    <p>Comprueba si tu alta termino antes de repetirla. Escribe la contrasena que elegiste.</p>
+    <p>
+      Comprueba si tu alta termin&#243; antes de repetirla. Escribe la contrase&#241;a que elegiste.
+    </p>
   {:else}
-    <p>{enrollment.email}. Agrega esta clave a tu aplicacion de autenticacion:</p>
+    <p>{enrollment.email}. Agrega esta clave a tu aplicaci&#243;n de autenticaci&#243;n:</p>
     <code class="secret-code">{enrollment.totp_secret_base32}</code>
     <details>
       <summary>Enlace para tu autenticador</summary><code>{enrollment.otpauth_uri}</code>
     </details>
-    <p>Conserva estos codigos de recuperacion en un lugar privado antes de continuar:</p>
+    <p>Conserva estos c&#243;digos de recuperaci&#243;n en un lugar privado antes de continuar:</p>
     <ul>
       {#each enrollment.recovery_codes as recoveryCode}<li><code>{recoveryCode}</code></li>{/each}
     </ul>
     <label class="check-row"
-      ><input type="checkbox" bind:checked={saved} disabled={busy} />Ya guarde mis codigos de
-      recuperacion</label
+      ><input type="checkbox" bind:checked={saved} disabled={busy} />Ya guard&#233; mis c&#243;digos
+      de recuperaci&#243;n</label
     >
   {/if}
   {#if operations && !operations.durable}
     <p class="notice">
-      El navegador no permite guardar el identificador de este intento. Conserva esta pestana
+      El navegador no permite guardar el identificador de este intento. Conserva esta pesta&#241;a
       abierta hasta confirmar el alta.
     </p>
   {/if}
   <form class="stack" onsubmit={submit}>
     <label
-      >Tu contrasena<input
+      >Tu contrase&#241;a<input
         type="password"
         required
         autocomplete={mode === 'prepare' ? 'new-password' : 'current-password'}
@@ -148,7 +154,7 @@
     >
     {#if mode === 'finish'}
       <label
-        >Codigo de 6 digitos<input
+        >C&#243;digo de 6 d&#237;gitos<input
           required
           inputmode="numeric"
           autocomplete="one-time-code"
@@ -169,4 +175,6 @@
     >
   </form>
 {/if}
-<Button variant="text" type="button" disabled={busy} onclick={onclose}>Ir a iniciar sesion</Button>
+<Button variant="text" type="button" disabled={busy} onclick={onclose}
+  >Ir a iniciar sesi&#243;n</Button
+>

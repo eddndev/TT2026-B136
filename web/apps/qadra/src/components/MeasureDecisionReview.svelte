@@ -29,8 +29,12 @@
     anchor?.kind === 'initial' ? anchor.hearing.support : anchor?.capture.review.sources.support;
 </script>
 
-<section class="case-comparison" aria-label="Revision de decision cautelar">
-  <h3>{confirmed ? 'Decision declarada registrada' : 'Revision de la decision declarada'}</h3>
+<section class="case-comparison" aria-label="Revisi&#243;n de decisi&#243;n cautelar">
+  <h3>
+    {confirmed
+      ? 'Decisi\u00f3n declarada registrada'
+      : 'Revisi\u00f3n de la decisi\u00f3n declarada'}
+  </h3>
   {#if !confirmed}<p class="notice">
       Preparaci&#243;n pendiente de confirmar. Revisa la decisi&#243;n, sus efectos y las fuentes
       seleccionadas.
@@ -70,10 +74,12 @@
     <h4>Efectos declarados</h4>
     {#each review.results as result (result.id)}
       {@const origin = value.family === 'g1' ? result.origin : result.judicial_origin}
-      <section class="case-comparison" aria-label="Medida en la decision">
+      <section class="case-comparison" aria-label="Medida en la decisi&#243;n">
         <h4>{measureActions[result.action]} / {measureKinds[result.values.kind]}</h4>
         <p><strong>{result.projection.subject.display_name}</strong></p>
-        <p>{confirmed ? 'Revision registrada' : 'Revision propuesta'}: {result.revision}</p>
+        <p>
+          {confirmed ? 'Revisi\u00f3n registrada' : 'Revisi\u00f3n propuesta'}: {result.revision}
+        </p>
         <dl class="case-values">
           <div class="case-value-wide">
             <dt>Condiciones declaradas</dt>
@@ -136,7 +142,7 @@
       </section>
     {/each}
   {/if}
-  <section class="case-comparison" aria-label="Audiencia de origen de la decision">
+  <section class="case-comparison" aria-label="Audiencia de origen de la decisi&#243;n">
     <h4>Audiencia de origen</h4>
     {#if anchor}
       <p>
@@ -180,11 +186,14 @@
   </section>
   <details>
     <summary>Contexto exacto de la decisi&#243;n</summary>
-    <FactAdministrativeCapture value={context.administration} label="Administracion seleccionada" />
+    <FactAdministrativeCapture
+      value={context.administration}
+      label="Administraci&#243;n seleccionada"
+    />
     <p>Etapa: {stageLabels[context.stage.stage]} / Revisi&#243;n {context.stage.stage_revision}</p>
     <FactAdministrativeCapture
       value={context.stage_administration}
-      label="Administracion de origen de la etapa"
+      label="Administraci&#243;n de origen de la etapa"
     />
     <p>Contexto: <code>{context.context_digest}</code></p>
   </details>

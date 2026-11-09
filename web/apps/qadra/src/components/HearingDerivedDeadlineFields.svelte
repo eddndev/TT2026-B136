@@ -53,8 +53,8 @@
 />
 <h3>Plazo configurado</h3>
 <p class="hint">
-  Selecciona la regla y declara su aplicabilidad. El relato no determina consecuencias juridicas por
-  si solo.
+  Selecciona la regla y declara su aplicabilidad. El relato no determina consecuencias
+  jur&#237;dicas por s&#237; solo.
 </p>
 <DeadlineFields
   bind:this={deadlineFields}

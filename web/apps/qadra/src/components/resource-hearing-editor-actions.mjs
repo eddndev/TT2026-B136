@@ -82,7 +82,7 @@ export function createResourceHearingActions({
         update({
           retryAvailable: true,
           error:
-            'El resultado sigue incierto. La revision no esta disponible; esto no confirma que el envio fallo.',
+            'El resultado sigue incierto. La revisi\u00f3n no est\u00e1 disponible; esto no confirma que el env\u00edo fall\u00f3.',
         });
     } catch (failure) {
       if (admitted()) fail(failure, true, true);

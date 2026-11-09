@@ -26,13 +26,13 @@
 </script>
 
 <section class="card stack personal-signing">
-  <h3>Firma personal de esta version</h3>
+  <h3>Firma personal de esta versi&#243;n</h3>
   <p>Revisa el PDF exacto y firma el documento y su consentimiento en tu equipo.</p>
   <Button variant="secondary" disabled={busy || !!state.prepared} onclick={onreview}
     >Revisar PDF</Button
   >
   {#if pdfUrl}
-    <iframe src={pdfUrl} title="PDF exacto de esta version"></iframe>
+    <iframe src={pdfUrl} title="PDF exacto de esta versi&#243;n"></iframe>
     <label
       ><input type="checkbox" bind:checked={reviewed} disabled={busy || !!state.prepared} />He
       revisado este PDF y confirmo su contenido</label
@@ -72,7 +72,7 @@
     <SigningConsentDetails value={state.prepared} />
     <label
       ><input type="checkbox" bind:checked={confirmed} disabled={busy} />Confirmo firmar esta
-      version con mi certificado</label
+      versi&#243;n con mi certificado</label
     >
     {#key consentContext}<LocalSignature
         contextKey={consentContext}

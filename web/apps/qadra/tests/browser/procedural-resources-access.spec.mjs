@@ -60,7 +60,9 @@ test('assigned paralegal reads exact resource history without management control
   await resourceDetail(page)
     .getByRole('button', { name: 'Ver historial de recurso', exact: true })
     .click();
-  await page.getByRole('button', { name: 'Consultar recurso revision 1', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Consultar recurso revisi\u00f3n 1', exact: true })
+    .click();
   await expect(resourceDetail(page)).toContainText('Consultada exactamente');
   await expect(resourceDetail(page)).toContainText(row.values.grounds);
   await expect(resourceEditor(page)).toHaveCount(0);
@@ -78,7 +80,9 @@ test('resource conflict keeps the draft until the operator explicitly accepts th
   await openRecord(page, row);
   await resourceDetail(page).getByRole('button', { name: 'Corregir recurso', exact: true }).click();
   const editor = resourceEditor(page);
-  await editor.getByLabel('Titulo organizativo', { exact: true }).fill('Mi borrador de recurso');
+  await editor
+    .getByLabel('T\u00edtulo organizativo', { exact: true })
+    .fill('Mi borrador de recurso');
   await editor.getByLabel('Motivo', { exact: true }).fill('Precision declarada');
   const concurrent = resourceCommandFixture('correct');
   concurrent.operation_id = 'c0000000-0000-4000-8000-000000000002';
@@ -93,7 +97,7 @@ test('resource conflict keeps the draft until the operator explicitly accepts th
   await expect(
     editor.getByRole('button', { name: 'Comparar con registro actual', exact: true }),
   ).toBeVisible();
-  await expect(editor.getByLabel('Titulo organizativo', { exact: true })).toHaveValue(
+  await expect(editor.getByLabel('T\u00edtulo organizativo', { exact: true })).toHaveValue(
     'Mi borrador de recurso',
   );
   await expect(editor.getByRole('button', { name: 'Preparar registro', exact: true })).toHaveCount(
@@ -105,7 +109,7 @@ test('resource conflict keeps the draft until the operator explicitly accepts th
   expect(state.submissions).toHaveLength(0);
   await editor.getByRole('button', { name: 'Comparar con registro actual', exact: true }).click();
   await expect(editor).toContainText('Cambio concurrente del recurso');
-  await expect(editor.getByLabel('Titulo organizativo', { exact: true })).toHaveValue(
+  await expect(editor.getByLabel('T\u00edtulo organizativo', { exact: true })).toHaveValue(
     'Mi borrador de recurso',
   );
   await expect(editor.getByRole('button', { name: 'Preparar registro', exact: true })).toHaveCount(

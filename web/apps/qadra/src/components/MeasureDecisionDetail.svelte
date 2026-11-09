@@ -13,17 +13,17 @@
   $: administrativeHistory =
     value.family === 'g1' ? [] : value.record_history.records.administrative;
   const administrativeActions = {
-    correct: 'Rectificacion de texto',
+    correct: 'Rectificaci\u00f3n de texto',
     entered_in_error: 'Registro marcado por error',
     replace_entered_in_error: 'Registro marcado por error y reemplazado',
   };
   onMount(() => heading?.focus());
 </script>
 
-<section class="card hearing-detail fact-detail" aria-label="Detalle de decision cautelar">
+<section class="card hearing-detail fact-detail" aria-label="Detalle de decisi&#243;n cautelar">
   <div class="section-heading">
     <h2 tabindex="-1" bind:this={heading}>Decisi&#243;n cautelar declarada</h2>
-    <Button variant="secondary" onclick={onclose}>Cerrar detalle de decision</Button>
+    <Button variant="secondary" onclick={onclose}>Cerrar detalle de decisi&#243;n</Button>
   </div>
   <p><strong>{record.title}</strong> / {record.reference}</p>
   {#if record.administration?.administrative_status === 'closed'}
@@ -41,7 +41,7 @@
   </p>
   <MeasureDecisionReview value={{ family: value.family, review: group.review }} confirmed={true} />
   <details class="hearing-provenance">
-    <summary>Historia antecedente de la decision</summary>
+    <summary>Historia antecedente de la decisi&#243;n</summary>
     <p class="hint">Capturas anteriores incluidas como evidencia del recibo consultado.</p>
     {#if !judicialHistory.length && !administrativeHistory.length}
       <p>Sin capturas antecedentes en este recibo.</p>

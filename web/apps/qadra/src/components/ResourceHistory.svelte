@@ -52,7 +52,7 @@
     <button
       class="case-card fact-row"
       disabled={disabled || busy}
-      aria-label={`Consultar recurso revision ${row.revision}`}
+      aria-label={`Consultar recurso revisi\u00f3n ${row.revision}`}
       onclick={() => onselect(id, row.revision)}
     >
       <span

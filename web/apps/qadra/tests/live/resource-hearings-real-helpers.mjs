@@ -71,12 +71,12 @@ export async function fillOwnHearing(page, scenario, participant) {
   await form.getByRole('combobox', { name: 'Acto del recurso', exact: true }).selectOption('2');
   await form.getByRole('button', { name: 'Usar este acto', exact: true }).click();
   await form
-    .getByLabel('Base de senalamiento', { exact: true })
+    .getByLabel('Base de se\u00f1alamiento', { exact: true })
     .fill('Senalamiento sintetico con soporte previamente admitido');
   const support = scenario.resourceAct.act.supports[0];
   await form
-    .getByRole('combobox', { name: 'Soporte admitido del senalamiento', exact: true })
-    .selectOption({ label: `${support.name} / Version ${support.version}` });
+    .getByRole('combobox', { name: 'Soporte admitido del se\u00f1alamiento', exact: true })
+    .selectOption({ label: `${support.name} / Versi\u00f3n ${support.version}` });
   await form.getByRole('button', { name: 'Elegir participante', exact: true }).click();
   await form
     .getByRole('button', { name: `Consultar ficha: ${participant.display_name}`, exact: true })

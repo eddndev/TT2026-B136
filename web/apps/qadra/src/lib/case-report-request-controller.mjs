@@ -130,7 +130,7 @@ export function createReportRequestController({
       if (!state.saved && unavailable()) {
         state.blocked = !modeChanged;
         state.error =
-          'El litigante seleccionado no esta en la consulta actual. Vuelve a consultar el contexto.';
+          'El litigante seleccionado no est\u00e1 en la consulta actual. Vuelve a consultar el contexto.';
       }
     } catch (error) {
       if (admitted() && revision === pickerRevision) failure(error, true);
@@ -174,7 +174,7 @@ export function createReportRequestController({
       state.blocked = unavailable();
       if (state.blocked)
         state.error =
-          'El litigante de la solicitud ya no esta disponible. Conservamos su seleccion para consultar de nuevo.';
+          'El litigante de la solicitud ya no est\u00e1 disponible. Conservamos su selecci\u00f3n para consultar de nuevo.';
     } catch (error) {
       if (admitted()) failure(error);
     } finally {
@@ -228,7 +228,7 @@ export function createReportRequestController({
         command = state.pending;
         if (command && !eligible(reportAuthor(command), pendingType()))
           throw new Error(
-            'El autor de la solicitud pendiente no esta disponible. Consulta el contexto.',
+            'El autor de la solicitud pendiente no est\u00e1 disponible. Consulta el contexto.',
           );
       } else {
         const filters = reportFilters(state.draft, state.lawyers),
@@ -273,7 +273,8 @@ export function createReportRequestController({
     } catch (error) {
       if (admitted()) {
         if (confirmed)
-          state.error = 'La solicitud se guardo. Consulta los informes sin repetir el envio.';
+          state.error =
+            'La solicitud se guard\u00f3. Consulta los informes sin repetir el env\u00edo.';
         else {
           failure(error);
           if (error.status && error.status < 500) state.pending = null;

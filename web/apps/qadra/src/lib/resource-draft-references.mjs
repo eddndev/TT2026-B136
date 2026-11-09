@@ -35,7 +35,7 @@ export async function refreshResourceReferences(api, caseId, values, isAct, admi
         row.version !== support.version ||
         row.digest !== support.digest
       )
-        throw new Error('El soporte no coincide con su version conservada.');
+        throw new Error('El soporte no coincide con su versi\u00f3n conservada.');
     } catch (failure) {
       throw Object.assign(new Error(failure.message), {
         code: failure.code,

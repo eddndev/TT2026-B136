@@ -4,7 +4,7 @@ import { combinedAgendaPage } from './combined-agenda-values.mjs';
 export function combinedAgendaApi(request) {
   let active = true;
   const assertActive = () => {
-    if (!active) throw new Error('Esta consulta de agenda ya no esta abierta.');
+    if (!active) throw new Error('Esta consulta de agenda ya no est\u00e1 abierta.');
   };
   return {
     dispose() {

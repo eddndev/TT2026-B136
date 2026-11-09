@@ -27,7 +27,7 @@ export function createHearingDerivedDeadlineActions({
       acknowledged: false,
       retryAvailable: false,
       error:
-        'La revision recibida no coincide con el envio conservado. Consulta de nuevo su resultado.',
+        'La revisi\u00f3n recibida no coincide con el env\u00edo conservado. Consulta de nuevo su resultado.',
     });
   }
   async function prepare() {
@@ -42,7 +42,7 @@ export function createHearingDerivedDeadlineActions({
       if (response.state === 'replay') await finish(response.record, true);
       else if (response.state === 'ready')
         update({ prepared: structuredClone(response), mode: 'review' });
-      else throw new Error('No se pudo confirmar la preparacion conjunta.');
+      else throw new Error('No se pudo confirmar la preparaci\u00f3n conjunta.');
     } catch (error) {
       if (current(expected)) fail(error, false);
     } finally {
@@ -93,7 +93,7 @@ export function createHearingDerivedDeadlineActions({
           mode: 'uncertain',
           retryAvailable: !read().closed,
           error:
-            'No se observo un registro conjunto. Esto no confirma que el envio fallo. Puedes consultar de nuevo o repetir explicitamente el mismo envio.',
+            'No se observ\u00f3 un registro conjunto. Esto no confirma que el env\u00edo fall\u00f3. Puedes consultar de nuevo o repetir expl\u00edcitamente el mismo env\u00edo.',
         });
     } catch (error) {
       if (current(expected)) fail(error, true);

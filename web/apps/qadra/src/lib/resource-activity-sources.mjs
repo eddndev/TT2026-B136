@@ -73,7 +73,7 @@ export function resourceActivityCurrent(value, association, checkedAt) {
       delete exact.operational;
       delete current.operational;
     }
-    if (!same(exact, current)) invalid('La misma revision no puede sustituir su captura.');
+    if (!same(exact, current)) invalid('La misma revisi\u00f3n no puede sustituir su captura.');
   }
   return value;
 }

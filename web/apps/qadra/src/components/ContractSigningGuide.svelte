@@ -11,15 +11,19 @@
     <h3>Antes de firmar, prepara tu firma</h3>
     <ol>
       <li>
-        En Mi firma, genera tu clave y su solicitud (CSR) en este navegador y guarda la copia.
+        En Mi firma digital, genera tu clave y su solicitud (CSR) en este navegador y guarda la
+        copia.
       </li>
       <li>Entrega el CSR al responsable de la CA y l&#233;ele la huella de tu clave.</li>
-      <li>Recibe tu certificado p&#250;blico y vinc&#250;lalo en Mi firma.</li>
+      <li>Recibe tu certificado p&#250;blico y vinc&#250;lalo en Mi firma digital.</li>
       <li>Firma a mano con el despacho los dos ejemplares de la hoja de huella.</li>
     </ol>
   {:else if problem === 'expired'}
     <h3>Tu certificado venci&#243;</h3>
-    <p>Renu&#233;valo y vuelve a vincularlo en Mi firma. Despu&#233;s pide una solicitud nueva.</p>
+    <p>
+      Renu&#233;valo y vuelve a vincularlo en Mi firma digital. Despu&#233;s pide una solicitud
+      nueva.
+    </p>
   {:else}
     <h3>La solicitud usa otro certificado</h3>
     <p>

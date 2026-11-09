@@ -12,7 +12,7 @@ export function hearingDraftFailure(failure, writing, result = false) {
   if (writing && (hearingUncertain(failure) || failure.code === `${prefix}_operation_conflict`)) {
     value.mode = 'uncertain';
     value.error =
-      'No se pudo confirmar el resultado. Conservamos el envio para consultar su recibo exacto.';
+      'No se pudo confirmar el resultado. Conservamos el env\u00edo para consultar su recibo exacto.';
   } else if (failure.code === `${prefix}_revision_exhausted`) value.mode = 'exhausted';
   else if (
     (result

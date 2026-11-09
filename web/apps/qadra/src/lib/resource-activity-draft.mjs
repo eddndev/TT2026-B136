@@ -61,7 +61,7 @@ export function createActivityDraft({ session, caseId, resourceId, capture }) {
       schemaVersion: 1,
       baseRevision: revision,
     };
-    if (!admitted()) throw new Error('La sesion no admite la actividad.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite la actividad.');
     if (
       registration &&
       (descriptorKey(next) !== descriptorKey(root) || revision !== root.baseRevision)

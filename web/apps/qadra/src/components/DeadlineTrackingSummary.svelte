@@ -85,7 +85,8 @@
             {#if entry.hearing_id}<p>Audiencia: <code>{entry.hearing_id}</code></p>{/if}
             {#if dependency === 'source' && source.value?.family === 'hearing_result'}
               <p>
-                Acuerdo: {source.value.agreement_id || 'Resultado completo, sin acuerdo especifico'}
+                Acuerdo: {source.value.agreement_id ||
+                  'Resultado completo, sin acuerdo espec\u00edfico'}
               </p>
             {/if}
             {#if dependency === 'source' && source.value?.family === 'notification'}
@@ -113,8 +114,8 @@
         Expediente observado: {tracking.administration.title} /
         {tracking.administration.status === 'closed' ? 'Cerrado' : 'Activo'} /
         {tracking.administration.kind === 'recorded'
-          ? `Revision ${tracking.administration.revision}`
-          : 'Ficha original sin revision'}
+          ? `Revisi\u00f3n ${tracking.administration.revision}`
+          : 'Ficha original sin revisi\u00f3n'}
       </p>
     </details>
   {:else}<p>

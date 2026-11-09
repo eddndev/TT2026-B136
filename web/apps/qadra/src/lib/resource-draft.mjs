@@ -46,7 +46,7 @@ export function createResourceDraft({ session, caseId, capture, read }) {
       : null;
   }
   function register(action, base, actId) {
-    if (!admitted()) throw new Error('La sesion no admite el borrador.');
+    if (!admitted()) throw new Error('La sesi\u00f3n no admite el borrador.');
     const next = {
       principalId,
       contextId: caseId,
@@ -83,7 +83,7 @@ export function createResourceDraft({ session, caseId, capture, read }) {
         }
       },
       apply(value) {
-        if (!admitted()) throw new Error('La sesion ya no admite el borrador.');
+        if (!admitted()) throw new Error('La sesi\u00f3n ya no admite el borrador.');
         validateResourceDraft(value, saved);
         register(value.action, value.base, value.actId);
         apply(value, context);

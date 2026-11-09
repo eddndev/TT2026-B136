@@ -45,7 +45,7 @@
   });
 </script>
 
-<section class="case-history" aria-label="Historial de vinculo" aria-busy={busy}>
+<section class="case-history" aria-label="Historial de v&#237;nculo" aria-busy={busy}>
   <h3>Historia del v&#237;nculo</h3>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#each rows as row (row.revision)}

@@ -47,14 +47,14 @@
 
 <div class="stack">
   <label
-    >Motivo de rectificacion<textarea
+    >Motivo de rectificaci&#243;n<textarea
       rows="3"
       maxlength="1000"
       bind:value={fields.reason}
       disabled={disabled || pending}></textarea></label
   >
   {#if action === 'correct'}
-    <p class="hint">La rectificacion conserva la identidad, clase y procedencia judicial.</p>
+    <p class="hint">La rectificaci&#243;n conserva la identidad, clase y procedencia judicial.</p>
     <label
       >Condiciones<textarea
         rows="3"
@@ -70,7 +70,7 @@
       disabled={disabled || pending}
     />
     <label
-      >Declaracion de vigencia<textarea
+      >Declaraci&#243;n de vigencia<textarea
         rows="3"
         maxlength="1000"
         bind:value={fields.validity.statement}
@@ -86,7 +86,7 @@
       />
     {:else}<p>Sin fin declarado en el registro seleccionado.</p>{/if}
     <label
-      >Texto de supervision<textarea
+      >Texto de supervisi&#243;n<textarea
         rows="3"
         maxlength="1000"
         bind:value={fields.supervisionText}

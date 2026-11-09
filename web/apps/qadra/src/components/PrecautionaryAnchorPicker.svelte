@@ -70,11 +70,11 @@
     >{/if}
   {#if selected}{#each selected.history.captures as capture}
       <p>
-        Revision {capture.review.result_revision} / {hearingStatus[capture.review.status]} /
+        Revisi&#243;n {capture.review.result_revision} / {hearingStatus[capture.review.status]} /
         {hearingTimeLabel(capture.review.resolved_values.scheduled_at)}
       </p>
       <Button variant="primary" disabled={disabled || busy} onclick={() => choose(capture)}
-        >Usar audiencia cautelar revision {capture.review.result_revision}</Button
+        >Usar audiencia cautelar revisi&#243;n {capture.review.result_revision}</Button
       >
     {/each}{/if}
   <Button variant="text" disabled={disabled || busy} onclick={oncancel}

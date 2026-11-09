@@ -15,8 +15,8 @@ export const contextLabels = {
   other: 'Otro contexto',
 };
 export const outcomeLabels = {
-  practiced: 'Practicada segun lo declarado',
-  attempted: 'Intentada segun lo declarado',
+  practiced: 'Practicada seg\u00fan lo declarado',
+  attempted: 'Intentada seg\u00fan lo declarado',
 };
 export function factDeclarationLabel(value, catalog = {}) {
   if (value?.kind === 'unknown') return `No consta: ${value.reason}`;

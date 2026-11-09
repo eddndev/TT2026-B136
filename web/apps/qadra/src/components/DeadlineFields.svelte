@@ -1,5 +1,6 @@
 <script>
   import Button from './Button.svelte';
+  import { roles } from '../lib/documents.mjs';
   import { onMount, onDestroy } from 'svelte';
   import DeadlineFieldsBoolean from './DeadlineFieldsBoolean.svelte';
   import DeadlineFieldsSource from './DeadlineFieldsSource.svelte';
@@ -97,8 +98,9 @@
     choosing = '';
   }
   const unitLabel = (unit) =>
-    ({ days: 'dias', civil_months: 'meses civiles', elapsed_hours: 'horas transcurridas' })[unit] ||
-    unit;
+    ({ days: 'd\u00edas', civil_months: 'meses civiles', elapsed_hours: 'horas transcurridas' })[
+      unit
+    ] || unit;
   $: template = profile?.definition.template;
   $: missingConditions =
     profile?.definition.conditions.filter(
@@ -162,7 +164,7 @@
         </p>
       {:else}<p>
           Duraci&#243;n ordenada en {unitLabel(template.unit.kind)}. M&#225;ximo declarado: {template.maximum ??
-            'Sin maximo'}.
+            'Sin m\u00e1ximo'}.
         </p>{/if}
       <p class="hint">
         El perfil se selecciona expresamente; su disponibilidad no acredita su aplicabilidad a este
@@ -184,7 +186,7 @@
   </section>
   <section class="case-comparison" aria-label="Responsable seleccionado">
     <h3>Responsable</h3>
-    {#if responsible}<p>{responsible.email} / {responsible.role}</p>
+    {#if responsible}<p>{responsible.email} / {roles[responsible.role] ?? responsible.role}</p>
     {:else}<p>Selecciona una persona con acceso vigente al expediente.</p>{/if}
     <Button
       type="button"
@@ -332,7 +334,7 @@
     >
     <DeadlineFieldsBoolean
       bind:value={value.input.qualification.scope_applies}
-      label="El ambito del perfil aplica"
+      label="El &#225;mbito del perfil aplica"
       disabled={locked}
     />
     <DeadlineFieldsBoolean
@@ -350,7 +352,7 @@
         </p>
         <DeadlineFieldsBoolean
           bind:value={condition.applies}
-          label={`Se cumple la condicion ${index + 1}`}
+          label={`Se cumple la condici\u00f3n ${index + 1}`}
           disabled={locked}
         />
         <label
@@ -372,7 +374,7 @@
         >
       </section>{/each}
     {#if !value.input.qualification.conditions.length}<p>
-        Las condiciones sin declarar pueden bloquear el computo.
+        Las condiciones sin declarar pueden bloquear el c&#243;mputo.
       </p>{/if}
   </fieldset>
 </div>

@@ -204,13 +204,13 @@ export async function fillDeadline(page, title = 'Respuesta con fuente pendiente
     .fill('Supuesto revisado por la operadora');
   await form.getByLabel('Localizador de aplicabilidad', { exact: true }).fill('Acto, pagina 1');
   await form
-    .getByRole('combobox', { name: 'El ambito del perfil aplica', exact: true })
+    .getByRole('combobox', { name: 'El \u00e1mbito del perfil aplica', exact: true })
     .selectOption('yes');
   await form
     .getByRole('combobox', { name: 'Existe una incidencia sin resolver', exact: true })
     .selectOption('no');
   await form
-    .getByRole('combobox', { name: 'Se cumple la condicion 1', exact: true })
+    .getByRole('combobox', { name: 'Se cumple la condici\u00f3n 1', exact: true })
     .selectOption('yes');
   await form.getByLabel('Localizador de condici\u00f3n 1', { exact: true }).fill('Acto, pagina 2');
 }
@@ -218,6 +218,6 @@ export async function confirmDeadline(page) {
   const form = editor(page);
   await form.getByRole('button', { name: 'Preparar plazo', exact: true }).click();
   await expect(form.getByRole('button', { name: 'Confirmar plazo', exact: true })).toBeDisabled();
-  await form.getByRole('checkbox', { name: /Revise las declaraciones/ }).check();
+  await form.getByRole('checkbox', { name: /Revis\u00e9 las declaraciones/ }).check();
   await form.getByRole('button', { name: 'Confirmar plazo', exact: true }).click();
 }

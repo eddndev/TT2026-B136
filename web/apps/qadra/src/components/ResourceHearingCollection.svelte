@@ -174,7 +174,7 @@
     {/each}
   </div>
   {#if more}<Button variant="secondary" disabled={disabled || busy} onclick={() => load(true)}
-      >Cargar mas audiencias del recurso</Button
+      >Cargar m&#225;s audiencias del recurso</Button
     >{/if}
   {#if selected && caseRecord}
     <ResourceHearingDetail

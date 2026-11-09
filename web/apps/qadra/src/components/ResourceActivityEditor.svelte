@@ -245,7 +245,7 @@
     try {
       await onconfirmed(value, exact, view);
     } catch {
-      if (alive) error = 'El vinculo se guardo. Consulta de nuevo sin reenviar.';
+      if (alive) error = 'El v\u00ednculo se guard\u00f3. Consulta de nuevo sin reenviar.';
     }
   }
   async function submit() {
@@ -276,14 +276,14 @@
       else {
         mode = 'conflict';
         candidate = null;
-        error = 'La revision corresponde a otro envio. Tu borrador se conserva.';
+        error = 'La revisi\u00f3n corresponde a otro env\u00edo. Tu borrador se conserva.';
       }
     } catch (failure) {
       if (admitted()) {
         retryAvailable = failure.status === 404 && failure.code === 'resource_activity_not_found';
         error =
           failure.status === 404 && failure.code === 'resource_activity_not_found'
-            ? 'La revision aun no esta disponible. El resultado sigue incierto; puedes consultar de nuevo.'
+            ? 'La revisi\u00f3n a\u00fan no est\u00e1 disponible. El resultado sigue incierto; puedes consultar de nuevo.'
             : resourceActivityFailure(failure);
         if (resourceDenied(failure)) deny(failure);
       }

@@ -65,7 +65,9 @@ export function precautionaryHearingRecord(value, caseId, hearingId, selectedRev
     if (change.action === 'cancel') {
       for (const field of ['resolved_values', 'scheduling_context', 'sources', 'participants']) {
         if (!same(current.review[field], previous.review[field]))
-          invalid('La cancelacion no conserva la programacion y sus fuentes historicas.');
+          invalid(
+            'La cancelaci\u00f3n no conserva la programaci\u00f3n y sus fuentes hist\u00f3ricas.',
+          );
       }
     }
   }

@@ -143,7 +143,7 @@
     </select></label
   >
   {#if lockedIdentity}<p class="hint">
-      La modificacion conserva el sujeto y la clase de la medida.
+      La modificaci&#243;n conserva el sujeto y la clase de la medida.
     </p>{/if}
   <label
     >Condiciones<textarea
@@ -160,7 +160,7 @@
     inputs={inputs?.start ?? null}
   />
   <label
-    >Declaracion de vigencia<textarea
+    >Declaraci&#243;n de vigencia<textarea
       rows="3"
       maxlength="1000"
       bind:value={value.values.validity.statement}
@@ -185,7 +185,7 @@
       inputs={inputs?.end ?? null}
     />{/if}
   <label
-    >Supervision<select
+    >Supervisi&#243;n<select
       value={value.values.supervision.kind}
       disabled={disabled || pending}
       onchange={(event) => supervision(event.currentTarget.value)}
@@ -195,7 +195,7 @@
   >
   {#if value.values.supervision.kind === 'unknown'}
     <label
-      >Motivo de supervision desconocida<textarea
+      >Motivo de supervisi&#243;n desconocida<textarea
         rows="2"
         maxlength="1000"
         bind:value={value.values.supervision.reason}
@@ -227,7 +227,7 @@
         selectLabel="Vincular esta ficha supervisora"
       />{/if}
     <label
-      >Declaracion de supervision<textarea
+      >Declaraci&#243;n de supervisi&#243;n<textarea
         rows="2"
         maxlength="1000"
         bind:value={value.values.supervision.statement}

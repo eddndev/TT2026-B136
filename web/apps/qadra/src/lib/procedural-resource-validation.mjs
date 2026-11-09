@@ -71,7 +71,7 @@ function stage(value, caseId, administration) {
       !['adoption', 'to_intermediate', 'to_trial'].includes(row.values.kind) ||
       !Array.isArray(row.supports)
     )
-      invalid('La captura del cambio de etapa esta incompleta.');
+      invalid('La captura del cambio de etapa est\u00e1 incompleta.');
   }
 }
 function previous(value, expected) {

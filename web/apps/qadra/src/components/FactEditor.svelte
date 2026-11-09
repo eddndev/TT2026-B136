@@ -90,7 +90,8 @@
           fresh = context;
         });
         if (!admitted()) return;
-        if (result.status !== 'restored') throw new Error('No se pudo recuperar la declaracion.');
+        if (result.status !== 'restored')
+          throw new Error('No se pudo recuperar la declaraci\u00f3n.');
       } else {
         fresh = recovery
           ? await recovery.fresh()

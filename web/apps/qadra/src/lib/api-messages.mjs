@@ -66,7 +66,7 @@ export const messages = {
   contract_not_found: 'El contrato no est\u00e1 disponible o ya no tienes acceso.',
   contract_revision_conflict:
     'El contrato cambi\u00f3 mientras lo revisabas. Consulta su estado actual antes de continuar.',
-  contract_exists: 'Este documento ya tiene un contrato. Abre el existente en Contratos.',
+  contract_exists: 'Este documento ya tiene un contrato. \u00c1brelo en Contratos.',
   contract_request_open:
     'Ya hay una solicitud de firma abierta. Canc\u00e9lala o espera a que venza antes de pedir otra.',
   contract_request_closed: 'La solicitud ya est\u00e1 cerrada y no admite m\u00e1s acciones.',
@@ -95,7 +95,7 @@ export const messages = {
   signing_conflict:
     'Esta operaci\u00f3n ya se envi\u00f3 con otros datos. Consulta su recibo antes de continuar.',
   signing_binding_inactive:
-    'Tu firma documental no est\u00e1 vinculada o fue retirada. Rev\u00edsala en Mi firma.',
+    'Tu firma documental no est\u00e1 vinculada o fue retirada. Rev\u00edsala en Mi firma digital.',
   signing_credential_rejected:
-    'El certificado no es aceptado por la autoridad del despacho. Rev\u00edsalo en Mi firma.',
+    'El certificado no es aceptado por la autoridad del despacho. Rev\u00edsalo en Mi firma digital.',
 };

@@ -26,7 +26,7 @@ export function precautionaryFormCommand(value, context) {
       reason: fields.reason,
     });
   if (action !== 'cancel') {
-    if (!support) throw new Error('Selecciona el soporte exacto del senalamiento.');
+    if (!support) throw new Error('Selecciona el soporte exacto del se\u00f1alamiento.');
     change.context = context.expectation;
     change.values = {
       purpose: fields.purpose,
@@ -74,7 +74,7 @@ export async function refreshPrecautionarySources(typed, documents, value, admit
   for (const row of value.participants) {
     const exact = await typed.participantRevision(row.id, row.revision);
     if (!admitted()) return false;
-    if (!factSame(exact, row)) factInvalid('La ficha exacta del participante cambio.');
+    if (!factSame(exact, row)) factInvalid('La ficha exacta del participante cambi\u00f3.');
   }
   if (value.support) {
     const ref = value.support,
@@ -89,7 +89,7 @@ export async function refreshPrecautionarySources(typed, documents, value, admit
         exact.version !== ref.version ||
         exact.digest !== ref.digest
       )
-        factInvalid('El soporte no coincide con la version conservada.');
+        factInvalid('El soporte no coincide con la versi\u00f3n conservada.');
     } finally {
       scoped.dispose();
     }
@@ -99,11 +99,13 @@ export async function refreshPrecautionarySources(typed, documents, value, admit
 export function precautionaryEditorFailure(error) {
   const messages = {
     precautionary_editor_base_changed:
-      'La convocatoria cambio. Cierra este formulario y consulta su revision actual antes de editarla.',
-    precautionary_hearing_not_found: 'La convocatoria exacta no esta disponible con esta consulta.',
+      'La convocatoria cambi\u00f3. Cierra este formulario y consulta su revisi\u00f3n actual antes de editarla.',
+    precautionary_hearing_not_found:
+      'La convocatoria exacta no est\u00e1 disponible con esta consulta.',
     precautionary_hearing_operation_conflict:
-      'La operacion ya fue utilizada. Consulta su resultado exacto.',
-    precautionary_hearing_submission_mismatch: 'El envio cambio. Revisa la convocatoria de nuevo.',
+      'La operaci\u00f3n ya fue utilizada. Consulta su resultado exacto.',
+    precautionary_hearing_submission_mismatch:
+      'El env\u00edo cambi\u00f3. Revisa la convocatoria de nuevo.',
     precautionary_hearing_review_mismatch:
       'Las fuentes cambiaron. Revisa la convocatoria de nuevo.',
   };

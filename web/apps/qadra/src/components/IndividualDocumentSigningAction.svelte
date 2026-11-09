@@ -118,9 +118,9 @@
       value.version !== context.version ||
       value.digest !== context.digest
     )
-      throw new Error('La version cambio. Abre su detalle otra vez.');
+      throw new Error('La versi\u00f3n cambi\u00f3. Abre su detalle otra vez.');
     if (requireAvailable && (value.sealed || $administration.closed))
-      throw new Error('La version ya no admite una firma nueva.');
+      throw new Error('La versi\u00f3n ya no admite una firma nueva.');
     return true;
   }
   async function run(label, action) {
@@ -139,9 +139,9 @@
           failure.status === 401
             ? 'Vuelve a ingresar y recupera el intento para consultar su recibo.'
             : failure.status === 404
-              ? 'No se encontro el recibo. Conserva la operacion y consulta nuevamente.'
+              ? 'No se encontr\u00f3 el recibo. Conserva la operaci\u00f3n y consulta nuevamente.'
               : state.mode === 'uncertain'
-                ? 'No se confirmo el resultado. Consulta el recibo de esta misma operacion.'
+                ? 'No se confirm\u00f3 el resultado. Consulta el recibo de esta misma operaci\u00f3n.'
                 : failure.message;
       if (failure.status === 403) {
         draft.close();
@@ -204,7 +204,7 @@
         canonical.rootFingerprint !== original.rootFingerprint ||
         canonical.trustRevision < original.trustRevision
       )
-        throw new Error('El vinculo cambio. Prepara una nueva revision del PDF.');
+        throw new Error('El v\u00ednculo cambi\u00f3. Prepara una nueva revisi\u00f3n del PDF.');
       state = { ...state, prepared: value, consentSignature: '' };
       confirmed = false;
     });
@@ -282,7 +282,7 @@
 </script>
 
 {#if saved}<section class="notice stack">
-    <p>Hay un intento de firma conservado para esta version.</p>
+    <p>Hay un intento de firma conservado para esta versi&#243;n.</p>
     <Button variant="secondary" disabled={!!busy || disabled} onclick={recover}
       >Recuperar intento de firma</Button
     >
@@ -322,7 +322,7 @@
 {/if}
 {#if state.mode === 'uncertain'}<section class="notice stack">
     <h3>Resultado pendiente de confirmar</h3>
-    <p>Conserva esta operacion. Consultar el recibo no vuelve a enviar la firma.</p>
+    <p>Conserva esta operaci&#243;n. Consultar el recibo no vuelve a enviar la firma.</p>
     <code>{state.operationId}</code>
     <Button variant="secondary" disabled={!!busy || disabled} onclick={checkReceipt}
       >Consultar recibo de firma</Button

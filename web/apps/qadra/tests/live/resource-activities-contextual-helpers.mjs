@@ -50,7 +50,7 @@ export async function fillContextualDeadline(page, scenario, actor, title) {
   await form.getByRole('button', { name: 'Elegir fuente exacta', exact: true }).click();
   await form
     .getByRole('button', {
-      name: `Consultar revisiones de resolucion ${scenario.source.id}`,
+      name: `Consultar revisiones de resoluci\u00f3n ${scenario.source.id}`,
       exact: true,
     })
     .click();
@@ -84,13 +84,13 @@ export async function fillContextualDeadline(page, scenario, actor, title) {
     .getByLabel('Localizador de aplicabilidad', { exact: true })
     .fill('Fuente contextual, pagina 1');
   await form
-    .getByRole('combobox', { name: 'El ambito del perfil aplica', exact: true })
+    .getByRole('combobox', { name: 'El \u00e1mbito del perfil aplica', exact: true })
     .selectOption('yes');
   await form
     .getByRole('combobox', { name: 'Existe una incidencia sin resolver', exact: true })
     .selectOption('no');
   await form
-    .getByRole('combobox', { name: 'Se cumple la condicion 1', exact: true })
+    .getByRole('combobox', { name: 'Se cumple la condici\u00f3n 1', exact: true })
     .selectOption('yes');
   await form
     .getByLabel('Localizador de condici\u00f3n 1', { exact: true })

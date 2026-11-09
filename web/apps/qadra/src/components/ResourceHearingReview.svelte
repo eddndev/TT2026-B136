@@ -5,7 +5,7 @@
   export let value;
 </script>
 
-<section class="case-comparison" aria-label="Revision de audiencia y vinculo">
+<section class="case-comparison" aria-label="Revisi&#243;n de audiencia y v&#237;nculo">
   <h3>Revisar programaci&#243;n y v&#237;nculo inicial</h3>
   <ResourceHearingValues values={value.command.values} />
   <ResourceHearingSources
@@ -15,7 +15,7 @@
   <p>Autor: {value.recorded_by.email}</p>
   <FactAdministrativeCapture
     value={value.observed_administration}
-    label="Administracion observada"
+    label={'Administraci\u00f3n observada'}
   />
   <details>
     <summary>Identidades y recibo de preparaci&#243;n</summary>

@@ -85,7 +85,7 @@ export async function exact(page, scenario, revision) {
     `/api/v1/cases/${scenario.case.id}/procedural-resources/${scenario.resource.id}/revisions/${revision}`,
   );
   await history
-    .getByRole('button', { name: `Consultar recurso revision ${revision}`, exact: true })
+    .getByRole('button', { name: `Consultar recurso revisi\u00f3n ${revision}`, exact: true })
     .click();
   const response = await pending;
   expect(response.status()).toBe(200);

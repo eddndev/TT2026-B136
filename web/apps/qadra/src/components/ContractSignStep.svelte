@@ -121,7 +121,7 @@
         input={statementBytes}
         certificateDerBase64={binding.certificate.der_base64}
         certificateFingerprint={binding.certificate.fingerprint}
-        purpose="Declaracion de firma del contrato"
+        purpose="Declaraci&#243;n de firma del contrato"
         disabled={busy || disabled}
         onsignature={local}
         oninvalidate={() => (signature = '')}
@@ -138,7 +138,7 @@
       >
       <SigningExternalInstructions kind="contract" />
       <SigningPublicFile
-        label="Firma externa de la declaracion"
+        label="Firma externa de la declaraci&#243;n"
         disabled={busy}
         onvalue={external}
         onerror={(failure) => (error = failure.message)}

@@ -47,7 +47,7 @@
           input={localInput}
           certificateDerBase64={prepared.certificate.der_base64}
           certificateFingerprint={prepared.certificate.fingerprint}
-          purpose="vinculo Owner"
+          purpose="v&#237;nculo de administrador"
           disabled={busy || blocked}
           onsignature={onlocalsignature}
           oninvalidate={onlocalinvalidate}

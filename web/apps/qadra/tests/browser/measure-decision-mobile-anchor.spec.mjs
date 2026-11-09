@@ -61,21 +61,23 @@ test('the complete decision form fits 390px and retains a historical precautiona
   await fillImposition(page);
   const editor = decisionEditor(page);
   await editor
-    .getByRole('combobox', { name: 'Vinculo de audiencia', exact: true })
+    .getByRole('combobox', { name: 'V\u00ednculo de audiencia', exact: true })
     .selectOption('precautionary');
   const picker = editor.getByRole('region', {
     name: 'Elegir audiencia cautelar de origen',
     exact: true,
   });
   await picker.getByRole('button', { name: /^Consultar convocatoria / }).click();
-  await expect(picker).toContainText('Revision 1');
-  await expect(picker).toContainText('Revision 2');
+  await expect(picker).toContainText('Revisi\u00f3n 1');
+  await expect(picker).toContainText('Revisi\u00f3n 2');
   await picker
-    .getByRole('button', { name: 'Usar audiencia cautelar revision 1', exact: true })
+    .getByRole('button', { name: 'Usar audiencia cautelar revisi\u00f3n 1', exact: true })
     .click();
   await expect(picker).toHaveCount(0);
-  await expect(editor).toContainText('Audiencia cautelar / Revision 1');
-  await expect(editor.getByRole('button', { name: 'Revisar decision', exact: true })).toBeEnabled();
+  await expect(editor).toContainText('Audiencia cautelar / Revisi\u00f3n 1');
+  await expect(
+    editor.getByRole('button', { name: 'Revisar decisi\u00f3n', exact: true }),
+  ).toBeEnabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   for (const control of await editor.locator('input, textarea, select, button').all()) {
     if (!(await control.isVisible())) continue;
@@ -93,7 +95,7 @@ test('the complete decision form fits 390px and retains a historical precautiona
   await page.screenshot({ path: `${output}/measure-decision-form-page-390.png`, fullPage: true });
   await prepareDecision(page);
   const anchor = editor.getByRole('region', {
-    name: 'Audiencia de origen de la decision',
+    name: 'Audiencia de origen de la decisi\u00f3n',
     exact: true,
   });
   await expect(anchor).toContainText('Sala historica de la convocatoria original');
