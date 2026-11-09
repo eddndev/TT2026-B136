@@ -50,6 +50,9 @@
 \usepackage{xcolor}
 % Main color: Qadra navy, the same as the application sidebar.
 \definecolor{qadranavy}{HTML}{111344}
+% Secondary color: Qadra light blue (brand-600 and brand-50 of the web design tokens).
+\definecolor{qadrablue}{HTML}{2563EB}
+\definecolor{qadrablue50}{HTML}{EFF6FF}
 % Accent color reserved for critical warnings only (\importante).
 \definecolor{ipnvino}{HTML}{6B1E3C}
 
@@ -62,10 +65,10 @@
   {\Large\MakeUppercase{\partname}\ \thepart}{16pt}{}
 \titleformat{\chapter}[display]
   {\sffamily\huge\bfseries\color{qadranavy}}
-  {\sffamily\Large\bfseries\color{qadranavy!70}\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {\sffamily\Large\bfseries\color{qadrablue}\MakeUppercase{\chaptertitlename}\ \thechapter}
   {12pt}{\Huge}
 \titlespacing*{\chapter}{0pt}{10pt}{24pt}
-\titleformat{\section}{\sffamily\Large\bfseries\color{qadranavy}}{\thesection}{1em}{}
+\titleformat{\section}{\sffamily\Large\bfseries\color{qadranavy}}{\textcolor{qadrablue}{\thesection}}{1em}{}
 \titleformat{\subsection}{\sffamily\large\bfseries}{\thesubsection}{1em}{}
 
 % ---------- Running headers -------------------------------------------
@@ -77,6 +80,7 @@
 \fancyhead[L]{\sffamily\small\nouppercase{\leftmark}}
 \fancyhead[R]{\sffamily\small Qadra \textbullet\ Manual de usuario \quad \thepage}
 \renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{{\color{qadrablue}\hrule height\headrulewidth\vskip-\headrulewidth}}
 \fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\sffamily\small\thepage}\renewcommand{\headrulewidth}{0pt}}
 
 % ---------- Links and cross references --------------------------------
@@ -84,7 +88,7 @@
 \hypersetup{
   pdftitle={Qadra: Manual de usuario},
   pdfauthor={Eduardo Alonso Sánchez; Hatziry Vitales Herrera},
-  colorlinks=true,linkcolor=qadranavy,urlcolor=qadranavy,
+  colorlinks=true,linkcolor=qadrablue,urlcolor=qadrablue,
 }
 \usepackage[nameinlink,spanish]{cleveref}
 \crefname{part}{parte}{partes}
@@ -111,7 +115,7 @@
 
 % Short highlighted note.
 \newcommand{\nota}[1]{\par\smallskip\noindent
-  \fcolorbox{qadranavy}{qadranavy!6}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
+  \fcolorbox{qadrablue}{qadrablue50}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
   \small\textbf{Nota.} #1}}\par\smallskip}
 
 % Critical warning: actions that cannot be undone or information shown once.
