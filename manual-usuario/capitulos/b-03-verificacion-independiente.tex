@@ -1,0 +1,79 @@
+\chapter{Verificación independiente sin cuenta}\label{cap:verificacion-independiente}
+
+\paraque Permite a cualquier persona (perito, juez, contraparte) comprobar un
+paquete de evidencia de un documento sellado sin entrar a Qadra.
+
+\disponible Cualquier persona con el archivo ZIP.
+
+\textbf{Necesita:}
+\begin{itemize}
+  \item El ZIP de evidencia original, sin modificar.
+  \item Una herramienta para descomprimir archivos ZIP.
+  \item OpenSSL versión 3 instalado (referencia: 3.5.7). No se necesita
+        conexión a internet.
+\end{itemize}
+
+\pasos\ Abra una terminal en la carpeta del ZIP y ejecute, en orden:
+\begin{enumerate}
+  \item \textbf{Descomprimir el paquete.}
+\begin{verbatim}
+unzip -o evidencia.zip -d evidencia
+cd evidencia
+\end{verbatim}
+  \item \textbf{Integridad.} Calcule la huella del documento y compárela con
+        la que indica el archivo \archivo{INSTRUCCIONES.md}. Deben ser
+        idénticas.
+\begin{verbatim}
+openssl dgst -sha256 <documento>
+\end{verbatim}
+  \item \textbf{Firma.} Debe responder \texttt{Verified OK}.
+\begin{verbatim}
+openssl x509 -in certificado.pem -pubkey -noout > firmante.pub.pem
+openssl dgst -sha256 -verify firmante.pub.pem \
+  -signature <documento>.sig <documento>
+\end{verbatim}
+  \item \textbf{Certificado y revocación.} Debe responder
+        \texttt{certificado.pem: OK}.
+\begin{verbatim}
+cat ca.pem crl.pem > ca-y-crl.pem
+openssl verify -crl_check -CAfile ca-y-crl.pem certificado.pem
+\end{verbatim}
+  \item \textbf{Sello de tiempo.} Debe responder \texttt{Verification: OK}.
+        Si no existe \archivo{tsa-chain.pem}, use \archivo{ca.pem}.
+\begin{verbatim}
+openssl ts -verify -data <documento> -in <documento>.tsr \
+  -CAfile tsa-chain.pem
+\end{verbatim}
+\end{enumerate}
+
+Sustituya \texttt{<documento>} por el nombre del archivo que viene en el
+paquete.
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/B-05-verificacion-openssl.png}%
+    {Terminal con Verified OK, certificado.pem: OK y Verification: OK · sin cuenta}
+  \caption{Verificación independiente con OpenSSL.}
+  \label{fig:manual-verificacion-openssl}
+\end{figure}
+
+\resultado Las cuatro comprobaciones responden correctamente: el documento no
+cambió, la firma corresponde al documento, el certificado era válido y el
+sello de tiempo es auténtico.
+
+\begin{itemize}
+  \item Si el documento tiene firma personal, \archivo{INSTRUCCIONES.md}
+        indica dos comprobaciones adicionales; sígalas tal como aparecen.
+  \item La lista de revocación del paquete refleja el estado al momento de
+        sellar. Para el estado actual, pida una lista vigente a la CA
+        emisora.
+  \item Confirme por un medio independiente que el certificado raíz
+        (\archivo{ca.pem}) es el del despacho.
+  \item La explicación detallada de cada paso está en la
+        \emph{Guía de verificación independiente con OpenSSL} del reporte
+        técnico del Trabajo Terminal.
+\end{itemize}
+
+\importante{El sello de tiempo de esta demostración proviene de una
+autoridad local: no equivale a una constancia NOM-151 emitida por un PSC
+autorizado.}

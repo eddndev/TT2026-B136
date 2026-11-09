@@ -35,6 +35,8 @@ incorporarla:
 2. Reemplace la macro por `\includegraphics[width=0.9\textwidth]{capturas/X-NN-nombre.png}`.
 
 Las capturas no deben mostrar datos reales de clientes ni expedientes.
+La lista completa, con el rol y lo que debe verse en cada una, está en
+`capturas.md`.
 
 ## Fuentes de los textos
 
