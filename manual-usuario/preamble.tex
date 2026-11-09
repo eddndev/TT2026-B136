@@ -65,19 +65,20 @@
 \usepackage{titlesec}
 % Parts are named A (firm staff) and B (client and verification).
 \renewcommand{\thepart}{\Alph{part}}
-% Color scheme: navy titles, light blue labels, guinda rules and numbers.
+% Color scheme: each heading uses a single color (navy or light blue);
+% guinda is limited to rules, caption labels and warnings.
 \titleformat{\part}[display]
   {\centering\sffamily\Huge\bfseries\color{qadranavy}}
-  {\Large\color{ipnvino}\MakeUppercase{\partname}\ \thepart}{16pt}{}
+  {\Large\color{qadrablue}\MakeUppercase{\partname}\ \thepart}{16pt}{}
   [\vspace{8pt}{\color{qadrablue}\titlerule[1.5pt]}]
 \titleformat{\chapter}[display]
   {\sffamily\huge\bfseries\color{qadranavy}}
-  {\sffamily\Large\bfseries\color{qadrablue}\MakeUppercase{\chaptertitlename}\ \textcolor{ipnvino}{\thechapter}}
+  {\sffamily\Large\bfseries\color{qadrablue}\MakeUppercase{\chaptertitlename}\ \thechapter}
   {12pt}{\Huge}
   [\vspace{6pt}{\color{ipnvino}\titlerule[1.2pt]}]
 \titlespacing*{\chapter}{0pt}{10pt}{24pt}
-\titleformat{\section}{\sffamily\Large\bfseries\color{qadranavy}}{\textcolor{ipnvino}{\thesection}}{1em}{}
-\titleformat{\subsection}{\sffamily\large\bfseries\color{qadrablue}}{\textcolor{ipnvino}{\thesubsection}}{1em}{}
+\titleformat{\section}{\sffamily\Large\bfseries\color{qadranavy}}{\thesection}{1em}{}
+\titleformat{\subsection}{\sffamily\large\bfseries\color{qadrablue}}{\thesubsection}{1em}{}
 \titleformat{name=\subsection,numberless}{\sffamily\large\bfseries\color{qadrablue}}{}{0pt}{}
 
 % ---------- Running headers -------------------------------------------
