@@ -3,37 +3,119 @@
 % =====================================================================
 \chapter{Conclusiones}\label{cap:conclusiones}
 
-\noindent\textbf{Marcador general para edición.}
-Este capítulo se completará cuando se cierre la implementación, la validación y la revisión del documento de TT.
+Este capítulo resume lo que el prototipo demuestra, lo que aporta, los límites
+con los que debe leerse y el trabajo que queda abierto. Las cifras y las
+condiciones de cada resultado están en el Capítulo~\ref{cap:pruebas}; aquí
+solo se interpretan.
 
 \section{Resultados obtenidos}\label{sec:resultados-obtenidos}
 
-\noindent\textbf{Contenido pendiente.}
-Aquí se resumirán los resultados finales y la evidencia que los respalda.
+Se construyó y se desplegó Qadra, un prototipo web con el que un despacho legal
+administra expedientes penales, documentos y actividad procesal, y que añade a
+esos documentos servicios de integridad, confidencialidad y no repudio. El
+sistema funciona en un servidor accesible por Internet, con su propia autoridad
+certificadora y su autoridad de sellado de tiempo internas.
 
-\medskip
-\noindent\emph{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.}
+Respecto de los objetivos específicos:
+
+\begin{itemize}
+  \item \textbf{Análisis y diseño.} El análisis produjo historias de usuario,
+        casos de uso, requerimientos funcionales y no funcionales, y el diseño
+        de arquitectura, datos y criptografía del
+        Capítulo~\ref{cap:analisis}, que guiaron la implementación.
+  \item \textbf{Gestión procesal.} El prototipo administra expedientes penales,
+        sus etapas de Investigación, Intermedia y Juicio, audiencias con sus
+        resultados, plazos con calendario jurisdiccional, recursos, agenda,
+        alertas y un directorio de participantes, con historia inmutable de
+        cada cambio.
+  \item \textbf{No repudio.} Los documentos se firman con RSA-3072 y SHA-256 y
+        se sellan con un token RFC~3161. Un contrato lo firman el Cliente y el
+        despacho, cada parte con una clave que nunca sale de su navegador. Los
+        paquetes de evidencia se verifican con OpenSSL, sin el sistema, y en el
+        navegador sin enviar el archivo al servidor
+        (\cref{sec:pruebas-firma-bilateral,sec:pruebas-validador}).
+  \item \textbf{Integridad y confidencialidad.} Cada documento se cifra con
+        AES-256-GCM bajo un esquema de sobre y se identifica por su SHA-256.
+        Las pruebas de mutación confirman que una alteración del documento, de
+        la firma, del sello o del paquete se detecta y se rechaza.
+  \item \textbf{Autenticación y control de acceso.} El acceso exige contraseña
+        protegida con Argon2id y un segundo factor TOTP; el Owner puede usar
+        además su certificado como primer factor. Cuatro roles delimitan los
+        permisos, y la pertenencia al expediente se revalida en cada operación.
+  \item \textbf{Validación.} La campaña de cierre aprobó completa sobre el
+        código final (\cref{sec:pruebas-ejecucion-cierre}) y la cobertura de
+        los módulos criptográficos supera el umbral fijado. Dos criterios
+        quedan abiertos: la matriz funcional por caso de uso está parcial y la
+        evaluación de usabilidad con personas no se ha ejecutado.
+\end{itemize}
+
+La \cref{tab:pruebas-criterios} presenta el contraste criterio por criterio.
 
 \section{Contribuciones}\label{sec:contribuciones}
 
-\noindent\textbf{Contenido pendiente.}
-Aquí se describirán las contribuciones técnicas, documentales y metodológicas del Trabajo Terminal.
-
-\medskip
-\noindent\emph{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.}
+\begin{itemize}
+  \item \textbf{Evidencia verificable sin el sistema.} Cada paquete incluye el
+        documento, las firmas, los certificados, la lista de revocación, los
+        sellos de tiempo y las instrucciones para comprobarlos con herramientas
+        independientes. Quien recibe el paquete no necesita confiar en Qadra ni
+        tener una cuenta.
+  \item \textbf{Firma bilateral con custodia local de la clave.} El Cliente y
+        el despacho generan y usan su clave privada en su propio navegador. El
+        servidor recibe firmas y certificados, nunca claves.
+  \item \textbf{Actividad procesal penal con trazabilidad.} Etapas, audiencias,
+        plazos y recursos se registran como revisiones inmutables, enlazadas a
+        los documentos exactos que las sustentan y a una bitácora encadenada
+        por hash.
+  \item \textbf{Operación reproducible.} El despliegue por versiones, el
+        respaldo y la restauración están documentados y ensayados, y el manual
+        técnico permite instalar el prototipo desde el código fuente.
+\end{itemize}
 
 \section{Limitaciones}\label{sec:limitaciones}
 
-\noindent\textbf{Contenido pendiente.}
-Aquí se delimitará qué demuestra el prototipo, qué queda fuera de su alcance y bajo qué condiciones deben interpretarse los resultados.
-
-\medskip
-\noindent\emph{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.}
+\begin{itemize}
+  \item \textbf{Autoridades internas.} La autoridad certificadora y la de
+        sellado de tiempo son propias del prototipo. No hay un Prestador de
+        Servicios de Certificación autorizado, constancia NOM-151, e.firma ni
+        FIREL. La integración con un proveedor externo quedó fuera del alcance.
+  \item \textbf{Alcance de la firma.} Es una firma electrónica con RSA y sello
+        local. Un contrato admite exactamente dos partes en orden fijo y no se
+        produce un PDF firmado en formato PAdES.
+  \item \textbf{Identidad.} El certificado vincula una clave con una cuenta del
+        sistema. No acredita la identidad civil ni la personalidad jurídica de
+        su titular.
+  \item \textbf{Bitácora.} La cadena de auditoría no tiene un anclaje externo:
+        una cadena válida no prueba, por sí sola, que no se haya truncado su
+        extremo.
+  \item \textbf{Evaluación con personas.} El recorrido de firma bilateral en el
+        servicio instalado usó una cuenta Cliente controlada por el equipo. La
+        campaña de usabilidad con usuarios del despacho está preparada y no se
+        ha ejecutado (\cref{sec:pruebas-protocolo-humano}).
+  \item \textbf{Matriz funcional.} La matriz de pruebas cubre los servicios; la
+        relación de un caso positivo y uno negativo por cada caso de uso está
+        parcial.
+  \item \textbf{Reglas jurídicas.} El cálculo de plazos se aceptó sobre un
+        corpus finito de ocho supuestos (\cref{sec:pruebas-corpus-juridico}) y
+        la activación de un plazo es una decisión explícita de la persona, no
+        automática. El sistema no sustituye el criterio del litigante.
+  \item \textbf{Acceso del Cliente.} El Cliente solo opera sus propias
+        solicitudes de contrato; no consulta los documentos del expediente.
+  \item \textbf{Capacidad.} No se hicieron pruebas de carga ni se establecen
+        garantías de latencia o disponibilidad.
+\end{itemize}
 
 \section{Trabajo futuro}\label{sec:trabajo-futuro}
 
-\noindent\textbf{Contenido pendiente.}
-Aquí se ordenarán las tareas posteriores al cierre, diferenciando mejoras inmediatas, extensiones técnicas y posibles líneas de continuidad.
-
-\medskip
-\noindent\emph{Lorem ipsum dolor sit amet, consectetur adipiscing elit. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.}
+\begin{itemize}
+  \item Ejecutar la campaña de usabilidad con el despacho y corregir lo que
+        esta revele.
+  \item Completar la matriz funcional por caso de uso.
+  \item Sustituir la autoridad de sellado local por un Prestador de Servicios
+        de Certificación mediante el adaptador ya previsto, y obtener
+        constancias NOM-151.
+  \item Definir y probar la política de acceso documental del Cliente.
+  \item Anclar la cabeza de la bitácora en un servicio externo.
+  \item Ampliar el corpus de reglas procesales con revisión jurídica
+        calificada.
+  \item Medir el comportamiento bajo carga.
+\end{itemize}
