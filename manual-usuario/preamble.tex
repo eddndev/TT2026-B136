@@ -1,0 +1,117 @@
+% =====================================================================
+%  preamble.tex - Global configuration of the Qadra user manual
+%  Standalone document; it does not depend on the technical report.
+%  Engine: LuaLaTeX (latexmk -lualatex main.tex)
+% =====================================================================
+
+% ---------- Language --------------------------------------------------
+\usepackage[spanish,es-tabla,es-noindentfirst,es-nosectiondot]{babel}
+\usepackage{csquotes}
+
+% ---------- Fonts (same family as the technical report) ---------------
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Times New Roman}
+\setmonofont[Scale=0.88]{DejaVu Sans Mono}
+\usepackage{microtype}
+
+% ---------- Page layout -----------------------------------------------
+\usepackage[letterpaper,top=2.3cm,bottom=2.3cm,left=2.5cm,right=2.3cm]{geometry}
+\usepackage{setspace}
+\singlespacing
+\usepackage{ragged2e}
+\usepackage[hyphens]{url}
+\setlength{\parskip}{4pt}
+
+% ---------- Figures ---------------------------------------------------
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf,margin=1cm]{caption}
+
+% ---------- Tables ----------------------------------------------------
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\renewcommand{\arraystretch}{1.2}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% ---------- Lists -----------------------------------------------------
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt}
+\setlist[enumerate]{leftmargin=*}
+\setlist[itemize]{leftmargin=*}
+
+% ---------- Colors ----------------------------------------------------
+\usepackage{xcolor}
+\definecolor{ipnvino}{HTML}{6B1E3C}
+
+% ---------- Headings --------------------------------------------------
+\usepackage{titlesec}
+% Parts are named A (firm staff) and B (client and verification).
+\renewcommand{\thepart}{\Alph{part}}
+\titleformat{\part}[display]
+  {\centering\sffamily\Huge\bfseries\color{ipnvino}}
+  {\Large\MakeUppercase{\partname}\ \thepart}{16pt}{}
+\titleformat{\chapter}[display]
+  {\sffamily\huge\bfseries\color{ipnvino}}
+  {\sffamily\Large\bfseries\color{ipnvino!70}\MakeUppercase{\chaptertitlename}\ \thechapter}
+  {12pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{10pt}{24pt}
+\titleformat{\section}{\sffamily\Large\bfseries\color{ipnvino}}{\thesection}{1em}{}
+\titleformat{\subsection}{\sffamily\large\bfseries}{\thesubsection}{1em}{}
+
+% ---------- Running headers -------------------------------------------
+\usepackage{fancyhdr}
+\setlength{\headheight}{14pt}
+\addtolength{\topmargin}{-2pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small\nouppercase{\leftmark}}
+\fancyhead[R]{\sffamily\small Qadra \textbullet\ Manual de usuario \quad \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\sffamily\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- Links and cross references --------------------------------
+\usepackage[hidelinks,bookmarksnumbered,unicode]{hyperref}
+\hypersetup{
+  pdftitle={Qadra: Manual de usuario},
+  pdfauthor={Eduardo Alonso Sánchez; Hatziry Vitales Herrera},
+  colorlinks=true,linkcolor=ipnvino,urlcolor=ipnvino,
+}
+\usepackage[nameinlink,spanish]{cleveref}
+\crefname{part}{parte}{partes}
+\Crefname{part}{Parte}{Partes}
+\crefname{chapter}{capítulo}{capítulos}
+\Crefname{chapter}{Capítulo}{Capítulos}
+\crefname{section}{sección}{secciones}
+\Crefname{section}{Sección}{Secciones}
+\crefname{subsection}{sección}{secciones}
+\Crefname{subsection}{Sección}{Secciones}
+\crefname{table}{tabla}{tablas}
+\Crefname{table}{Tabla}{Tablas}
+\crefname{figure}{figura}{figuras}
+\Crefname{figure}{Figura}{Figuras}
+
+% ---------- Manual macros ---------------------------------------------
+% Placeholder for a screenshot that has not been taken yet.
+% #1: path under figures/ (for example capturas/A-05-inicio-sesion.png)
+% #2: what the screenshot must show and the role used to take it.
+% Replace each use with \includegraphics[width=0.9\textwidth]{#1}.
+\newcommand{\capturapendiente}[2]{%
+  \fbox{\parbox[c][5cm][c]{0.85\textwidth}{\centering
+  \textbf{CAPTURA PENDIENTE}\\[2mm]\texttt{#1}\\[1mm]\small #2}}}
+
+% Short highlighted note.
+\newcommand{\nota}[1]{\par\smallskip\noindent
+  \fcolorbox{ipnvino}{ipnvino!6}{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule\relax}{%
+  \small\textbf{Nota.} #1}}\par\smallskip}
+
+% Standard block labels of each screen description.
+\newcommand{\paraque}{\par\noindent\textbf{¿Para qué sirve?}\ }
+\newcommand{\disponible}{\par\noindent\textbf{Disponible para:}\ }
+\newcommand{\pasos}{\par\noindent\textbf{Pasos a seguir:}}
+\newcommand{\resultado}{\par\noindent\textbf{Resultado esperado:}\ }

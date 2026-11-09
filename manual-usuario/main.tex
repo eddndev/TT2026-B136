@@ -1,0 +1,31 @@
+% =====================================================================
+%  Qadra - Manual de usuario
+%  Trabajo Terminal 2026-B136 - ESCOM / IPN
+%  Standalone document, separate from the technical report in latex/.
+%
+%  Build with LuaLaTeX:
+%      latexmk -lualatex main.tex
+% =====================================================================
+\documentclass[12pt,letterpaper,oneside]{report}
+
+\input{preamble}
+
+\begin{document}
+
+% Alphabetic numbering keeps the cover page anchor distinct from page 1.
+\pagenumbering{alph}
+\input{portada}
+
+\pagenumbering{roman}
+\setcounter{tocdepth}{1}
+\tableofcontents
+\cleardoublepage
+\pagenumbering{arabic}
+
+\input{capitulos/00-introduccion}
+
+\part{Uso del sistema en el despacho}\label{parte:despacho}
+\input{capitulos/a-01-requisitos}
+\input{capitulos/a-02-acceso}
+
+\end{document}
