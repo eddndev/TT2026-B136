@@ -36,7 +36,13 @@ export async function jsonResponse(pending) {
 export async function navigate(page, label) {
   const menu = button(page, 'Abrir men\u00fa');
   if (await menu.isVisible()) await menu.click();
-  await button(page, label).filter({ visible: true }).click();
+  // The overview also offers shortcuts with the same names, so stay in the
+  // sidebar (desktop) or its mobile panel.
+  await page
+    .getByRole('navigation', { name: 'Navegaci\u00f3n principal' })
+    .getByRole('button', { name: label, exact: true })
+    .filter({ visible: true })
+    .click();
 }
 
 export async function freshOwner(page, owner, action) {
