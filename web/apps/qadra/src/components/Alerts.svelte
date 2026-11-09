@@ -1,5 +1,7 @@
 <script>
   import Button from './Button.svelte';
+  import FilterBar from './FilterBar.svelte';
+  import FilterField from './FilterField.svelte';
   import { getContext, onMount, onDestroy } from 'svelte';
   import Icon from '@qadra/ui/Icon.svelte';
   import AlertCard from './AlertCard.svelte';
@@ -238,17 +240,17 @@
       {/if}
     {/if}
     <section aria-label="Consulta de alertas">
-      <form class="filter-bar" onsubmit={apply}>
-        <label
+      <FilterBar as="form" onsubmit={apply}>
+        <FilterField
           >Lectura<select bind:value={read}
             ><option value="all">Todas</option><option value="unread">Sin leer</option></select
-          ></label
+          ></FilterField
         >
-        <label
+        <FilterField
           >Estado de alerta<select bind:value={state}
             ><option value="active">Activas</option><option value="all">Activas y resueltas</option
             ></select
-          ></label
+          ></FilterField
         >
         <div class="filter-actions">
           <Button variant="primary" type="submit">Consultar alertas</Button>
@@ -259,7 +261,7 @@
             onclick={() => load()}><Icon name="clock" size={16} />Actualizar alertas</Button
           >
         </div>
-      </form>
+      </FilterBar>
       {#if checked}<p class="filter-note">Consulta comprobada: {alertTimeLabel(checked)}</p>{/if}
     </section>
     {#if busy}<p role="status">Consultando alertas...</p>{/if}

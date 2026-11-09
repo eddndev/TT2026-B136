@@ -1,5 +1,7 @@
 <script>
   import Button from './Button.svelte';
+  import FilterBar from './FilterBar.svelte';
+  import FilterField from './FilterField.svelte';
   import { calendarEntities, calendarStatus } from '../lib/judicial-calendar-labels.mjs';
   export let rows,
     filters,
@@ -18,32 +20,32 @@
 </script>
 
 <section class="card calendar-catalog" aria-label="Cat&#225;logo de calendarios" aria-busy={busy}>
-  <form
-    class="filter-bar"
+  <FilterBar
+    as="form"
     onsubmit={(event) => {
       event.preventDefault();
       onapply();
     }}
   >
-    <label
+    <FilterField
       >Estado del calendario<select bind:value={filters.status} disabled={locked}
         ><option value="published">Publicados</option><option value="retired">Retirados</option
         ><option value="all">Todos</option></select
-      ></label
+      ></FilterField
     >
-    <label
+    <FilterField
       >Filtrar fuero<select bind:value={filters.jurisdiction} disabled={locked}
         ><option value="">Cualquier fuero</option><option value="federal">Federal</option><option
           value="local">Local</option
         ></select
-      ></label
+      ></FilterField
     >
-    <label class="calendar-entity-filter"
+    <FilterField class="calendar-entity-filter"
       >Filtrar entidad<select bind:value={filters.entityCode} disabled={locked}
         ><option value="">Cualquier entidad</option>{#each calendarEntities as [code, name]}<option
             value={code}>{code} {name}</option
           >{/each}</select
-      ></label
+      ></FilterField
     >
     <Button variant="secondary" disabled={locked}>Aplicar filtros de calendarios</Button>
     <div class="filter-actions calendar-actions">
@@ -53,7 +55,7 @@
           >Publicar calendario</Button
         >{/if}
     </div>
-  </form>
+  </FilterBar>
   {#if busy}<p role="status">Consultando calendarios...</p>{/if}
   {#each rows as row (row.id)}<article class="calendar-list-row">
       <div>

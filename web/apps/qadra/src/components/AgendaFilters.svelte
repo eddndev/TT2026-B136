@@ -1,6 +1,9 @@
 <script>
   // One row of agenda filters; the calendar beside the list moves the period.
   import Button from './Button.svelte';
+  import FilterBar from './FilterBar.svelte';
+  import FilterField from './FilterField.svelte';
+  import MoreFilters from './MoreFilters.svelte';
   export let value,
     onapply,
     disabled = false;
@@ -30,61 +33,61 @@
     onapply({ ...draft });
   }}
 >
-  <fieldset class="filter-bar min-w-0" {disabled}>
+  <FilterBar as="fieldset" class="min-w-0" {disabled}>
     <legend class="sr-only">Periodo y actividades</legend>
-    <label
+    <FilterField
       >Vista de agenda<select bind:value={draft.view}>
         <option value="day">D&#237;a</option><option value="week">Semana</option>
         <option value="month">Mes</option><option value="custom">Rango personalizado</option>
-      </select></label
+      </select></FilterField
     >
     {#if draft.view === 'custom'}
-      <label
+      <FilterField
         >Desde (incluido)<input
           type="date"
           min="0001-01-01"
           max="9999-12-31"
           required
           bind:value={draft.from}
-        /></label
+        /></FilterField
       >
-      <label
+      <FilterField
         >Hasta (excluido)<input
           type="date"
           min="0001-01-01"
           max="9999-12-31"
           required
           bind:value={draft.until}
-        /></label
+        /></FilterField
       >
     {:else}
-      <label
+      <FilterField
         >Fecha de referencia<input
           type="date"
           min="0001-01-01"
           max="9999-12-31"
           required
           bind:value={draft.date}
-        /></label
+        /></FilterField
       >
     {/if}
-    <label class="filter-narrow"
+    <FilterField size="narrow"
       >Desfase de consulta<input
         required
         maxlength="6"
         bind:value={draft.offset}
         placeholder="+00:00"
-      /></label
+      /></FilterField
     >
-    <label
+    <FilterField
       >Tipo de actividad<select value={draft.kind} onchange={changeKind}>
         <option value="all">Audiencias y plazos</option><option value="hearing">Audiencias</option>
         <option value="deadline">Plazos</option>
         <option value="resource_hearing">Audiencias de recursos</option>
         <option value="precautionary_hearing">Audiencias cautelares</option>
-      </select></label
+      </select></FilterField
     >
-    <label
+    <FilterField
       >Estado de audiencia<select
         bind:value={draft.hearing_status}
         disabled={draft.kind === 'deadline'}
@@ -92,17 +95,16 @@
         <option value="scheduled">Programadas</option>
         {#if draft.kind !== 'resource_hearing'}<option value="cancelled">Canceladas</option>{/if}
         <option value="all">Todas</option>
-      </select></label
+      </select></FilterField
     >
     <Button variant="primary" type="submit">Consultar Agenda</Button>
-  </fieldset>
-  <details class="filter-more">
-    <summary>C&#243;mo se cuenta el periodo</summary>
+  </FilterBar>
+  <MoreFilters label={'C\u00f3mo se cuenta el periodo'}>
     <p class="filter-note">
       El periodo empieza a las 00:00 en el desfase indicado y excluye el inicio del d&#237;a final.
       Las semanas empiezan el lunes. M&#225;ximo 366 d&#237;as; el estado s&#243;lo filtra
       audiencias ordinarias y cautelares. Las audiencias de recurso no tienen un estado de
       cancelaci&#243;n.
     </p>
-  </details>
+  </MoreFilters>
 </form>
