@@ -1,0 +1,23 @@
+/* Qadra's type roles over the base rules it shares with the CA portal
+   (packages/ui/src/base.css). The CA portal keeps its own sizes. */
+h1 {
+  color: var(--color-ink);
+  font-size: var(--text-page-title);
+  line-height: var(--text-page-title--line-height);
+  letter-spacing: normal;
+}
+h2 {
+  font-size: var(--text-section-title);
+  line-height: var(--text-section-title--line-height);
+  letter-spacing: normal;
+}
+label {
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+input,
+select {
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+}

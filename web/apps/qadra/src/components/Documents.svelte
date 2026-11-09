@@ -169,7 +169,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">ARCHIVO DEL EXPEDIENTE</span>
+    <span class="eyebrow">Archivo del expediente</span>
     <h1>Documentos</h1>
     <p>Del archivo original a una evidencia que puedes verificar.</p>
   </div>

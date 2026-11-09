@@ -213,7 +213,7 @@
     close();
   }}
 >
-  <ModalHeading title="Subir documento" id="upload-title" eyebrow="NUEVO ARCHIVO">
+  <ModalHeading title="Subir documento" id="upload-title" eyebrow="Nuevo archivo">
     <Button variant="icon" disabled={busy} onclick={close} aria-label="Cerrar carga"
       ><Icon name="close" /></Button
     >

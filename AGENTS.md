@@ -304,11 +304,12 @@ workflow, while the complete case-management web product was still unfinished.
   these results and integration remain pending. Direct enrollment is not an
   invitation; account recovery and certificate login remain pending. Every
   office account carries a required, immutable display name written by the
-  Owner and shown only in the Qadra greeting and account menu; it stays out of
-  `Principal`, the audit log and the CA store. See
+  Owner and shown in the Qadra dashboard heading, account menu and dashboard
+  workload; it stays out of `Principal`, the audit log and the CA store. See
   `docs/members-api.md`,
-  `docs/adr/0043-member-access-and-authentication-generation.md` and
-  `docs/adr/0087-account-display-names.md`.
+  `docs/adr/0043-member-access-and-authentication-generation.md`,
+  `docs/adr/0087-account-display-names.md` and
+  `docs/adr/0089-display-names-in-workload.md`.
 - `migrations/0002_cases.sql` persists case metadata and current assignments.
   `crates/application/src/cases/` authenticates every operation; the PostgreSQL
   adapter filters detail and paginated lists by membership. Owners see all

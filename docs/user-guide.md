@@ -35,8 +35,8 @@ para soporte, presentaciones o expedientes.
 
 ### Inicio de sesión habitual
 
-1. En **Accede a tu despacho.**, escribe el correo y la contraseña de tu cuenta.
-2. Cuando aparezca **Un paso más.**, abre tu aplicación de autenticación e
+1. En **Accede a tu despacho**, escribe el correo y la contraseña de tu cuenta.
+2. Cuando aparezca **Un paso más**, abre tu aplicación de autenticación e
    introduce el **Código de 6 dígitos** vigente.
 3. Selecciona **Verificar y entrar**. El acceso correcto muestra **Tu mesa de
    trabajo** con un saludo por tu nombre. El menú de cuenta muestra el nombre,
@@ -98,7 +98,7 @@ clave cifrada y su certificado público, introduce la contraseña de la clave
 y firma localmente los **182 bytes** preparados. Como alternativa, usa
 **Descargar bytes de acceso**, firma fuera de Qadra y selecciona la firma
 binaria de **384 bytes** en **Firma separada de acceso**. Pulsa **Comprobar firma**
-y después completa **Un paso más.** con tu TOTP o un código de recuperación sin
+y después completa **Un paso más** con tu TOTP o un código de recuperación sin
 usar. La clave y su contraseña se usan localmente y no se envían al servidor;
 preparar la firma no inicia la sesión.
 
@@ -206,9 +206,9 @@ para cerrar esa intención. No se recuperan claves ni códigos del nuevo
 integrante. Véase [alcance y límites de recuperación](member-enrollment-recovery.md).
 
 Al crear una cuenta directa escribe el **Nombre del nuevo usuario** antes del
-correo. El nombre sólo aparece en el saludo y en el menú de cuenta de esa
-persona; el directorio, las asignaciones y los informes siguen mostrando el
-correo.
+correo. El nombre aparece en el encabezado del tablero y en el menú de cuenta
+de esa persona, y en la carga por integrante del tablero; el directorio, las
+asignaciones y los informes siguen mostrando el correo.
 
 El directorio permite filtrar por correo, rol y estado. Revisa la cuenta antes de
 confirmar cambios de acceso. Cambiar rol o estado invalida el acceso anterior;

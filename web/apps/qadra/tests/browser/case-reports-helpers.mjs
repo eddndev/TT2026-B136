@@ -38,7 +38,14 @@ export async function setupReports(page, role = 'owner') {
     dashboard: dashboardValue({
       scope,
       active_cases: 72,
-      workload: [{ user_id: lawyerId, email: 'lawyer@example.test', active_cases: 72 }],
+      workload: [
+        {
+          user_id: lawyerId,
+          email: 'lawyer@example.test',
+          name: 'Laura Mendoza',
+          active_cases: 72,
+        },
+      ],
     }),
   };
   await page.route('**/api/v1/dashboard', (route) => {

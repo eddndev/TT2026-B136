@@ -119,7 +119,7 @@
   iframe {
     width: 100%;
     height: 360px;
-    border: 1px solid var(--border, #d7dce0);
+    border: 1px solid var(--color-line);
     border-radius: 8px;
   }
 </style>

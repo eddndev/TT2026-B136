@@ -5,7 +5,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">GESTI&#211;N DEL EXPEDIENTE</span>
+    <span class="eyebrow">Gesti&oacute;n del expediente</span>
     <h1>Resoluciones y notificaciones</h1>
     <p>Conserva cada declaraci&#243;n, sus fuentes y sus revisiones.</p>
   </div>

@@ -24,7 +24,9 @@
       <span class="hearing-row-text">
         <strong>{hearingKinds[record.kind]?.label || record.kind}</strong>
         <span>{hearingTimeLabel(record.scheduled_at)}</span>
-        {#if showCase}<span>{record.case_title} / {record.case_reference}</span>{/if}
+        {#if showCase}<span
+            >{record.case_title} / <span class="font-mono">{record.case_reference}</span></span
+          >{/if}
         <small
           >{hearingModalities[record.modality]} / Revisi&#243;n {record.revision} / {record.participant_count}
           participantes vinculados</small

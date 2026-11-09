@@ -82,7 +82,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">ARCHIVO DEL DESPACHO</span>
+    <span class="eyebrow">Archivo del despacho</span>
     <h1>Expedientes</h1>
     <p>Consulta los expedientes a los que tienes acceso.</p>
   </div>
@@ -115,7 +115,7 @@
   {:else if cases.length}<div class="case-grid">
       {#each cases as record}<button class="case-card" disabled={busy} onclick={() => open(record)}>
           <span class="tile-icon"><Icon name="briefcase" size={24} /></span><span class="case-text"
-            ><strong>{record.title}</strong><small>{record.reference}</small>
+            ><strong>{record.title}</strong><small class="font-mono">{record.reference}</small>
             {#if staff}<span class="case-card-badges"
                 ><span class="badge"
                   >{record.administrative_status === 'closed'

@@ -63,6 +63,23 @@ test('dashboard rejects impossible or imprecise counts and an inconsistent inclu
   await assert.rejects(() => scoped(summary({ deadlines_due_48h: 8 })).get());
 });
 
+test('dashboard workload rows may carry the account display name', async () => {
+  const named = summary({
+    workload: [
+      { user_id: userId, email: 'lawyer@example.test', name: 'Laura Mendoza', active_cases: 6 },
+    ],
+  });
+  assert.deepEqual(await scoped(named).get(), named);
+  for (const name of ['', ' Laura', 'Laura\nMendoza', 7, null])
+    await assert.rejects(() =>
+      scoped(
+        summary({
+          workload: [{ user_id: userId, email: 'lawyer@example.test', name, active_cases: 6 }],
+        }),
+      ).get(),
+    );
+});
+
 test('dashboard rejects malformed envelopes, hidden fields, invalid calendar instants and identities', async () => {
   for (const change of [
     { scope: 'all' },

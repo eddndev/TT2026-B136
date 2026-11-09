@@ -35,8 +35,8 @@
   function circle(isToday, pressed) {
     return [
       'mx-auto flex size-7 items-center justify-center rounded-full',
-      isToday && 'bg-brand-800 font-semibold text-white',
-      pressed && !isToday && 'font-semibold text-brand-900 ring-2 ring-brand-800',
+      isToday && 'bg-brand-800 font-medium text-white',
+      pressed && !isToday && 'font-medium text-brand-900 ring-2 ring-brand-800',
       pressed && isToday && 'ring-2 ring-brand-800 ring-offset-1',
     ]
       .filter(Boolean)
@@ -45,12 +45,10 @@
 </script>
 
 <div class={className}>
-  <svelte:element
-    this={`h${headingLevel}`}
-    id={headingId}
-    class="text-center text-sm font-semibold text-ink">{monthTitle(month)}</svelte:element
+  <svelte:element this={`h${headingLevel}`} id={headingId} class="text-center text-label text-ink"
+    >{monthTitle(month)}</svelte:element
   >
-  <div class="mt-6 grid grid-cols-7 text-center text-xs/6 text-slate-500">
+  <div class="mt-6 grid grid-cols-7 text-center text-caption leading-6 text-muted">
     {#each weekdayInitials as weekday (weekday.name)}
       <div>
         <span aria-hidden="true">{weekday.initial}</span><span class="sr-only">{weekday.name}</span>
@@ -60,7 +58,7 @@
   <div
     role="group"
     aria-labelledby={headingId}
-    class="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-line text-sm shadow-sm ring-1 ring-line"
+    class="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-line text-body tabular-nums shadow-sm ring-1 ring-line"
   >
     {#each cells as cell, index (index)}
       {#if cell.inMonth}
@@ -81,7 +79,7 @@
             {#if info.marker?.dot}
               <span class="size-1.5 rounded-full bg-brand-800"></span>
             {:else if info.marker?.text}
-              <span class="text-[10px] leading-3 font-semibold text-slate-600"
+              <span class="text-caption leading-3 font-medium text-ink-secondary"
                 >{info.marker.text}</span
               >
             {/if}
@@ -90,7 +88,7 @@
       {:else}
         <span
           aria-hidden="true"
-          class={`bg-slate-50 py-1.5 text-slate-400 ${rounding[cell.corner] ?? ''}`}
+          class={`bg-canvas py-1.5 text-muted ${rounding[cell.corner] ?? ''}`}
         >
           <span class="mx-auto flex size-7 items-center justify-center">{cell.day ?? ''}</span>
           <span class="block h-3"></span>

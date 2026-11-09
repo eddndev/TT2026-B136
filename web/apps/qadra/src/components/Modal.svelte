@@ -17,7 +17,7 @@
 
 <dialog
   bind:this={element}
-  class={`fixed inset-0 mx-auto mt-auto mb-4 h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-none overflow-y-auto rounded-lg bg-white px-4 pt-5 pb-4 text-left text-ink shadow-xl transition-[opacity,translate,scale] duration-300 ease-out backdrop:bg-slate-500/75 motion-reduce:transition-none starting:open:translate-y-4 starting:open:opacity-0 sm:my-auto sm:p-6 sm:starting:open:translate-y-0 sm:starting:open:scale-95 ${widths[size]} ${className}`.trim()}
+  class={`fixed inset-0 mx-auto mt-auto mb-4 h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-none overflow-y-auto rounded-lg bg-surface px-4 pt-5 pb-4 text-left text-ink shadow-xl transition-[opacity,translate,scale] duration-300 ease-out backdrop:bg-muted/75 motion-reduce:transition-none starting:open:translate-y-4 starting:open:opacity-0 sm:my-auto sm:p-6 sm:starting:open:translate-y-0 sm:starting:open:scale-95 ${widths[size]} ${className}`.trim()}
   {...$$restProps}
 >
   <slot />

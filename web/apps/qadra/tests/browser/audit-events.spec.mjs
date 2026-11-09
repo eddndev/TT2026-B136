@@ -105,7 +105,7 @@ test('expired session clears the audit panel and its private results', async ({ 
       json: { error: { code: 'invalid_session' } },
     });
   await panel(page).getByRole('button', { name: 'Actualizar', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
   await expect(panel(page)).toHaveCount(0);
 });
 for (const role of ['litigator', 'paralegal', 'client']) {

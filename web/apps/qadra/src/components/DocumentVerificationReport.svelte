@@ -79,7 +79,7 @@
       >
         <strong>{check.label}</strong>
         <p>{report[check.key]?.detail || 'Sin detalle disponible.'}</p>
-      </div>{/each}{#if report.document_digest}<span class="eyebrow">RESUMEN SHA-256</span><code
+      </div>{/each}{#if report.document_digest}<span class="eyebrow">Resumen SHA-256</span><code
         >{report.document_digest}</code
       >{/if}
   </details>

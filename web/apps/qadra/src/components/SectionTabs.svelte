@@ -22,13 +22,13 @@
   };
   $: [selectShown, rowShown] = visibility[breakpoint];
   const tabClass = (active) =>
-    `group inline-flex shrink-0 items-center border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap no-underline ${
+    `group inline-flex shrink-0 items-center border-b-2 px-1 py-4 text-label whitespace-nowrap no-underline ${
       active
         ? 'border-brand-800 text-brand-800'
-        : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+        : 'border-transparent text-muted hover:border-line-strong hover:text-ink-secondary'
     }`;
   const iconClass = (active) =>
-    `mr-2 -ml-0.5 size-5 ${active ? 'text-brand-800' : 'text-slate-400 group-hover:text-slate-500'}`;
+    `mr-2 -ml-0.5 size-5 ${active ? 'text-brand-800' : 'text-muted group-hover:text-ink-secondary'}`;
   function move(event, index) {
     const last = items.length - 1;
     const next = {
@@ -50,13 +50,13 @@
       aria-label={label}
       value={current}
       onchange={(event) => onselect(event.currentTarget.value)}
-      class="col-start-1 row-start-1 w-full appearance-none rounded-md border-0 bg-white py-2 pr-8 pl-3 text-base text-ink outline-1 -outline-offset-1 outline-slate-300 focus:outline-2 focus:-outline-offset-2 focus:outline-brand-800"
+      class="col-start-1 row-start-1 w-full appearance-none rounded-md border-0 bg-surface py-2 pr-8 pl-3 text-base text-ink outline-1 -outline-offset-1 outline-line-strong focus:outline-2 focus:-outline-offset-2 focus:outline-brand-800"
     >
       {#each items as item (item.id)}<option value={item.id}>{item.label}</option>{/each}
     </select>
     <HeroIcon
       name="chevron"
-      class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-slate-500"
+      class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-muted"
     />
   </div>
   <div class={rowShown}>

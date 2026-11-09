@@ -57,7 +57,7 @@
 
 <style>
   .fingerprint-panel {
-    border: 1px solid var(--line);
+    border: 1px solid var(--color-line);
     border-radius: 12px;
     padding: 16px;
   }
@@ -67,7 +67,7 @@
     font-size: 1.05em;
   }
   .fingerprint-sheet {
-    border-top: 1px dashed var(--line);
+    border-top: 1px dashed var(--color-line);
     padding-top: 12px;
   }
   .print-only {
@@ -78,7 +78,7 @@
     gap: 6px;
   }
   dt {
-    font-weight: 600;
+    font-weight: 500;
   }
   dd {
     margin: 0;

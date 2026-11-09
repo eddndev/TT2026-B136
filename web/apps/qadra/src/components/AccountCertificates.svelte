@@ -15,7 +15,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">MI CUENTA</span>
+    <span class="eyebrow">Mi cuenta</span>
     <h1>Mi firma digital</h1>
     <p>Tus certificados y las claves que guardas en tu equipo.</p>
   </div>

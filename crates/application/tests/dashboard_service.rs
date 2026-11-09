@@ -129,7 +129,7 @@ fn revocation_and_changed_identity_prevent_disclosure_after_loading() {
 #[test]
 fn invalid_scope_windows_or_workload_order_cannot_escape_the_port() {
     let principal = actor(Role::Litigator);
-    for change in 0..4 {
+    for change in 0..6 {
         let mut value = snapshot(DashboardScope::AssignedCases);
         match change {
             0 => value.scope = DashboardScope::Office,
@@ -138,7 +138,16 @@ fn invalid_scope_windows_or_workload_order_cannot_escape_the_port() {
                 value.workload = vec![DashboardWorkload {
                     user_id: principal.id,
                     email: principal.email.clone(),
+                    display_name: "Ana Litigante".into(),
                     active_cases: value.active_cases + 1,
+                }]
+            }
+            3 | 4 => {
+                value.workload = vec![DashboardWorkload {
+                    user_id: principal.id,
+                    email: principal.email.clone(),
+                    display_name: if change == 3 { " Ana" } else { "Ana\u{0007}" }.into(),
+                    active_cases: 1,
                 }]
             }
             _ => {
@@ -146,6 +155,7 @@ fn invalid_scope_windows_or_workload_order_cannot_escape_the_port() {
                     DashboardWorkload {
                         user_id: principal.id,
                         email: principal.email.clone(),
+                        display_name: "Ana Litigante".into(),
                         active_cases: 1
                     };
                     2

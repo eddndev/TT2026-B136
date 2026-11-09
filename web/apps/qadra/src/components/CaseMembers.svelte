@@ -114,7 +114,7 @@
 <section aria-label="Asignaciones" aria-busy={busy || writing}>
   <div class="page-heading">
     <div>
-      <span class="eyebrow">ACCESO AL EXPEDIENTE</span>
+      <span class="eyebrow">Acceso al expediente</span>
       <h1>Asignaciones</h1>
       <p>Selecciona cuentas del despacho por correo y rol.</p>
     </div>

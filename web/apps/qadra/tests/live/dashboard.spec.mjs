@@ -4,6 +4,10 @@ import { fixture, loginAs } from './helpers.mjs';
 const accounts = fixture.dashboard;
 if (!accounts) throw new Error('Dashboard fixtures must be provisioned by web-demo.sh');
 const panel = (page) => page.getByRole('region', { name: 'Indicadores operativos', exact: true });
+// Name written by scripts/web-dashboard-fixtures.mjs; the workload shows it.
+const litigatorName = 'Dashboard litigator';
+const workload = (page) =>
+  panel(page).getByRole('region', { name: 'Carga por litigante', exact: true });
 const metric = (page, key) => panel(page).locator(`[data-metric="${key}"] strong`);
 const responseTo = (page, path, method = 'GET') =>
   page.waitForResponse(
@@ -54,6 +58,7 @@ test('real dashboard separates office totals from assignments and removes revoke
     expect(owner.summary.workload.find((row) => row.user_id === accounts.litigator.id)).toEqual({
       user_id: accounts.litigator.id,
       email: accounts.litigator.email,
+      name: litigatorName,
       active_cases: 1,
     });
     await expect(metric(page, 'active_cases')).toHaveText(String(owner.summary.active_cases));
@@ -74,6 +79,7 @@ test('real dashboard separates office totals from assignments and removes revoke
       {
         user_id: accounts.litigator.id,
         email: accounts.litigator.email,
+        name: litigatorName,
         active_cases: 1,
       },
     ]);
@@ -87,6 +93,7 @@ test('real dashboard separates office totals from assignments and removes revoke
     await expect(panel(assignedPage)).toContainText('Tus expedientes asignados');
     await expect(metric(assignedPage, 'active_cases')).toHaveText('1');
     await expect(metric(assignedPage, 'pending_contracts')).toHaveText('1');
+    await expect(workload(assignedPage)).toContainText(litigatorName);
 
     const removed = await page.request.delete(
       `${process.env.API_PROXY_TARGET}/api/v1/cases/${accounts.visibleCase.id}/members/${accounts.litigator.id}`,
@@ -116,6 +123,7 @@ test('real dashboard separates office totals from assignments and removes revoke
       await expect(metric(assignedPage, key)).toHaveText('0');
     }
     await expect(panel(assignedPage)).not.toContainText(accounts.litigator.email);
+    await expect(workload(assignedPage)).not.toContainText(litigatorName);
     expect(errors).toEqual([]);
   } finally {
     await context.close();

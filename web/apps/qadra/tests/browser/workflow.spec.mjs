@@ -22,14 +22,18 @@ test('overview offers case actions and browser navigation without losing session
 }) => {
   await setup(page);
   await login(page, false, false);
-  await expect(page.getByRole('region', { name: 'Acciones del despacho' })).toContainText(
+  const links = page.getByRole('region', { name: 'Accesos', exact: true });
+  await expect(links.getByRole('button')).toHaveText([
     'Expedientes',
-  );
-  await page.getByRole('button', { name: 'Seleccionar expediente', exact: true }).click();
+    'Pendientes de sello',
+    'Documentos sellados',
+    'Mis alertas',
+  ]);
+  await links.getByRole('button', { name: 'Expedientes', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Expedientes', exact: true })).toBeVisible();
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Tu mesa de trabajo' })).toBeVisible();
-  await page.getByRole('button', { name: 'C\u00f3mo funciona' }).click();
+  await navigate(page, 'Gu\u00eda de uso');
   await expect(
     page.getByRole('heading', { name: 'Un recorrido claro, de principio a fin' }),
   ).toBeVisible();
@@ -106,7 +110,7 @@ test('initial enrollment is acknowledged before returning to login', async ({ pa
   ]);
   await page.getByLabel('Ya guard\u00e9 la clave y los c\u00f3digos').check();
   await page.getByRole('button', { name: 'Finalizar' }).click();
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
   expect(await page.evaluate(() => document.body.textContent.includes('TESTSECRET'))).toBe(false);
 });
 
@@ -221,7 +225,7 @@ test('login upload seal verify download logout follow the case HTTP contract', a
   await page.evaluate(() => scrollTo(0, 0));
   await page.screenshot({ path: 'test-results/document-desktop.png', fullPage: true });
   await signOut(page);
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
 });
 
@@ -254,7 +258,7 @@ test('rejected MFA requests fresh credentials; expired session clears case conte
   );
   await page.getByLabel('Identificador del documento').fill(id);
   await page.getByRole('button', { name: 'Abrir documento' }).click();
-  await expect(page.getByRole('heading', { name: 'Accede a tu despacho.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Accede a tu despacho' })).toBeVisible();
 });
 
 test('owner enrollment and audit work in a mobile viewport', async ({ page }) => {

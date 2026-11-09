@@ -9,12 +9,16 @@
 
 @source '../../../../packages/ui/src';
 
-/* Brand tokens. brand-800 and navy are the Qadra blue (#1e40af) and navy
+/* Design tokens. brand-800 and navy are the Qadra blue (#1e40af) and navy
    (#111344) of packages/ui/src/base.css; the rest of the brand scale keeps the
-   same blue family so tints and hovers stay on brand. Neutrals use slate, the
-   family of the existing ink, muted and line colors. */
-@theme {
+   same blue family so tints and hovers stay on brand. Neutrals use slate.
+   The block is static so every token is emitted on :root and the legacy CSS
+   can read it as var(--color-NAME) or var(--text-NAME) even when no utility
+   uses it yet. */
+@theme static {
   --font-sans: Inter, 'Segoe UI', sans-serif;
+
+  /* Accent: the brand ramp is the only accent color. */
   --color-brand-50: #eff6ff;
   --color-brand-100: #dbeafe;
   --color-brand-200: #bfdbfe;
@@ -27,8 +31,56 @@
   --color-brand-900: #1e3a8a;
   --color-brand-950: #172554;
   --color-navy: #111344;
+
+  /* Text roles: primary, secondary and muted (meta, captions). */
   --color-ink: #0f172a;
+  --color-ink-secondary: #475569;
   --color-muted: #64748b;
+
+  /* Lines and surfaces. */
   --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+
+  /* Semantic states. */
   --color-success: #2f855a;
+  --color-danger: #b91c1c;
+
+  /* Type roles: size, line height and weight travel together. */
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-caption--font-weight: 400;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.25rem;
+  --text-body--font-weight: 400;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.25rem;
+  --text-label--font-weight: 500;
+  --text-card-title: 1rem;
+  --text-card-title--line-height: 1.5rem;
+  --text-card-title--font-weight: 500;
+  --text-section-title: 1.125rem;
+  --text-section-title--line-height: 1.75rem;
+  --text-section-title--font-weight: 500;
+  --text-page-title: 1.5rem;
+  --text-page-title--line-height: 2rem;
+  --text-page-title--font-weight: 500;
+  --text-figure: 1.875rem;
+  --text-figure--line-height: 2.25rem;
+  --text-figure--font-weight: 500;
+}
+
+/* The reset makes strong and b bolder (700); the type scale stops at 500. */
+@layer base {
+  strong,
+  b {
+    font-weight: 500;
+  }
+}
+
+/* The card surface: white, 8px radius, a soft shadow and a hairline ring.
+   Not named card: the legacy CSS still styles a .card class. */
+@utility surface-card {
+  @apply rounded-lg bg-surface shadow-sm ring-1 ring-line;
 }

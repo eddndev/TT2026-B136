@@ -15,11 +15,11 @@
 </script>
 
 <header
-  class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-line bg-white px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-8"
+  class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-line bg-surface px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-8"
 >
   <button
     type="button"
-    class="-m-2.5 p-2.5 text-slate-700 hover:text-ink lg:hidden"
+    class="-m-2.5 p-2.5 text-ink-secondary hover:text-ink lg:hidden"
     aria-label="Abrir men&#250;"
     onclick={() => onmenu()}><HeroIcon name="menu" class="size-6" /></button
   >

@@ -6,7 +6,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">AYUDA Y ORIENTACI&Oacute;N</span>
+    <span class="eyebrow">Ayuda y orientaci&oacute;n</span>
     <h1>Un recorrido claro, de principio a fin</h1>
     <p>Lo que necesitas para trabajar con tus documentos.</p>
   </div>

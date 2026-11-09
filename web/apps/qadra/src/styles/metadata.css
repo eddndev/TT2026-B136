@@ -18,8 +18,9 @@
   gap: 14px;
 }
 .metadata-fields legend {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
   margin-bottom: 16px;
 }
 .metadata-tags-editor {
@@ -64,34 +65,37 @@
   margin: 18px 0;
 }
 .metadata-values dt {
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--color-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   margin-bottom: 6px;
 }
 .metadata-values dd {
   margin: 0;
-  color: var(--navy);
-  font-size: 14px;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
   overflow-wrap: anywhere;
 }
 .metadata-comparison {
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-line);
   padding: 16px;
   border-radius: 9px;
 }
 .metadata-history {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-line);
 }
 .metadata-revision {
   padding: 14px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-line);
 }
 .metadata-revision summary {
   cursor: pointer;
-  color: var(--navy);
-  font-size: 12px;
+  color: var(--color-ink);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   overflow-wrap: anywhere;
 }
 .metadata-change-heading {
@@ -101,7 +105,7 @@
   max-width: calc(100% - 20px);
 }
 .metadata-revision time {
-  color: var(--muted);
+  color: var(--color-muted);
 }
 .metadata-revision code {
   overflow-wrap: anywhere;
@@ -120,12 +124,13 @@
 }
 .metadata-filters {
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-line);
   padding-bottom: 16px;
 }
 .metadata-filters summary {
-  font-size: 13px;
-  color: var(--navy);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-ink);
   cursor: pointer;
 }
 .metadata-filter-fields {
@@ -136,7 +141,9 @@
 }
 .metadata-filter-fields label {
   min-width: 0;
-  font-size: 12px;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
 }
 @media (max-width: 600px) {
   .metadata-values,

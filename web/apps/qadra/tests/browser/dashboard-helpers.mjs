@@ -13,6 +13,7 @@ export const dashboardValue = (change = {}) => ({
     {
       user_id: '11111111-1111-4111-8111-111111111111',
       email: 'lawyer@example.test',
+      name: 'Laura Mendoza',
       active_cases: 6,
     },
   ],

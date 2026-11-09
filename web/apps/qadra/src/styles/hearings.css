@@ -5,7 +5,6 @@
 }
 .hearing-list,
 .hearing-pick-list,
-.hearing-agenda-days,
 .hearing-fields {
   display: grid;
   gap: 16px;
@@ -26,8 +25,9 @@
   overflow-wrap: anywhere;
 }
 .hearing-row-text > span {
-  font-size: 13px;
-  color: var(--muted);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-muted);
 }
 .hearing-filter,
 .hearing-provenance,
@@ -50,7 +50,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 14px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-line);
   overflow-wrap: anywhere;
 }
 .hearing-participants {
@@ -74,19 +74,17 @@
 }
 .hearing-revision {
   padding: 16px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-line);
 }
 .hearing-revision > summary {
-  color: var(--navy);
+  color: var(--color-ink);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
   overflow-wrap: anywhere;
 }
 .hearing-agenda-filters {
   margin-bottom: 24px;
-}
-.hearing-agenda-days h3 {
-  margin: 20px 0 12px;
 }
 @media (max-width: 600px) {
   .hearing-row {
@@ -112,9 +110,10 @@
   overflow-wrap: anywhere;
 }
 .hearing-reference summary {
-  color: var(--navy);
+  color: var(--color-ink);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
 }
 .hearing-reference p {
   margin-top: 8px;

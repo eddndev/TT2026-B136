@@ -93,7 +93,7 @@ test('public receipt and external182-byte signing reach the existing MFA only af
   expect(state.proofs).toEqual([]);
   expect(state.mfas).toEqual([]);
   await proof(page).click();
-  await expect(page.getByRole('heading', { name: 'Un paso m\u00e1s.', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Un paso m\u00e1s', exact: true })).toBeVisible();
   expect(state.proofs).toHaveLength(1);
   expect(state.proofs[0].input).toEqual({
     challenge_token: state.starts[0].value.challenge_token,

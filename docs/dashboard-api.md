@@ -25,7 +25,7 @@ Todas las respuestas conservan `Cache-Control: no-store`. El objeto contiene:
 | `deadlines_due_48h` | Vencimientos desde el instante consultado, incluido, hasta 48 horas después, excluido. |
 | `deadlines_due_7d` | La misma ventana hasta siete días, incluidos los próximos a 48 horas. |
 | `deadlines_unresolved` | Plazos activos no atendidos sin fecha operativa comprobada. |
-| `workload` | Lista ordenada por `user_id` con correo y número de expedientes activos asignados por litigante activo. |
+| `workload` | Lista ordenada por `user_id` con una fila por litigante activo: `user_id`, `email`, `name` (nombre de la cuenta de `docs/adr/0087-account-display-names.md`) y `active_cases` (expedientes activos asignados). |
 
 El conteo de contratos usa los registros de contrato de
 `docs/adr/0086-bilateral-contract-signing.md`, no el tipo documental de texto

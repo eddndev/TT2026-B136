@@ -14,7 +14,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">ADMINISTRACI&#211;N</span>
+    <span class="eyebrow">Administraci&oacute;n</span>
     <h1>Bit&#225;cora</h1>
     <p>Movimientos del despacho e incidentes de integridad documental.</p>
   </div>

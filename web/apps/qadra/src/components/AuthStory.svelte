@@ -6,7 +6,6 @@
 <section class="auth-story">
   <a class="brand" href="/" aria-label="Qadra, inicio"><Brand /></a>
   <div class="story-copy">
-    <span class="eyebrow">TU DESPACHO, EN ORDEN</span>
     <h1>Tu trabajo legal,<br /><span>bien resguardado.</span></h1>
     <p>
       Del primer archivo a su evidencia. Un espacio claro para cuidar cada documento de tu despacho.

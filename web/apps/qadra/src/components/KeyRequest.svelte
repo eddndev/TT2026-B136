@@ -360,7 +360,7 @@
   }
   .key-request-fields legend {
     margin-bottom: 12px;
-    font-weight: 600;
+    font-weight: 500;
   }
   .key-request input {
     width: 100%;

@@ -57,7 +57,7 @@ test('a month grid names itself and keeps outside days out of the tab order', as
   assert.ok(id);
   assert.match(html, new RegExp(`aria-labelledby="${id}"`));
   assert.match(html, /<span aria-hidden="true">L<\/span><span class="sr-only">Lunes<\/span>/);
-  assert.match(html, /<span[^>]*aria-hidden="true"[^>]*class="[^"]*bg-slate-50[^"]*rounded-tl-lg/);
+  assert.match(html, /<span[^>]*aria-hidden="true"[^>]*class="[^"]*bg-canvas[^"]*rounded-tl-lg/);
   assert.match(html, /class="[^"]*rounded-tr-lg[^"]*"[^>]*aria-label="1 de noviembre de 2026"/);
   assert.equal(buttons(html).length, 30);
   assert.ok(buttons(html).every((tag) => !isDisabled(tag)));

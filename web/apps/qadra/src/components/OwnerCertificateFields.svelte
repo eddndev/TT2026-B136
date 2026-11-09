@@ -76,8 +76,8 @@
 
 <style>
   .prepared {
-    background: #f8fafc;
-    border: 1px solid var(--line);
+    background: var(--color-canvas);
+    border: 1px solid var(--color-line);
     border-radius: 12px;
     padding: 20px;
   }
@@ -90,7 +90,7 @@
     gap: 6px;
   }
   dt {
-    font-weight: 600;
+    font-weight: 500;
   }
   dd {
     margin: 0 0 8px;

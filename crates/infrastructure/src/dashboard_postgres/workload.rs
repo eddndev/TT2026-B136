@@ -10,7 +10,7 @@ pub(super) fn load(
     active_cases: &[Uuid],
 ) -> Result<Vec<DashboardWorkload>, ApplicationError> {
     let rows = tx.query(
-        "SELECT u.id,u.email,
+        "SELECT u.id,u.email,u.display_name,
             (SELECT count(*) FROM case_memberships m WHERE m.user_id=u.id AND m.case_id=ANY($1::uuid[])) AS active_cases
          FROM users u WHERE u.active AND u.role='litigator'
             AND ($2::boolean OR EXISTS(SELECT 1 FROM case_memberships m WHERE m.user_id=u.id AND m.case_id=ANY($1::uuid[])))
@@ -23,6 +23,7 @@ pub(super) fn load(
             Ok(DashboardWorkload {
                 user_id: UserId::from_uuid(row.try_get("id").map_err(port)?),
                 email: row.try_get("email").map_err(port)?,
+                display_name: row.try_get("display_name").map_err(port)?,
                 active_cases: u64::try_from(row.try_get::<_, i64>("active_cases").map_err(port)?)
                     .map_err(super::inconsistent)?,
             })

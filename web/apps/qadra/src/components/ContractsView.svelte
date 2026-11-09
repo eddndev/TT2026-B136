@@ -47,7 +47,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">{client ? 'MI ESPACIO' : 'CONTRATOS'}</span>
+    <span class="eyebrow">{client ? 'Mi espacio' : 'Contratos'}</span>
     <h1>{client ? 'Mis contratos' : 'Por firmar'}</h1>
     <p>
       {client

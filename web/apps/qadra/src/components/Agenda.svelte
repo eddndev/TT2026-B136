@@ -218,7 +218,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">PROGRAMACI&#211;N DEL DESPACHO</span>
+    <span class="eyebrow">Programaci&oacute;n del despacho</span>
     <h1>Agenda del despacho</h1>
     <p>Audiencias y vencimientos operativos de tus expedientes autorizados.</p>
   </div>

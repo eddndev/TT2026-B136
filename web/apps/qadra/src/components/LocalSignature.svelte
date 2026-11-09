@@ -162,7 +162,7 @@
 
 <style>
   .local-signature {
-    border: 1px solid var(--line);
+    border: 1px solid var(--color-line);
     border-radius: 12px;
     padding: 16px;
   }

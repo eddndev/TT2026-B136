@@ -199,7 +199,7 @@
 <section class="alerts-workspace" aria-label="Mis alertas">
   <div class="page-heading">
     <div>
-      <span class="eyebrow">TU SEGUIMIENTO PERSONAL</span>
+      <span class="eyebrow">Tu seguimiento personal</span>
       <h1>Mis alertas</h1>
       <p>Avisos de tus audiencias y plazos, con su origen y estado de lectura.</p>
     </div>

@@ -55,7 +55,6 @@
   }
 </script>
 
-<span class="eyebrow">RECUPERAR EL ACCESO</span>
 <h2>{mode === 'complete' ? 'Elige una nueva contrase\u00f1a.' : 'Recupera tu acceso.'}</h2>
 {#if mode === 'request'}
   <p>Solicita un enlace privado para cambiar tu contrase&ntilde;a.</p>

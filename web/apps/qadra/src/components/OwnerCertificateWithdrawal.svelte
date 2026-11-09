@@ -170,7 +170,7 @@
 </script>
 
 <Modal class="modal" bind:element={dialog} aria-label="Retirar mi certificado" oncancel={close}>
-  <ModalHeading title="Retirar mi certificado" eyebrow="MI CUENTA" />
+  <ModalHeading title="Retirar mi certificado" eyebrow="Mi cuenta" />
   <p class="identifier">{bindingId}</p>
   <p>
     El retiro es terminal para este v&#237;nculo. Conserva su evidencia hist&#243;rica; no revoca el

@@ -274,7 +274,7 @@
   <ModalHeading
     title={original ? 'Editar participante' : 'Agregar participante'}
     id="participant-editor-title"
-    eyebrow="DIRECTORIO DEL EXPEDIENTE"
+    eyebrow="Directorio del expediente"
   >
     <Button variant="icon" disabled={busy} aria-label="Cerrar participante" onclick={close}
       ><Icon name="close" /></Button

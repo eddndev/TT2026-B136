@@ -24,9 +24,9 @@
 
 <section class="card case-context">
   <div>
-    <span class="eyebrow">EXPEDIENTE ACTUAL</span>
+    <span class="eyebrow">Expediente actual</span>
     <h2>{record.title}</h2>
-    <p>{record.reference}</p>
+    <p class="font-mono">{record.reference}</p>
   </div>
   <div class="action-row">
     <Button variant="secondary" onclick={onchange}>Cambiar expediente</Button>

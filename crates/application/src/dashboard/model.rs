@@ -1,5 +1,8 @@
 use crate::ApplicationError;
-use domain::{clock::OffsetDateTime, identity::UserId};
+use domain::{
+    clock::OffsetDateTime,
+    identity::{DisplayName, UserId},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DashboardScope {
@@ -18,6 +21,8 @@ impl DashboardScope {
 pub struct DashboardWorkload {
     pub user_id: UserId,
     pub email: String,
+    /// Account name, sent as `name`: docs/adr/0087-account-display-names.md.
+    pub display_name: String,
     pub active_cases: u64,
 }
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,6 +50,7 @@ impl DashboardSnapshot {
                 v.active_cases > self.active_cases
                     || v.email.is_empty()
                     || v.email.chars().any(char::is_control)
+                    || DisplayName::from_stored(&v.display_name).is_err()
                     || (self.scope == DashboardScope::AssignedCases && v.active_cases == 0)
             })
         {

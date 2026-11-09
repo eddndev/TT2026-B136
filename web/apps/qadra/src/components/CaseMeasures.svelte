@@ -115,7 +115,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">EXPEDIENTE</span>
+    <span class="eyebrow">Expediente</span>
     <h1>Medidas cautelares</h1>
   </div>
 </div>

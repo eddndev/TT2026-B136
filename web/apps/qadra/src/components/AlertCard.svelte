@@ -76,7 +76,10 @@
     </span>
   </div>
   <h2>{row.subject_title}</h2>
-  <p class="alert-case">{row.case_title} <span aria-hidden="true">/</span> {row.case_reference}</p>
+  <p class="alert-case">
+    {row.case_title} <span aria-hidden="true">/</span>
+    <span class="font-mono">{row.case_reference}</span>
+  </p>
   {#if row.kind.kind === 'upcoming'}
     <p class="alert-reason">{row.kind.lead_hours} horas antes</p>
     <dl class="alert-times">

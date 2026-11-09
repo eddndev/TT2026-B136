@@ -48,7 +48,7 @@ export async function selectSignature(page) {
 }
 
 export async function enterLoginMfa(page, recovery = false) {
-  await expect(page.getByRole('heading', { name: 'Un paso m\u00e1s.', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Un paso m\u00e1s', exact: true })).toBeVisible();
   if (recovery)
     await page
       .getByRole('button', { name: 'Usar c\u00f3digo de recuperaci\u00f3n', exact: true })

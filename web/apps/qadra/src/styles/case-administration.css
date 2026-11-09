@@ -23,14 +23,16 @@
   margin: 24px 0;
 }
 .case-values dt {
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--color-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   margin-bottom: 6px;
 }
 .case-values dd {
   margin: 0;
-  color: var(--navy);
-  font-size: 14px;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
   overflow-wrap: anywhere;
 }
 .case-values ol {
@@ -47,15 +49,16 @@
   white-space: pre-wrap;
 }
 .case-offenses {
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
   padding: 16px;
   min-width: 0;
 }
 .case-offenses legend {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--navy);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
+  color: var(--color-ink);
 }
 .case-offense-list {
   padding-left: 24px;
@@ -69,8 +72,8 @@
 }
 .case-comparison {
   padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
 }
 .case-filters {
   margin: 20px 0;
@@ -91,13 +94,8 @@
 }
 .case-history {
   margin-top: 24px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-line);
   padding-top: 20px;
-}
-.case-sections {
-  flex-wrap: wrap;
-  column-gap: 24px;
-  row-gap: 0;
 }
 @media (max-width: 600px) {
   .case-field-grid,
@@ -122,12 +120,14 @@
 .case-comparison > p {
   overflow-wrap: anywhere;
 }
+/* Mirrors the shared input rule in packages/ui/src/base.css so the textarea
+   matches the inputs beside it; migrate both together. */
 .case-editor textarea {
   font: inherit;
   min-width: 0;
   max-width: 100%;
   width: 100%;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid #d8dee5;
   border-radius: 7px;
   color: var(--navy);

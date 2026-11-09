@@ -92,3 +92,13 @@ still leave unequal durations; use measured preparation and browser times to
 adjust ownership. A successful inventory comparison proves selection, not
 service correctness or runtime improvement. New scenario dependencies must
 be added to the plan along with their tests.
+
+## Amendment of 2026-11-08
+
+The run of 2026-11-08 measured 228, 262 and 498 seconds of browser time on
+partitions one, two and three, and partition three also prepared 13 fixture
+families on the host that runs the Rust tests. Dashboard, case reports and
+audit events move to partition one together with their fixtures. Each of
+those fixtures enrolls its own accounts and consumes only their recovery
+codes, so no reserved bootstrap code changes hands. Administration,
+participants and document classification stay on the primary.

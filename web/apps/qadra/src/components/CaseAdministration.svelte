@@ -21,7 +21,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">DATOS DEL EXPEDIENTE</span>
+    <span class="eyebrow">Datos del expediente</span>
     <h1>Resumen del expediente</h1>
     <p>Ficha, administraci&#243;n y registro inicial de etapa.</p>
   </div>
@@ -84,7 +84,7 @@
     {ondenied}
   />{/if}
 <section class="card case-stage">
-  <span class="eyebrow">REGISTRO INICIAL DE ETAPA</span>
+  <span class="eyebrow">Registro inicial de etapa</span>
   {#if record.initial_stage}<h2>Investigaci&#243;n</h2>
     <p>Etapa registrada al crear el expediente. Este registro no acredita un acto judicial.</p>
     <p class="hint">

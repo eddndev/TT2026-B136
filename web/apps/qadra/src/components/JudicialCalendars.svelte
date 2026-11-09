@@ -172,7 +172,7 @@
 
 <div class="page-heading">
   <div>
-    <span class="eyebrow">CONFIGURACI&#211;N DEL DESPACHO</span>
+    <span class="eyebrow">Configuraci&oacute;n del despacho</span>
     <h1>Calendarios jurisdiccionales</h1>
     <p>&#193;mbitos, fuentes y clasificaci&#243;n civil con historia exacta.</p>
   </div>

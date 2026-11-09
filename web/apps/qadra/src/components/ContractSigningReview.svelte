@@ -62,7 +62,7 @@
     overflow-wrap: anywhere;
   }
   .contract-facts dt {
-    font-weight: 600;
+    font-weight: 500;
   }
   .contract-facts dd {
     margin: 0 0 8px;
@@ -75,7 +75,7 @@
   iframe {
     width: 100%;
     height: 420px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--color-line);
     border-radius: 8px;
   }
 </style>

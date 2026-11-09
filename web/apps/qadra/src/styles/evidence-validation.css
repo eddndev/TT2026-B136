@@ -1,11 +1,13 @@
 .evidence-validation {
   margin-top: 26px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-line);
   padding-top: 22px;
 }
 .evidence-validation h4 {
-  color: var(--navy);
-  font-size: 15px;
+  color: var(--color-ink);
+  font-size: var(--text-card-title);
+  line-height: var(--text-card-title--line-height);
+  font-weight: var(--text-card-title--font-weight);
 }
 .evidence-validation > .hint {
   margin-top: 6px;
@@ -18,9 +20,10 @@
   max-width: 520px;
 }
 .evidence-validation-form label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
+  color: var(--color-ink-secondary);
 }
 .evidence-validation-form input[type='file'] {
   min-width: 0;
@@ -36,15 +39,16 @@
   gap: 6px;
   margin: 16px 0 0;
   padding-left: 20px;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-muted);
 }
 .evidence-validation-stages li.done {
-  color: var(--green);
+  color: var(--color-success);
 }
 .evidence-validation-stages li.current {
-  color: var(--navy);
-  font-weight: 600;
+  color: var(--color-ink);
+  font-weight: 500;
 }
 .evidence-validation-live {
   position: absolute;
@@ -59,10 +63,10 @@
 }
 .evidence-result {
   margin-top: 20px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-line);
   border-radius: 8px;
   padding: 18px;
-  background: #fff;
+  background: var(--color-surface);
 }
 .evidence-result-heading {
   display: flex;
@@ -73,18 +77,22 @@
 .evidence-result-heading p,
 .evidence-result-current {
   margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 13px;
+  color: var(--color-muted);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
 }
 .evidence-result-meta {
-  font-size: 13px;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
   margin-top: 6px;
   overflow-wrap: anywhere;
 }
 .evidence-result h5 {
   margin-top: 20px;
-  color: var(--navy);
-  font-size: 13px;
+  color: var(--color-ink);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
 }
 .evidence-result-components,
 .evidence-result-instants,
@@ -95,17 +103,19 @@
   margin: 10px 0 0;
   padding: 0;
   list-style: none;
-  font-size: 13px;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
 }
 .evidence-result-components > li {
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-line);
   border-radius: 8px;
   padding: 12px 14px;
 }
 .evidence-result-components p {
   margin-top: 6px;
-  font-size: 13px;
-  color: #475569;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--color-ink-secondary);
   overflow-wrap: anywhere;
 }
 .evidence-result-row {
@@ -121,14 +131,15 @@
 }
 .evidence-result-instants small {
   grid-column: 1 / -1;
-  color: var(--muted);
+  color: var(--color-muted);
 }
 .evidence-result-anchors li,
 .evidence-result-notes li {
-  color: #475569;
+  color: var(--color-ink-secondary);
   overflow-wrap: anywhere;
 }
 .evidence-result-notes li.warning {
+  /* No warning token yet; same amber as base.css .badge.warning. */
   color: #92400e;
 }
 .evidence-result .technical-detail code {

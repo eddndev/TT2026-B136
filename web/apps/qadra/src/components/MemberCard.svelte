@@ -41,7 +41,7 @@
     justify-content: space-between;
     gap: 18px;
     padding-block: 18px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--color-line);
     min-width: 0;
   }
   .member-identification {

@@ -12,7 +12,7 @@
 .hearing-result-picker-row,
 .hearing-result-agreement {
   padding-block: 12px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-line);
 }
 .hearing-result-row {
   width: 100%;
@@ -33,7 +33,7 @@
 }
 .hearing-result-optional > summary {
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--text-label--font-weight);
 }
 @media (max-width: 640px) {
   .hearing-result-row {

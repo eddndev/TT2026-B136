@@ -57,7 +57,8 @@ fn response(snapshot: DashboardSnapshot) -> Result<Value, ApplicationError> {
         "deadlines_due_7d": snapshot.deadlines_due_7d,
         "deadlines_unresolved": snapshot.deadlines_unresolved,
         "workload": snapshot.workload.into_iter().map(|entry| json!({
-            "user_id": entry.user_id.to_string(), "email": entry.email, "active_cases": entry.active_cases
+            "user_id": entry.user_id.to_string(), "email": entry.email,
+            "name": entry.display_name, "active_cases": entry.active_cases
         })).collect::<Vec<_>>()
     }))
 }

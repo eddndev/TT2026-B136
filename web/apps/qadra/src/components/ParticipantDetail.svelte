@@ -35,7 +35,7 @@
 <section class="card participant-detail" aria-label="Datos del participante">
   <div class="section-heading">
     <div>
-      <span class="eyebrow">DATOS DEL PARTICIPANTE</span>
+      <span class="eyebrow">Datos del participante</span>
       <h2>{record.display_name}</h2>
     </div>
     {#if canParticipants(user.role, 'manage')}<div class="action-row">

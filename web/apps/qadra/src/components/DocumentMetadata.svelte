@@ -77,7 +77,7 @@
 >
   <div class="section-heading">
     <div>
-      <span class="eyebrow">ORGANIZACI&#211;N DEL DOCUMENTO</span>
+      <span class="eyebrow">Organizaci&oacute;n del documento</span>
       <h2>Clasificaci&#243;n actual del documento</h2>
     </div>
     {#if can(user.role, 'classify')}<Button

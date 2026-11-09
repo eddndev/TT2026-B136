@@ -5,8 +5,8 @@
   align-items: center;
   justify-content: center;
   padding: 40px 28px;
-  background: var(--navy, #111344);
-  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+  background: var(--color-navy);
+  font-family: var(--font-sans);
 }
 .auth-card {
   display: grid;
@@ -17,20 +17,20 @@
   border: 1px solid #ffffff1a;
   border-radius: 16px;
   overflow: hidden;
-  background: #fff;
+  background: var(--color-surface);
   box-shadow: 0 24px 80px #06071f40;
 }
 .auth-story {
   display: flex;
   flex-direction: column;
   padding: 40px 48px 28px;
-  background: #1b254b;
-  color: #fff;
+  background: var(--color-navy);
+  color: var(--color-surface);
   min-width: 0;
 }
 .auth-story > .brand {
   align-self: flex-start;
-  color: #fff;
+  color: var(--color-surface);
   font-size: 36px;
   gap: 12px;
 }
@@ -42,27 +42,22 @@
   margin: auto 0;
   padding: 50px 0 44px;
 }
-.story-copy > .eyebrow {
-  color: #b7caff;
-  font-size: 10px;
-  letter-spacing: 1.8px;
-}
 .story-copy h1 {
-  color: #fff;
+  color: var(--color-surface);
   font-size: clamp(32px, 3.3vw, 43px);
   line-height: 1.2;
-  font-weight: 650;
+  font-weight: 500;
   letter-spacing: -1.4px;
   margin: 20px 0;
 }
 .story-copy h1 span {
-  color: #c3d4ff;
+  color: var(--color-brand-200);
 }
 .story-copy > p {
   max-width: 360px;
-  font-size: 14px;
+  font-size: var(--text-body);
   line-height: 1.8;
-  color: #bec9e1;
+  color: var(--color-brand-200);
 }
 .auth-benefits {
   display: flex;
@@ -83,22 +78,22 @@
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border: 1px solid #52699780;
+  border: 1px solid #ffffff1a;
   border-radius: 10px;
   background: #ffffff08;
-  color: #bed1ff;
+  color: var(--color-brand-300);
 }
 .auth-benefits strong {
   display: block;
   padding-top: 1px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-label);
+  font-weight: var(--text-label--font-weight);
   line-height: 1.5;
 }
 .auth-benefits p {
-  color: #bec9e1;
+  color: var(--color-brand-200);
   margin-top: 4px;
-  font-size: 12px;
+  font-size: var(--text-caption);
   line-height: 1.6;
 }
 .auth-story footer {
@@ -108,29 +103,25 @@
   gap: 12px;
   border-top: 1px solid #ffffff1a;
   padding-top: 22px;
-  color: #a8b8d5;
-  font-size: 10px;
+  color: var(--color-brand-300);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
 }
 .auth-panel {
   display: flex;
   flex-direction: column;
   min-width: 0;
   padding: 30px 44px 28px;
-  background: #fff;
+  background: var(--color-surface);
 }
 .auth-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
-  color: var(--muted, #64748b);
-  font-size: 11px;
-}
-.auth-top .badge {
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  color: #475569;
+  color: var(--color-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
 }
 .auth-form {
   width: 100%;
@@ -139,21 +130,23 @@
   padding: 40px 0;
 }
 .auth-form .eyebrow {
-  font-size: 9px;
-  letter-spacing: 1.5px;
+  color: var(--color-muted);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: var(--text-caption--font-weight);
+  letter-spacing: 0;
   margin-bottom: 14px;
 }
 .auth-form h2 {
   max-width: 350px;
-  color: var(--navy, #111344);
-  font-size: 30px;
-  font-weight: 650;
-  line-height: 1.22;
-  letter-spacing: -0.8px;
+  color: var(--color-ink);
+  font-size: var(--text-page-title);
+  font-weight: var(--text-page-title--font-weight);
+  line-height: var(--text-page-title--line-height);
   margin-bottom: 13px;
 }
 .auth-form > p {
-  font-size: 13px;
+  font-size: var(--text-body);
   line-height: 1.75;
   margin-bottom: 26px;
 }
@@ -161,23 +154,25 @@
   width: 46px;
   height: 46px;
   border-radius: 12px;
-  border: 1px solid #dbe5fc;
-  background: #eef3ff;
+  border: 1px solid var(--color-line);
+  background: var(--color-canvas);
   display: grid;
   place-items: center;
-  color: var(--blue, #1e40af);
+  color: var(--color-navy);
   margin-bottom: 24px;
 }
 .auth-form form {
   gap: 20px;
 }
 .auth-form label {
-  font-size: 12px;
-  color: #334155;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
+  color: var(--color-ink-secondary);
 }
 .auth-form input {
   min-height: 46px;
-  border-color: #cbd5e1;
+  border-color: var(--color-line-strong);
   border-radius: 7px;
 }
 .auth-form .btn-primary {
@@ -206,57 +201,55 @@
   border: 0;
   border-radius: 4px;
   background: transparent;
-  color: var(--blue, #1e40af);
-  font-size: 11px;
-  font-weight: 600;
+  color: var(--color-brand-800);
+  font-size: var(--text-caption);
+  font-weight: 500;
   padding: 6px 10px;
 }
 .password-toggle:hover {
-  background: #eef3ff;
+  background: var(--color-brand-50);
 }
 .auth-switch {
   text-align: center;
-  font-size: 11px;
-  color: var(--muted, #64748b);
+  font-size: var(--text-caption);
+  color: var(--color-muted);
   line-height: 1.8;
 }
 .auth-switch .btn-text {
   display: block;
   margin: 3px auto 0;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--text-caption);
+  font-weight: 500;
 }
 .auth-assurance {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-top: 1px solid var(--line, #e2e8f0);
+  border-top: 1px solid var(--color-line);
   margin-top: 27px;
   padding-top: 21px;
-  color: var(--muted, #64748b);
-  font-size: 10px;
+  color: var(--color-muted);
+  font-size: var(--text-caption);
   line-height: 1.6;
 }
 .auth-assurance svg {
   flex-shrink: 0;
 }
 .auth-panel > footer {
-  color: var(--muted, #64748b);
+  color: var(--color-muted);
   text-align: center;
-  font-size: 10px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
 }
 .auth-form > .notice {
   margin-bottom: 20px;
 }
-.auth-form .enrollment h2 {
-  font-size: 25px;
-}
 .auth-form .enrollment p {
-  font-size: 12px;
+  font-size: var(--text-body);
 }
 .auth-form .enrollment input[readonly] {
-  font-size: 11px;
+  font-size: var(--text-caption);
 }
 @media (max-width: 1000px) {
   .auth-story {
@@ -295,7 +288,6 @@
     letter-spacing: -0.8px;
     margin: 22px 0 0;
   }
-  .story-copy > .eyebrow,
   .story-copy > p,
   .auth-benefits,
   .auth-story footer {
@@ -304,14 +296,8 @@
   .auth-panel {
     padding: 22px 26px 24px;
   }
-  .auth-top {
-    font-size: 10px;
-  }
   .auth-form {
     padding: 30px 0;
-  }
-  .auth-form h2 {
-    font-size: 27px;
   }
   .auth-symbol {
     display: none;

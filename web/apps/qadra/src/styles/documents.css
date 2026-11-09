@@ -10,10 +10,10 @@
   align-items: center;
   gap: 10px;
   flex: 1;
-  border: 1px solid #dbe2ee;
+  border: 1px solid var(--color-line);
   border-radius: 7px;
   padding-left: 13px;
-  color: #7890ad;
+  color: var(--color-muted);
 }
 .search-field input {
   background: none;
@@ -22,11 +22,11 @@
 }
 .list-toolbar select {
   width: 190px;
-  font-size: 12px;
+  font-size: var(--text-body);
 }
 .view-switch {
   display: flex;
-  border: 1px solid #dbe2ee;
+  border: 1px solid var(--color-line);
   padding: 3px;
   border-radius: 7px;
   gap: 2px;
@@ -34,11 +34,11 @@
 .view-switch .btn-icon {
   width: 32px;
   background: none;
-  color: #7d8da3;
+  color: var(--color-muted);
 }
 .view-switch .active {
-  color: var(--blue);
-  background: #eef2ff;
+  color: var(--color-brand-800);
+  background: var(--color-brand-50);
 }
 .table-scroll {
   overflow: auto;
@@ -46,25 +46,25 @@
 .document-table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 12px;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
 }
 .document-table th {
   padding: 13px 15px;
-  background: #f8fafc;
-  color: #718197;
+  background: var(--color-canvas);
+  color: var(--color-ink-secondary);
   text-align: left;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  border-block: 1px solid var(--line);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 500;
+  border-block: 1px solid var(--color-line);
 }
 .document-table td {
   padding: 18px 15px;
-  border-bottom: 1px solid #edf1f6;
+  border-bottom: 1px solid var(--color-line);
 }
 .document-table tr.selected td {
-  background: #f6f9ff;
+  background: var(--color-brand-50);
 }
 .table-document {
   display: flex;
@@ -75,28 +75,22 @@
   display: block;
   max-width: 280px;
   overflow-wrap: anywhere;
-  font-size: 13px;
-  font-weight: 550;
-  color: #263652;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
+  color: var(--color-ink);
 }
 .table-document small {
   display: block;
-  font-size: 10px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   margin-top: 4px;
 }
 .document-table .btn-text {
-  font-size: 11px;
+  font-size: var(--text-caption);
 }
 .version-cell {
-  color: #64748b;
-}
-.list-footer {
-  display: flex;
-  gap: 15px;
-  justify-content: space-between;
-  padding-top: 18px;
-  font-size: 10px;
-  color: #738298;
+  color: var(--color-muted);
 }
 .document-grid {
   display: grid;
@@ -106,33 +100,36 @@
 .document-card {
   text-align: left;
   min-width: 0;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-line);
   border-radius: 9px;
-  background: white;
+  background: var(--color-surface);
   padding: 18px;
 }
 .document-card:hover,
 .document-card.selected {
-  border-color: #8da9dc;
-  background: #f9fbff;
+  border-color: var(--color-brand-300);
+  background: var(--color-brand-50);
 }
 .document-card .section-heading {
   flex-wrap: wrap;
 }
-.document-card > .strong,
 .document-card > strong {
   display: block;
   overflow-wrap: anywhere;
-  font-size: 13px;
-  color: #263652;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: var(--text-label--font-weight);
+  color: var(--color-ink);
 }
 .document-card > small {
   display: block;
-  font-size: 10px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
   margin-top: 7px;
 }
 .document-card .badge {
-  font-size: 9px;
+  font-size: var(--text-caption);
+  font-weight: 500;
 }
 .document-card-footer {
   display: flex;
@@ -141,12 +138,13 @@
   gap: 10px;
   margin-top: 22px;
   padding-top: 15px;
-  border-top: 1px solid var(--line);
-  font-size: 10px;
-  color: #667e9f;
+  border-top: 1px solid var(--color-line);
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--color-muted);
 }
 .document-card-footer code {
-  font-size: 10px;
+  font-size: var(--text-caption);
 }
 .document-card-footer > span {
   display: flex;
@@ -162,10 +160,12 @@
   gap: 15px;
 }
 .reference-intro h2 {
-  font-size: 16px;
+  font-size: var(--text-card-title);
+  line-height: var(--text-card-title--line-height);
+  font-weight: var(--text-card-title--font-weight);
 }
 .reference-intro p {
-  font-size: 12px;
+  font-size: var(--text-body);
   margin-top: 6px;
 }
 .reference-panel form {
@@ -176,13 +176,14 @@
 }
 .reference-panel label {
   flex: 1;
-  font-size: 12px;
+  font-size: var(--text-label);
+  font-weight: var(--text-label--font-weight);
 }
 .reference-panel input {
-  font-size: 12px;
+  font-size: var(--text-body);
 }
 .reference-panel .hint {
-  font-size: 10px;
+  font-size: var(--text-caption);
 }
 .document-focus {
   outline: 0;
@@ -190,7 +191,7 @@
 }
 .modal > p {
   margin-bottom: 22px;
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 .file-drop {
   display: flex;
@@ -198,38 +199,39 @@
   flex-direction: column;
   gap: 13px;
   padding: 23px;
-  border: 1px dashed #b5c5e0;
-  background: #f8faff;
+  border: 1px dashed var(--color-line-strong);
+  background: var(--color-canvas);
   border-radius: 10px;
   text-align: center;
 }
 .file-drop.dragging {
-  background: #e6efff;
-  border-color: var(--blue);
+  background: var(--color-brand-50);
+  border-color: var(--color-brand-800);
 }
 .file-drop > strong {
   overflow-wrap: anywhere;
   max-width: 100%;
-  font-size: 13px;
-  font-weight: 550;
+  font-size: var(--text-label);
+  font-weight: var(--text-label--font-weight);
 }
 .file-drop > span {
-  font-size: 12px;
-  color: #7787a0;
+  font-size: var(--text-caption);
+  color: var(--color-muted);
 }
 .file-drop label {
   width: 100%;
-  font-size: 11px;
+  font-size: var(--text-label);
+  font-weight: var(--text-label--font-weight);
   text-align: left;
 }
 .file-drop input {
-  font-size: 11px;
-  background: #fff;
+  font-size: var(--text-body);
+  background: var(--color-surface);
 }
 .file-drop small {
-  font-size: 10px;
+  font-size: var(--text-caption);
 }
 .modal .hint {
-  font-size: 11px;
+  font-size: var(--text-caption);
   margin-top: -6px;
 }

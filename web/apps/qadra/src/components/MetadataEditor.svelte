@@ -293,7 +293,7 @@
   <ModalHeading
     title="Editar clasificaci&#243;n"
     id="metadata-edit-title"
-    eyebrow="ORGANIZACI&#211;N DEL DOCUMENTO"
+    eyebrow="Organizaci&oacute;n del documento"
   >
     <Button variant="icon" disabled={busy} onclick={close} aria-label="Cerrar clasificaci&#243;n"
       ><Icon name="close" /></Button
