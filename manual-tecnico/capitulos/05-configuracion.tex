@@ -42,8 +42,8 @@ comando.
   \multicolumn{4}{l}{\textbf{Base de datos, Redis y diagnóstico}} \\*
   \archivo{DATABASE_URL}
     & Conexión a PostgreSQL. \archivo{serve} y \texttt{database check}
-      exigen un rol restringido; los demás comandos \archivo{database}, uno
-      administrativo.
+      exigen el rol de ejecución, sin privilegios administrativos; los demás
+      comandos \archivo{database}, uno administrativo.
     & Sí
     & \archivo{postgres://despacho:CAMBIAR@localhost:5432/despacho} \\
   \archivo{REDIS_URL}
@@ -59,12 +59,12 @@ comando.
   \midrule
   \multicolumn{4}{l}{\textbf{Almacén cifrado y claves}} \\*
   \archivo{KEK_BASE64}
-    & Llave de cifrado de llaves: 32 bytes aleatorios en base64. Envuelve las
-      llaves de datos del contenido cifrado.
+    & Clave de cifrado de claves: 32 bytes aleatorios en base64. Envuelve las
+      claves de datos del contenido cifrado.
     & Sí
     & Salida de \texttt{openssl rand -base64 32} \\
   \archivo{NEW_KEK_BASE64}
-    & Llave de reemplazo; la lee solo \texttt{vault rotate-kek}.
+    & Clave de reemplazo; la lee solo \texttt{vault rotate-kek}.
     & No
     & Mismo formato \\
   \archivo{AUDIT_LOG_PATH}
@@ -76,7 +76,7 @@ comando.
   \multicolumn{4}{l}{\textbf{PKI, sellado de tiempo y validación de formatos}} \\*
   \archivo{PKI_CA_DIR}
     & Directorio de trabajo de la CA interna para los comandos \archivo{pki}.
-      Contiene llaves privadas.
+      Contiene claves privadas.
     & No
     & \archivo{pki-ca} (por defecto) \\
   \archivo{TSA_DIR}
@@ -116,9 +116,9 @@ comando.
     & No
     & Mismos formatos \\
   \archivo{ALERT_EMAIL_FROM}, \archivo{ALERT_LOGIN_URL}
-    & Remitente y URL de acceso de los correos de alertas; se definen
-      ambas junto con la clave del proveedor o ninguna; un conjunto parcial
-      impide el arranque.
+    & Remitente y URL de acceso de los correos de alertas. Se definen
+      ambas, junto con la clave del proveedor, o ninguna: un conjunto
+      parcial impide el arranque.
     & No
     & \archivo{https://qadra.example/login} \\
   \midrule
@@ -155,7 +155,7 @@ interfaz y la API se publican bajo un mismo origen y un proxy inverso encamina
 \section{Opciones del subcomando serve}\label{sec:conf-serve}
 
 El subcomando \archivo{serve} inicia la API HTTP. Sus únicas opciones
-obligatorias son el certificado y la llave del firmante y la biblioteca qpdf,
+obligatorias son el certificado y la clave del firmante y la biblioteca qpdf,
 que también puede indicarse con \archivo{DOCUMENT_QPDF_LIBRARY}. La
 \cref{tab:conf-serve} reúne las principales.
 
@@ -170,7 +170,7 @@ que también puede indicarse con \archivo{DOCUMENT_QPDF_LIBRARY}. La
       & Dirección TCP de escucha.
       & \archivo{127.0.0.1:3000} \\
     \archivo{--signer-cert}, \archivo{--signer-key}
-      & Certificado PEM y llave privada con que el servidor firma resúmenes
+      & Certificado PEM y clave privada con que el servidor firma resúmenes
         de documentos.
       & Obligatorias \\
     \archivo{--ca-cert}
@@ -212,8 +212,7 @@ ciclo y de pausa, con valores por defecto de 20 elementos y 1000 milisegundos:
 
 Las funciones que envían correo o abren una ruta pública adicional están
 deshabilitadas por defecto y se activan de forma independiente
-(\cref{tab:conf-banderas}). Una
-configuración incompleta o inválida de una función activada impide el
+(\cref{tab:conf-banderas}). Una configuración incompleta o inválida de una función activada impide el
 arranque de \archivo{serve}.
 
 \begin{table}[H]
@@ -251,8 +250,7 @@ arranque de \archivo{serve}.
 Las tres primeras banderas tienen además una opción equivalente de
 \archivo{serve}, con el mismo nombre en minúsculas, sin el prefijo \archivo{TT_} y con
 guiones en lugar de guiones bajos; por ejemplo,
-\mbox{\texttt{-{}-invitations-enabled}}. Las dos
-últimas, igual que \archivo{TT_AUDIT_TRUST_LOOPBACK_PROXY}, solo admiten los
+\mbox{\texttt{-{}-invitations-enabled}}. Las dos últimas, igual que \archivo{TT_AUDIT_TRUST_LOOPBACK_PROXY}, solo admiten los
 valores exactos \archivo{true} y \archivo{false}; cualquier otro detiene el
 arranque. Ambas comparten \archivo{REPORT_EMAIL_FROM},
 \archivo{REPORT_PUBLIC_URL} y \archivo{RESEND_API_KEY}.
@@ -260,9 +258,9 @@ arranque. Ambas comparten \archivo{REPORT_EMAIL_FROM},
 \section{Manejo de secretos}\label{sec:conf-secretos}
 
 Son secretos las contraseñas incluidas en \archivo{DATABASE_URL} y
-\archivo{REDIS_URL}, las llaves \archivo{KEK_BASE64} y
-\archivo{NEW_KEK_BASE64}, las claves \archivo{RESEND_API_KEY} y
-\archivo{CINCEL_API_KEY}, y toda llave privada de la CA, de la TSA y del
+\archivo{REDIS_URL}, las claves \archivo{KEK_BASE64} y
+\archivo{NEW_KEK_BASE64}, las credenciales \archivo{RESEND_API_KEY} y
+\archivo{CINCEL_API_KEY}, y toda clave privada de la CA, de la TSA y del
 firmante. Ninguno se versiona. El archivo \archivo{.gitignore} excluye:
 
 \begin{itemize}
@@ -281,7 +279,7 @@ Genere una KEK distinta por entorno y consérvela fuera del repositorio: sin
 ella el contenido cifrado no puede recuperarse. No reutilice fuera de un
 equipo de desarrollo la contraseña \archivo{local-development-only} de
 \archivo{compose.yaml}, restrinja a su propietario los permisos del archivo de
-entorno y de los directorios con llaves privadas, y entregue los secretos al
+entorno y de los directorios con claves privadas, y entregue los secretos al
 servicio por su entorno, no por argumentos visibles en la lista de procesos.
 La KEK se rota con \texttt{vault rotate-kek} (\cref{cap:cli}); en el
 despliegue por versiones los secretos los genera el aprovisionamiento

@@ -3,8 +3,7 @@
 Este capítulo reúne las tareas recurrentes de una instalación ya desplegada
 según el \cref{cap:despliegue}. Cada sección indica cuándo se realiza la tarea,
 el comando o guion, la comprobación y el documento del repositorio que contiene
-el procedimiento completo. Lea ese documento antes de
-actuar sobre una instalación con datos.
+el procedimiento completo. Lea ese documento antes de actuar sobre una instalación con datos.
 
 \section{Convenciones}\label{sec:op-convenciones}
 
@@ -70,16 +69,16 @@ detiene antes de apagar los servicios.
 migración y restauración en una copia aislada; respaldar base, roles y
 material privado (\cref{sec:op-respaldo}); cerrar el acceso y detener todo
 proceso que escriba en la base; migrar con el binario nuevo y una conexión
-administrativa; y validar con el rol restringido antes de reabrir.
+administrativa; y validar con el rol de ejecución antes de reabrir.
 
 \begin{verbatim}
 # DATABASE_URL del rol administrativo
 despacho-cli database migrate --runtime-role ROL_DE_EJECUCION
-# DATABASE_URL del rol restringido de ejecución
+# DATABASE_URL del rol de ejecución
 despacho-cli database check --json
 \end{verbatim}
 
-\texttt{ROL\_DE\_EJECUCION} es el rol restringido ya existente; el comando no
+\texttt{ROL\_DE\_EJECUCION} es el rol de ejecución ya existente; el comando no
 crea usuarios de PostgreSQL. La conexión se recibe siempre por la variable de
 entorno \texttt{DATABASE\_URL}, nunca como argumento.
 
@@ -195,7 +194,7 @@ despacho-cli database invalidate-restored-password-resets \
   --expected-audit-head "$ORIGINAL_AUDIT_HEAD" --json
 \end{verbatim}
 
-\texttt{database check} usa el rol restringido; la cancelación, el
+\texttt{database check} usa el rol de ejecución; la cancelación, el
 propietario administrativo de la base restaurada. El identificador de
 operación es un UUID que el operador genera y conserva. Para una cadena
 original vacía se usa \texttt{-{}-expected-empty-audit} en lugar de los dos
@@ -328,7 +327,7 @@ anterior, de modo que modificar o eliminar uno rompe la cadena a partir de él.
 \textbf{Comando.} La verificación la realiza el propio servidor a petición de
 una cuenta con rol de Administrador (\texttt{owner}) y sesión vigente. Desde la
 interfaz se usa la acción \textbf{Verificar cadena} del menú
-\textbf{Bitácora} (Manual de usuario, capítulo \emph{Funciones del
+\textbf{Bitácora} (Manual de usuario, capítulo \enquote{Funciones del
 Administrador}); por HTTP, a través del túnel SSH hacia el
 puerto local de la instalación:
 

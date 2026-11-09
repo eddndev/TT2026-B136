@@ -42,8 +42,8 @@ podman-compose up -d postgres redis
 El servicio \texttt{postgres} crea la base \texttt{despacho} y el usuario
 administrativo \texttt{despacho}, con la contraseña de desarrollo escrita en
 \archivo{compose.yaml}. La primera vez tarda unos segundos en aceptar
-conexiones; si la consulta siguiente falla, repítala. Guarde esa conexión en una variable de la terminal y
-compruebe la codificación de la base:
+conexiones; si la consulta siguiente falla, repítala. Guarde esa conexión en
+una variable de la terminal y compruebe la codificación de la base:
 
 \begin{verbatim}
 ADMIN_URL='postgres://despacho:local-development-only@localhost/despacho'
@@ -54,7 +54,7 @@ psql "$ADMIN_URL" -c 'SHOW server_encoding'
 migración y el arranque del servidor exigen esa codificación.
 
 % ---------------------------------------------------------------------
-\section{Crear el rol operativo de la base}\label{sec:inst-rol}
+\section{Crear el rol de ejecución de la base}\label{sec:inst-rol}
 
 El servidor no se conecta con el usuario administrativo: rechaza cualquier
 rol que pueda administrar la base o reescribir la auditoría. Cree un rol de
@@ -77,7 +77,7 @@ despliegue nuevo}.
 
 El binario lee su configuración del entorno o de un archivo \archivo{.env}
 situado en el directorio desde el que se ejecuta o en uno superior. Copie
-la plantilla y genere la llave de cifrado de llaves (KEK):
+la plantilla y genere la clave de cifrado de claves (KEK):
 
 \begin{verbatim}
 cp .env.example .env
@@ -97,7 +97,7 @@ externo y los envíos de correo permanecen desactivados y el sistema usa la
 autoridad de sellado local.
 
 \importante{El archivo \archivo{.env} no se versiona. Conserve la KEK: los
-documentos se cifran con llaves envueltas por ella y una KEK distinta no
+documentos se cifran con claves envueltas por ella y una KEK distinta no
 descifra los datos ya guardados.}
 
 % ---------------------------------------------------------------------
@@ -116,7 +116,7 @@ descritos en el \cref{cap:cli}.
 \section{Aplicar el esquema de la base}\label{sec:inst-migrar}
 
 El arranque del servidor no ejecuta DDL. El esquema y los permisos del rol
-operativo se aplican una vez con el subcomando \texttt{database migrate} y
+de ejecución se aplican una vez con el subcomando \texttt{database migrate} y
 la conexión \emph{administrativa}. Una variable definida en la terminal
 tiene prioridad sobre la de \archivo{.env}, por lo que basta anteponerla:
 
@@ -160,9 +160,9 @@ están en \archivo{docs/document-format-operations.md}.
 \section{Generar la PKI de desarrollo}\label{sec:inst-pki}
 
 El servidor necesita una autoridad certificadora (CA) interna, un certificado
-firmante con su llave, una lista de revocación (CRL) y una autoridad de
+firmante con su clave, una lista de revocación (CRL) y una autoridad de
 sellado de tiempo (TSA) local. Los guiones de \archivo{pki/} los crean con
-OpenSSL. Los directorios de trabajo contienen llaves privadas, así que deben
+OpenSSL. Los directorios de trabajo contienen claves privadas, así que deben
 quedar \emph{fuera} del repositorio:
 
 \begin{verbatim}
@@ -184,14 +184,14 @@ target/debug/despacho-cli pki gen-crl
     \textbf{Comando} & \textbf{Resultado esperado} \\
     \midrule
     \texttt{pki init-ca}
-      & Certificado raíz en \archivo{$PKI_CA_DIR/ca.crt.pem} y su llave en
+      & Certificado raíz en \archivo{$PKI_CA_DIR/ca.crt.pem} y su clave en
         \archivo{private/}. Repetirlo no sobrescribe una CA existente. \\
     \texttt{pki issue}
-      & Certificado \archivo{certs/sello-local.crt.pem} y llave
+      & Certificado \archivo{certs/sello-local.crt.pem} y clave
         \archivo{private/sello-local.key.pem}; el nombre de archivo es el
         nombre común en minúsculas y con guiones. \\
     \texttt{issue-tsa-cert.sh}
-      & Llave, certificado y cadena de la TSA en \archivo{$TSA_DIR}. \\
+      & Clave, certificado y cadena de la TSA en \archivo{$TSA_DIR}. \\
     \texttt{pki gen-crl}
       & Lista de revocación en \archivo{$PKI_CA_DIR/crl/crl.pem}, válida
         durante 7 días. \\
@@ -292,7 +292,7 @@ de recuperación. Una segunda alta inicial se rechaza, porque ya existe un
 usuario.
 
 \importante{El material TOTP y los códigos de recuperación se entregan una
-sola vez. Regístrelos en la app de autenticación y guárdelos antes de
+sola vez. Regístrelos en la aplicación de autenticación y guárdelos antes de
 cerrar la pantalla o descartar la respuesta.}
 
 % ---------------------------------------------------------------------
@@ -310,8 +310,7 @@ La instalación está completa cuando se cumplen estas cuatro condiciones:
 \end{enumerate}
 
 Estas condiciones cubren el sellado con el certificado del servidor. La
-firma individual requiere además publicar la
-confianza de la CA de desarrollo en la base (\cref{sec:ca-revocacion}) y
+firma individual requiere además publicar la confianza de la CA de desarrollo en la base (\cref{sec:ca-revocacion}) y
 emitir el certificado de cada titular (\cref{sec:ca-emision}).
 
 El archivo \archivo{/version.json} no existe en esta instalación: lo genera
@@ -329,8 +328,8 @@ volúmenes de \archivo{compose.yaml}.
 Si solo se quiere comprobar que el prototipo funciona, el repositorio
 incluye tres guiones que se ejecutan desde la raíz y trabajan con PKI y TSA
 desechables, sin usar \archivo{compose.yaml}. Los dos últimos crean sus
-propias instancias de PostgreSQL y Redis con los ejecutables locales indicados en el
-\cref{cap:requisitos} y necesitan el decodificador multimedia de la
+propias instancias de PostgreSQL y Redis con los ejecutables locales
+indicados en el \cref{cap:requisitos} y necesitan el decodificador multimedia de la
 \cref{sec:inst-nativos}; la biblioteca qpdf la preparan ellos mismos.
 
 \begin{table}[H]

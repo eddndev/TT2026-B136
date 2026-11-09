@@ -47,29 +47,22 @@ actual del registro antes de repetir un alta, un sellado o una confirmación.}
         ejecuta DDL.
       & Aplique \texttt{database migrate -{}-runtime-role} con una conexión
         administrativa y después cambie \texttt{DATABASE\_URL} al rol
-        operativo restringido (\cref{cap:instalacion};
+        de ejecución (\cref{cap:instalacion};
         \archivo{docs/database-operations.md}). \\
-    Un comando \texttt{pki} o \archivo{issue-tsa-cert.sh} termina con
-    \texttt{CA not initialized} o \texttt{certificate already exists}
-      & \texttt{PKI\_CA\_DIR} o \texttt{TSA\_DIR} no están exportadas en esa
-        terminal y el guion busca otro directorio, o el certificado ya se
-        emitió antes.
-      & Exporte de nuevo ambas variables (\cref{sec:inst-pki}). Un
-        certificado existente no se vuelve a emitir: úselo, o retire el
-        archivo que nombra el mensaje. \\
-    \texttt{npm run dev} o \texttt{npm run build} se detienen con
-    \texttt{artifact is stale}
-      & Un módulo Rust/WASM de la interfaz falta o no corresponde a sus
-        fuentes.
-      & Ejecute desde la raíz el guion que nombra el mensaje:
-        \archivo{scripts/build-browser-crypto.sh} o
-        \archivo{scripts/build-evidence-verify.sh}
-        (\cref{sec:inst-web}). \\
+    Un guion de \archivo{pki/} termina con \texttt{CA not initialized} o
+    \texttt{certificate already exists}
+      & \texttt{PKI\_CA\_DIR} o \texttt{TSA\_DIR} no están exportadas en
+        esa terminal, o el certificado ya se emitió.
+      & Exporte ambas variables (\cref{sec:inst-pki}) y use el certificado
+        existente. \\
+    \texttt{npm run dev} se detiene con \texttt{artifact is stale} o
+    por un archivo ausente en \archivo{src/generated/}
+      & Un módulo WASM no se ha generado o no corresponde a sus fuentes.
+      & Ejecute los dos guiones \texttt{scripts/build-*.sh} de la
+        \cref{sec:inst-web}. \\
     El alta inicial responde \texttt{409 bootstrap\_closed}
-      & La base ya contiene un usuario; el alta inicial se admite una sola
-        vez.
-      & Inicie sesión con la cuenta existente. Las demás cuentas las crea el
-        Administrador (\cref{sec:inst-owner}). \\
+      & La base ya contiene un usuario.
+      & Inicie sesión con la cuenta existente (\cref{sec:inst-owner}). \\
     El arranque falla al comprobar la biblioteca qpdf
       & Falta \texttt{DOCUMENT\_QPDF\_LIBRARY} (o \texttt{-{}-qpdf-library}),
         o no apunta a la biblioteca qpdf 12.4.1 fijada. El validador nativo
@@ -84,7 +77,7 @@ actual del registro antes de repetir un alta, un sellado o una confirmación.}
         indíquelo con \texttt{TT\_FFPROBE\_PATH} y \texttt{TT\_FFMPEG\_PATH}
         (\archivo{docs/media-decoder-setup.md}). \\
     Los documentos existentes no se descifran después de reinstalar
-      & Se generó una \texttt{KEK\_BASE64} nueva. Una llave nueva no descifra
+      & Se generó una \texttt{KEK\_BASE64} nueva. Una clave nueva no descifra
         los datos existentes.
       & Restaure la KEK original de esa instalación. No genere otra para
         conseguir el arranque (\cref{cap:configuracion}). \\
@@ -98,7 +91,7 @@ python3 -B scripts/install_media_decoder.py --verify --prefix /opt/tt-media
 
 Los rechazos de autenticación responden siempre \texttt{401} con
 \texttt{mfa\_rejected}, sin motivo en el cuerpo. El motivo interno queda en el
-journal del servicio, en el evento \texttt{MFA access attempt}, y se
+registro del servicio, en el evento \texttt{MFA access attempt}, y se
 correlaciona con la cabecera \texttt{X-Request-Id} de la respuesta; el
 comando para filtrarlo está en la \cref{sec:op-estado}.
 
@@ -131,10 +124,10 @@ comando para filtrarlo está en la \cref{sec:op-estado}.
         inactiva.
       & Revise el estado y el rol de la cuenta en \textbf{Equipo} y solicite
         un nuevo inicio de sesión. \\
-    No aparecen eventos \texttt{MFA access attempt} en el journal
-      & El filtro de \texttt{RUST\_LOG} suprime el target
+    No aparecen eventos \texttt{MFA access attempt} en el registro
+      & El filtro de \texttt{RUST\_LOG} suprime el destino
         \texttt{qadra::access}.
-      & Conserve ese target a nivel \texttt{info}, por ejemplo
+      & Conserve ese destino a nivel \texttt{info}, por ejemplo
         \texttt{RUST\_LOG=info,qadra::access=info}
         (\archivo{docs/mfa-access-logs.md}). \\
     \texttt{429 account\_locked} al iniciar sesión
@@ -156,7 +149,7 @@ comando para filtrarlo está en la \cref{sec:op-estado}.
         (\archivo{docs/session-editor-recovery.md}). \\
 \end{longtable}}
 
-\needspace{9\baselineskip}
+\needspace{22\baselineskip}
 \section{Documentos y firma}\label{sec:prob-documentos}
 
 {\small
@@ -219,10 +212,10 @@ comando para filtrarlo está en la \cref{sec:op-estado}.
       & La versión nueva no superó la comprobación de salud.
       & El controlador restaura la versión anterior y devuelve el fallo; si
         tampoco la recupera, detiene la entrada web. Revise el estado y el
-        journal antes de reintentar (\cref{cap:despliegue}). \\
+        registro del servicio antes de reintentar (\cref{cap:despliegue}). \\
     La API no arranca y existe \archivo{config/crl-maintenance.json}
       & Hay una renovación de CRL pendiente. El marcador bloquea arranque,
-        proxy, activación y rollback.
+        proxy, activación y reversión.
       & No retire el marcador a mano. Revise \texttt{status} de
         \texttt{renew\_crl.py} y ejecute \texttt{resume} con el UUID de la
         operación (\archivo{docs/deployment-crl.md}). \\
@@ -230,7 +223,7 @@ comando para filtrarlo está en la \cref{sec:op-estado}.
       & El recibo en \archivo{maintenance/crl-schedule/} indica
         \archivo{blocked}, \archivo{busy_near_expiry}, \archivo{ca_expiring},
         \texttt{failed} o \texttt{interrupted}.
-      & Lea el recibo y actúe según su resultado. El timer nunca reanuda una
+      & Lea el recibo y actúe según su resultado. El temporizador nunca reanuda una
         operación pendiente: la recuperación es manual. \\
     Una emisión, revocación o publicación quedó con respuesta incierta
       & Se perdió la respuesta. La operación pendiente bloquea otras
@@ -242,7 +235,7 @@ comando para filtrarlo está en la \cref{sec:op-estado}.
       \textbf{Historial} no tiene una publicación pendiente
       & El marcador lo dejó la renovación programada o una renovación por
         línea de comandos. El portal no puede retomarlo.
-      & Un administrador del host revisa \texttt{status} de
+      & Un administrador del servidor revisa \texttt{status} de
         \texttt{renew\_crl.py} y ejecuta \texttt{resume} con el UUID
         registrado. \\
     El operador de la CA no puede entrar después de una restauración
@@ -288,13 +281,13 @@ para deshacer una publicación confirmada.
         (\archivo{docs/deployment-backups.md}). \\
     Las sesiones anteriores siguen aceptándose tras restaurar
       & No se invalidaron sesiones ni desafíos en Redis.
-      & Elimine solo las claves \archivo{identity:session:*} e
-        \archivo{identity:challenge:*}. No use \texttt{FLUSHDB} ni
+      & Elimine solo las claves de sesiones y desafíos que indica la
+        \cref{sec:op-redis}. No use \texttt{FLUSHDB} ni
         \texttt{FLUSHALL}; conserve los controles TOTP y de intentos. \\
     La captura de respaldo se rechaza
       & Existe una operación de la CA pendiente.
       & Termine o concilie la operación original antes de capturar. No borre
-        su journal (\archivo{docs/ca/restore.md}). \\
+        su diario (\archivo{docs/ca/restore.md}). \\
 \end{longtable}}
 
 \importante{No desactive guardas, no regenere claves y no modifique la huella

@@ -84,14 +84,14 @@ el flujo de error, sin detalles de configuración (\cref{cap:problemas}).
       & \archivo{init-ca}, \archivo{issue}, \archivo{issue-request},
         \archivo{revoke}, \archivo{gen-crl}, \archivo{show}
       & Administra la CA interna mediante los guiones de \archivo{pki/}:
-        raíz, emisión (con llave generada o desde una solicitud PKCS\#10),
+        raíz, emisión (con clave generada o desde una solicitud PKCS\#10),
         revocación, CRL e inspección. \\
     \texttt{crypto} & \texttt{hash}
       & Imprime el resumen SHA-256 de un archivo. \\
     \texttt{vault}
       & \archivo{encrypt}, \archivo{decrypt}, \archivo{rotate-kek}
-      & Cifra y descifra paquetes con AES-256-GCM y rota la llave de cifrado
-        de llaves. \\
+      & Cifra y descifra paquetes con AES-256-GCM y rota la clave de cifrado
+        de claves. \\
     \texttt{sign} & --
       & Firma el resumen de un documento y escribe \texttt{<archivo>.sig}. \\
     \texttt{timestamp} & --
@@ -115,7 +115,6 @@ el flujo de error, sin detalles de configuración (\cref{cap:problemas}).
     \bottomrule
   \end{tabularx}
 \end{table}
-
 
 \section{Subcomandos de \texttt{qadra-ca}}\label{sec:cli-qadra-ca}
 
@@ -152,8 +151,8 @@ la configuración y operación del servicio, en \archivo{docs/ca/README.md} y
 
 Los comandos de evidencia proceden del Anexo~B del reporte técnico y los de base
 de datos, de \archivo{docs/database-operations.md} y
-\archivo{docs/database-restore-commands.md}. Se omitió el prefijo de ruta del binario, se dividieron
-las líneas largas y las rutas son ilustrativas.
+\archivo{docs/database-restore-commands.md}. Se omitió el prefijo de ruta del
+binario, se dividieron las líneas largas y las rutas son ilustrativas.
 
 \subsection{Preparar la base de datos e iniciar el servidor}
 \label{sec:cli-ej-servidor}

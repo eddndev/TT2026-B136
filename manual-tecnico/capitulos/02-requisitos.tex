@@ -14,9 +14,8 @@ ocurre en el equipo de desarrollo o en el ejecutor de integración continua:
 compila el binario \texttt{despacho-cli}, los módulos Rust/WASM y los dos
 portales web. La \emph{ejecución} ocurre en el servidor, que recibe un
 paquete ya compilado y no necesita las herramientas de construcción. La
-construcción requiere acceso a Internet: descarga las dependencias de Cargo
-y de npm, la biblioteca qpdf, el código fuente de FFmpeg y la herramienta
-que enlaza los módulos WASM.
+construcción requiere acceso a Internet para descargar dependencias de
+Cargo y npm, qpdf, el código fuente de FFmpeg y \texttt{wasm-bindgen}.
 
 \begin{longtable}{L{3.3cm} L{3.4cm} L{8.6cm}}
   \caption{Requisitos de software por etapa.}\label{tab:req-software} \\
@@ -65,27 +64,22 @@ que enlaza los módulos WASM.
         \archivo{scripts/install_media_decoder.py}, que requiere Python
         3.10 o posterior, GCC, make, NASM, pkg-config y los encabezados de
         zlib (\archivo{docs/media-decoder-setup.md}). \\
-    OpenSSL y \texttt{unzip}
+    OpenSSL, \texttt{unzip}, Git y \texttt{curl}
       & Sin versión fijada
       & Guiones de \archivo{pki/}, sellado de tiempo local y
-        \archivo{scripts/demo.sh} (\archivo{README.md}). \\
+        \archivo{scripts/demo.sh} (\archivo{README.md}); obtención del
+        código y comprobación de la API. \\
     Herramientas de PostgreSQL y Redis
       & Sin versión fijada
-      & El cliente \texttt{psql} se usa en la instalación local
-        (\cref{cap:instalacion}). Con los ejecutables del servidor
-        (\texttt{pg\_ctl}, \texttt{redis-server}, \texttt{redis-cli})
+      & El cliente \texttt{psql} se usa en la instalación local. Con
+        \texttt{pg\_ctl}, \texttt{redis-server} y \texttt{redis-cli},
         \archivo{scripts/test-backends.sh} y \archivo{scripts/api-demo.sh}
         crean instancias desechables; el primero requiere además
         \texttt{setsid} (\archivo{README.md}). \\
-    Git y \texttt{curl}
-      & Sin versión fijada
-      & Obtención del código y comprobación de la API en la instalación
-        local y en \archivo{scripts/api-demo.sh}. \\
     TeX Live
       & Con LuaLaTeX, biber y makeglossaries
-      & Compila el reporte (\archivo{latex/README.md}) y los manuales, que
-        solo requieren LuaLaTeX y las fuentes Times New Roman y DejaVu Sans
-        Mono (\archivo{manual-usuario/README.md}). \\
+      & Solo para compilar el reporte y los manuales
+        (\cref{sec:mant-documentos}). \\
     \midrule
     \multicolumn{3}{l}{\textbf{Ejecución en servidor}} \\*
     \midrule
@@ -139,9 +133,9 @@ almacenamiento. La única referencia disponible son los límites que la
 provisión del servidor impone a cada servicio
 (\archivo{docs/deployment.md}): 2~GiB de memoria para la API, 768~MiB para
 PostgreSQL, 256~MiB para Redis y 128~MiB para nginx, con una cuota de dos
-CPU por servicio. Son techos de consumo, no reservas ni un requisito mínimo
-comprobado. El almacenamiento necesario depende del volumen de documentos
-cifrados y de los respaldos que se conserven (\cref{cap:operacion}).
+CPU por servicio. Son techos de consumo, no un requisito mínimo comprobado.
+El almacenamiento depende del volumen de documentos cifrados y de los
+respaldos que se conserven (\cref{cap:operacion}).
 
 \section{Puertos en desarrollo}\label{sec:req-puertos}
 
@@ -182,6 +176,5 @@ provisión y se describen en el \cref{cap:despliegue}.
 Quien usa Qadra solo necesita un navegador web actualizado con JavaScript
 activado; la firma y la validación de evidencia se ejecutan localmente en el
 navegador mediante módulos Rust/WASM incluidos en la interfaz. Los
-requisitos de cada persona usuaria (aplicación de autenticación para el
-segundo factor, códigos de recuperación y certificado de la CA interna) se describen en el Manual de usuario,
-capítulo «Antes de empezar».
+requisitos de cada persona usuaria se describen en el Manual de usuario,
+capítulo \enquote{Antes de empezar}.

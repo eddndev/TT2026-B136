@@ -61,7 +61,7 @@ Conviene tener presentes estas reglas al integrar un cliente o al diagnosticar
 un rechazo:
 
 \begin{itemize}
-  \item El token son 256 bits aleatorios. Redis conserva solo una clave
+  \item El token consta de 256 bits aleatorios. Redis conserva solo una clave
         derivada con SHA-256, de modo que cerrar sesión lo revoca sin
         almacenar el token en claro.
   \item El rol y la pertenencia a un expediente no viajan en el token: cada
@@ -316,7 +316,6 @@ directorio \archivo{docs/}. Las rutas se abrevian: llevan el prefijo
 
 La recuperación pública de contraseña, las invitaciones y el acceso del
 Administrador con certificado permanecen deshabilitados mientras no se
-configuren de
-forma expresa; cada contrato indica sus variables. La matriz de permisos por
+configuren de forma expresa; cada contrato indica sus variables. La matriz de permisos por
 ruta está en \archivo{docs/access-audit-matrix.md}, y cada petición admitida
 deja un evento de acceso en la bitácora de auditoría (\cref{cap:operacion}).

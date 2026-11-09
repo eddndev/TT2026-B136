@@ -237,7 +237,7 @@ en Rust.
     recorrido en \archivo{crates/infrastructure/src/postgres.rs}, que fija
     el orden de aplicación.
   \item Actualice en ese módulo la validación del catálogo
-    (\texttt{validate\_schema}) y los permisos del rol operativo
+    (\texttt{validate\_schema}) y los permisos del rol de ejecución
     (\texttt{grant\_runtime} y \texttt{validate\_runtime}, en
     \archivo{contract_schema/permissions.rs} para el ejemplo). El servidor
     valida el esquema al arrancar y rechaza uno incompleto o alterado.
@@ -253,7 +253,7 @@ target/debug/despacho-cli database migrate \
     \archivo{docs/database-operations.md}.
 \end{enumerate}
 
-En el ejemplo, \texttt{tt\_runtime} es el nombre del rol operativo de
+En el ejemplo, \texttt{tt\_runtime} es el nombre del rol de ejecución de
 PostgreSQL; el comando no crea usuarios. La aplicación de una migración en un
 entorno desplegado, con escritores detenidos y respaldo previo, se describe
 en los \cref{cap:despliegue,cap:operacion}.

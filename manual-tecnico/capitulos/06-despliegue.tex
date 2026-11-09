@@ -51,7 +51,8 @@ privilegios de administrador, bajo un directorio raíz privado (en adelante
 
 \section{Servicios y proxy inverso}\label{sec:desp-servicios}
 
-La aplicación son cuatro unidades systemd de usuario que escuchan solo en
+La aplicación se compone de cuatro unidades systemd de usuario que escuchan
+solo en
 \texttt{127.0.0.1}. Los puertos de la \cref{tab:desp-unidades} son los que
 \archivo{ops/deploy/host.py} escribe por omisión en \texttt{settings.json}.
 
@@ -69,7 +70,7 @@ La aplicación son cuatro unidades systemd de usuario que escuchan solo en
     \texttt{qadra-api.service} & 18087
       & API del sistema. Requiere las dos bases. \\
     \texttt{qadra-web.service} & 18086
-      & nginx: frontend y proxy hacia la API, a la que espera. \\
+      & nginx: interfaz y proxy hacia la API, a la que espera. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -78,13 +79,12 @@ El proxy inverso es el nginx de \texttt{qadra-web}
 (\texttt{RAIZ/config/nginx.conf}): sirve \texttt{current/web}, reenvía
 \texttt{/api/} a la API y responde 403 a \texttt{/api/v1/auth/bootstrap},
 de modo que el alta del primer Administrador solo puede hacerse en el
-propio servidor, contra el puerto de la API. La unidad \texttt{qadra-api} no ejecuta el
-binario directamente: lanza, por medio del lanzador en las unidades
-aprobadas, el controlador \texttt{tools/runtime.py}, que arranca \texttt{despacho-cli serve} con las rutas y los secretos de la
-instalación. El portal de la CA tiene unidades propias (\cref{cap:ca}).
+propio servidor, contra el puerto de la API. La unidad \texttt{qadra-api} no
+ejecuta el binario directamente: en las unidades aprobadas invoca, por medio
+del lanzador, el controlador \texttt{tools/runtime.py}, que arranca
+\texttt{despacho-cli serve} con las rutas y los secretos de la instalación. El portal de la CA tiene unidades propias (\cref{cap:ca}).
 
-\nota{Publicar la aplicación por
-HTTPS (dominio, certificado TLS y proxy público hacia el puerto de
+\nota{Publicar la aplicación por HTTPS (dominio, certificado TLS y proxy público hacia el puerto de
 \texttt{qadra-web}) es configuración del servidor ajena a estos guiones; sin
 ella se accede por un túnel SSH.}
 
@@ -130,7 +130,7 @@ bash scripts/build-release.sh v1.0.0 "$(git rev-parse HEAD)"
 
 El guion prepara qpdf, verifica la instalación de FFmpeg en
 \texttt{/opt/tt-media} (\archivo{docs/media-decoder-setup.md}), compila
-backend y frontend con sus archivos de bloqueo y llama a
+el servidor y las interfaces con sus archivos de bloqueo y llama a
 \archivo{ops/deploy/bundle.py}, que exige un árbol de trabajo sin cambios y
 deja en \archivo{output/releases/} el archivo
 \texttt{qadra-VERSION-COMMIT.tar.gz} y su \texttt{.sha256}; no sobrescribe
@@ -177,8 +177,8 @@ activate RAIZ/incoming/PAQUETE.tar.gz SHA256_PAQUETE v1.0.0 COMMIT
 Bajo \texttt{deploy.lock}, \archivo{ops/deploy/release.py} admite el
 paquete contra su huella y su manifiesto y lo extrae en
 \texttt{releases/}; comprueba versión y huella de migraciones, detiene
-\texttt{qadra-web} y \texttt{qadra-api}, toma un respaldo, inicializa la versión, apunta \texttt{current} a ella, arranca
-y comprueba su salud. Solo entonces apunta \texttt{previous} a la versión
+\texttt{qadra-web} y \texttt{qadra-api}, toma un respaldo, inicializa la
+versión, apunta \texttt{current} a ella, arranca y comprueba su salud. Solo entonces apunta \texttt{previous} a la versión
 que estaba activa. Rechaza, antes de detener servicios, una versión menor que la
 activa, una versión ya ligada a otro commit y un paquete cuya huella de
 migraciones difiera de \texttt{config/schema}.
@@ -197,8 +197,7 @@ anterior y devuelve error; si tampoco lo logra, deja detenida la entrada web
 Para volver de forma explícita, ejecute la orden \texttt{rollback} con la
 misma invocación del lanzador. Exige que exista \texttt{previous} y que
 coincida la huella de migraciones, y toma un respaldo como cualquier
-activación; al terminar, \texttt{current} y
-\texttt{previous} quedan intercambiados. La reversión cambia el código, no
+activación; al terminar, \texttt{current} y \texttt{previous} quedan intercambiados. La reversión cambia el código, no
 los datos: las escrituras hechas con la versión nueva se conservan. La
 restauración de datos se trata en el \cref{cap:operacion}.
 

@@ -28,16 +28,16 @@ OpenSSL, que el mismo servidor invoca.
 un Prestador de Servicios de Certificación ni emite constancias de la
 NOM-151, y los certificados de la CA interna no equivalen a la e.firma.}
 
-\section{Capas y crates del workspace}\label{sec:arq-crates}
+\section{Capas y crates del espacio de trabajo}\label{sec:arq-crates}
 
-El código del servidor es un workspace de Cargo declarado en
+El código del servidor es un espacio de trabajo de Cargo declarado en
 \archivo{Cargo.toml}, con ocho crates bajo \archivo{crates/}. Cinco forman el
 servidor y reproducen las capas hexagonales; los otros tres se dedican a la
 verificación de evidencia y al navegador (\cref{tab:arq-crates}).
 
 \begin{table}[H]
   \centering
-  \caption{Crates del workspace y dependencias internas
+  \caption{Crates del espacio de trabajo y dependencias internas
     declaradas.}\label{tab:arq-crates}
   \small
   \begin{tabularx}{\textwidth}{L{3.6cm} Y L{4.1cm}}
@@ -46,7 +46,7 @@ verificación de evidencia y al navegador (\cref{tab:arq-crates}).
     \midrule
     \texttt{domain}
       & Entidades y reglas de negocio.
-      & Ningún crate del workspace. \\
+      & Ningún crate del espacio de trabajo. \\
     \texttt{application}
       & Casos de uso y puertos (interfaces hacia el exterior).
       & \texttt{domain}, \texttt{evidence-verify}. \\
@@ -65,14 +65,14 @@ verificación de evidencia y al navegador (\cref{tab:arq-crates}).
     \texttt{evidence-verify}
       & Motor de verificación de paquetes de evidencia, sin entrada/salida,
         reloj ni azar.
-      & Ningún crate del workspace. \\
+      & Ningún crate del espacio de trabajo. \\
     \texttt{evidence-verify-wasm}
       & Envoltura WebAssembly del motor para el validador del navegador.
       & \texttt{evidence-verify}. \\
     \texttt{browser-crypto}
       & Módulo WebAssembly de generación de claves, solicitud de certificado
         (CSR) y firma local.
-      & Ningún crate del workspace. \\
+      & Ningún crate del espacio de trabajo. \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -102,7 +102,7 @@ detenerse espera a que terminen las operaciones en curso.
 
 \section{Interfaces web}\label{sec:arq-web}
 
-El directorio \archivo{web/} es un workspace de npm con dos aplicaciones y un
+El directorio \archivo{web/} es un espacio de trabajo de npm con dos aplicaciones y un
 paquete compartido, construidos con Astro y Svelte.
 
 \archivo{web/apps/qadra} (paquete \texttt{@qadra/desk}) es la interfaz del
@@ -131,7 +131,8 @@ operación:
     los paquetes de evidencia exportados con el crate
     \texttt{evidence-verify}, el mismo con el que el servidor codifica el
     manifiesto de esos paquetes. Se construye con
-    \archivo{scripts/build-evidence-verify.sh} y lo carga \archivo{web/apps/qadra/src/lib/evidence-verify-worker.mjs}. El
+    \archivo{scripts/build-evidence-verify.sh} y lo carga
+    \archivo{web/apps/qadra/src/lib/evidence-verify-worker.mjs}. El
     paquete no sale del navegador; el servidor solo informa, mediante
     \texttt{GET /api/v1/evidence/trust}, qué raíces admite. Véase el
     \cref{cap:verificacion}.
