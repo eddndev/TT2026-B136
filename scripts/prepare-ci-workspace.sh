@@ -13,8 +13,11 @@ case "${1:-}" in
     ;;
   *) printf 'usage: prepare-ci-workspace.sh checks|web\n' >&2; exit 1 ;;
 esac
-mkdir -p "$cache" "$GITHUB_WORKSPACE/output/tmp"
+toolchain="$HOME/.cache/tt-ci/browser-toolchain"
+mkdir -p "$cache" "$toolchain" "$GITHUB_WORKSPACE/output/tmp"
 chmod 700 "$GITHUB_WORKSPACE/output/tmp"
 printf 'CARGO_TARGET_DIR=%s\n' "$cache" >> "$GITHUB_ENV"
+# Checksum-pinned wasm-bindgen archive, kept across cleaned checkouts.
+printf 'TT_BROWSER_TOOLCHAIN_CACHE=%s\n' "$toolchain" >> "$GITHUB_ENV"
 printf 'TMPDIR=%s/output/tmp\n' "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
 printf 'CARGO_BUILD_JOBS=1\nRUST_TEST_THREADS=1\n' >> "$GITHUB_ENV"
