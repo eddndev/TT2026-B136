@@ -86,7 +86,9 @@ test('agenda rows project the instant onto the queried offset', () => {
     text: '19:00:00 UTC-06:00',
   });
   assert.ok(row.meta.includes('Hora en la agenda: 2026-01-01 19:00:00.000000000 / UTC-06:00'));
-  assert.ok(row.meta.includes('Defensa inicial / NUC-123'));
+  assert.equal(row.reference, 'NUC-123');
+  assert.equal(row.meta[0], 'Defensa inicial');
+  assert.ok(!row.meta.some((line) => line.includes('NUC-123')));
   assert.ok(row.meta.includes('Revisi\u00f3n 2'));
   const fraction = agendaRow({ ...hearingItem(), at: { ...at, nanosecond: 120000000 } }, '+00:00');
   assert.deepEqual(fraction.time, {

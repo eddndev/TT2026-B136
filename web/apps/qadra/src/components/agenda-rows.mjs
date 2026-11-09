@@ -31,12 +31,13 @@ function offsetSeconds(offset) {
   return (offset[0] === '-' ? -minutes : minutes) * 60;
 }
 
-// The details below the title: case, revision, projected time, the hearing
-// status or deadline responsibility, and administrative closure.
+// The details below the title and the case reference: case title, revision,
+// projected time, the hearing status or deadline responsibility, and
+// administrative closure.
 function itemMeta(kind, record, context, projected) {
   const scheduled = kind !== 'deadline';
   const meta = [
-    `${context.case_title} / ${context.case_reference}`,
+    context.case_title,
     `Revisi\u00f3n ${record.revision}`,
     `${scheduled ? 'Hora en la agenda' : 'Vencimiento operativo'}: ${projected}`,
   ];
@@ -77,6 +78,7 @@ export function agendaRow(item, offset) {
     badge,
     title: itemTitle(kind, record),
     status: cancelled ? 'Cancelada' : undefined,
+    reference: context.case_reference,
     meta: itemMeta(kind, record, context, projected),
     time: {
       datetime: `${day}T${clock.slice(0, 8)}${offset}`,

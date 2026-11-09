@@ -37,9 +37,8 @@ export function dashboardAgendaSelection(today, offset, days = comingDays) {
   return { range: selection.range, query: selection.query };
 }
 
-// UpcomingList rows: the Agenda row with the case reference set apart (the
-// list shows it in mono), the case title as the only detail and the local
-// hour. Ordinary hearings carry their case fields on the record.
+// UpcomingList rows: the Agenda row with its case reference (the list shows
+// it in mono), the case title as the only detail and the local hour. Ordinary hearings carry their case fields on the record.
 export function dashboardAgendaRows(items, offset, max = comingRows) {
   return items.slice(0, max).map((item) => {
     const row = agendaRow(item, offset);
@@ -48,7 +47,6 @@ export function dashboardAgendaRows(items, offset, max = comingRows) {
     return {
       ...row,
       label: `${row.badge}: ${row.title}, ${context.case_reference}, ${row.dateText} ${hour}`,
-      reference: context.case_reference,
       meta: [context.case_title],
       time: { datetime: row.time.datetime, text: hour },
     };

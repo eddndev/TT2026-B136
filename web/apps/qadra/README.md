@@ -180,11 +180,14 @@ La navegación incluye Inicio, Expedientes, Documentos y Guía de uso; el person
 también accede a Agenda y Alertas. Dentro del
 expediente, Resumen, Documentos, Participantes, Etapas, Audiencias, Resoluciones
 y Plazos comparten contexto. Equipo
-y Auditoría aparecen para Owner. El inicio saluda por el nombre de la cuenta y
-el menú de la cuenta muestra el nombre con el correo como línea secundaria; el
-nombre no aparece en contratos, directorio, cargas ni informes. El inicio ofrece
-accesos a operaciones y al expediente seleccionado. No presenta recuentos de una página como totales del
-despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
+y Auditoría aparecen para Owner. El inicio lleva la fecha como título y el
+nombre, rol y alcance como detalle; muestra primero los próximos vencimientos y
+audiencias, después los recuentos, la carga de cada miembro por su nombre (con
+el correo como título de la fila) y los accesos. El menú de la cuenta muestra
+el nombre con el correo como línea secundaria; contratos, directorio, selectores
+e informes siguen mostrando el correo
+([ADR 0089](../../../docs/adr/0089-display-names-in-workload.md)). No presenta
+recuentos de una página como totales del despacho. En móvil, el menú se abre en un diálogo y permite cerrar con Escape.
 Las rutas usan fragmentos de URL y respetan atrás/adelante sin recargar la sesión.
 
 La identidad visual, los recursos de marca, la tipografía, los colores, las
@@ -763,6 +766,9 @@ borradores documentales y de participantes. Las pruebas de etapas cubren variant
 fechas/desfases, referencias históricas exactas, conflictos, conciliación incierta,
 cierre, denegación, páginas y consultas retenidas. Cada ejecución inicia un
 servidor de desarrollo en un puerto libre, sin reutilizar otros servidores.
+Con `TT_WEB_MOCK_SERVER=preview`, como en CI, sirve la compilación con
+`astro preview` y omite la prueba de diagnósticos de módulos, que necesita
+el servidor de desarrollo.
 Las configuraciones aisladas usan puertos libres y `--ignore-lock` para coexistir
 con el servidor de demostración. Ejecuta las suites simulada y real por separado
 para que los resultados y sus diagnósticos sean independientes.
