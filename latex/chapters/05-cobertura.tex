@@ -126,10 +126,10 @@ La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de é
   \addlinespace
   OE-6 & Matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. & La \cref{tab:pruebas-casos} cubre servicios; faltan flujos funcionales de los 18 casos de uso, incluido un caso positivo y uno negativo del alta de Cliente (CU-18), y su validación integrada. & Parcial \\
   \addlinespace
-  OE-6 & Pruebas de usabilidad con usuarios del despacho. & No se ha reproducido una campaña con usuarios; las pruebas automáticas no sustituyen esa evaluación. & Pendiente \\
+  OE-6 & Pruebas de usabilidad con usuarios del despacho. & Dos sesiones del 8 de noviembre de 2026 con personas ajenas al despacho, cuenta Litigante y escritorio: 12 de 12 tareas completadas, 8 sin ayuda y 4 con ayuda (\cref{sec:pruebas-usabilidad-resultados}). No participaron usuarios del despacho ni se evaluaron los roles Owner, Paralegal y Cliente. & Parcial \\
 \end{longtable}
 
-Los resultados respaldan los criterios criptográficos de integridad y confidencialidad de OE-4, así como la firma individual verificable y el sellado local contemplados en OE-3; la firma bilateral de contratos cuenta con un recorrido completo en el servicio instalado, por lo que el criterio de firma verificable de OE-3 se considera cumplido con la condición indicada abajo. La campaña con un PSC externo está fuera del alcance vigente. La autenticación por certificado para socios con rol Owner de OE-5 cuenta con aceptación del servicio instalado, seguida de MFA; sus límites de identidad y autorización permanecen explícitos. OE-6 permanece parcial respecto de la matriz de los 18 casos de uso y la usabilidad con usuarios del despacho. Las condiciones de interpretación son las siguientes:
+Los resultados respaldan los criterios criptográficos de integridad y confidencialidad de OE-4, así como la firma individual verificable y el sellado local contemplados en OE-3; la firma bilateral de contratos cuenta con un recorrido completo en el servicio instalado, por lo que el criterio de firma verificable de OE-3 se considera cumplido con la condición indicada abajo. La campaña con un PSC externo está fuera del alcance vigente. La autenticación por certificado para socios con rol Owner de OE-5 cuenta con aceptación del servicio instalado, seguida de MFA; sus límites de identidad y autorización permanecen explícitos. OE-6 permanece parcial respecto de la matriz de los 18 casos de uso y de la usabilidad: la evaluación se ejecutó con dos personas ajenas al despacho y no con sus usuarios (\cref{sec:pruebas-usabilidad-resultados}). Las condiciones de interpretación son las siguientes:
 
 \begin{itemize}
   \item \textbf{Contratos bilaterales (OE-3).} El criterio se refiere a los contratos firmados, y un contrato entre el Cliente y el despacho requiere ambas firmas. La firma bilateral está implementada y su recorrido completo, con paquetes parcial y completo validados en el navegador y con OpenSSL y con restauración, se demostró localmente y después en el servicio instalado, donde el 4 de noviembre de 2026 la parte Cliente firmó y el despacho contrafirmó un contrato cuyos acuse parcial y paquete final se verificaron con el validador y con OpenSSL (\cref{sec:pruebas-firma-bilateral}; \rutarepo{docs/production-acceptance.md}). El criterio se considera cumplido. El asterisco de la tabla recuerda que la cuenta Cliente de ese recorrido estaba controlada por el equipo: no es la ceremonia de alta de un cliente real ni una evaluación con personas, que se tratan por separado en la usabilidad de OE-6.
@@ -139,11 +139,11 @@ Los resultados respaldan los criterios criptográficos de integridad y confidenc
   \item \textbf{Banda de calibración de Argon2id (OE-5).} La medición histórica del 17 de agosto conserva $m = 256$~MiB, $t = 2$, $p = 1$ y una media de 529.4 ms (\cref{sec:pruebas-argon2}). El 19 de septiembre, cinco hashes nuevos con tres pasadas promediaron 659.7596048 ms en el entorno documentado (\cref{sec:calibracion-credenciales}). Los PHC anteriores conservan sus parámetros. El asterisco de la tabla limita el resultado al costo de un hash nuevo en ese hardware y perfil de binario; no mide el acceso completo ni HTTP bajo carga y exige recalibrar si cambia el entorno.
 \end{itemize}
 
-La clasificación implementada no completa por sí sola los casos de uso de carga y consulta del producto. La política PDF/DOCX de soportes procesales (\cref{sec:impl-formatos}) permanece independiente de la admisión general de ocho familias, integrada con aceptación API, restauración y navegador real (\cref{sec:pruebas-admision-documental}; \rutarepo{docs/product-completion.md}). Los nombres seguros y los límites de tamaño, por sí solos, no validan el formato. La entrega de contenido sin sello y los avisos internos al Owner cuentan con la evidencia de la \cref{sec:pruebas-contenido-documental}; esos avisos no determinan la causa del fallo ni acreditan atención humana. Siguen pendientes la política documental general de Cliente, fuera de la excepción de sus contratos, y la evaluación con usuarios.
+La clasificación implementada no completa por sí sola los casos de uso de carga y consulta del producto. La política PDF/DOCX de soportes procesales (\cref{sec:impl-formatos}) permanece independiente de la admisión general de ocho familias, integrada con aceptación API, restauración y navegador real (\cref{sec:pruebas-admision-documental}; \rutarepo{docs/product-completion.md}). Los nombres seguros y los límites de tamaño, por sí solos, no validan el formato. La entrega de contenido sin sello y los avisos internos al Owner cuentan con la evidencia de la \cref{sec:pruebas-contenido-documental}; esos avisos no determinan la causa del fallo ni acreditan atención humana. Siguen pendientes la política documental general de Cliente, fuera de la excepción de sus contratos, y la evaluación con usuarios del despacho.
 
 El corte del 12 de septiembre respalda el backend criptográfico y HTTP con 519 pruebas ejecutadas, una cobertura global de 90.7\,\%, vectores oficiales y verificaciones independientes. Los ensayos documentan autorización por expediente, atomicidad, migración y restauración sobre datos generados. No constituyen una campaña de carga de producción, una evaluación de usabilidad ni evidencia de cumplimiento jurídico. La ejecución del 14 de septiembre amplía esa evidencia con consultas de metadatos autorizadas y auditadas, 539 pruebas aprobadas y 91.0\,\% de cobertura; el escenario de navegador contra servicios reales se registra separadamente de esos conteos Rust. Las versiones inmutables y la clasificación amplían la operación documental con historias independientes. El directorio añade fichas organizativas auditadas y el expediente incorpora perfil penal, historia y cierre administrativo. La adopción y los avances de Investigación a Intermedia y de Intermedia a Juicio incorporan soportes exactos e historia propia. La programación de audiencias incorpora valores, historia y contratos con evidencia por capa. Los incrementos de recursos, sesiones y resultados declarados de audiencias, plazos y alertas tienen evidencia específica en este capítulo; los conteos históricos anteriores no describen por sí solos su estado actual.
 
-La aceptación del corpus finito de ocho supuestos se presenta en la \cref{sec:pruebas-corpus-juridico}; sus resultados y bloqueos no acreditan cobertura jurídica universal. Las verificaciones de despliegue y del portal CA registran por separado activaciones, respaldos, recuperación y parada, con los entornos y límites de las \cref{sec:pruebas-despliegue,sec:pruebas-portal-ca}. Esta evidencia operacional no establece garantías generales de capacidad, latencia o disponibilidad, ni convierte los ensayos locales en comprobaciones del servicio instalado. La aceptación histórica del riesgo temporal del firmante RSA bajo uso por CLI, descrita en \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md}, no acredita por sí sola su exposición mediante HTTP. La evaluación de usabilidad con personal del despacho permanece pendiente; la identidad civil o judicial tampoco se acredita mediante la PKI interna. La cabeza de auditoría carece de anclaje externo: una cadena válida aislada no prueba que no se haya truncado su extremo. La TSA local no equivale a una constancia de un PSC autorizado.
+La aceptación del corpus finito de ocho supuestos se presenta en la \cref{sec:pruebas-corpus-juridico}; sus resultados y bloqueos no acreditan cobertura jurídica universal. Las verificaciones de despliegue y del portal CA registran por separado activaciones, respaldos, recuperación y parada, con los entornos y límites de las \cref{sec:pruebas-despliegue,sec:pruebas-portal-ca}. Esta evidencia operacional no establece garantías generales de capacidad, latencia o disponibilidad, ni convierte los ensayos locales en comprobaciones del servicio instalado. La aceptación histórica del riesgo temporal del firmante RSA bajo uso por CLI, descrita en \rutarepo{docs/adr/0002-rsa-signing-crate-and-advisory.md}, no acredita por sí sola su exposición mediante HTTP. La evaluación de usabilidad se ejecutó con dos personas ajenas al despacho (\cref{sec:pruebas-usabilidad-resultados}); la evaluación con personal del despacho permanece pendiente. La identidad civil o judicial tampoco se acredita mediante la PKI interna. La cabeza de auditoría carece de anclaje externo: una cadena válida aislada no prueba que no se haya truncado su extremo. La TSA local no equivale a una constancia de un PSC autorizado.
 
 \subsection{Ejecución de cierre sobre el código final}\label{sec:pruebas-ejecucion-cierre}
 Los cortes anteriores son mediciones fechadas del desarrollo. El 9 de noviembre
@@ -189,7 +189,115 @@ El kit \rutarepo{docs/usability/README.md} reúne protocolo, tareas, guía de
 moderación, consentimiento y plantillas vacías. Está preparado para observar
 personas del despacho sobre una versión identificada y datos ficticios. Deben
 registrarse terminación de tareas, tiempos, errores, asistencia y observaciones,
-y relacionar las correcciones con los resultados obtenidos. No contiene
-participantes ni una campaña humana ejecutada. Las pruebas automáticas y las
+y relacionar las correcciones con los resultados obtenidos. El kit no contiene
+datos de participantes y sus plantillas permanecen vacías. La evaluación
+ejecutada con este protocolo se presenta en la
+\cref{sec:pruebas-usabilidad-resultados}. Las pruebas automáticas y las
 capturas de interfaz no sustituyen esa evaluación ni completan el criterio de
 usabilidad de OE-6.
+
+\subsection{Resultados de la evaluación de usabilidad}\label{sec:pruebas-usabilidad-resultados}
+El 8 de noviembre de 2026 se realizaron dos sesiones de evaluación humana,
+consecutivas y con una persona cada una. Ambas personas son ajenas al despacho.
+Usaron la misma cuenta de práctica, con rol Litigante y TOTP como segundo
+factor, en una laptop con Linux x86\_64, Chrome~130, ventana de
+1440~$\times$~900~px, zoom de 100\,\%, ratón y teclado, sin emulación. Cada
+sesión comprendió seis tareas: acceder con contraseña y segundo factor (T01),
+localizar el expediente asignado (T02), cargar y clasificar un documento (T03),
+sellarlo, verificarlo y descargar su evidencia (T04-S), añadir una versión y
+consultar la anterior (T05) y cerrar la sesión (T08). La
+\cref{tab:pruebas-usabilidad-sesiones} describe las sesiones. Con dos personas
+se presenta el valor observado en cada sesión, sin estadísticos de resumen.
+
+\begin{table}[H]
+  \centering
+  \caption{Sesiones de la evaluación de usabilidad del 8 de noviembre de 2026.}
+  \label{tab:pruebas-usabilidad-sesiones}
+  \small
+  \begin{tabularx}{\linewidth}{@{}l l X l l r@{}}
+    \toprule
+    \textbf{Sesión} & \textbf{Persona} & \textbf{Perfil} & \textbf{Expediente} & \textbf{Revisión} & \makecell[r]{\textbf{Tiempo}\\\textbf{activo}} \\
+    \midrule
+    S001 & P001 & Estudiante de licenciatura en Derecho, ajena al despacho, sin experiencia previa con sistemas de gestión de expedientes. & RTA-2026-014 & No anotada & 745~s \\
+    \addlinespace
+    S002 & P002 & Abogado litigante en materia penal, en ejercicio independiente y ajeno al despacho, sin experiencia previa con sistemas de gestión de expedientes; declara poca soltura con la tecnología. & RTA-2026-021 & No anotada & 1166~s \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Las doce tareas planificadas se iniciaron y se completaron: ocho sin ayuda y
+cuatro con ayuda. Ninguna quedó sin completar ni en otro estado, y no hubo
+pausas ajenas a las tareas. Se registraron ocho errores y cuatro ayudas. La
+\cref{tab:pruebas-usabilidad-tareas} presenta el resultado por tarea.
+
+\begin{table}[H]
+  \centering
+  \caption[Resultado por tarea de la evaluación de usabilidad]{Resultado por tarea y sesión: tiempo activo, terminación, errores y ayudas.}
+  \label{tab:pruebas-usabilidad-tareas}
+  \small
+  \begin{tabular}{@{}l r r l l r r r r@{}}
+    \toprule
+     & \multicolumn{2}{c}{\textbf{Tiempo activo (s)}} & \multicolumn{2}{c}{\textbf{Terminación}} & \multicolumn{2}{c}{\textbf{Errores}} & \multicolumn{2}{c@{}}{\textbf{Ayudas}} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(l){8-9}
+    \textbf{Tarea} & S001 & S002 & S001 & S002 & S001 & S002 & S001 & S002 \\
+    \midrule
+    T01   &  94 & 218 & Sin ayuda & Con ayuda & 0 & 1 & 0 & 1 \\
+    T02   &  78 & 112 & Sin ayuda & Sin ayuda & 0 & 0 & 0 & 0 \\
+    T03   & 165 & 284 & Sin ayuda & Con ayuda & 1 & 2 & 0 & 1 \\
+    T04-S & 212 & 315 & Sin ayuda & Con ayuda & 1 & 1 & 0 & 1 \\
+    T05   & 158 & 185 & Con ayuda & Sin ayuda & 1 & 1 & 1 & 0 \\
+    T08   &  38 &  52 & Sin ayuda & Sin ayuda & 0 & 0 & 0 & 0 \\
+    \midrule
+    \textbf{Sesión} & 745 & 1166 & 5 sin, 1 con & 3 sin, 3 con & 3 & 5 & 1 & 3 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+La \cref{tab:pruebas-usabilidad-problemas} reúne los cuatro problemas
+observados. Ninguno tiene una corrección registrada.
+
+\begin{table}[H]
+  \centering
+  \caption{Problemas observados en la evaluación de usabilidad.}
+  \label{tab:pruebas-usabilidad-problemas}
+  \small
+  \begin{tabularx}{\linewidth}{@{}l l X L{0.25\linewidth} L{0.16\linewidth}@{}}
+    \toprule
+    \textbf{N.º} & \textbf{Tarea} & \textbf{Problema observado} & \textbf{Impacto por sesión} & \textbf{Corrección y comprobación} \\
+    \midrule
+    P1 & T03 & La etiqueta escrita en su campo no se guarda si antes no se pulsa el botón que la añade. & S001: dificulta la comprensión. S002: requiere ayuda. & Sin corrección registrada \\
+    \addlinespace
+    P2 & T04-S & Sellar no verifica la versión: \emph{Verificar integridad} es una acción separada. & S001: dificulta la comprensión. S002: requiere ayuda. & Sin corrección registrada \\
+    \addlinespace
+    P3 & T05 & \emph{Agregar versión} solo aparece dentro del detalle del documento. & S001: requiere ayuda. & Sin corrección registrada \\
+    \addlinespace
+    P4 & T01 & La pantalla del segundo factor no advierte que el código cambia cada 30 segundos ni que no se reenvía por SMS o correo. & S002: requiere ayuda. & Sin corrección registrada \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+En T03 de S002 la persona dio además por guardado el archivo al seleccionarlo,
+antes de confirmar el formulario. En T05 de S002 supuso primero que ambas
+versiones estaban selladas y lo corrigió al consultar el historial. Al
+preguntarles, ambas personas distinguieron el sello de una firma personal y de
+una constancia legal; P002 lo hizo después de esperar inicialmente un sello
+oficial. Ambas indicaron que solo la primera versión estaba sellada y que
+cerrar la sesión no elimina lo guardado.
+
+Las dos personas consintieron la conservación de notas. P001 consintió además
+capturas de pantalla y P002 no; no se publica ninguna. El protocolo prevé un
+expediente de práctica por sesión, \texttt{Práctica Qadra Sxxx} con referencia
+\texttt{USO-Sxxx}, y un distractor. En su lugar se usaron expedientes ficticios
+del conjunto de demostración, con tres expedientes asignados visibles en la
+lista. Es una desviación del protocolo.
+
+La evaluación no cubrió lo siguiente: personas del despacho; cuentas con rol
+Owner, Paralegal o Cliente; el ancho de 768~px, el móvil y la
+entrada táctil; la recuperación como segundo factor; las tareas T04-V, T06,
+T07, T09 y T10, y las tareas T11 a T15 de firma bilateral; la repetición de
+tareas, y el expediente de práctica previsto por el protocolo. La hoja de
+sesión no registra la revisión del protocolo, la revisión del producto servida
+ese día, el grupo de experiencia codificado ni el tipo codificado de cada
+ayuda; por ello los resultados no se atribuyen a una revisión específica. Las
+plantillas CSV del kit no se llenaron: el registro son las notas privadas de
+sesión, conservadas fuera del repositorio.

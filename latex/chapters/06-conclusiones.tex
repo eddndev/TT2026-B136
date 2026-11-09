@@ -45,8 +45,9 @@ Respecto de los objetivos específicos:
   \item \textbf{Validación.} La campaña de cierre aprobó completa sobre el
         código final (\cref{sec:pruebas-ejecucion-cierre}) y la cobertura de
         los módulos criptográficos supera el umbral fijado. Dos criterios
-        quedan abiertos: la matriz funcional por caso de uso está parcial y la
-        evaluación de usabilidad con personas no se ha ejecutado.
+        quedan parciales: la matriz funcional por caso de uso y la evaluación
+        de usabilidad, que se ejecutó con dos personas ajenas al despacho y no
+        con sus usuarios (\cref{sec:pruebas-usabilidad-resultados}).
 \end{itemize}
 
 La \cref{tab:pruebas-criterios} presenta el contraste criterio por criterio.
@@ -89,8 +90,13 @@ La \cref{tab:pruebas-criterios} presenta el contraste criterio por criterio.
         extremo.
   \item \textbf{Evaluación con personas.} El recorrido de firma bilateral en el
         servicio instalado usó una cuenta Cliente controlada por el equipo. La
-        campaña de usabilidad con usuarios del despacho está preparada y no se
-        ha ejecutado (\cref{sec:pruebas-protocolo-humano}).
+        evaluación de usabilidad se ejecutó con dos personas ajenas al
+        despacho, con una cuenta Litigante y solo en escritorio
+        (\cref{sec:pruebas-usabilidad-resultados}). No participaron usuarios
+        del despacho ni se evaluaron los roles Owner, Paralegal y Cliente,
+        el ancho de 768~px, el móvil ni las tareas de firma bilateral. La
+        revisión del producto servida ese día no se anotó, por lo que los
+        resultados no se atribuyen a una revisión específica.
   \item \textbf{Matriz funcional.} La matriz de pruebas cubre los servicios; la
         relación de un caso positivo y uno negativo por cada caso de uso está
         parcial.
@@ -107,8 +113,10 @@ La \cref{tab:pruebas-criterios} presenta el contraste criterio por criterio.
 \section{Trabajo futuro}\label{sec:trabajo-futuro}
 
 \begin{itemize}
-  \item Ejecutar la campaña de usabilidad con el despacho y corregir lo que
-        esta revele.
+  \item Extender la evaluación de usabilidad a los usuarios del despacho, a
+        los roles restantes, al ancho de 768~px y a las tareas de firma
+        bilateral, y corregir los cuatro problemas observados
+        (\cref{sec:pruebas-usabilidad-resultados}).
   \item Completar la matriz funcional por caso de uso.
   \item Sustituir la autoridad de sellado local por un Prestador de Servicios
         de Certificación mediante el adaptador ya previsto, y obtener
