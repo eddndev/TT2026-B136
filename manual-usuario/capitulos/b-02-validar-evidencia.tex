@@ -1,0 +1,65 @@
+\chapter{Validar evidencia}\label{cap:validar-evidencia}
+
+\paraque Comprueba en su navegador un paquete ZIP descargado de Qadra: el
+acuse parcial, el contrato firmado o la evidencia de un documento.
+
+\disponible Cliente, desde el menú \textbf{Validar evidencia}. El personal
+del despacho usa el mismo validador dentro de la ficha del documento
+(\cref{sec:descargar-evidencia}).
+
+\pasos
+\begin{enumerate}
+  \item En el menú, haga clic en \textbf{Validar evidencia}.
+  \item En \textbf{Paquete de evidencia (ZIP)}, seleccione el archivo tal
+        como lo descargó, sin descomprimirlo.
+  \item Haga clic en \textbf{Validar paquete} y espere los 4 pasos de la
+        revisión.
+  \item Lea el \textbf{Resultado de la validación}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/B-04-validar-evidencia.png}%
+    {Validar evidencia con un contrato firmado y Resultado de la validación Completo · Cliente}
+  \caption{Validación de un paquete de evidencia.}
+  \label{fig:manual-validar-evidencia}
+\end{figure}
+
+\resultado Qadra muestra el resultado general, el tipo de paquete y el
+estado de cada comprobación.
+
+\begin{table}[H]
+  \centering
+  \caption{Resultado de la validación.}\label{tab:resultado-validacion}
+  \begin{tabularx}{\textwidth}{L{3.2cm} Y L{4.2cm}}
+    \toprule
+    \textbf{Resultado} & \textbf{Qué significa} & \textbf{Qué hacer} \\
+    \midrule
+    \textbf{Completo}
+      & Todas las comprobaciones obligatorias pasaron.
+      & Conserve el ZIP original. \\
+    \textbf{Parcial}
+      & Ninguna comprobación falló, pero falta evidencia para decidir alguna.
+      & Revise qué componente dice \textbf{Falta evidencia para decidirlo}. \\
+    \textbf{Fallido}
+      & Al menos una comprobación obligatoria falló.
+      & No use el paquete; avise al despacho. \\
+    \textbf{No compatible}
+      & El archivo no se puede revisar con las reglas de esta versión.
+      & Compruebe que sea un ZIP de Qadra. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{itemize}
+  \item El archivo se revisa en su navegador y no se envía a ningún
+        servidor. Tamaño máximo: 26 MiB.
+  \item Si descomprimió y volvió a comprimir el ZIP, aparece \enquote{Este
+        archivo no es el paquete que exportó Qadra; si lo descomprimiste y
+        volviste a comprimir, descarga de nuevo la evidencia.}
+  \item Un acuse parcial aparece como \textbf{Acuse parcial: no acredita
+        contrato}: solo demuestra la firma del Cliente.
+  \item Para guardar el resultado, haga clic en
+        \textbf{Descargar informe JSON}. El informe describe la revisión; no
+        es una firma ni un sello nuevo.
+\end{itemize}

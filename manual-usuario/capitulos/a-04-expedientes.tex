@@ -1,0 +1,236 @@
+\chapter{Expedientes}\label{cap:expedientes}
+
+% ---------------------------------------------------------------------
+\section{Buscar y abrir un expediente}\label{sec:buscar-expediente}
+
+\paraque Localiza un expediente del archivo y lo abre para trabajar en él.
+
+\disponible Administrador (todos los expedientes), Litigante y Asistente
+legal (solo los expedientes que tienen asignados).
+
+\pasos
+\begin{enumerate}
+  \item En el menú, haga clic en \textbf{Expedientes}. Aparece el
+        \textbf{Archivo de expedientes}.
+  \item Para filtrar, use uno o varios campos:
+        \begin{itemize}
+          \item \textbf{Buscar por título}: basta una parte del título.
+          \item \textbf{NUC exacto} y \textbf{Carpeta judicial exacta}:
+                deben coincidir por completo, incluidas mayúsculas y acentos.
+          \item \textbf{Estado administrativo}: \textbf{Activos},
+                \textbf{Cerrados} o \textbf{Todos}.
+          \item \textbf{Ficha penal}: \textbf{Todas}, \textbf{Completas} o
+                \textbf{Pendientes}.
+        \end{itemize}
+  \item Haga clic en \textbf{Buscar expedientes}.
+  \item Haga clic en la tarjeta del expediente que desea abrir. Use
+        \textbf{Anterior} y \textbf{Siguiente} para recorrer las páginas.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-14-archivo-expedientes.png}%
+    {Archivo de expedientes con filtros y tarjetas (Activo, Ficha completa) · Litigante}
+  \caption{Archivo de expedientes.}
+  \label{fig:manual-archivo-expedientes}
+\end{figure}
+
+\resultado Se abre el \textbf{Resumen} del expediente
+(\cref{sec:resumen-expediente}).
+
+\begin{itemize}
+  \item Cada tarjeta indica si el expediente está \textbf{Activo} o
+        \textbf{Cerrado administrativamente}, y si su ficha está
+        \textbf{Ficha completa} o \textbf{Ficha pendiente}.
+  \item Si no aparece ningún expediente, el Litigante o el Asistente legal
+        verá \enquote{El administrador puede asignarte un expediente para
+        comenzar.}
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\section{Crear un expediente penal}\label{sec:crear-expediente}
+
+\paraque Registra un expediente nuevo con su ficha penal completa.
+
+\disponible Administrador y Litigante. El Litigante que lo crea queda
+asignado al expediente.
+
+\pasos
+\begin{enumerate}
+  \item En \textbf{Expedientes}, haga clic en
+        \textbf{Nuevo expediente penal}.
+  \item Ingrese el \textbf{Título del expediente} y la
+        \textbf{Referencia interna} del despacho.
+  \item En \textbf{Identificadores registrados}, ingrese:
+        \textbf{NUC}, \textbf{Autoridad emisora del NUC},
+        \textbf{Carpeta judicial} y \textbf{Órgano emisor de la carpeta}.
+  \item Si lo desea, complete \textbf{Información general (opcional)} e
+        \textbf{Identificadores complementarios (opcional)}.
+  \item En \textbf{Delitos registrados}, escriba un delito en
+        \textbf{Nueva descripción de delito} y haga clic en
+        \textbf{Agregar descripción}. Repita para cada delito (de 1 a 8).
+  \item Revise el aviso \enquote{Se creará un expediente activo con etapa
+        registrada Investigación.} y haga clic en
+        \textbf{Crear expediente penal}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-15-nuevo-expediente.png}%
+    {Formulario Nuevo expediente penal con identificadores y delitos registrados · Litigante}
+  \caption{Registro de un expediente penal.}
+  \label{fig:manual-nuevo-expediente}
+\end{figure}
+
+\resultado El expediente aparece en el archivo como \textbf{Activo}, con
+\textbf{Ficha completa} y la etapa inicial \textbf{Investigación}.
+
+\begin{itemize}
+  \item Si el NUC o la carpeta ya existen, aparece \enquote{El NUC o la
+        carpeta judicial ya están registrados. Revisa ambos
+        identificadores.}
+  \item Qadra registra los datos tal como se escriben; no los verifica ante
+        las instituciones.
+  \item Para quitar un delito de la lista, haga clic en \textbf{Quitar}.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\section{Consultar el Resumen del expediente}\label{sec:resumen-expediente}
+
+\paraque Muestra la ficha penal, el estado administrativo, la etapa inicial
+y el historial de cambios del expediente.
+
+\disponible Administrador, Litigante y Asistente legal.
+
+Al abrir un expediente, la parte superior muestra su título, su referencia y
+el botón \textbf{Cambiar expediente}. Debajo aparecen las pestañas de la
+\cref{tab:pestanas}.
+
+\begin{table}[H]
+  \centering
+  \caption{Pestañas de un expediente.}\label{tab:pestanas}
+  \begin{tabularx}{\textwidth}{L{3.4cm} Y}
+    \toprule
+    \textbf{Pestaña} & \textbf{Contenido} \\
+    \midrule
+    \textbf{Resumen}            & Ficha penal, estado y etapa inicial. \\
+    \textbf{Documentos}         & Archivos del expediente, sello y evidencia. \\
+    \textbf{Participantes}      & Personas que intervienen en el expediente. \\
+    \textbf{Etapas}             & Etapa procesal actual y sus cambios. \\
+    \textbf{Audiencias}         & Audiencias, sus resultados y audiencias cautelares. \\
+    \textbf{Medidas cautelares} & Decisiones y registros de medidas. \\
+    \textbf{Resoluciones}       & Resoluciones y sus notificaciones. \\
+    \textbf{Recursos}           & Revocaciones y apelaciones. \\
+    \textbf{Plazos}             & Cómputo y atención de plazos. \\
+    \textbf{Contratos}          & Contratos firmados con el Cliente. \\
+    \textbf{Asignaciones}       & Cuentas con acceso al expediente (solo Administrador). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\pasos
+\begin{enumerate}
+  \item Abra el expediente (\cref{sec:buscar-expediente}). Se muestra la
+        pestaña \textbf{Resumen}.
+  \item Revise la ficha: \textbf{Ficha penal completa} o
+        \textbf{Ficha penal pendiente}, sus datos y el estado
+        \textbf{Activo} o \textbf{Cerrado administrativamente}.
+  \item Para ver quién cambió la ficha y cuándo, haga clic en
+        \textbf{Ver historial administrativo}.
+  \item Para ir a la etapa procesal, haga clic en
+        \textbf{Consultar etapas}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-16-resumen-expediente.png}%
+    {Pestaña Resumen con ficha penal completa, estado y Registro inicial de etapa · Litigante}
+  \caption{Resumen del expediente.}
+  \label{fig:manual-resumen-expediente}
+\end{figure}
+
+\resultado Conoce el estado actual del expediente antes de trabajar en sus
+pestañas. Haga clic en \textbf{Actualizar resumen} si otra persona pudo
+modificarlo.
+
+\nota{En pantallas pequeñas, las pestañas se muestran como una lista
+desplegable.}
+
+% ---------------------------------------------------------------------
+\section{Editar o completar la ficha penal}\label{sec:editar-ficha}
+
+\paraque Corrige los datos del expediente o completa la ficha de un
+expediente que quedó pendiente.
+
+\disponible Administrador y Litigante asignado. El expediente debe estar
+activo.
+
+\pasos
+\begin{enumerate}
+  \item En el \textbf{Resumen}, haga clic en el botón que corresponda:
+        \begin{itemize}
+          \item \textbf{Editar ficha penal}, si la ficha está completa.
+          \item \textbf{Editar datos básicos} o
+                \textbf{Completar ficha penal}, si la ficha está pendiente.
+        \end{itemize}
+  \item Modifique los campos necesarios (los mismos de la
+        \cref{sec:crear-expediente}).
+  \item Haga clic en \textbf{Guardar ficha penal} o
+        \textbf{Guardar datos básicos}.
+\end{enumerate}
+
+\resultado El Resumen muestra los datos nuevos y el historial administrativo
+registra la revisión con su autor y fecha.
+
+\begin{itemize}
+  \item \textbf{Si otra persona cambió la ficha al mismo tiempo}, aparece
+        \enquote{Los datos del expediente cambiaron. Consulta los valores
+        actuales.} Haga clic en \textbf{Consultar datos actuales}, compare
+        los \textbf{Valores actuales guardados} con su formulario, marque
+        \textbf{He comparado los valores actuales y decido guardar mis
+        cambios} y haga clic en \textbf{Guardar mis cambios}.
+  \item Completar una ficha pendiente no crea una etapa procesal; regístrela
+        después en la pestaña \textbf{Etapas}.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\section{Cerrar o reactivar un expediente}\label{sec:cerrar-expediente}
+
+\paraque Suspende los cambios de un expediente concluido, o los permite de
+nuevo.
+
+\disponible Administrador y Litigante asignado.
+
+\importante{Un expediente cerrado conserva la consulta, el historial, la
+verificación y la descarga de evidencia, pero no admite cambios en la ficha,
+documentos, participantes, etapas, audiencias ni plazos hasta que se
+reactive. Cerrar no cambia la etapa procesal registrada.}
+
+\pasos
+\begin{enumerate}
+  \item En el \textbf{Resumen}, haga clic en
+        \textbf{Cerrar administrativamente} (o en
+        \textbf{Reactivar expediente} si ya está cerrado).
+  \item Lea el aviso de la ventana y revise los datos del expediente.
+  \item Haga clic en \textbf{Confirmar cierre administrativo} (o en
+        \textbf{Confirmar reactivación}).
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-17-cerrar-expediente.png}%
+    {Ventana Cerrar administrativamente con su aviso y el botón de confirmación · Litigante}
+  \caption{Cierre administrativo de un expediente.}
+  \label{fig:manual-cerrar-expediente}
+\end{figure}
+
+\resultado El expediente muestra \textbf{Cerrado administrativamente} y, en
+todas sus pestañas, el aviso \enquote{Expediente cerrado administrativamente.
+Puedes consultar, verificar y exportar; las modificaciones están
+suspendidas.}
+
+\nota{Si estaba llenando un formulario cuando otra persona cerró el
+expediente, Qadra conserva su formulario. Haga clic en
+\textbf{Consultar estado del expediente} y, si corresponde, reactive el
+expediente antes de guardar. Reactivar no reenvía sus cambios
+automáticamente.}

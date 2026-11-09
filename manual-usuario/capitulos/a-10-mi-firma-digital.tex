@@ -1,0 +1,204 @@
+\chapter{Mi firma digital}\label{cap:mi-firma-digital}
+
+En \textbf{Mi firma digital} usted prepara la clave y el certificado con los
+que firma documentos y contratos. El recorrido completo es:
+
+\begin{enumerate}
+  \item Generar su clave y su solicitud de certificado (CSR) en el navegador.
+  \item Guardar la clave cifrada y comprobar la copia.
+  \item Imprimir la hoja de huella y entregar la solicitud al responsable de
+        la autoridad certificadora (CA) del despacho.
+  \item Recibir su certificado y vincularlo a su cuenta.
+\end{enumerate}
+
+\disponible Administrador, Litigante y Cliente.
+
+\importante{Su clave privada y su contraseña nunca salen de su equipo. Qadra
+no puede recuperarlas: si las pierde, deberá generar una clave nueva.}
+
+% ---------------------------------------------------------------------
+\section{Generar la clave y la solicitud}\label{sec:generar-clave}
+
+\paraque Crea su clave privada protegida con contraseña y la solicitud
+pública (CSR) que necesita la CA para emitir su certificado.
+
+\pasos
+\begin{enumerate}
+  \item En el menú, haga clic en \textbf{Mi firma digital}. Si es
+        Administrador, quédese en la pestaña \textbf{Firma de documentos}.
+  \item En \textbf{Generar clave y solicitud}, llene
+        \textbf{Datos de la solicitud}: \textbf{Nombre común (CN)},
+        \textbf{Organización (O)} y \textbf{País (C)} (por ejemplo,
+        \texttt{MX}).
+  \item Escriba la \textbf{Contraseña de la nueva clave} (al menos 12
+        caracteres) y repítala en \textbf{Confirmar contraseña}.
+  \item Haga clic en \textbf{Generar clave y solicitud}.
+  \item Haga clic en \textbf{Descargar clave cifrada} y guarde el archivo
+        \archivo{qadra-document-signing-key.encrypted.pem} en un lugar seguro.
+  \item Para comprobar la copia, selecciónela en
+        \textbf{Archivo de clave cifrada guardado}, escriba su contraseña en
+        \textbf{Contraseña de la clave guardada} y haga clic en
+        \textbf{Comprobar copia guardada}.
+  \item Haga clic en \textbf{Descargar solicitud CSR}. Se descarga
+        \archivo{qadra-document-signing-request.csr.pem}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-40-generar-clave.png}%
+    {Sección Generar clave y solicitud con Datos de la solicitud y contraseña · Litigante}
+  \caption{Generación de la clave y la solicitud.}
+  \label{fig:manual-generar-clave}
+\end{figure}
+
+\resultado Aparece \enquote{La copia cifrada se puede abrir y corresponde a
+esta solicitud.} y queda descargada su solicitud CSR.
+
+\nota{El nombre que escribe es declarado: no acredita su identidad. Para el
+Cliente, la organización es fija y corresponde a la CA emisora.}
+
+% ---------------------------------------------------------------------
+\section{Hoja de huella y entrega de la solicitud}\label{sec:hoja-huella}
+
+\paraque Asegura que el certificado que emitirá la CA corresponde a la clave
+que usted generó.
+
+\pasos
+\begin{enumerate}
+  \item En \textbf{Huella de tu clave pública}, haga clic en
+        \textbf{Imprimir hoja de huella}.
+  \item Imprima la \textbf{Hoja de huella de firma documental}. Tiene dos
+        ejemplares: \textbf{Ejemplar del Cliente} y
+        \textbf{Ejemplar del despacho}.
+  \item Firmen a mano ambos ejemplares (usted y el despacho). Anote el
+        \textbf{Folio}; se pide al solicitar las firmas de un contrato.
+  \item Entregue solo el archivo CSR al responsable de la CA.
+  \item Lea la huella al responsable de la CA, en persona o por teléfono.
+        Debe coincidir con la que él ve antes de emitir el certificado.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-41-hoja-huella.png}%
+    {Vista de impresión de la Hoja de huella de firma documental con ambos ejemplares (datos de prueba) · Litigante}
+  \caption{Hoja de huella de firma documental.}
+  \label{fig:manual-hoja-huella}
+\end{figure}
+
+\resultado La CA le entrega su certificado público (archivo \texttt{.pem}).
+
+\importante{Comparta solo el CSR. Nunca entregue su clave privada ni su
+contraseña, ni siquiera al responsable de la CA.}
+
+% ---------------------------------------------------------------------
+\section{Registrar el certificado y el vínculo}\label{sec:registrar-vinculo}
+
+\paraque Vincula su certificado a su cuenta de Qadra. Sin vínculo no puede
+firmar documentos ni contratos.
+
+\pasos
+\begin{enumerate}
+  \item En \textbf{Mi firma digital}, vaya a
+        \textbf{Registrar certificado documental}.
+  \item Seleccione su certificado en \textbf{Certificado público PEM} y haga
+        clic en \textbf{Preparar vínculo}.
+  \item Revise los datos del certificado.
+  \item En \textbf{Firmar en este dispositivo}, seleccione su
+        \textbf{Clave privada cifrada}, escriba la
+        \textbf{Contraseña de la clave} y haga clic en
+        \textbf{Firmar localmente}.
+  \item Marque \textbf{Confirmo vincular este certificado a mi cuenta}.
+  \item Haga clic en \textbf{Registrar vínculo}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-42-registrar-vinculo.png}%
+    {Registrar certificado documental con certificado cargado y Firmar en este dispositivo · Litigante}
+  \caption{Registro del vínculo del certificado.}
+  \label{fig:manual-registrar-vinculo}
+\end{figure}
+
+\resultado Aparece \textbf{Vínculo registrado}. Haga clic en
+\textbf{Descargar recibo del vínculo} para conservar el recibo
+(\archivo{certificate-binding-receipt.json}).
+
+\nota{Si prefiere firmar con su propia herramienta, abra
+\textbf{Usar una firma externa}, descargue la declaración con
+\textbf{Descargar declaración del vínculo}, fírmela y cargue el resultado en
+\textbf{Firma externa del vínculo}.}
+
+% ---------------------------------------------------------------------
+\section{Retirar el vínculo}\label{sec:retirar-vinculo}
+
+\paraque Deja de usar un certificado, por ejemplo si perdió su clave o va a
+renovarlo.
+
+\importante{Retirar el vínculo impide firmar con ese certificado en adelante.
+Las firmas anteriores conservan su evidencia.}
+
+\pasos
+\begin{enumerate}
+  \item En \textbf{Vínculo registrado}, haga clic en \textbf{Retirar vínculo}.
+  \item Marque \textbf{Confirmo retirar el vínculo para futuras firmas}.
+  \item Haga clic en \textbf{Confirmar retiro}.
+\end{enumerate}
+
+\resultado Aparece \textbf{Vínculo retirado}. Para volver a firmar, genere
+una clave nueva o registre un certificado renovado.
+
+% ---------------------------------------------------------------------
+\section{Certificado vencido o por vencer}\label{sec:certificado-vence}
+
+Qadra le avisa en \textbf{Mi firma digital}:
+
+\begin{itemize}
+  \item \textbf{Por vencer:} \enquote{Tu certificado vence en menos de 30
+        días. Renuévalo y vuelve a vincularlo; una solicitud abierta con el
+        certificado anterior debe rehacerse.}
+  \item \textbf{Vencido:} \enquote{Tu certificado venció. Genera una clave
+        nueva o renueva el certificado y vuelve a vincularlo.}
+\end{itemize}
+
+En ambos casos, repita las \cref{sec:generar-clave,sec:hoja-huella,sec:registrar-vinculo}.
+
+% ---------------------------------------------------------------------
+\section{Certificado para ingresar (Administrador)}\label{sec:acceso-certificado}
+
+\paraque Registra el certificado con el que el Administrador puede entrar a
+Qadra (\cref{sec:ingresar-certificado}). Este certificado no firma
+documentos.
+
+\disponible Administrador.
+
+\pasos
+\begin{enumerate}
+  \item En \textbf{Mi firma digital}, abra la pestaña
+        \textbf{Acceso con certificado}.
+  \item Genere su clave y su solicitud igual que en la
+        \cref{sec:generar-clave}, y obtenga su certificado de la CA.
+  \item Haga clic en \textbf{Registrar certificado}.
+  \item Seleccione su \textbf{Certificado público PEM} y haga clic en
+        \textbf{Preparar vínculo}.
+  \item Firme en \textbf{Firmar en este dispositivo} con su clave y su
+        contraseña, y haga clic en \textbf{Registrar vínculo}.
+  \item En \textbf{Vínculo de mi cuenta}, haga clic en
+        \textbf{Descargar recibo}. Ese archivo \texttt{.json} es el que
+        seleccionará al ingresar con certificado.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-43-acceso-certificado.png}%
+    {Pestaña Acceso con certificado con Vínculo de mi cuenta y Descargar recibo · Administrador}
+  \caption{Certificado para ingresar a Qadra.}
+  \label{fig:manual-acceso-certificado}
+\end{figure}
+
+\resultado El vínculo aparece como \textbf{Sin retirar} y ya puede usar
+\textbf{Ingresar con certificado}.
+
+\nota{Para dejar de usarlo, haga clic en \textbf{Retirar vínculo} y luego en
+\textbf{Confirmar retiro}. El retiro es definitivo para ese vínculo y cierra
+las sesiones abiertas con él; su acceso con contraseña y segundo factor no
+cambia.}

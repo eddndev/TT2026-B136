@@ -1,0 +1,64 @@
+\chapter{Informes}\label{cap:informes}
+
+\paraque Genera un informe en PDF y CSV sobre el estado de los expedientes o
+la actividad de cada litigante en un periodo.
+
+\disponible Administrador (todo el despacho) y Litigante (sus expedientes
+asignados).
+
+\begin{table}[H]
+  \centering
+  \caption{Tipos de informe.}\label{tab:tipos-informe}
+  \begin{tabularx}{\textwidth}{L{4.8cm} Y}
+    \toprule
+    \textbf{Informe} & \textbf{Qué incluye} \\
+    \midrule
+    \textbf{Estado y carga de expedientes}
+      & Expedientes creados en el periodo, su estado y el litigante
+        asignado. \\
+    \textbf{Actividad por litigante}
+      & Documentos cargados, actuaciones registradas y plazos atendidos por
+        cada litigante en el periodo. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\pasos
+\begin{enumerate}
+  \item En el menú, haga clic en \textbf{Informes}.
+  \item En \textbf{Solicitar informe}, elija el tipo de informe.
+  \item Indique el periodo: \textbf{Creación desde (UTC)} y
+        \textbf{Creación hasta (excluida, UTC)}, o bien
+        \textbf{Actividad desde (UTC)} y
+        \textbf{Actividad hasta (excluida, UTC)}, según el tipo. El primer
+        día se incluye y el último no; el periodo máximo es de 366 días.
+  \item Si lo desea, filtre por \textbf{Estado administrativo} y por
+        litigante.
+  \item Haga clic en \textbf{Generar informe}.
+  \item En \textbf{Solicitudes y avisos}, espere a que el estado cambie a
+        \textbf{Disponible} y haga clic en \textbf{Consultar informe}.
+  \item Haga clic en \textbf{Descargar PDF} o \textbf{Descargar CSV}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-39-informes.png}%
+    {Informes de expedientes con la solicitud y un informe Disponible con Descargar PDF y CSV · Litigante}
+  \caption{Solicitud y descarga de un informe.}
+  \label{fig:manual-informes}
+\end{figure}
+
+\resultado Descarga el informe en el formato elegido. El PDF y el CSV
+provienen de la misma captura de datos.
+
+\begin{itemize}
+  \item El informe se genera en el servidor; no necesita mantener la
+        pantalla abierta.
+  \item Las fechas del periodo se interpretan en UTC.
+  \item Si el informe es demasiado grande, aparece \enquote{El informe supera
+        el límite permitido. Solicita otro con un periodo o filtro más
+        reducido.}
+\end{itemize}
+
+\nota{El informe muestra el estado al momento de generarlo; no reconstruye
+el estado pasado del expediente ni califica resultados jurídicos.}

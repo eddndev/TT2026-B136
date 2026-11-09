@@ -1,0 +1,147 @@
+\chapter{Menú principal e Inicio}\label{cap:menu-inicio}
+
+% ---------------------------------------------------------------------
+\section{Menú principal}\label{sec:menu-principal}
+
+\paraque Lleva a cada sección de Qadra. Cada rol ve solo las opciones que
+puede usar.
+
+\disponible Administrador, Litigante y Asistente legal. El menú del Cliente
+se describe en el \cref{cap:cliente}.
+
+El menú está en el costado izquierdo de la pantalla. La \cref{tab:menu}
+muestra sus opciones.
+
+\begin{table}[H]
+  \centering
+  \caption{Opciones del menú principal por rol.}\label{tab:menu}
+  \begin{tabularx}{\textwidth}{L{3.4cm} Y C{1.3cm} C{1.3cm} C{1.4cm}}
+    \toprule
+    \textbf{Opción} & \textbf{Qué abre} & \textbf{Adm.} & \textbf{Litig.} & \textbf{Asist.} \\
+    \midrule
+    \textbf{Inicio}            & Resumen del día y accesos rápidos. & Sí & Sí & Sí \\
+    \textbf{Expedientes}       & Archivo de expedientes y cada expediente abierto. & Sí & Sí & Sí \\
+    \textbf{Por firmar}        & Contratos que firma por el despacho. & Sí & Sí & No \\
+    \textbf{Informes}          & Informes de expedientes en PDF y CSV. & Sí & Sí & No \\
+    \textbf{Agenda}            & Audiencias y vencimientos de sus expedientes. & Sí & Sí & Sí \\
+    \textbf{Alertas}           & Sus avisos personales y preferencias. & Sí & Sí & Sí \\
+    \textbf{Equipo}            & Cuentas e invitaciones del despacho. & Sí & No & No \\
+    \textbf{Bitácora}          & Movimientos e incidentes de integridad. & Sí & No & No \\
+    \textbf{Calendarios}       & Calendarios jurisdiccionales. & Sí & No & No \\
+    \textbf{Mi firma digital}  & Su clave, certificado y vínculo de firma. & Sí & Sí & No \\
+    \textbf{Guía de uso}       & Ayuda breve dentro de Qadra. & Sí & Sí & Sí \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{Equipo}, \textbf{Bitácora} y \textbf{Calendarios} aparecen
+        bajo el título \textbf{Administración}.
+  \item Para ganar espacio en pantallas grandes, haga clic en
+        \textbf{Contraer menú}; para mostrarlo de nuevo, haga clic en
+        \textbf{Expandir menú}.
+  \item En el teléfono, el menú se abre con el botón \textbf{Abrir menú} de
+        la barra superior.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-11-menu-principal.png}%
+    {Pantalla completa con el menú lateral desplegado, incluida la sección Administración · Administrador}
+  \caption{Menú principal del Administrador.}
+  \label{fig:manual-menu-principal}
+\end{figure}
+
+% ---------------------------------------------------------------------
+\section{Barra superior}\label{sec:barra-superior}
+
+\paraque Ofrece la búsqueda rápida de expedientes, sus avisos sin leer y el
+menú de su cuenta.
+
+\disponible Administrador, Litigante y Asistente legal.
+
+\begin{table}[H]
+  \centering
+  \caption{Elementos de la barra superior.}\label{tab:barra-superior}
+  \begin{tabularx}{\textwidth}{L{3.6cm} Y}
+    \toprule
+    \textbf{Elemento} & \textbf{Cómo se usa} \\
+    \midrule
+    \textbf{Buscar expedientes}
+      & Escriba al menos 2 caracteres del título, la referencia, el NUC o la
+        carpeta judicial. Seleccione un resultado para abrirlo. También se
+        activa con \texttt{Ctrl}+\texttt{K}. \\
+    Campana de avisos
+      & Muestra el panel \textbf{Avisos sin leer}. Haga clic en
+        \textbf{Abrir la bandeja de alertas} para ver todos en
+        \textbf{Alertas}. \\
+    Círculo con sus iniciales (\textbf{Tu cuenta})
+      & Muestra su nombre, correo y rol, y el botón
+        \textbf{Cerrar sesión} (\cref{sec:cerrar-sesion}). \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\nota{La búsqueda rápida cubre los primeros 300 expedientes. Si no encuentra
+uno, haga clic en \textbf{Ir al archivo de expedientes} y use los filtros
+(\cref{sec:buscar-expediente}).}
+
+% ---------------------------------------------------------------------
+\section{Inicio}\label{sec:inicio}
+
+\paraque Muestra su situación del día y lo lleva rápido a sus pendientes.
+
+\disponible Administrador, Litigante y Asistente legal. El contenido cambia
+según el rol.
+
+\subsection*{Inicio del Administrador y del Litigante}
+
+El Administrador ve los datos de \textbf{Todo el despacho}; el Litigante, los
+de \textbf{Tus expedientes asignados}.
+
+\begin{itemize}
+  \item \textbf{Indicadores:} \textbf{Expedientes activos},
+        \textbf{Plazos vencidos}, \textbf{Vencen en 7 días},
+        \textbf{Por revisar} y \textbf{Contratos en firma}. Haga clic en
+        \textbf{Actualizar} para recalcularlos.
+  \item \textbf{Próximos plazos y audiencias:} actividades de los próximos
+        30 días. Haga clic en una actividad o en \textbf{Ver agenda} para
+        abrir la \textbf{Agenda}.
+  \item \textbf{Carga por litigante:} cuántos expedientes activos tiene
+        asignados cada litigante.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-12-inicio-tablero.png}%
+    {Inicio con indicadores, próximos plazos y audiencias y carga por litigante · Litigante}
+  \caption{Inicio del Administrador y del Litigante.}
+  \label{fig:manual-inicio-tablero}
+\end{figure}
+
+\subsection*{Inicio del Asistente legal}
+
+\begin{itemize}
+  \item \textbf{Tu expediente actual:} haga clic en
+        \textbf{Abrir expediente} para continuar con el último expediente,
+        o en \textbf{Seleccionar expediente} si aún no eligió uno.
+  \item \textbf{Accesos:} atajos a \textbf{Expedientes},
+        \textbf{Pendientes de sello}, \textbf{Documentos sellados} y
+        \textbf{Mis alertas}.
+  \item \textbf{Tu siguiente paso:} recuerda el recorrido de un documento:
+        \textbf{Carga}, \textbf{Sella} y \textbf{Verifica y descarga}.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-13-inicio-asistente.png}%
+    {Inicio con Tu expediente actual, Accesos y Tu siguiente paso · Asistente legal}
+  \caption{Inicio del Asistente legal.}
+  \label{fig:manual-inicio-asistente}
+\end{figure}
+
+\resultado Desde \textbf{Inicio} llega en un clic a sus expedientes, su
+agenda o sus documentos pendientes.
+
+\nota{La opción \textbf{Guía de uso} del menú resume, dentro de Qadra, las
+tareas más comunes y responde preguntas frecuentes.}

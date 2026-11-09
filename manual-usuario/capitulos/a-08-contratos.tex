@@ -1,0 +1,178 @@
+\chapter{Contratos con el Cliente}\label{cap:contratos}
+
+Un contrato es una versión PDF que firman primero el Cliente y después una
+persona del despacho, cada uno con su certificado. El recorrido completo es:
+
+\begin{enumerate}
+  \item El despacho crea el contrato y solicita las firmas
+        (\cref{sec:crear-contrato}).
+  \item El Cliente revisa y firma desde \textbf{Mis contratos} (\cref{sec:cliente-firmar}).
+  \item El despacho comprueba la firma del Cliente y firma desde
+        \textbf{Por firmar} (\cref{sec:firmar-despacho}).
+\end{enumerate}
+
+\importante{Una versión en contrato ya no admite sello ni firma personal. Si
+necesita cambiar el documento, agregue una versión nueva y solicite firmas
+sobre ella.}
+
+% ---------------------------------------------------------------------
+\section{Antes de solicitar firmas}\label{sec:contrato-requisitos}
+
+Verifique que se cumplen estas condiciones; si falta alguna, Qadra
+muestra la lista \textbf{Antes de solicitar las firmas} y no crea la
+solicitud.
+
+\begin{table}[H]
+  \centering
+  \caption{Condiciones para solicitar firmas.}\label{tab:contrato-requisitos}
+  \begin{tabularx}{\textwidth}{L{3.6cm} Y}
+    \toprule
+    \textbf{Quién o qué} & \textbf{Condición} \\
+    \midrule
+    Documento & Versión actual, en PDF y sin sellar. \\
+    Cliente   & Cuenta creada por invitación, activa y con su firma vinculada
+                en \textbf{Mi firma digital}. \\
+    Firmante del despacho & Administrador o Litigante con firma vinculada y
+                vigente, y asignado al expediente. \\
+    Hoja de huella & Ambas partes firmaron a mano los ejemplares de la hoja de
+                huella; se necesita su folio. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% ---------------------------------------------------------------------
+\section{Crear un contrato y solicitar firmas}\label{sec:crear-contrato}
+
+\paraque Convierte una versión PDF en contrato y la envía a firma.
+
+\disponible Administrador y Litigante.
+
+\pasos
+\begin{enumerate}
+  \item Abra la ficha del documento PDF (\cref{sec:ficha-documental}) y
+        haga clic en \textbf{Crear contrato}.
+  \item Revise el \textbf{Título del contrato} y haga clic en
+        \textbf{Crear contrato}. Aparece \enquote{Contrato creado en
+        borrador.}
+  \item En \textbf{Solicitar firmas}, escriba el
+        \textbf{Correo de la cuenta del Cliente}.
+  \item En \textbf{Firma por el despacho}, elija la cuenta que firmará.
+  \item Indique la \textbf{Vigencia en días} (de 1 a 30) y el
+        \textbf{Folio de la hoja de huella firmada}.
+  \item Haga clic en \textbf{Solicitar firmas}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-36-solicitar-firmas.png}%
+    {Formulario Solicitar firmas con correo del Cliente, firmante, vigencia y folio · Litigante}
+  \caption{Solicitud de firmas de un contrato.}
+  \label{fig:manual-solicitar-firmas}
+\end{figure}
+
+\resultado Aparece \enquote{Firmas solicitadas. Consulta su avance en
+Contratos del expediente.} El Cliente ya puede firmar.
+
+% ---------------------------------------------------------------------
+\section{Seguir un contrato}\label{sec:seguir-contrato}
+
+\paraque Muestra el estado de los contratos del expediente y permite
+descargar sus paquetes.
+
+\disponible Administrador y Litigante; el Asistente legal solo consulta.
+
+\pasos
+\begin{enumerate}
+  \item En el expediente, abra la pestaña \textbf{Contratos}.
+  \item Haga clic en \textbf{Abrir} junto al contrato.
+  \item Revise las \textbf{Solicitudes de firma} y la
+        \textbf{Línea de tiempo}.
+  \item Descargue lo que necesite: \textbf{Descargar acuse parcial} (cuando
+        firmó el Cliente) o \textbf{Descargar contrato firmado} (cuando
+        firmaron ambos).
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-37-detalle-contrato.png}%
+    {Detalle de un contrato con su solicitud, línea de tiempo y botones de descarga · Litigante}
+  \caption{Detalle de un contrato.}
+  \label{fig:manual-detalle-contrato}
+\end{figure}
+
+\begin{table}[H]
+  \centering
+  \caption{Estados de una solicitud de firma.}\label{tab:estados-solicitud}
+  \begin{tabularx}{\textwidth}{L{5cm} Y}
+    \toprule
+    \textbf{Estado} & \textbf{Qué significa} \\
+    \midrule
+    \textbf{Espera la firma del Cliente}  & El Cliente aún no firma. \\
+    \textbf{Espera la firma del despacho} & El Cliente firmó; falta el despacho. \\
+    \textbf{Formalizado}                  & Firmaron ambas partes. \\
+    \textbf{Rechazado por el Cliente}     & El Cliente rechazó el contrato. \\
+    \textbf{Declinado por el despacho}    & El despacho no firmó; la firma del Cliente se conserva. \\
+    \textbf{Cancelado} / \textbf{Vencido} & La solicitud se cerró sin formalizar. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{itemize}
+  \item Para cancelar una solicitud abierta, haga clic en
+        \textbf{Cancelar solicitud}, escriba el \textbf{Motivo} y haga clic
+        en \textbf{Confirmar cancelación}.
+  \item Un contrato en \textbf{Borrador} sin solicitud puede abandonarse con
+        \textbf{Abandonar contrato}.
+  \item Solo puede haber una solicitud abierta por contrato.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\section{Firmar por el despacho}\label{sec:firmar-despacho}
+
+\paraque Contrafirma el contrato después del Cliente y lo formaliza.
+
+\disponible La cuenta elegida en \textbf{Firma por el despacho}
+(Administrador o Litigante).
+
+Tenga a la mano su clave privada cifrada (archivo \texttt{.pem}) y su
+contraseña.
+
+\pasos
+\begin{enumerate}
+  \item En el menú, haga clic en \textbf{Por firmar} y elija la solicitud.
+  \item En \textbf{1. Revisa}, haga clic en
+        \textbf{Cargar y comprobar el PDF} y lea el contrato.
+  \item En \textbf{Comprueba la firma del Cliente}, haga clic en
+        \textbf{Descargar acuse parcial}. Seleccione ese archivo en el
+        validador y haga clic en \textbf{Validar paquete}.
+  \item En \textbf{2. Confirma}, marque \textbf{Confirmo firmar por el
+        despacho esta versión exacta, después de revisar la firma del
+        Cliente.}
+  \item En \textbf{3. Firma}, haga clic en \textbf{Preparar la firma}.
+        Seleccione su \textbf{Clave privada cifrada}, escriba la
+        \textbf{Contraseña de la clave} y haga clic en
+        \textbf{Firmar localmente}.
+  \item Haga clic en \textbf{Enviar firma}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/A-38-por-firmar.png}%
+    {Por firmar con los pasos 1. Revisa, 2. Confirma y 3. Firma y el acuse parcial validado · Litigante}
+  \caption{Firma del contrato por el despacho.}
+  \label{fig:manual-por-firmar}
+\end{figure}
+
+\resultado Aparece \enquote{Firma del despacho registrada; el contrato quedó
+formalizado.} Descargue el paquete con \textbf{Descargar contrato firmado}.
+
+\begin{itemize}
+  \item El botón de firma se habilita solo cuando el acuse parcial se valida
+        sin fallas.
+  \item Si intenta firmar antes que el Cliente, aparece \enquote{No es tu
+        turno de firmar. Primero firma el Cliente y después el despacho.}
+  \item Si no desea firmar, haga clic en \textbf{Declinar firma}.
+  \item Si se pierde la respuesta, haga clic en
+        \textbf{Consultar recibo de firma}; consultar no vuelve a enviar la
+        firma.
+\end{itemize}

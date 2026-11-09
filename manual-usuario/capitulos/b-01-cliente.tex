@@ -1,0 +1,153 @@
+\chapter{Uso de Qadra como Cliente}\label{cap:cliente}
+
+Como Cliente, usted usa Qadra para firmar el contrato que le envía el
+despacho y para comprobar sus paquetes de evidencia. Su menú tiene tres
+opciones: \textbf{Mis contratos}, \textbf{Mi firma digital} y
+\textbf{Validar evidencia}.
+
+\nota{Su cuenta no da acceso a expedientes, documentos ni al directorio del
+despacho.}
+
+% ---------------------------------------------------------------------
+\section{Crear su cuenta e iniciar sesión}\label{sec:cliente-acceso}
+
+\paraque Activa su cuenta con la invitación del despacho y le permite
+entrar.
+
+\disponible Cliente.
+
+\pasos
+\begin{enumerate}
+  \item Abra el enlace del correo de invitación y siga los pasos de la
+        \cref{sec:aceptar-invitacion}: elija su contraseña, configure su app
+        de autenticación y guarde sus códigos de recuperación.
+  \item Para entrar, siga los pasos de la \cref{sec:iniciar-sesion}: correo,
+        contraseña y \textbf{Código de 6 dígitos}.
+\end{enumerate}
+
+\resultado Qadra se abre en \textbf{Mis contratos}.
+
+\importante{Guarde sus códigos de recuperación: son la única forma de entrar
+si pierde su teléfono. Si olvida su contraseña, use
+\textbf{Olvidé mi contraseña} (\cref{sec:recuperar-contrasena}).}
+
+% ---------------------------------------------------------------------
+\section{Preparar su firma digital}\label{sec:cliente-firma}
+
+\paraque Prepara la clave y el certificado con los que firmará su contrato.
+Se hace una sola vez, antes de la primera firma.
+
+\disponible Cliente.
+
+\pasos
+\begin{enumerate}
+  \item En el menú, haga clic en \textbf{Mi firma digital}.
+  \item Genere su clave y su solicitud, guarde la clave cifrada y descargue
+        el CSR (\cref{sec:generar-clave}). La \textbf{Organización (O)} ya
+        viene llena: corresponde a la CA emisora, no a usted.
+  \item Imprima la hoja de huella, fírmela a mano junto con el despacho y
+        entregue el CSR al responsable de la CA (\cref{sec:hoja-huella}).
+  \item Cuando reciba su certificado, regístrelo y vincúlelo a su cuenta
+        (\cref{sec:registrar-vinculo}).
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/B-01-mi-firma-digital-cliente.png}%
+    {Mi firma digital con Generar clave y solicitud y la organización fija · Cliente}
+  \caption{Mi firma digital del Cliente.}
+  \label{fig:manual-cliente-firma}
+\end{figure}
+
+\resultado Aparece \textbf{Vínculo registrado}. El despacho ya puede
+solicitarle firmas.
+
+\importante{Nunca entregue su clave privada ni su contraseña. Qadra solo
+recibe su certificado público y sus firmas.}
+
+% ---------------------------------------------------------------------
+\section{Revisar y firmar su contrato}\label{sec:cliente-firmar}
+
+\paraque Firma el contrato que le envió el despacho. Usted firma primero; el
+despacho firma después.
+
+\disponible Cliente, con su firma vinculada.
+
+Tenga a la mano su clave privada cifrada (archivo \texttt{.pem}) y su
+contraseña.
+
+\pasos
+\begin{enumerate}
+  \item En el menú, haga clic en \textbf{Mis contratos} y elija el contrato
+        en \textbf{Contratos recibidos}.
+  \item En \textbf{1. Revisa}, compruebe el nombre, la huella del
+        certificado, la fecha de vencimiento y el folio de la hoja de huella.
+  \item Haga clic en \textbf{Cargar y comprobar el PDF} y lea el contrato
+        completo. Puede guardarlo con \textbf{Descargar PDF}.
+  \item En \textbf{2. Confirma}, lea el texto y marque la casilla.
+  \item En \textbf{3. Firma}, haga clic en \textbf{Preparar la firma}.
+  \item En \textbf{Firmar en este dispositivo}, seleccione su
+        \textbf{Clave privada cifrada}, escriba la
+        \textbf{Contraseña de la clave} y haga clic en
+        \textbf{Firmar localmente}.
+  \item Haga clic en \textbf{Enviar firma}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/B-02-firmar-contrato-cliente.png}%
+    {Mis contratos con los pasos 1. Revisa, 2. Confirma y 3. Firma y el PDF comprobado · Cliente}
+  \caption{Firma del contrato por el Cliente.}
+  \label{fig:manual-cliente-firmar}
+\end{figure}
+
+\resultado Aparece \enquote{Tu firma quedó registrada; el contrato aún no
+está formalizado.} El contrato queda en
+\textbf{Espera la firma del despacho}.
+
+\importante{Una vez enviada, su firma no se puede retirar. El contrato solo
+se formaliza si el despacho firma antes de la fecha de vencimiento.}
+
+\begin{itemize}
+  \item \textbf{Si su firma aún no está lista}, aparece
+        \textbf{Antes de firmar, prepara tu firma} con los pasos pendientes.
+        Haga clic en \textbf{Ir a Mi firma digital}.
+  \item \textbf{Si no está de acuerdo}, haga clic en
+        \textbf{Rechazar contrato}, escriba un \textbf{Motivo (opcional)} y
+        haga clic en \textbf{Confirmar rechazo}.
+  \item \textbf{Si se pierde la respuesta}, haga clic en
+        \textbf{Consultar recibo de firma}; consultar no vuelve a enviar su
+        firma.
+\end{itemize}
+
+% ---------------------------------------------------------------------
+\section{Descargar el acuse y el contrato firmado}\label{sec:cliente-acuse}
+
+\paraque Le entrega la evidencia de su firma y, cuando el despacho firma, el
+contrato formalizado.
+
+\disponible Cliente.
+
+\pasos
+\begin{enumerate}
+  \item En \textbf{Mis contratos}, elija el contrato.
+  \item Después de firmar, haga clic en \textbf{Descargar acuse parcial}.
+        Se descarga \archivo{contrato-acuse-parcial.zip}.
+  \item Cuando el estado sea \textbf{Formalizado}, haga clic en
+        \textbf{Descargar contrato firmado}. Se descarga
+        \archivo{contrato-firmado.zip}.
+\end{enumerate}
+
+\begin{figure}[H]
+  \centering
+  \capturapendiente{capturas/B-03-contrato-formalizado.png}%
+    {Contrato en estado Formalizado con Descargar acuse parcial y Descargar contrato firmado · Cliente}
+  \caption{Descarga del acuse y del contrato firmado.}
+  \label{fig:manual-cliente-acuse}
+\end{figure}
+
+\resultado Conserva ambos paquetes ZIP. Puede comprobarlos en
+\textbf{Validar evidencia} (\cref{cap:validar-evidencia}).
+
+\nota{El acuse parcial demuestra su firma, pero no acredita un contrato
+formalizado. Solo el contrato firmado por ambas partes lo acredita.}

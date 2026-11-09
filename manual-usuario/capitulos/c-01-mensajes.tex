@@ -1,0 +1,192 @@
+\chapter{Mensajes del sistema y solución de problemas}\label{cap:mensajes}
+
+Busque el mensaje que vio en pantalla. Los mensajes aparecen agrupados por
+tema.
+
+\small
+\begin{longtable}{L{5.6cm} L{4.4cm} L{5.4cm}}
+  \caption{Mensajes del sistema.}\label{tab:mensajes} \\
+  \toprule
+  \textbf{Mensaje} & \textbf{Causa probable} & \textbf{Qué hacer} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Mensaje} & \textbf{Causa probable} & \textbf{Qué hacer} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
+
+  \multicolumn{3}{l}{\textbf{\color{qadranavy}Acceso y sesión}} \\
+  \enquote{Correo o contraseña incorrectos.}
+    & El correo o la contraseña tienen un error.
+    & Revise ambos con \textbf{Mostrar}. Si no recuerda la contraseña, use
+      \textbf{Olvidé mi contraseña}. \\
+  \enquote{El código fue rechazado o venció. Vuelve a iniciar sesión.}
+    & Código mal escrito, ya usado o vencido.
+    & Inicie sesión de nuevo con un código nuevo de su app. Revise que la
+      hora de su teléfono sea correcta. \\
+  \enquote{Demasiados intentos. Espera 15 minutos antes de volver a
+  intentarlo.}
+    & Varios intentos fallidos seguidos.
+    & Espere 15 minutos y vuelva a intentarlo. \\
+  No tengo mi app de autenticación (perdí el segundo factor)
+    & Cambio o pérdida del teléfono.
+    & Use un código de recuperación (\cref{sec:codigo-recuperacion}). Si no
+      tiene ninguno, contacte al Administrador. \\
+  \enquote{Tu sesión terminó. Vuelve a iniciar sesión.}
+    & Pasó mucho tiempo sin actividad o la sesión se cerró.
+    & Inicie sesión de nuevo. \\
+  \enquote{La solicitud de acceso venció. Inicia sesión de nuevo.}
+    & Tardó demasiado en escribir el código.
+    & Empiece de nuevo desde el correo y la contraseña. \\
+  \enquote{El enlace no es válido. Abre el correo original o solicita un
+  reenvío al administrador.}
+    & Enlace de invitación incompleto, vencido o reemplazado.
+    & Abra el enlace del correo más reciente o pida al Administrador que
+      reenvíe la invitación. \\
+  \enquote{El enlace ya no puede usarse. Solicita uno nuevo desde el inicio
+  de sesión.}
+    & Enlace de recuperación ya usado o vencido.
+    & Haga clic en \textbf{Olvidé mi contraseña} y solicite otro. \\
+  \enquote{El enlace no es válido o no se pudo abrir de forma segura.
+  Solicita otro enlace.}
+    & Enlace de recuperación incompleto o alterado.
+    & Solicite otro enlace y ábralo completo desde el correo. \\
+  \enquote{El acceso con certificado no está disponible en este servidor.}
+    & El servidor no tiene habilitado ese acceso.
+    & Entre con correo, contraseña y segundo factor. \\
+  \enquote{No tienes permiso para realizar esta acción.}
+    & Su rol o su asignación no permiten esa acción.
+    & Consulte la tabla de permisos o pida al Administrador que revise su
+      asignación. \\
+
+  \multicolumn{3}{l}{\textbf{\color{qadranavy}Expedientes}} \\
+  \enquote{El expediente está cerrado administrativamente. Consulta su
+  estado antes de modificarlo.}
+    & El expediente se cerró.
+    & Pida al Administrador o al Litigante que lo reactive
+      (\cref{sec:cerrar-expediente}). \\
+  \enquote{Los datos del expediente cambiaron. Consulta los valores
+  actuales.}
+    & Otra persona guardó cambios al mismo tiempo.
+    & Haga clic en \textbf{Consultar datos actuales}, compare y confirme. \\
+  \enquote{El NUC o la carpeta judicial ya están registrados. Revisa ambos
+  identificadores.}
+    & Ya existe un expediente con esos datos.
+    & Busque el expediente existente o corrija los identificadores. \\
+  \enquote{El expediente no está disponible o ya no tienes acceso.}
+    & Le retiraron la asignación.
+    & Pida al Administrador que revise sus asignaciones. \\
+
+  \multicolumn{3}{l}{\textbf{\color{qadranavy}Documentos}} \\
+  \enquote{El archivo supera el límite de 16 MiB.}
+    & Archivo demasiado grande.
+    & Reduzca el archivo o divídalo. \\
+  \enquote{El formato del archivo no está admitido. Elige un archivo de un
+  formato compatible.}
+    & Formato fuera de la lista admitida.
+    & Convierta el archivo a un formato de la \cref{tab:formatos}. \\
+  \enquote{El archivo no es válido o su contenido está dañado. Revisa el
+  archivo o elige otro.}
+    & El archivo está dañado o no corresponde a su extensión.
+    & Abra el archivo en su equipo, guárdelo de nuevo y vuelva a cargarlo. \\
+  \enquote{El validador no está disponible temporalmente. Conserva el
+  archivo e inténtalo de nuevo cuando esté disponible.}
+    & Falla temporal del servidor.
+    & Espere unos minutos y vuelva a cargar el archivo. \\
+  \enquote{Primero sella el documento para verificarlo o descargar su
+  evidencia.}
+    & La versión aún no está sellada.
+    & Pida a un Administrador o Litigante que la selle. \\
+  \enquote{El resultado del sellado es incierto. Consulta esta versión
+  antes de otra decisión.}
+    & Se perdió la respuesta al sellar.
+    & Haga clic en \textbf{Consultar estado del sellado} antes de sellar de
+      nuevo. \\
+  Estado \textbf{Revisar evidencia} o \textbf{Verificación no válida}
+    & Una comprobación de la evidencia falló.
+    & No use la evidencia. Revise los detalles técnicos y avise al
+      Administrador. \\
+  \enquote{No se descargó el archivo: su validación falló.}
+    & El contenido guardado no pasó la comprobación de integridad.
+    & Avise al Administrador; queda registrado como incidente. \\
+
+  \multicolumn{3}{l}{\textbf{\color{qadranavy}Firma digital y contratos}} \\
+  \enquote{Tu certificado vence en menos de 30 días. Renuévalo y vuelve a
+  vincularlo; una solicitud abierta con el certificado anterior debe
+  rehacerse.}
+    & El certificado está por vencer.
+    & Tramite un certificado nuevo y vincúlelo (\cref{sec:certificado-vence}). \\
+  \enquote{Tu certificado venció. Genera una clave nueva o renueva el
+  certificado y vuelve a vincularlo.}
+    & El certificado ya venció.
+    & Genere una clave nueva y vincule el certificado nuevo. \\
+  \enquote{Tu firma documental no está vinculada o fue retirada. Revísala
+  en Mi firma digital.}
+    & No hay un vínculo activo.
+    & Registre su certificado (\cref{sec:registrar-vinculo}). \\
+  \enquote{El certificado no es aceptado por la autoridad del despacho.
+  Revísalo en Mi firma digital.}
+    & El certificado no es de la CA del despacho o fue revocado.
+    & Pida un certificado nuevo al responsable de la CA. \\
+  \enquote{No es tu turno de firmar. Primero firma el Cliente y después el
+  despacho.}
+    & El despacho intentó firmar antes que el Cliente.
+    & Espere la firma del Cliente. \\
+  \enquote{La cuenta del Cliente no está lista: debe existir por invitación,
+  estar activa y tener su firma vinculada en Mi firma digital.}
+    & El Cliente aún no termina su alta o su vínculo.
+    & Pida al Cliente que complete \cref{sec:cliente-acceso,sec:cliente-firma}. \\
+  \enquote{El certificado del Cliente fue revocado antes de la firma del
+  despacho. El contrato no puede completarse.}
+    & La CA revocó el certificado del Cliente.
+    & Cancele la solicitud; el Cliente debe vincular un certificado nuevo. \\
+  \enquote{La vigencia de la solicitud terminó. El despacho debe pedir una
+  nueva.}
+    & Pasó la fecha de vencimiento.
+    & Solicite firmas de nuevo (\cref{sec:crear-contrato}). \\
+  \enquote{Existe una versión posterior del documento. La solicitud ya no
+  puede firmarse.}
+    & Se agregó una versión nueva al documento.
+    & Cancele la solicitud y pida firmas sobre la versión actual. \\
+  \enquote{Esta versión está bajo contrato: no admite sello ni firma
+  individual.}
+    & La versión ya es un contrato.
+    & Agregue una versión nueva si necesita sellar otro archivo. \\
+  \enquote{La autoridad de sellado de tiempo no respondió y no se registró
+  nada. Puedes volver a enviar la misma firma.}
+    & Falla temporal del sello de tiempo.
+    & Envíe la misma firma de nuevo. \\
+
+  \multicolumn{3}{l}{\textbf{\color{qadranavy}Validación de evidencia}} \\
+  \enquote{Este archivo no es el paquete que exportó Qadra; si lo
+  descomprimiste y volviste a comprimir, descarga de nuevo la evidencia.}
+    & El ZIP fue modificado.
+    & Descargue de nuevo la evidencia y valide el ZIP original. \\
+  \enquote{El archivo supera el límite de 26 MiB. Elige el ZIP de
+  evidencia que descargaste de Qadra.}
+    & No es un paquete de Qadra o es demasiado grande.
+    & Seleccione el ZIP descargado de Qadra. \\
+
+  \multicolumn{3}{l}{\textbf{\color{qadranavy}Administración}} \\
+  \enquote{Ya existe una cuenta con ese correo. Usa otro correo para el
+  nuevo integrante.}
+    & El correo ya tiene cuenta.
+    & Busque la cuenta en el \textbf{Directorio de cuentas}. \\
+  \enquote{Debe conservarse al menos un administrador activo; no puedes
+  retirar al último.}
+    & Intentó desactivar o cambiar al único Administrador.
+    & Cree o active otro Administrador primero. \\
+
+  \multicolumn{3}{l}{\textbf{\color{qadranavy}Conexión}} \\
+  \enquote{No se pudo conectar con el servidor. Comprueba que esté
+  disponible.}
+    & Sin internet o servidor fuera de servicio.
+    & Revise su conexión y vuelva a intentarlo. \\
+  \enquote{El servidor no pudo completar la operación. Vuelve a intentarlo
+  más tarde.}
+    & Falla temporal del servidor.
+    & Espere unos minutos. Si persiste, avise al Administrador. \\
+\end{longtable}
+\normalsize
