@@ -28,12 +28,14 @@ test('staff filters combine exact identifiers with literal title and exclusive c
   await login(page, false, false);
   await navigate(page, 'Expedientes');
   await page.getByLabel('Buscar por t\u00edtulo').fill('Parte%');
+  await page.getByText('M\u00e1s filtros', { exact: true }).click();
   await page.getByLabel('NUC exacto').fill('NUC-A');
   await page.getByLabel('Carpeta judicial exacta').fill('CJ-A');
   await page
     .getByRole('combobox', { name: 'Estado administrativo', exact: true })
     .selectOption('closed');
   await page.getByRole('combobox', { name: 'Ficha penal', exact: true }).selectOption('complete');
+  await expect(page.getByText('M\u00e1s filtros (2)', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Buscar expedientes', exact: true }).click();
   await page.getByRole('button', { name: 'Siguiente', exact: true }).click();
   await expect(page.getByRole('button', { name: /Pagina siguiente/ })).toBeVisible();

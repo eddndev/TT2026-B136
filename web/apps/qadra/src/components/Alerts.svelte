@@ -214,10 +214,6 @@
       Preferencias de alertas
     </Button>
   </div>
-  <p class="notice">
-    La fecha capturada no acredita la vigencia actual. Abre la revisi&#243;n de origen para
-    consultar el expediente y contrastar su estado.
-  </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
   {#if notice}<p class="notice success" role="status">{notice}</p>{/if}
   {#if preferencesOpen}<AlertPreferences
@@ -241,8 +237,8 @@
         <ResourceHearingDetail value={ownDetail} caseRecord={ownCase} onclose={closeDetail} />
       {/if}
     {/if}
-    <section class="card alerts-query" aria-label="Consulta de alertas">
-      <form class="alerts-filters" onsubmit={apply}>
+    <section aria-label="Consulta de alertas">
+      <form class="filter-bar" onsubmit={apply}>
         <label
           >Lectura<select bind:value={read}
             ><option value="all">Todas</option><option value="unread">Sin leer</option></select
@@ -254,12 +250,17 @@
             ></select
           ></label
         >
-        <Button variant="primary" type="submit">Consultar alertas</Button>
-        <Button variant="secondary" type="button" disabled={busy || opening} onclick={() => load()}
-          ><Icon name="clock" size={16} />Actualizar alertas</Button
-        >
+        <div class="filter-actions">
+          <Button variant="primary" type="submit">Consultar alertas</Button>
+          <Button
+            variant="secondary"
+            type="button"
+            disabled={busy || opening}
+            onclick={() => load()}><Icon name="clock" size={16} />Actualizar alertas</Button
+          >
+        </div>
       </form>
-      {#if checked}<p class="hint">Consulta comprobada: {alertTimeLabel(checked)}</p>{/if}
+      {#if checked}<p class="filter-note">Consulta comprobada: {alertTimeLabel(checked)}</p>{/if}
     </section>
     {#if busy}<p role="status">Consultando alertas...</p>{/if}
     {#if opening}<p role="status">Consultando el expediente y la revisi&#243;n de origen...</p>{/if}
@@ -283,5 +284,9 @@
           >Cargar m&#225;s alertas</Button
         >
       </div>{/if}
+    <p class="filter-note">
+      La fecha capturada no acredita la vigencia actual. Abre la revisi&#243;n de origen para
+      consultar el expediente y contrastar su estado.
+    </p>
   {/if}
 </section>

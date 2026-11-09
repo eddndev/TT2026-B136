@@ -102,10 +102,7 @@
 {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 <section class="card case-list" aria-busy={busy}>
   <div class="section-heading">
-    <div>
-      <h2>Archivo de expedientes</h2>
-      <p class="hint">Tus asignaciones se comprueban en cada consulta.</p>
-    </div>
+    <h2>Archivo de expedientes</h2>
     <Button variant="secondary" disabled={busy} onclick={() => load(staff ? index : offset)}
       >Actualizar</Button
     >

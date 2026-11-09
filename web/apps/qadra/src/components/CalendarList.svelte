@@ -18,18 +18,8 @@
 </script>
 
 <section class="card calendar-catalog" aria-label="Cat&#225;logo de calendarios" aria-busy={busy}>
-  <div class="section-heading">
-    <h2>Calendarios del despacho</h2>
-    <div class="action-row">
-      <Button variant="secondary" disabled={locked} onclick={onrefresh}
-        >Actualizar calendarios</Button
-      >{#if canManage}<Button variant="primary" disabled={locked} onclick={onnew}
-          >Publicar calendario</Button
-        >{/if}
-    </div>
-  </div>
   <form
-    class="calendar-filters"
+    class="filter-bar"
     onsubmit={(event) => {
       event.preventDefault();
       onapply();
@@ -48,7 +38,7 @@
         ></select
       ></label
     >
-    <label
+    <label class="calendar-entity-filter"
       >Filtrar entidad<select bind:value={filters.entityCode} disabled={locked}
         ><option value="">Cualquier entidad</option>{#each calendarEntities as [code, name]}<option
             value={code}>{code} {name}</option
@@ -56,6 +46,13 @@
       ></label
     >
     <Button variant="secondary" disabled={locked}>Aplicar filtros de calendarios</Button>
+    <div class="filter-actions calendar-actions">
+      <Button variant="secondary" type="button" disabled={locked} onclick={onrefresh}
+        >Actualizar calendarios</Button
+      >{#if canManage}<Button variant="primary" type="button" disabled={locked} onclick={onnew}
+          >Publicar calendario</Button
+        >{/if}
+    </div>
   </form>
   {#if busy}<p role="status">Consultando calendarios...</p>{/if}
   {#each rows as row (row.id)}<article class="calendar-list-row">
@@ -91,4 +88,8 @@
       >
     </div>
   </div>
+  <p class="filter-note">
+    Estas reglas declaradas no calculan vencimientos ni determinan notificaciones. Su aplicabilidad
+    requiere el &#225;mbito y las fuentes expresos.
+  </p>
 </section>

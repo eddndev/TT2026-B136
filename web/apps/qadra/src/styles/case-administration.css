@@ -78,6 +78,9 @@
 .case-filters {
   margin: 20px 0;
 }
+.case-search {
+  margin-bottom: 16px;
+}
 .case-filter-action {
   display: flex;
   align-items: flex-end;

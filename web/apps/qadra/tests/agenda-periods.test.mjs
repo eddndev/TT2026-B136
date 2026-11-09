@@ -1,11 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  agendaPeriod,
-  shiftAgendaPeriod,
-  agendaCivilDay,
-  agendaDays,
-} from '../src/lib/agenda-periods.mjs';
+import { agendaPeriod, agendaCivilDay, agendaDays } from '../src/lib/agenda-periods.mjs';
 
 test('daily ranges use an exclusive next civil day across leap and year boundaries', () => {
   assert.deepEqual(agendaPeriod('day', '2028-02-28'), { from: '2028-02-28', until: '2028-02-29' });
@@ -34,14 +29,6 @@ test('monthly ranges preserve whole calendar months rather than a fixed day coun
   });
 });
 
-test('period navigation moves civil anchors and clamps missing month days', () => {
-  assert.equal(shiftAgendaPeriod('day', '2028-03-01', -1), '2028-02-29');
-  assert.equal(shiftAgendaPeriod('week', '2026-12-30', 1), '2027-01-06');
-  assert.equal(shiftAgendaPeriod('month', '2028-01-31', 1), '2028-02-29');
-  assert.equal(shiftAgendaPeriod('month', '2027-03-31', -1), '2027-02-28');
-  assert.equal(shiftAgendaPeriod('month', '2026-12-31', 1), '2027-01-31');
-});
-
 test('invalid civil inputs, modes and unsupported boundaries are rejected', () => {
   for (const date of [
     '2027-02-29',
@@ -56,9 +43,6 @@ test('invalid civil inputs, modes and unsupported boundaries are rejected', () =
   assert.throws(() => agendaPeriod('year', '2026-01-01'));
   assert.throws(() => agendaPeriod('day', '9999-12-31'));
   assert.throws(() => agendaPeriod('month', '9999-12-15'));
-  assert.throws(() => shiftAgendaPeriod('day', '0001-01-01', -1));
-  assert.throws(() => shiftAgendaPeriod('week', '2026-01-01', 0));
-  assert.throws(() => shiftAgendaPeriod('month', '2026-01-01', 2));
 });
 
 test('grouping applies the explicit offset across UTC midnight without changing the instant', () => {

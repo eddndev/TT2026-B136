@@ -5,6 +5,7 @@
     onapply;
   let values = { title: '', nuc: '', judicial_case_number: '', status: 'active', profile: 'all' },
     error = '';
+  $: exact = [values.nuc, values.judicial_case_number].filter((value) => value.trim()).length;
   function submit(event) {
     event.preventDefault();
     try {
@@ -17,11 +18,9 @@
   }
 </script>
 
-<form class="case-filters" aria-busy={busy} onsubmit={submit}>
-  <div class="case-field-grid">
-    <label>Buscar por t&#237;tulo<input bind:value={values.title} /></label>
-    <label>NUC exacto<input bind:value={values.nuc} /></label>
-    <label>Carpeta judicial exacta<input bind:value={values.judicial_case_number} /></label>
+<form class="case-search" aria-busy={busy} onsubmit={submit}>
+  <div class="filter-bar">
+    <label class="filter-wide">Buscar por t&#237;tulo<input bind:value={values.title} /></label>
     <label
       >Estado administrativo<select bind:value={values.status}
         ><option value="active">Activos</option><option value="closed">Cerrados</option><option
@@ -36,13 +35,18 @@
         ></select
       ></label
     >
-    <div class="case-filter-action">
-      <Button variant="secondary">Buscar expedientes</Button>
-    </div>
+    <Button variant="secondary">Buscar expedientes</Button>
   </div>
-  <p class="hint">
-    Busca por una parte del t&#237;tulo. El NUC y la carpeta deben coincidir por completo. Se
-    distinguen may&#250;sculas y acentos.
-  </p>
+  <details class="filter-more">
+    <summary>M&#225;s filtros{exact ? ` (${exact})` : ''}</summary>
+    <div class="filter-bar">
+      <label>NUC exacto<input bind:value={values.nuc} /></label>
+      <label>Carpeta judicial exacta<input bind:value={values.judicial_case_number} /></label>
+    </div>
+    <p class="filter-note">
+      El t&#237;tulo admite una parte. El NUC y la carpeta deben coincidir por completo. Se
+      distinguen may&#250;sculas y acentos.
+    </p>
+  </details>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
 </form>
