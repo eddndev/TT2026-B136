@@ -109,18 +109,37 @@ La \cref{tab:pruebas-criterios} presenta el contraste criterio por criterio.
 \section{Trabajo futuro}\label{sec:trabajo-futuro}
 
 \begin{itemize}
-  \item Extender la evaluación de usabilidad a los usuarios del despacho, a
-        los roles restantes, al ancho de 768~px y a las tareas de firma
-        bilateral, y corregir los cuatro problemas observados
-        (\cref{sec:pruebas-usabilidad-resultados}).
-  \item Añadir a la integración continua un recorrido del alta de Cliente
-        (CU-18) con sesión de Cliente y servicios reales.
-  \item Sustituir la autoridad de sellado local por un Prestador de Servicios
-        de Certificación mediante el adaptador ya previsto, y obtener
-        constancias NOM-151.
-  \item Definir y probar la política de acceso documental del Cliente.
-  \item Anclar la cabeza de la bitácora en un servicio externo.
-  \item Ampliar el corpus de reglas procesales con revisión jurídica
-        calificada.
-  \item Medir el comportamiento bajo carga.
+  \item \textbf{Agilidad criptográfica y firma poscuántica.} Evaluar los
+        esquemas de firma poscuántica estandarizados por el NIST, solos o en
+        modo híbrido con RSA, y medir su efecto en el tamaño del paquete de
+        evidencia, en el tiempo de firma en el navegador y en la verificación
+        independiente. El formato del paquete debe admitir el cambio de
+        algoritmo sin invalidar las firmas ya emitidas.
+  \item \textbf{Acreditación de la autoridad.} Estudiar los requisitos
+        técnicos, organizativos y jurídicos para que la autoridad certificadora
+        y la de sellado operen como Prestador de Servicios de Certificación
+        acreditado, o se integren con uno mediante el adaptador previsto, y
+        emitan constancias conforme a la NOM-151.
+  \item \textbf{Identidad del firmante.} Investigar la vinculación del
+        certificado interno con una identidad acreditada por un tercero, como
+        la e.firma, para que la firma atribuya el acto a una persona y no solo
+        a una cuenta del sistema.
+  \item \textbf{Custodia de claves.} Comparar la custodia local en el
+        navegador con módulos de seguridad en hardware y con esquemas de firma
+        con umbral, incluida la recuperación de una clave perdida sin que el
+        servicio la conozca.
+  \item \textbf{Transparencia de la bitácora.} Anclar la cabeza de la cadena
+        de auditoría en un registro externo y estudiar registros de
+        transparencia con pruebas de inclusión y de consistencia que un
+        tercero pueda auditar.
+  \item \textbf{Reglas procesales.} Formalizar el cómputo de plazos como un
+        modelo verificable, ampliar el corpus con revisión jurídica calificada
+        y extenderlo a otras materias y fueros.
+  \item \textbf{Evaluación con usuarios.} Repetir la evaluación con los
+        usuarios del despacho, los roles restantes y la firma bilateral, con
+        un instrumento validado de usabilidad y una muestra que permita
+        comparar perfiles (\cref{sec:pruebas-usabilidad-resultados}).
+  \item \textbf{Escala y operación.} Caracterizar el comportamiento bajo
+        carga y el aislamiento entre varios despachos en una misma
+        instalación.
 \end{itemize}
