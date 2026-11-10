@@ -44,10 +44,11 @@ Respecto de los objetivos específicos:
         permisos, y la pertenencia al expediente se revalida en cada operación.
   \item \textbf{Validación.} La campaña de cierre aprobó completa sobre el
         código final (\cref{sec:pruebas-ejecucion-cierre}) y la cobertura de
-        los módulos criptográficos supera el umbral fijado. Dos criterios
-        quedan parciales: la matriz funcional por caso de uso y la evaluación
-        de usabilidad, que se ejecutó con dos personas ajenas al despacho y no
-        con sus usuarios (\cref{sec:pruebas-usabilidad-resultados}).
+        los módulos criptográficos supera el umbral fijado. La matriz
+        funcional relaciona un caso positivo y uno negativo con cada caso de
+        uso (\cref{tab:pruebas-casos-uso}). Un criterio queda parcial: la
+        evaluación de usabilidad, que se ejecutó con dos personas ajenas al
+        despacho y no con sus usuarios (\cref{sec:pruebas-usabilidad-resultados}).
 \end{itemize}
 
 La \cref{tab:pruebas-criterios} presenta el contraste criterio por criterio.
@@ -95,9 +96,6 @@ La \cref{tab:pruebas-criterios} presenta el contraste criterio por criterio.
         (\cref{sec:pruebas-usabilidad-resultados}). No participaron usuarios
         del despacho ni se evaluaron los roles Owner, Paralegal y Cliente,
         el ancho de 768~px, el móvil ni las tareas de firma bilateral.
-  \item \textbf{Matriz funcional.} La matriz de pruebas cubre los servicios; la
-        relación de un caso positivo y uno negativo por cada caso de uso está
-        parcial.
   \item \textbf{Reglas jurídicas.} El cálculo de plazos se aceptó sobre un
         corpus finito de ocho supuestos (\cref{sec:pruebas-corpus-juridico}) y
         la activación de un plazo es una decisión explícita de la persona, no
@@ -115,7 +113,8 @@ La \cref{tab:pruebas-criterios} presenta el contraste criterio por criterio.
         los roles restantes, al ancho de 768~px y a las tareas de firma
         bilateral, y corregir los cuatro problemas observados
         (\cref{sec:pruebas-usabilidad-resultados}).
-  \item Completar la matriz funcional por caso de uso.
+  \item Añadir a la integración continua un recorrido del alta de Cliente
+        (CU-18) con sesión de Cliente y servicios reales.
   \item Sustituir la autoridad de sellado local por un Prestador de Servicios
         de Certificación mediante el adaptador ya previsto, y obtener
         constancias NOM-151.

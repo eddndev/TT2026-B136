@@ -124,12 +124,12 @@ La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de é
   \addlinespace
   OE-6 & Al menos 15 pruebas de extremo a extremo que cubran los flujos de firma y verificación. & 22 pruebas ejecutan el binario real sobre esos flujos (\texttt{sign}, \texttt{timestamp}, \texttt{verify} y \texttt{package export}), además de la demostración íntegra. & Cumplido \\
   \addlinespace
-  OE-6 & Matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. & La \cref{tab:pruebas-casos} cubre servicios; faltan flujos funcionales de los 18 casos de uso, incluido un caso positivo y uno negativo del alta de Cliente (CU-18), y su validación integrada. & Parcial \\
+  OE-6 & Matriz de pruebas funcionales con, por lo menos, un caso positivo y uno negativo por caso de uso. & La \cref{tab:pruebas-casos-uso} relaciona un caso positivo y uno negativo, aprobados en la ejecución de cierre, para los 18 casos de uso y para la variante CU-13a; el archivo y el nombre de cada prueba figuran en la \cref{tab:matriz-casos-uso}. & Cumplido \\
   \addlinespace
   OE-6 & Pruebas de usabilidad con usuarios del despacho. & Dos sesiones del 8 de noviembre de 2026 con personas ajenas al despacho, cuenta Litigante y escritorio: 12 de 12 tareas completadas, 8 sin ayuda y 4 con ayuda (\cref{sec:pruebas-usabilidad-resultados}). No participaron usuarios del despacho ni se evaluaron los roles Owner, Paralegal y Cliente. & Parcial \\
 \end{longtable}
 
-Los resultados respaldan los criterios criptográficos de integridad y confidencialidad de OE-4, así como la firma individual verificable y el sellado local contemplados en OE-3; la firma bilateral de contratos cuenta con un recorrido completo en el servicio instalado, por lo que el criterio de firma verificable de OE-3 se considera cumplido con la condición indicada abajo. La campaña con un PSC externo está fuera del alcance vigente. La autenticación por certificado para socios con rol Owner de OE-5 cuenta con aceptación del servicio instalado, seguida de MFA; sus límites de identidad y autorización permanecen explícitos. OE-6 permanece parcial respecto de la matriz de los 18 casos de uso y de la usabilidad: la evaluación se ejecutó con dos personas ajenas al despacho y no con sus usuarios (\cref{sec:pruebas-usabilidad-resultados}). Las condiciones de interpretación son las siguientes:
+Los resultados respaldan los criterios criptográficos de integridad y confidencialidad de OE-4, así como la firma individual verificable y el sellado local contemplados en OE-3; la firma bilateral de contratos cuenta con un recorrido completo en el servicio instalado, por lo que el criterio de firma verificable de OE-3 se considera cumplido con la condición indicada abajo. La campaña con un PSC externo está fuera del alcance vigente. La autenticación por certificado para socios con rol Owner de OE-5 cuenta con aceptación del servicio instalado, seguida de MFA; sus límites de identidad y autorización permanecen explícitos. En OE-6, la matriz funcional por caso de uso está completa (\cref{sec:pruebas-matriz-casos-uso}) y el criterio de usabilidad queda parcial: la evaluación se ejecutó con dos personas ajenas al despacho y no con sus usuarios (\cref{sec:pruebas-usabilidad-resultados}). Las condiciones de interpretación son las siguientes:
 
 \begin{itemize}
   \item \textbf{Contratos bilaterales (OE-3).} El criterio se refiere a los contratos firmados, y un contrato entre el Cliente y el despacho requiere ambas firmas. La firma bilateral está implementada y su recorrido completo, con paquetes parcial y completo validados en el navegador y con OpenSSL y con restauración, se demostró localmente y después en el servicio instalado, donde el 4 de noviembre de 2026 la parte Cliente firmó y el despacho contrafirmó un contrato cuyos acuse parcial y paquete final se verificaron con el validador y con OpenSSL (\cref{sec:pruebas-firma-bilateral}; \rutarepo{docs/production-acceptance.md}). El criterio se considera cumplido. El asterisco de la tabla recuerda que la cuenta Cliente de ese recorrido estaba controlada por el equipo: no es la ceremonia de alta de un cliente real ni una evaluación con personas, que se tratan por separado en la usabilidad de OE-6.
@@ -178,7 +178,8 @@ medición más reciente, sobre la revisión \texttt{bb17eac1}, registró 98\,\% 
 no tiene umbral. Entre esa revisión y \texttt{bc5ec925} no cambió ningún
 archivo fuente de los crates, solo archivos de prueba; la revisión final no
 tiene una medición propia. La matriz con un caso positivo y uno negativo por
-cada caso de uso permanece parcial, como indica la \cref{tab:pruebas-criterios}.
+cada caso de uso (\cref{tab:pruebas-casos-uso}) está completa para los 18 casos de
+uso y la variante CU-13a, como indica la \cref{tab:pruebas-criterios}.
 
 Los manuales acompañan al reporte como documentos independientes: el manual de
 usuario en \rutarepo{manual-usuario/} y el manual técnico en

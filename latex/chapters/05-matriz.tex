@@ -51,7 +51,7 @@ La \cref{tab:pruebas-matriz} agrupa los controles criptográficos con la identif
   \end{tabularx}
 \end{table}
 
-El criterio del objetivo OE-6 exige, por lo menos, un caso positivo y uno negativo para cada uno de los 18 casos de uso del sistema. La \cref{tab:pruebas-casos} presenta evidencia por servicio criptográfico y no cubre por sí sola los flujos completos de identidad, gestión procesal y operación del despacho. La suite incluye rechazos tipados por evidencia inválida, falta de permisos y fallos de persistencia; su inventario histórico de 520 funciones, agrupadas por archivo, se entrega en el Anexo~\ref{anexo:matriz}. La matriz funcional del producto permanece parcial hasta incorporar los flujos principales y alternos pendientes y ejecutarlos con la interfaz integrada.
+El criterio del objetivo OE-6 exige, por lo menos, un caso positivo y uno negativo para cada uno de los 18 casos de uso del sistema. La \cref{tab:pruebas-casos} presenta la evidencia por servicio criptográfico; la relación por caso de uso, con los flujos de identidad, gestión procesal y operación del despacho, se presenta en la \cref{sec:pruebas-matriz-casos-uso}. La suite incluye rechazos tipados por evidencia inválida, falta de permisos y fallos de persistencia; su inventario histórico de 520 funciones, agrupadas por archivo, se entrega en el Anexo~\ref{anexo:matriz}.
 
 \begin{longtable}{@{}l L{0.45\linewidth} L{0.45\linewidth}@{}}
   \caption{Caso positivo y caso negativo representativos por servicio criptográfico.}
@@ -91,6 +91,75 @@ El criterio del objetivo OE-6 exige, por lo menos, un caso positivo y uno negati
 \end{longtable}
 
 Una convención del inventario merece mención explícita porque determina cómo se lee: cada función de prueba se nombra como una oración conductual que enuncia la garantía comprobada, de modo que el inventario del Anexo~\ref{anexo:matriz} funciona como una especificación ejecutable del comportamiento del sistema: el nombre declara la garantía y la función la comprueba. Dos ejemplos: \texttt{version\_rejects\_zero} y \texttt{an\_empty\_log\_verifies\_as\_valid}.
+
+\subsection{Matriz funcional por caso de uso}\label{sec:pruebas-matriz-casos-uso}
+
+La \cref{tab:pruebas-casos-uso} relaciona cada caso de uso de la \cref{sec:casos-uso} con una prueba de su flujo principal y con una prueba de rechazo. Tiene 19 filas: los 18 casos de uso y la variante CU-13a de firma individual. Se considera caso negativo la prueba que afirma un rechazo del flujo o del módulo del caso de uso: por regla de dominio, estado no válido, conflicto, validación de parámetros o de formato, expediente no asignado, perfil sin permiso o sesión ausente. En los casos de uso de consulta, el caso negativo es el rechazo por permiso o por validación de filtros del mismo módulo.
+
+La columna de capa indica dónde se ejecuta cada prueba, primero la del caso positivo y después la del negativo: \textbf{D}~=~dominio, \textbf{A}~=~servicio de aplicación, \textbf{H}~=~API HTTP, \textbf{NC}~=~navegador con respuestas HTTP controladas y \textbf{NR}~=~navegador con servicios reales. Las pruebas de aplicación sustituyen la persistencia por dobles, salvo las de CU-13 y el caso positivo de CU-18, que ejercitan el servicio de contratos sobre PostgreSQL con firmas RSA, listas de revocación y la autoridad de sellado local. El archivo y el nombre exacto de cada prueba figuran en la \cref{tab:matriz-casos-uso}. El resultado corresponde a la ejecución de cierre sobre la revisión \texttt{bc5ec925} (\cref{sec:pruebas-ejecucion-cierre}): las 37 pruebas citadas (la de rechazo de la bitácora sirve a CU-04 y a CU-17) existen en esa revisión con el mismo nombre y pertenecen a las suites que esa campaña ejecuta, las de Rust del espacio de trabajo y las de navegador con servicios reales.
+
+\begingroup
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}L{0.155\linewidth} L{0.30\linewidth} L{0.295\linewidth} C{0.07\linewidth} L{0.11\linewidth}@{}}
+  \caption[Matriz funcional por caso de uso]{Matriz funcional por caso de uso: comprobación del caso positivo y del caso negativo, capa de cada prueba y resultado en la ejecución de cierre (\cref{sec:pruebas-ejecucion-cierre}).}
+  \label{tab:pruebas-casos-uso} \\
+  \toprule
+  \textbf{Caso de uso} & \textbf{Caso positivo} & \textbf{Caso negativo} & \textbf{Capa} & \textbf{Resultado} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Caso de uso} & \textbf{Caso positivo} & \textbf{Caso negativo} & \textbf{Capa} & \textbf{Resultado} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{5}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  \textbf{CU-01}. Inicialización de la instancia y alta del Owner fundador & El alta inicial crea la cuenta Owner con correo normalizado y ocho códigos de recuperación, y esa cuenta inicia sesión con contraseña y TOTP. & El alta inicial con un correo que contiene bytes de control se rechaza como entrada no válida, sin proteger la contraseña ni crear la cuenta. & A / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-02}. Gestión del ciclo de vida de miembros del equipo & Al confirmar el código TOTP, la invitación produce una sola orden atómica que crea la cuenta activa con su perfil, consume el enlace y devuelve el recibo. & Un código TOTP incorrecto se rechaza y no crea la cuenta; la inscripción queda pendiente. & A / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-03}. Inicio de sesión y gestión de sesiones & El inicio de sesión con contraseña seguido de TOTP o de un código de recuperación crea una sesión con sus vencimientos absoluto y por inactividad. & Cinco contraseñas incorrectas devuelven credenciales no válidas y el siguiente intento, aun con la contraseña correcta, se rechaza por cuenta bloqueada. & A / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-04}. Control de acceso por perfil & La matriz de permisos concede a Owner, Litigante y Paralegal exactamente las operaciones que corresponden a su perfil. & Un Litigante con sesión real no ve la bitácora global en la navegación y la API le responde 403 \texttt{permission\_denied}. & D / NR & Aprobada \\
+  \addlinespace
+  \textbf{CU-05}. Registro y administración de expediente penal & El Owner captura en el formulario del navegador un expediente penal completo; el servicio real responde 201 con la revisión 1 y la etapa inicial Investigación visible en el resumen. & El alta penal con NUC en blanco, sin delitos o con título vacío se rechaza con 422 y nunca llega al caso de uso. & NR / H & Aprobada \\
+  \addlinespace
+  \textbf{CU-06}. Gestión del directorio de participantes & Se registra un imputado sin firma y después un defensor que reutiliza la misma identidad y firma su declaración con un certificado de la CA interna; ambas fichas se guardan y la evidencia pública coincide con lo firmado. & Un Paralegal o un Cliente que intenta registrar un participante tipificado recibe permiso denegado sin tocar el almacenamiento. & NR / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-07}. Transición de etapa procesal & Con un expediente penal recién creado, el Owner sube el escrito de acusación y registra el paso a Intermedia; la etapa queda en revisión 2 con la huella exacta del soporte, y después avanza a Juicio en revisión 3. & La transición sobre un expediente sin etapa, con revisión de etapa obsoleta (conflicto) o con un avance que no corresponde a la etapa vigente se rechaza sin llegar al validador de formato. & NR / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-08}. Programación de audiencia y activación de plazos & El resultado de una audiencia y su plazo derivado se revisan y se guardan en una sola instrucción; el vencimiento calculado coincide con el esperado y el plazo aparece en la agenda y genera su aviso. & Programar una audiencia intermedia en un expediente en Investigación (tipo que no corresponde a la etapa vigente), o sin perfil penal completo, se rechaza antes de procesar soportes. & NR / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-09}. Configuración del calendario judicial & El Owner publica un calendario con días marcados como no resueltos, lo reemplaza y lo retira; quedan tres revisiones y la revisión 1 se consulta exacta. & Litigante, Paralegal y Cliente reciben permiso denegado al preparar un calendario y la petición no llega a la persistencia. & NR / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-10}. Monitoreo de plazos y emisión de alertas & El proceso automático genera el aviso de 48 horas de una audiencia real, que aparece en la bandeja del destinatario, se marca como leído y respeta sus preferencias. & Una lista de anticipaciones con valores duplicados o con más de ocho reglas se rechaza como inválida. & NR / D & Aprobada \\
+  \addlinespace
+  \textbf{CU-11}. Carga y clasificación de documentos & El Owner carga un PNG clasificado que queda como versión 1 con sus metadatos y agrega un WAV como versión 2, y los bytes descargados coinciden con los originales. & Un archivo de formato no admitido, inválido o fuera de límite se rechaza con su error tipificado y nunca se cifra ni se guarda. & NR / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-12}. Consulta de documentos con verificación de integridad & El Owner descarga una versión histórica exacta cuya huella recalculada coincide con la de la carga, y consulta el incidente de integridad registrado en su buzón. & Con bóveda malformada, huella distinta o fallo de autenticación del cifrado no se entregan bytes, se devuelve un rechazo explícito y se registra el incidente. & NR / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-13}. Firma bilateral de contrato con sellado de tiempo & El Cliente firma, el firmante del despacho contrafirma y el contrato queda firmado; el validador reconoce el acuse parcial como evidencia parcial y da por comprobado el paquete completo. & Si el certificado del Cliente aparece revocado en la CRL vigente, la contrafirma se rechaza y no se registra evento ni compleción. & A / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-13a}. Firma individual de contrato con sellado de tiempo & El Litigante vincula su certificado, firma el PDF y el consentimiento en su equipo, el servidor acepta la firma y el recibo y la evidencia se recuperan sin enviar una segunda firma. & Un certificado revocado, la espera agotada de la TSA o un sello inválido impiden la aceptación: no se confirma nada ni se reintenta. & NR / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-14}. Verificación de firma digital y sello de tiempo & La verificación de una versión firmada devuelve el resultado histórico válido y, por separado, el estado actual del certificado (revocado) y el retiro del vínculo, para Owner, Litigante y Paralegal. & Una firma, declaración o instante alterados en la evidencia de la firma hacen que su validación histórica sea rechazada. & A / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-15}. Consulta del tablero de control & El Owner ve los totales de todo el despacho y el Litigante solo sus expedientes asignados y su carga; al retirarle la asignación, los datos de ese expediente desaparecen del tablero. & Paralegal y Cliente reciben permiso denegado y una sesión inválida es rechazada, sin que se lean los indicadores. & NR / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-16}. Generación de informes & El Owner y el Litigante solicitan un informe con intervalo y filtros, esperan a que quede listo, descargan el PDF y el CSV con la captura exacta y marcan el aviso como leído; tras un nuevo inicio de sesión las descargas son idénticas. & Paralegal y Cliente reciben permiso denegado al solicitar, listar, consultar, descargar o marcar el aviso de un informe. & NR / A & Aprobada \\
+  \addlinespace
+  \textbf{CU-17}. Consulta de bitácora de actividad & El Owner consulta la bitácora con intervalo y filtros de actor, operación y recurso, recorre páginas estables, obtiene una página vacía sin coincidencias y verifica la cadena por separado. & El Litigante no ve la bitácora en la navegación, el hash forzado lo regresa al inicio y la API responde 403 \texttt{permission\_denied}. & NR / NR & Aprobada \\
+  \addlinespace
+  \textbf{CU-18}. Alta de Cliente con clave propia & El Owner emite una invitación con perfil Cliente sobre PostgreSQL; la invitación se conserva, se acepta y crea una cuenta activa con rol Cliente. & Litigante, Paralegal y Cliente reciben permiso denegado al emitir, reenviar, listar o consultar invitaciones, sin que se genere ningún enlace. & A / A & Aprobada \\
+\end{longtable}
+\endgroup
+
+Las 19 filas cuentan con un caso positivo y con un caso negativo aprobados, por lo que el criterio de la matriz funcional de OE-6 queda cumplido (\cref{tab:pruebas-criterios}). En CU-18, el caso positivo comprueba la invitación del Cliente y la creación de su cuenta a través del adaptador de persistencia sobre PostgreSQL. La generación local de la clave y de la solicitud de certificado y la firma del vínculo (pasos 5 a 7) usan el mismo componente para cualquier titular y se comprueban en el navegador con la cuenta del Owner (\rutarepo{web/apps/qadra/tests/browser/local-key-request.spec.mjs} y \rutarepo{web/apps/qadra/tests/browser/local-owner-binding.spec.mjs}). La demostración HTTP \rutarepo{scripts/api-contract-demo.sh} recorre además, con servicios reales y sesión de Cliente, la invitación, la creación de la cuenta con contraseña y segundo factor, la emisión del certificado y el registro del vínculo; la integración continua no la ejecuta, por lo que no se cita como caso aprobado. Los pasos 6 y 8 son manuales.
+
+Tres filas más tienen un alcance menor que el flujo principal completo. En CU-04, el caso positivo comprueba la matriz de permisos en el dominio y no una petición con su registro en la bitácora de accesos. En CU-08, el caso positivo parte de una audiencia ya programada y cubre el resultado, el plazo derivado, la agenda y el aviso; la programación con participantes y su recibo se comprueban en \rutarepo{web/apps/qadra/tests/live/hearings.spec.mjs}. En CU-10, el transporte de correo está deshabilitado en el recorrido y el aviso comprobado es el interno.
 
 \subsection{Entorno reproducible y aislamiento}\label{sec:pruebas-backends}
 

@@ -1,0 +1,86 @@
+\section{Matriz funcional por caso de uso}\label{anexo:casos-uso}
+
+La \cref{tab:matriz-casos-uso} identifica, para cada fila de la \cref{tab:pruebas-casos-uso}, el archivo y el nombre de la prueba del caso positivo y del caso negativo. Las rutas son relativas a la raíz del repositorio. En Rust el nombre es el de la función de prueba; en los recorridos de navegador es el título declarado en el archivo. Los títulos que contienen \texttt{\$\{\ldots\}} son plantillas que el archivo instancia en un ciclo: la de CU-08 produce un caso con plazo calculable y otro con plazo bloqueado, ambos a 1440~px, y el primero es el del flujo principal; las de CU-10 y CU-12 se ejecutan a 1440~px; la de CU-16 se ejecuta para Owner y para Litigante. El título de CU-13a se declara como una concatenación con el nombre de la única disposición ensayada, \texttt{desktop}. Las abreviaturas de capa son las de la \cref{sec:pruebas-matriz-casos-uso}.
+
+Las pruebas de Rust citadas se compilan como objetivos de prueba del espacio de trabajo, que la integración continua ejecuta completo según \rutarepo{.github/workflows/ci.yml}. Los recorridos de \rutarepo{web/apps/qadra/tests/live/} se ejecutan con \rutarepo{scripts/web-demo.sh} en las tres particiones de navegador con servicios reales de \rutarepo{.github/workflows/web.yml}, según el reparto de \rutarepo{scripts/web-live-plan.mjs}. Ambas suites forman parte de la ejecución de cierre (\cref{sec:pruebas-ejecucion-cierre}). Las dos pruebas de CU-13 residen en el crate \texttt{infrastructure} porque ejercitan el servicio de contratos de la capa de aplicación sobre PostgreSQL; dependen de la variable \texttt{CASE\_TEST\_DATABASE\_URL}, que la integración continua define.
+
+\begingroup
+\renewcommand{\_}{\textunderscore\allowbreak}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}L{0.08\linewidth} L{0.10\linewidth} L{0.69\linewidth} C{0.07\linewidth}@{}}
+  \caption[Archivo y prueba de cada caso de la matriz funcional]{Archivo y nombre de la prueba de cada caso positivo y negativo de la matriz funcional por caso de uso.}
+  \label{tab:matriz-casos-uso} \\
+  \toprule
+  \textbf{CU} & \textbf{Caso} & \textbf{Archivo y prueba} & \textbf{Capa} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{CU} & \textbf{Caso} & \textbf{Archivo y prueba} & \textbf{Capa} \\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{4}{r@{}}{\emph{Continúa en la página siguiente}} \\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+  CU-01 & Positivo & \rutarepo{crates/application/tests/identity_workflow.rs}\newline \texttt{owner\_bootstrap\_login\_totp\_authorization\_and\_logout\_form\_one\_flow} & A \\*
+   & Negativo & \rutarepo{crates/application/tests/identity_workflow.rs}\newline \texttt{bootstrap\_rejects\_control\_bytes\_before\_enrollment} & A \\
+  \addlinespace
+  CU-02 & Positivo & \rutarepo{crates/application/tests/invitations_cases/completion.rs}\newline \texttt{only\_confirmed\_totp\_creates\_one\_atomic\_account\_consumption\_and\_receipt\_command} & A \\*
+   & Negativo & \rutarepo{crates/application/tests/invitations_cases/completion.rs}\newline \texttt{wrong\_totp\_leaves\_pending\_enrollment\_and\_user\_absent} & A \\
+  \addlinespace
+  CU-03 & Positivo & \rutarepo{crates/application/tests/identity_support/inactivity_cases.rs}\newline \texttt{both\_mfa\_paths\_return\_the\_store\_deadlines\_and\_effective\_lifetime} & A \\*
+   & Negativo & \rutarepo{crates/application/tests/identity_workflow.rs}\newline \texttt{repeated\_bad\_passwords\_lock\_the\_login\_window} & A \\
+  \addlinespace
+  CU-04 & Positivo & \rutarepo{crates/domain/tests/identity.rs}\newline \texttt{role\_permissions\_follow\_the\_conservative\_matrix} & D \\*
+   & Negativo & \rutarepo{web/apps/qadra/tests/live/audit-events.spec.mjs}\newline \texttt{real Litigator cannot read global audit through API or forced navigation} & NR \\
+  \addlinespace
+  CU-05 & Positivo & \rutarepo{web/apps/qadra/tests/live/case-administration.spec.mjs}\newline \texttt{penal profiles preserve legacy, explicit conflicts and evidence across closure with real permissions} & NR \\*
+   & Negativo & \rutarepo{crates/web/tests/case_administration_validation.rs}\newline \texttt{invalid\_profiles\_never\_reach\_commands\_and\_multiline\_controls\_are\_explicit} & H \\
+  \addlinespace
+  CU-06 & Positivo & \rutarepo{web/apps/qadra/tests/live/typed-participants.spec.mjs}\newline \texttt{typed identities and personally signed roles persist with exact bound history and public evidence} & NR \\*
+   & Negativo & \rutarepo{crates/application/tests/typed_participant_workflow.rs}\newline \texttt{read\_only\_and\_client\_roles\_cannot\_prepare\_or\_commit\_mutations} & A \\
+  \addlinespace
+  CU-07 & Positivo & \rutarepo{web/apps/qadra/tests/live/case-stages.spec.mjs}\newline \texttt{stage transitions retain exact historic supports, explicit conflict and original initial registration} & NR \\*
+   & Negativo & \rutarepo{crates/application/tests/case_stage_failures.rs}\newline \texttt{conflicting\_missing\_wrong\_edge\_or\_exhausted\_heads\_do\_not\_reach\_parser} & A \\
+  \addlinespace
+  CU-08 & Positivo & \rutarepo{web/apps/qadra/tests/live/hearing-derived-deadline-real.spec.mjs}\newline \texttt{real compound result creates a \$\{timed ? \textquotesingle{}calculable\textquotesingle{} : \textquotesingle{}blocked\textquotesingle{}\} deadline at \$\{width\}px} & NR \\*
+   & Negativo & \rutarepo{crates/application/tests/hearing_failures_ports.rs}\newline \texttt{stage\_profile\_immutable\_kind\_and\_exact\_support\_checks\_precede\_crypto} & A \\
+  \addlinespace
+  CU-09 & Positivo & \rutarepo{web/apps/qadra/tests/live/judicial-calendars.spec.mjs}\newline \texttt{real calendar publication replacement retirement and exact uncertain receipt preserve history} & NR \\*
+   & Negativo & \rutarepo{crates/application/tests/judicial_calendar_workflow.rs}\newline \texttt{denied\_roles\_never\_reach\_calendar\_persistence} & A \\
+  \addlinespace
+  CU-10 & Positivo & \rutarepo{web/apps/qadra/tests/live/alerts.spec.mjs}\newline \texttt{real personal alerts retain exact hearing history, read state and preferences at \$\{width\}px} & NR \\*
+   & Negativo & \rutarepo{crates/domain/tests/alert_timing.rs}\newline \texttt{duplicate\_or\_excess\_rules\_are\_rejected\_instead\_of\_silently\_discarded} & D \\
+  \addlinespace
+  CU-11 & Positivo & \rutarepo{web/apps/qadra/tests/live/document-admission-real.spec.mjs}\newline \texttt{real format admission preserves rejected drafts and exact classified PNG/WAV versions} & NR \\*
+   & Negativo & \rutarepo{crates/application/tests/document_upload_admission.rs}\newline \texttt{format\_rejections\_keep\_typed\_errors\_and\_never\_encrypt\_or\_persist} & A \\
+  \addlinespace
+  CU-12 & Positivo & \rutarepo{web/apps/qadra/tests/live/document-content.spec.mjs}\newline \texttt{real historical content and persistent Owner incidents at \$\{width\}px} & NR \\*
+   & Negativo & \rutarepo{crates/application/tests/document_content_failures.rs}\newline \texttt{malformed\_vault\_digest\_and\_aes\_rejections\_record\_failure\_without\_success\_or\_bytes} & A \\
+  \addlinespace
+  CU-13 & Positivo & \rutarepo{crates/infrastructure/tests/contract_service_backend.rs}\newline \texttt{both\_parties\_sign\_and\_each\_package\_passes\_the\_validator} & A \\*
+   & Negativo & \rutarepo{crates/infrastructure/tests/contract_service_revocation.rs}\newline \texttt{a\_revoked\_client\_certificate\_blocks\_the\_counter\_signature} & A \\
+  \addlinespace
+  CU-13a & Positivo & \rutarepo{web/apps/qadra/tests/live/individual-signing-real.spec.mjs}\newline \texttt{\textquotesingle{}real individual signature preserves exact public evidence and receipt recovery on \textquotesingle{} + name} & NR \\*
+   & Negativo & \rutarepo{crates/application/tests/individual_document_cases/rejections.rs}\newline \texttt{revoked\_proof\_timeout\_and\_bad\_timestamp\_never\_commit\_or\_retry} & A \\
+  \addlinespace
+  CU-14 & Positivo & \rutarepo{crates/application/tests/individual_document_cases/verification.rs}\newline \texttt{historical\_validity\_survives\_current\_revocation\_and\_binding\_withdrawal\_for\_read\_roles} & A \\*
+   & Negativo & \rutarepo{crates/application/tests/individual_evidence.rs}\newline \texttt{altered\_proofs\_bad\_times\_versions\_and\_material\_bounds\_are\_rejected} & A \\
+  \addlinespace
+  CU-15 & Positivo & \rutarepo{web/apps/qadra/tests/live/dashboard.spec.mjs}\newline \texttt{real dashboard separates office totals from assignments and removes revoked case data} & NR \\*
+   & Negativo & \rutarepo{crates/application/tests/dashboard_service.rs}\newline \texttt{paralegals\_clients\_and\_invalid\_sessions\_never\_reach\_the\_store} & A \\
+  \addlinespace
+  CU-16 & Positivo & \rutarepo{web/apps/qadra/tests/live/case-reports.spec.mjs}\newline \texttt{real \$\{role\} reports retain exact downloads and acknowledged notices after fresh login} & NR \\*
+   & Negativo & \rutarepo{crates/application/tests/case_report_support/session.rs}\newline \texttt{denied\_roles\_cannot\_request\_list\_get\_download\_or\_acknowledge} & A \\
+  \addlinespace
+  CU-17 & Positivo & \rutarepo{web/apps/qadra/tests/live/audit-events.spec.mjs}\newline \texttt{real Owner reads exact historical events with stable pages and separate chain verification} & NR \\*
+   & Negativo & \rutarepo{web/apps/qadra/tests/live/audit-events.spec.mjs}\newline \texttt{real Litigator cannot read global audit through API or forced navigation} & NR \\
+  \addlinespace
+  CU-18 & Positivo & \rutarepo{crates/infrastructure/tests/member_invitation_clients.rs}\newline \texttt{a\_stored\_client\_invitation\_keeps\_startup\_open\_and\_accepts\_as\_a\_client\_account} & A \\*
+   & Negativo & \rutarepo{crates/application/tests/invitations_cases/owner.rs}\newline \texttt{non\_owners\_cannot\_issue\_resend\_list\_or\_read\_invitations} & A \\
+\end{longtable}
+\endgroup
+
+{\emergencystretch=3em El caso positivo de CU-18 se ejecuta sobre PostgreSQL a través del adaptador de persistencia. Los pasos 5 a 7 de su flujo principal se comprueban con la cuenta del Owner: \rutarepo{web/apps/qadra/tests/browser/local-key-request.spec.mjs} y \rutarepo{web/apps/qadra/tests/browser/local-owner-binding.spec.mjs}. Con sesión de Cliente, \rutarepo{web/apps/qadra/tests/browser/contract-client.spec.mjs} solo comprueba la redirección hacia la sección de firma digital cuando falta el vínculo. Fuera de la integración continua, \rutarepo{scripts/api-contract-demo.sh} invita a un Cliente, completa su cuenta y registra su vínculo con su propia clave sobre servicios reales (funciones \texttt{invite\_client} y \texttt{bind} de \rutarepo{scripts/api_contract_support.py}).\par}
