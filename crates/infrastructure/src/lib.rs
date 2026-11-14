@@ -102,6 +102,8 @@ pub mod tools;
 pub mod totp;
 pub mod typed_participant_codec;
 pub(crate) mod typed_participant_schema;
+#[cfg(target_os = "linux")]
+mod worker_exit;
 
 pub use agenda_postgres::PostgresAgendaStore;
 pub use alerts_postgres::PostgresAlertStore;

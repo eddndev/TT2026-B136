@@ -47,7 +47,7 @@ pub fn worker_entry() -> Option<i32> {
     // Immediate exit preserves file limits during shutdown too: native atexit
     // handlers and instrumentation writers must not run after the response.
     #[cfg(target_os = "linux")]
-    rustix::runtime::exit_group(code);
+    crate::worker_exit::exit_group(code);
     #[cfg(not(target_os = "linux"))]
     Some(code.max(1))
 }

@@ -138,7 +138,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.99.1
         with:
           targets: wasm32-unknown-unknown
       - uses: actions/setup-node@v4
@@ -279,7 +279,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.99.1
       - name: Prepare persistent compiler cache
         run: bash scripts/prepare-ci-workspace.sh web
       - uses: actions/setup-node@v4

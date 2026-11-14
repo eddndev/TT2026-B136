@@ -102,7 +102,7 @@ jobs:
         with:
           ref: ${{ needs.version.outputs.commit }}
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.99.1
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

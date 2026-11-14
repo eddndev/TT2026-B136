@@ -20,10 +20,10 @@ pub fn worker_entry() -> Option<i32> {
         let format = match (args.next(), args.next()) {
             (Some(value), None) if value == "pdf" => CaseReportFormat::Pdf,
             (Some(value), None) if value == "csv" => CaseReportFormat::Csv,
-            _ => rustix::runtime::exit_group(125),
+            _ => crate::worker_exit::exit_group(125),
         };
         if limits().and_then(|()| close_inherited()).is_err() {
-            rustix::runtime::exit_group(125);
+            crate::worker_exit::exit_group(125);
         }
         let empty = Context {
             report_id: CaseReportId::from_uuid(uuid::Uuid::nil()),
@@ -38,7 +38,7 @@ pub fn worker_entry() -> Option<i32> {
             Ok(response) => Zeroizing::new(response),
             Err(error) => match protocol::encode(empty, Err(error)) {
                 Ok(response) => Zeroizing::new(response),
-                Err(_) => rustix::runtime::exit_group(125),
+                Err(_) => crate::worker_exit::exit_group(125),
             },
         };
         let mut output = std::io::stdout().lock();
@@ -48,7 +48,7 @@ pub fn worker_entry() -> Option<i32> {
             .is_ok();
         drop(output);
         drop(response);
-        rustix::runtime::exit_group(if success { 0 } else { 125 });
+        crate::worker_exit::exit_group(if success { 0 } else { 125 });
     }
     #[cfg(not(target_os = "linux"))]
     Some(125)
