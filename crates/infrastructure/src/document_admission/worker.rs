@@ -27,17 +27,17 @@ pub fn worker_entry() -> Option<i32> {
             let cpu = match args.next().as_deref() {
                 Some(v) if v == "probe" => 2,
                 Some(v) if v == "decode" => 8,
-                _ => rustix::runtime::exit_group(125),
+                _ => crate::worker_exit::exit_group(125),
             };
             let program = match args.next() {
                 Some(v) if Path::new(&v).is_absolute() => v,
-                _ => rustix::runtime::exit_group(125),
+                _ => crate::worker_exit::exit_group(125),
             };
             if limits(cpu, 512 * 1024 * 1024)
                 .and_then(|()| close_inherited())
                 .is_err()
             {
-                rustix::runtime::exit_group(125);
+                crate::worker_exit::exit_group(125);
             }
             let _error = std::process::Command::new(program)
                 .args(args)
@@ -45,7 +45,7 @@ pub fn worker_entry() -> Option<i32> {
                 // Bound native allocator reservations; see docs/adr/0058-bounded-general-document-admission.md.
                 .env("MALLOC_ARENA_MAX", "2")
                 .exec();
-            rustix::runtime::exit_group(125);
+            crate::worker_exit::exit_group(125);
         }
         let result = match (args.next(), args.next()) {
             (Some(library), None) => limits(5, 256 * 1024 * 1024)
@@ -60,7 +60,7 @@ pub fn worker_entry() -> Option<i32> {
             .and_then(|()| output.flush())
             .is_ok();
         drop(output);
-        rustix::runtime::exit_group(if success { 0 } else { 125 });
+        crate::worker_exit::exit_group(if success { 0 } else { 125 });
     }
     #[cfg(not(target_os = "linux"))]
     Some(125)
