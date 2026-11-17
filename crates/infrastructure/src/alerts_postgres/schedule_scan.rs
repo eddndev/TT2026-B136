@@ -8,12 +8,14 @@ use postgres::Transaction;
 use time::OffsetDateTime;
 use uuid::Uuid;
 
+/// Reconciles one subject and reports whether durable alert evidence changed:
+/// the subject state, or a schedule row inserted, superseded or rewritten.
 pub(super) fn run(
     store: &PostgresAlertStore,
     tx: &mut Transaction<'_>,
     mut selection: schedule_selection::Selection,
     now: OffsetDateTime,
-) -> Result<AlertSchedulerRun, ApplicationError> {
+) -> Result<(AlertSchedulerRun, bool), ApplicationError> {
     let hasher = store.hasher.as_ref();
     let (kind, id) = codec::subject_key(selection.subject);
     let mut row = tx
@@ -22,6 +24,7 @@ pub(super) fn run(
             &[&kind, &id],
         )
         .map_err(port)?;
+    let mut changed = row.is_none();
     if row.is_none() {
         invalidate::invalidate(tx, selection.subject, hasher)?;
         row = tx
@@ -45,6 +48,7 @@ pub(super) fn run(
     let current = subject::load(tx, selection.subject, hasher, now)?;
     let state = plan::state(&previous, &current, now)?;
     if state != previous {
+        changed = true;
         selection.after_recipient = None;
         let (bytes, digest) = codec::payload(&state, hasher)?;
         tx.execute(
@@ -68,13 +72,18 @@ pub(super) fn run(
         let counts = reconcile(tx, store, &current, user, generation, proposals)?;
         scheduled += counts.0;
         superseded += counts.1;
+        changed |= counts.2;
     }
     schedule_selection::advance(tx, selection.subject, if has_more { last } else { None })?;
-    Ok(AlertSchedulerRun::Reconciled {
-        subject: selection.subject,
-        scheduled,
-        superseded,
-    })
+    changed |= scheduled > 0 || superseded > 0;
+    Ok((
+        AlertSchedulerRun::Reconciled {
+            subject: selection.subject,
+            scheduled,
+            superseded,
+        },
+        changed,
+    ))
 }
 
 fn recipients(
@@ -112,7 +121,7 @@ fn reconcile(
     recipient: UserId,
     generation: i64,
     mut proposals: Vec<plan::Plan>,
-) -> Result<(u32, u32), ApplicationError> {
+) -> Result<(u32, u32, bool), ApplicationError> {
     let hasher = store.hasher.as_ref();
     for proposal in &mut proposals {
         proposal.superseded |=
@@ -141,6 +150,7 @@ fn reconcile(
         }
     }
     let mut scheduled = 0;
+    let mut rewritten = false;
     for mut proposal in proposals {
         let previous = tx
             .query_opt(
@@ -164,7 +174,15 @@ fn reconcile(
             } else {
                 "planned"
             };
+            // An identical plan stays untouched, so an unchanged scan writes nothing.
+            if row.try_get::<_, i64>("generation").map_err(stored)? == generation
+                && saved.status == status
+                && row.try_get::<_, Vec<u8>>("payload").map_err(stored)? == bytes
+            {
+                continue;
+            }
             tx.execute("UPDATE alert_schedule SET generation=$2,status=$3,payload=$4,payload_digest=$5 WHERE id=$1", &[&saved.id,&generation,&status,&bytes,&digest]).map_err(port)?;
+            rewritten = true;
         } else {
             let (bytes, digest) =
                 codec::payload(&plan::encode(&proposal, current, recipient), hasher)?;
@@ -186,7 +204,7 @@ fn reconcile(
             }
         }
     }
-    Ok((scheduled, superseded))
+    Ok((scheduled, superseded, rewritten))
 }
 
 fn verify_origin(
