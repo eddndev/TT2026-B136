@@ -39,8 +39,9 @@ untouched. The event, its resource text and its place in the same transaction
 as the writes are unchanged.
 
 Finishing a pass no longer appends `alert.scan_completed`. Advancing the scan
-cursor, counting passes and clearing an already clean subject are scan progress,
-not alert evidence.
+cursor, counting passes and clearing the dirty mark of a subject whose
+reconciliation changed nothing are scan progress, not alert evidence; the writer
+that set the mark already audited its own change.
 
 Activation (`alert.activated`) and delivery events are unchanged.
 

@@ -108,7 +108,7 @@ transacción, por lo que `CREATE INDEX CONCURRENTLY` no está disponible. La
 construcción toma un bloqueo `SHARE` sobre `audit_events` que detiene cada
 anexado de auditoría hasta confirmar; se ejecuta con ingreso, API y web
 detenidos. Sobre una copia sintética de 4,47 millones de eventos, con
-`maintenance_work_mem` de 64 MB, construir ambos índices tardó unos 6 s y cada
+`maintenance_work_mem` de 64 MB, construir ambos índices tardó unos 13 s y cada
 uno ocupó unos 34 MB. El procedimiento sigue el mantenimiento explícito de
 [despliegue](deployment.md#recuperación-y-esquema):
 

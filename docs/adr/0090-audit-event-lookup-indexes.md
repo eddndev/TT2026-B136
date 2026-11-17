@@ -73,7 +73,8 @@ web stopped.
 
 The coverage lookups become index or index-only scans whose cost depends on the
 matching rows, not on the history size. On the same 4.47 million event copy
-they took under 1 ms and the two indexes took about 6 s to build and 34 MB each.
+they took under 1 ms. With `maintenance_work_mem` at 64 MB the two indexes took
+about 13 s to build inside one transaction and about 34 MB each.
 Each audit append maintains two more index entries.
 
 A binary built before this decision counts two indexes and refuses a migrated
