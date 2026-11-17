@@ -74,15 +74,10 @@ pub(super) fn next(
             let next = now
                 .checked_add(Duration::seconds(1))
                 .ok_or_else(|| stored("alert scan clock overflow"))?;
+            // Completing a pass is scan progress, not alert evidence, and is not
+            // audited; see docs/adr/0091-alert-scans-audit-only-changes.md.
             tx.execute("UPDATE alert_scan_cursor SET kind=0,id=NULL,cycle=cycle+1,next_seconds=$1,next_nanos=$2
                 WHERE singleton", &[&next.unix_timestamp(), &(next.nanosecond() as i32)]).map_err(port)?;
-            super::audit(
-                tx,
-                "system:activity-alerts",
-                "alert.scan_completed",
-                "alert-scan",
-                now,
-            )?;
             return Ok(None);
         };
         row

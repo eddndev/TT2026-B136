@@ -11,7 +11,14 @@ impl AlertSchedulerStore for PostgresAlertStore {
         let result = if let Some(result) = schedule_activate::next(self, &mut tx, now)? {
             result
         } else if let Some(selection) = schedule_selection::next(&mut tx, now)? {
-            schedule_scan::run(self, &mut tx, selection, now)?
+            let (result, changed) = schedule_scan::run(self, &mut tx, selection, now)?;
+            // Only reconciliations that change alert evidence are audited; see
+            // docs/adr/0091-alert-scans-audit-only-changes.md.
+            if !changed {
+                tx.commit().map_err(port)?;
+                return Ok(result);
+            }
+            result
         } else {
             tx.commit().map_err(port)?;
             return Ok(AlertSchedulerRun::Idle);
