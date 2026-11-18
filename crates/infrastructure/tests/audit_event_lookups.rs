@@ -106,9 +106,27 @@ fn plan(db: &mut Fixture, sql: &str) -> String {
         .join("\n")
 }
 
+const ANCHORED_PREFIX: &str =
+    "SELECT EXISTS(SELECT 1 FROM audit_events WHERE resource LIKE 'ph1:%:operation:c:%')";
+
+/// PostgreSQL turns an anchored `LIKE` into a range over a default-collation
+/// btree only under the C collation, which deployed databases use
+/// (`initdb --no-locale`, required again by restore admission).
+fn c_collation(db: &mut Fixture) -> bool {
+    db.admin
+        .query_one(
+            "SELECT datlocprovider='c' AND datcollate IN ('C','POSIX')
+        FROM pg_database WHERE datname=current_database()",
+            &[],
+        )
+        .unwrap()
+        .get(0)
+}
+
 #[test]
 fn coverage_lookups_over_scanner_dominated_history_use_lookup_indexes() {
     let Some(mut db) = Fixture::new() else { return };
+    let c_collation = c_collation(&mut db);
     // Mirrors a history dominated by repeated scanner events: two actions and
     // a few dozen resources, with sparse functional markers.
     db.admin
@@ -153,11 +171,7 @@ fn coverage_lookups_over_scanner_dominated_history_use_lookup_indexes() {
             ),
             &["audit_events_action_resource", "audit_events_resource"][..],
         ),
-        (
-            "SELECT EXISTS(SELECT 1 FROM audit_events WHERE resource LIKE 'ph1:%:operation:c:%')"
-                .to_owned(),
-            &["audit_events_resource"][..],
-        ),
+        (ANCHORED_PREFIX.to_owned(), &["audit_events_resource"][..]),
         (
             "SELECT sequence FROM audit_events WHERE action='resource_hearing.registered'
             AND resource='rh1:case:a:operation:c:hearing:1' ORDER BY sequence LIMIT 2"
@@ -171,6 +185,10 @@ fn coverage_lookups_over_scanner_dominated_history_use_lookup_indexes() {
             &["audit_events_action_resource"][..],
         ),
     ] {
+        if !c_collation && sql == ANCHORED_PREFIX {
+            eprintln!("skipping anchored-prefix plan: the test database collation is not C");
+            continue;
+        }
         let plan = plan(&mut db, &sql);
         assert!(!plan.contains("Seq Scan on audit_events"), "{sql}\n{plan}");
         assert!(
