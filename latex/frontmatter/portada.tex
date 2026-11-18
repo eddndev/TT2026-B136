@@ -1,61 +1,59 @@
 % =====================================================================
-%  portada.tex — Portada institucional IPN / ESCOM
-%  Replica fiel del documento original (Trabajo Terminal 2026-B136)
+%  portada.tex — Portada del reporte técnico (formato CATT, ESCOM-IPN)
 % =====================================================================
 \begin{titlepage}
-\centering
 \thispagestyle{empty}
-\sffamily
+\pdfbookmark[0]{Portada}{portada}
 
-% ---- Logos institucionales ----
-\begin{minipage}{0.25\textwidth}
-  \raggedright
-  \includegraphics[height=2.6cm]{image1.png}% Logo IPN
-\end{minipage}
-\hfill
-\begin{minipage}{0.45\textwidth}
-  \centering
-  {\large\bfseries INSTITUTO POLITÉCNICO NACIONAL}\\[4pt]
-  {\large ESCUELA SUPERIOR DE CÓMPUTO}
-\end{minipage}
-\hfill
-\begin{minipage}{0.25\textwidth}
-  \raggedleft
-  \includegraphics[height=2.0cm]{image2.png}% Logo ESCOM
-\end{minipage}
+% ---- Logos en el margen izquierdo, unidos por líneas verticales dobles ----
+\begin{tikzpicture}[remember picture,overlay]
+  \coordinate (ipn) at ([xshift=1.55cm,yshift=-2cm]current page.north west);
+  \coordinate (escom) at ([xshift=1.55cm,yshift=2cm]current page.south west);
+  \node[anchor=north,inner sep=0pt] (logoipn) at (ipn)
+    {\includegraphics[height=3.0cm]{image1.png}};
+  \node[anchor=south,inner sep=0pt] (logoescom) at (escom)
+    {\includegraphics[width=2.4cm]{image2.png}};
+  \foreach \dx in {-0.07cm,0.07cm}
+    \draw[ESCOMAzul,line width=1.4pt]
+      ([xshift=\dx,yshift=-0.15cm]logoipn.south) --
+      ([xshift=\dx,yshift=0.15cm]logoescom.north);
+\end{tikzpicture}
 
-\vfill
-
-{\Large\bfseries Trabajo Terminal}\\[6pt]
-{\large 2026-B136}
-
+\centering
+\vspace*{0.4cm}
+{\fontsize{20}{24}\selectfont\bfseries INSTITUTO POLITÉCNICO NACIONAL\par}
+\vspace{2pt}
+{\fontsize{16}{20}\selectfont\bfseries ESCUELA SUPERIOR DE CÓMPUTO\par}
 \vspace{1.4cm}
-
-% ---- Título ----
-\begin{minipage}{0.85\textwidth}
-  \centering
-  {\LARGE\bfseries\color{ipnvino}
-   «Prototipo de un sistema web para la gestión de expedientes
-   digitales y actividad procesal de un despacho legal, con
-   servicios de integridad y no repudio.»\par}
-\end{minipage}
-
-\vspace{1.6cm}
-
-% ---- Autores ----
-{\large\bfseries Presentan}\\[8pt]
-{\large Alonso Sánchez Eduardo}\\[2pt]
-{\large Vitales Herrera Hatziry}
-
-\vspace{1.2cm}
-
-% ---- Directora ----
-{\large\bfseries Directora}\\[8pt]
-{\large Sandra Díaz Santiago}
+{\fontsize{28}{32}\selectfont\bfseries ESCOM\par}
 
 \vfill
 
-{\large Ciudad de México \quad\textbullet\quad 2026-2}
+{\fontsize{14}{17}\selectfont\itshape Trabajo Terminal\par}
+\vspace{0.8cm}
+\begin{minipage}{0.9\linewidth}
+  \centering
+  {\fontsize{16}{21}\selectfont\bfseries “\TTtitulo”\par}
+\end{minipage}\par
+\vspace{0.5cm}
+{\fontsize{14}{17}\selectfont\itshape \TTnumero\par}
 
+\vfill
+
+{\fontsize{14}{17}\selectfont\itshape Presentan\par}
+\vspace{4pt}
+{\fontsize{14}{18}\selectfont\bfseries \TTparticipanteA\par
+ \TTparticipanteB\par}
+
+\vfill
+
+{\fontsize{14}{17}\selectfont\itshape Directora\par}
+\vspace{8pt}
+{\fontsize{14}{17}\selectfont\bfseries\itshape \TTdirectora\par}
+
+\vfill
+
+\begin{flushright}
+  {\fontsize{12}{14}\selectfont\itshape \TTfecha\par}
+\end{flushright}
 \end{titlepage}
-\rmfamily

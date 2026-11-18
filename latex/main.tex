@@ -19,20 +19,19 @@
 
 \begin{document}
 
-% ---------------- Portada ----------------
+% ---------------- Hojas institucionales (formato CATT) -------------
+\input{frontmatter/datos-tt}
 \input{frontmatter/portada}
-
-% ---------------- Material preliminar (numeración romana) ----------
 \pagenumbering{roman}
-\input{frontmatter/resumen}
+\input{frontmatter/documento-tecnico}
+\input{frontmatter/carta-responsiva}
+\input{frontmatter/advertencia}
 
+% ---------------- Índice -------------------------------------------
 \cleardoublepage
+\pdfbookmark[0]{\contentsname}{indice}
 \setcounter{tocdepth}{2}   % índice con capítulos, secciones y subsecciones
 \tableofcontents
-\cleardoublepage
-\listoffigures
-\cleardoublepage
-\listoftables
 
 % ---------------- Cuerpo (numeración arábiga) ----------------------
 \cleardoublepage
@@ -47,13 +46,14 @@
 
 % ---------------- Referencias --------------------------------------
 \cleardoublepage
+\phantomsection
 \addcontentsline{toc}{chapter}{Referencias}
 \printbibliography[title={Referencias}]
 
 % ---------------- Glosario -----------------------------------------
 \cleardoublepage
 \glsaddall
-\printglossary[title={Glosario de Términos},toctitle={Glosario de Términos}]
+{\sloppy\printglossary[title={Glosario de Términos},toctitle={Glosario de Términos}]}
 
 % ---------------- Anexos -------------------------------------------
 \cleardoublepage
@@ -63,5 +63,15 @@
 \input{chapters/anexo-c-verificacion}
 \input{chapters/anexo-d-pki}
 \input{chapters/anexo-e-matriz}
+
+% ---------------- Índices de figuras y tablas ----------------------
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{\listtablename}
+\listoftables
 
 \end{document}

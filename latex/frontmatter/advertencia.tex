@@ -1,0 +1,38 @@
+% =====================================================================
+%  advertencia.tex — Advertencia (texto del formato CATT)
+% =====================================================================
+\clearpage
+\thispagestyle{empty}
+\pdfbookmark[0]{Advertencia}{advertencia}
+
+\vspace*{2cm}
+\begin{center}
+  {\LARGE\bfseries Advertencia\par}
+  \vspace{0.6cm}
+  \begin{tikzpicture}
+    \node[inner sep=12pt,text width=0.82\linewidth,align=left,
+          font=\rmfamily\normalsize] (aviso) {%
+      \textit{“Este documento contiene información desarrollada por la Escuela
+      Superior de Cómputo del Instituto Politécnico Nacional, a partir de datos
+      y documentos con derecho de propiedad y por lo tanto, su uso quedará
+      restringido a las aplicaciones que explícitamente se convengan.”}
+
+      \medskip
+      La aplicación no convenida exime a la escuela su responsabilidad técnica
+      y da lugar a las consecuencias legales que para tal efecto se determinen.
+
+      \medskip
+      Información adicional sobre este reporte técnico podrá obtenerse en:
+
+      \medskip
+      La Subdirección Académica de la Escuela Superior de Cómputo del Instituto
+      Politécnico Nacional, situada en Av. Juan de Dios Bátiz s/n Teléfono:
+      57296000, extensión 52000.};
+    \draw[ESCOMAzul,line width=0.8pt,dash pattern=on 9pt off 3pt]
+      (aviso.south west) rectangle (aviso.north east);
+    \draw[ESCOMAzul,line width=0.8pt,dash pattern=on 9pt off 3pt]
+      ([shift={(-2.5pt,-2.5pt)}]aviso.south west) rectangle
+      ([shift={(2.5pt,2.5pt)}]aviso.north east);
+  \end{tikzpicture}
+\end{center}
+\clearpage

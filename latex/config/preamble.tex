@@ -7,6 +7,7 @@
 % ---------- Idioma y codificación -----------------------------------
 \usepackage[spanish,es-tabla,es-noindentfirst,es-nosectiondot]{babel}
 \usepackage{csquotes}
+\addto\captionsspanish{\renewcommand{\contentsname}{Índice}}
 
 % ---------- Tipografía (fontspec, LuaLaTeX) -------------------------
 % Times New Roman en TODO el documento (cuerpo, títulos, portada,
@@ -19,10 +20,16 @@
 \usepackage{microtype}             % refinamiento tipográfico
 
 % ---------- Geometría y espaciado -----------------------------------
-\usepackage[letterpaper,top=2.3cm,bottom=2.3cm,left=2.5cm,right=2.3cm]{geometry}
+% Márgenes del formato de reporte técnico de la CATT, iguales en todo el
+% documento: superior e inferior 2 cm, izquierdo 3 cm y derecho 2 cm.
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=2cm,
+            headheight=14pt,headsep=0.5cm,footskip=1cm]{geometry}
 \usepackage{setspace}
 \singlespacing                     % interlineado sencillo (igual que el Word)
 \usepackage{ragged2e}
+% Holgura adicional para cortar párrafos con rutas o términos largos sin que
+% invadan el margen derecho.
+\setlength{\emergencystretch}{1.5em}
 \usepackage[hyphens]{url}
 
 % ---------- Matemáticas ---------------------------------------------
@@ -136,9 +143,6 @@
 
 % ---------- Encabezados y pies (fancyhdr) ---------------------------
 \usepackage{fancyhdr}
-% Reserve enough height for the measured Times New Roman header.
-\setlength{\headheight}{14pt}
-\addtolength{\topmargin}{-2pt}
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\sffamily\small\nouppercase{\leftmark}}

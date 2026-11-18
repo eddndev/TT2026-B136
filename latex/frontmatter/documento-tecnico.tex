@@ -1,0 +1,51 @@
+% =====================================================================
+%  documento-tecnico.tex — Hoja «Documento Técnico» (formato CATT)
+% =====================================================================
+\clearpage
+\thispagestyle{empty}
+\pdfbookmark[0]{Documento Técnico}{documento-tecnico}
+
+% ---- Encabezado institucional ----
+\noindent
+\begin{minipage}[c]{0.17\linewidth}
+  \raggedright
+  \includegraphics[height=2.4cm]{image1.png}
+\end{minipage}%
+\begin{minipage}[c]{0.64\linewidth}
+  \centering
+  {\fontsize{14}{17}\selectfont\bfseries INSTITUTO POLITÉCNICO NACIONAL\par
+   ESCUELA SUPERIOR DE CÓMPUTO\par
+   SUBDIRECCIÓN ACADÉMICA\par}
+\end{minipage}%
+\begin{minipage}[c]{0.19\linewidth}
+  \raggedleft
+  \includegraphics[width=2.5cm]{image2.png}
+\end{minipage}
+
+\vspace{0.8cm}
+\noindent No de TT \TTnumero\hfill Fecha de presentación de TT-II: \TTfecha
+
+\vspace{0.6cm}
+\begin{center}
+  Documento Técnico
+
+  \vspace{0.5cm}
+  {\fontsize{14}{18}\selectfont\bfseries “\TTtitulo”\par}
+
+  \vspace{0.8cm}
+  {\itshape Presentan\par}
+  \vspace{2pt}
+  {\bfseries \TTparticipanteA\footnote{Correo electrónico: \TTcorreoA}\par
+   \TTparticipanteB\footnote{Correo electrónico: \TTcorreoB}\par}
+
+  \vspace{0.8cm}
+  {\itshape Directora\par}
+  \vspace{4pt}
+  {\bfseries\itshape \TTdirectora\par}
+
+  \vspace{0.8cm}
+  {\bfseries RESUMEN\par}
+\end{center}
+
+\input{frontmatter/resumen}
+\clearpage

@@ -1,23 +1,26 @@
 % =====================================================================
-%  resumen.tex: Resumen / Abstract
+%  resumen.tex: Resumen y palabras clave. Se imprime en la hoja
+%  «Documento Técnico» (frontmatter/documento-tecnico.tex).
 % =====================================================================
-\chapter*{Resumen}
-\addcontentsline{toc}{chapter}{Resumen}
-\markboth{Resumen}{Resumen}
-
-El presente Trabajo Terminal desarrolla un prototipo de sistema web para
-la gestión de expedientes digitales y la actividad procesal de un
-despacho legal. El prototipo implementa los servicios criptográficos de
-\emph{integridad}, orientado a detectar cualquier modificación no
-autorizada en los expedientes, y de \emph{no repudio}, que impide que
-las partes involucradas nieguen su participación en la firma de
-contratos mediante evidencia criptográfica verificable. La fase de
-implementación del núcleo criptográfico está concluida y demostrada:
-diez servicios criptográficos construidos en Rust sobre una arquitectura
-hexagonal, verificables de forma independiente con OpenSSL, revisables además desde el
-propio navegador sin enviar el paquete de evidencia, y respaldados
-por una suite de más de trescientas pruebas automatizadas que valida el
-correcto funcionamiento de los módulos y flujos principales.
+El presente Trabajo Terminal desarrolla Qadra, un prototipo de sistema web
+para la gestión de expedientes digitales y la actividad procesal de un
+despacho legal en materia penal, con servicios criptográficos de
+\emph{integridad} y \emph{no repudio}. El servidor, escrito en Rust con
+arquitectura hexagonal, administra expedientes conforme al Código Nacional
+de Procedimientos Penales: etapas, audiencias, medidas cautelares,
+resoluciones, recursos y plazos calculados con calendarios jurisdiccionales.
+Cada versión documental se cifra con AES-256-GCM bajo una llave propia y
+cada operación queda en una bitácora encadenada que detecta alteraciones.
+La firma digital RSA-3072 se produce en el equipo del titular, sin que la
+clave privada salga de él, y una autoridad de sellado de tiempo local
+emite sellos RFC~3161; con ambos se firman documentos individuales y
+contratos entre el despacho y su cliente. El acceso combina contraseñas
+protegidas con Argon2id, un segundo factor TOTP y control por roles. Cada
+firma se exporta como un paquete de evidencia que puede verificarse con
+OpenSSL o en el navegador, sin depender del sistema. El prototipo está
+desplegado; su ejecución de cierre aprobó 6\,397 pruebas automatizadas del
+servidor, además de las pruebas de la interfaz y de navegador, y la
+usabilidad se evaluó con dos personas ajenas al despacho.
 
 \vspace{1em}
 \noindent\textbf{Palabras clave:} expedientes digitales, integridad,

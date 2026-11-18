@@ -29,9 +29,9 @@ el cambio de rol de una cuenta asignada hacia Cliente se rechaza. La migración
 se detiene si encuentra una membresía de Cliente y nunca la borra.
 
 \paragraph{Almacenamiento.} La familia de contratos se divide en tres archivos
-solo para respetar el límite de 400 líneas: \texttt{0052\_contracts} (tablas y
-constructores de las declaraciones), \texttt{0052\_contract\_events} (bloqueo,
-preservación, eventos y solicitudes) y \texttt{0052\_contract\_signatures}
+solo para respetar el límite de 400 líneas: \rutarepo{0052_contracts} (tablas y
+constructores de las declaraciones), \rutarepo{0052_contract_events} (bloqueo,
+preservación, eventos y solicitudes) y \rutarepo{0052_contract_signatures}
 (firmas, compleción, emparejamiento, avisos, guarda de versión y disparadores).
 Las seis tablas de la \cref{sec:diseno-contratos-datos} no tienen columna de
 estado; los disparadores reconstruyen en SQL los 240 bytes de
