@@ -59,6 +59,10 @@ cleanup() {
   if [ "$status" -ne 0 ] && [ -f "$WORK_DIR/server.log" ]; then
     cat "$WORK_DIR/server.log" >&2
   fi
+  if [ -n "${LOCK_SAMPLER_PID:-}" ]; then
+    kill "$LOCK_SAMPLER_PID" 2>/dev/null || true
+    [ -s "$WORK_DIR/lock-holders.log" ] && sed 's/^/LOCKHOLD /' "$WORK_DIR/lock-holders.log" | tail -n 600 >&2
+  fi
   if [ -n "$SERVER_PID" ]; then
     kill "$SERVER_PID" 2>/dev/null || true
     wait "$SERVER_PID" 2>/dev/null || true
@@ -87,6 +91,13 @@ CREATE ROLE tt_browser LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT
   PASSWORD :'runtime_password';
 SQL
 "$CLI" database migrate --runtime-role tt_browser >/dev/null
+# Diagnostic for #150: record every holder of the shared audit lock older than 0.8 s.
+(
+  while sleep 0.2; do
+    psql "$IDENTITY_TEST_DATABASE_URL" -XAtq -F ' | ' -c "SELECT clock_timestamp()::time(3), a.pid, a.backend_start::time(0), round(extract(epoch FROM clock_timestamp()-a.xact_start)::numeric,2), a.state, coalesce(a.wait_event_type,'-')||':'||coalesce(a.wait_event,'-'), (SELECT count(*) FROM pg_locks w WHERE w.locktype='advisory' AND NOT w.granted), left(regexp_replace(a.query,'\s+',' ','g'),400) FROM pg_locks l JOIN pg_stat_activity a USING (pid) WHERE l.locktype='advisory' AND l.granted AND l.objid=1430538580 AND l.objsubid=1 AND clock_timestamp()-a.xact_start > interval '0.8 s'" 2>/dev/null || true
+  done >"$WORK_DIR/lock-holders.log"
+) &
+LOCK_SAMPLER_PID=$!
 DATABASE_URL="$(TT_BROWSER_DATABASE_PASSWORD="$TT_BROWSER_DATABASE_PASSWORD" node -e '
   const url = new URL(process.env.IDENTITY_TEST_DATABASE_URL);
   url.username = "tt_browser";
