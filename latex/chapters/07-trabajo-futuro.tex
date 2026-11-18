@@ -1,0 +1,39 @@
+% =====================================================================
+%  07-trabajo-futuro.tex — Trabajo a futuro
+% =====================================================================
+\chapter{Trabajo a futuro}\label{cap:trabajo-futuro}
+
+Las líneas siguientes parten de las limitaciones de la
+\cref{sec:limitaciones} y de los resultados del Capítulo~\ref{cap:pruebas}.
+
+\begin{itemize}
+  \item \textbf{Agilidad criptográfica y firma poscuántica.} Evaluar los
+        esquemas de firma poscuántica estandarizados por el NIST, solos o en
+        modo híbrido con RSA, y medir su efecto en el tamaño del paquete de
+        evidencia, en el tiempo de firma en el navegador y en la verificación
+        independiente. El formato del paquete debe admitir el cambio de
+        algoritmo sin invalidar las firmas ya emitidas.
+  \item \textbf{Acreditación de la autoridad.} Estudiar los requisitos
+        técnicos, organizativos y jurídicos para que la autoridad certificadora
+        y la de sellado operen como Prestador de Servicios de Certificación
+        acreditado, o se integren con uno mediante el adaptador previsto, y
+        emitan constancias conforme a la NOM-151.
+  \item \textbf{Identidad del firmante.} Investigar la vinculación del
+        certificado interno con una identidad acreditada por un tercero, como
+        la e.firma, para que la firma atribuya el acto a una persona y no solo
+        a una cuenta del sistema.
+  \item \textbf{Custodia de claves.} Comparar la custodia local en el
+        navegador con módulos de seguridad en hardware y con esquemas de firma
+        con umbral, incluida la recuperación de una clave perdida sin que el
+        servicio la conozca.
+  \item \textbf{Transparencia de la bitácora.} Anclar la cabeza de la cadena
+        de auditoría en un registro externo y estudiar registros de
+        transparencia con pruebas de inclusión y de consistencia que un
+        tercero pueda auditar.
+  \item \textbf{Reglas procesales.} Formalizar el cómputo de plazos como un
+        modelo verificable, ampliar el corpus con revisión jurídica calificada
+        y extenderlo a otras materias y fueros.
+  \item \textbf{Escala y operación.} Caracterizar el comportamiento bajo
+        carga y el aislamiento entre varios despachos en una misma
+        instalación.
+\end{itemize}

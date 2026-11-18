@@ -6,7 +6,7 @@
 
 Este capítulo describe cómo se construyó el prototipo diseñado en el Capítulo~\ref{cap:analisis}. El prototipo consta de una API multiusuario (Axum) y de la aplicación de navegador Qadra (Astro y Svelte), ambas sobre un núcleo criptográfico propio de diez servicios. PostgreSQL persiste cuentas, expedientes, pertenencias, documentos cifrados, actividad procesal y una cadena de auditoría compartida; Redis conserva el estado efímero de autenticación. Fuera de la API, el titular genera sus claves y firma en su navegador, y un portal separado opera la CA interna.
 
-La \cref{fig:impl-dominios} es el mapa del capítulo; la \cref{sec:impl-divergencias} cierra con las decisiones técnicas. El registro de actividad procesal deja constancia de los hechos, pero no demuestra su efecto jurídico. La evaluación de usabilidad con personas del despacho sigue pendiente (\cref{sec:pruebas-protocolo-humano}).
+La \cref{fig:impl-dominios} es el mapa del capítulo; la \cref{sec:impl-divergencias} cierra con las decisiones técnicas. El registro de actividad procesal deja constancia de los hechos, pero no demuestra su efecto jurídico. La evaluación de usabilidad se ejecutó con dos personas ajenas al despacho, con el protocolo de la \cref{sec:pruebas-protocolo-humano} y los resultados de la \cref{sec:pruebas-usabilidad-resultados}.
 
 \begin{figure}[!htbp]
   \centering

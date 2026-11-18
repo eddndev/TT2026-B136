@@ -56,7 +56,7 @@ La siguiente tabla sintetiza, para cada objetivo específico, el criterio de éx
     \toprule
     \textbf{OE} & \textbf{Objetivo específico (resumen)} & \textbf{Criterio de éxito medible} \\
     \midrule
-    OE-1 & Análisis y diseño funcional/técnico & Catálogo completo de 17 casos de uso derivados de las 7 agrupaciones de historias de usuario; arquitectura hexagonal documentada con al menos tres puertos (persistencia, criptografía, TSA); modelo de datos híbrido (relacional y volátil) definido con esquemas normalizados. \\
+    OE-1 & Análisis y diseño funcional/técnico & Catálogo completo de 18 casos de uso, más la variante \mbox{CU-13a}, derivados de las 7 agrupaciones de historias de usuario; arquitectura hexagonal documentada con al menos tres puertos (persistencia, criptografía, TSA); modelo de datos híbrido (relacional y volátil) definido con esquemas normalizados. \\
     OE-2 & Módulos de gestión procesal penal (CNPP) & CRUD completo para expedientes, audiencias y plazos; calendario jurídico operando sobre las etapas de investigación, intermedia y juicio del artículo 211 del CNPP y sobre los recursos de revocación y apelación; cómputo automático de términos conforme al artículo 94 del CNPP. \\
     OE-3 & No repudio con sello RFC 3161 & Firma digital RSA-3072 con SHA-256 verificable de forma independiente sobre el 100 \% de los contratos firmados; sello de tiempo RFC 3161 local vinculado al hash del documento y verificable con OpenSSL. La tasa sobre un PSC externo queda fuera del alcance actual por la inestabilidad y el costo no transparente del sandbox evaluado. \\
     OE-4 & Integridad y confidencialidad & Detección del 100 \% de alteraciones de un byte en documentos firmados mediante pruebas de mutación; cifrado AES-256-GCM con nonce único por operación y cero reutilizaciones en una suite de 10\,000 cifrados; envelope encryption con DEK por documento. \\
@@ -175,9 +175,9 @@ bitácora, el directorio de miembros, las invitaciones, la recuperación de
 contraseña, la admisión general de cargas, la entrega verificada del contenido
 original y la firma documental individual con la clave conservada en el equipo
 del titular; la CA interna dispone de un portal administrativo separado.
-La validación de usabilidad
-prevista con personal del despacho se realizará sobre los flujos integrados
-del prototipo. La evaluación técnica del flujo implementado se presenta en
+La evaluación de usabilidad se ejecutó el 8 de noviembre de 2026 con dos
+personas ajenas al despacho (\cref{sec:pruebas-usabilidad-resultados}).
+La evaluación técnica del flujo implementado se presenta en
 los \cref{cap:implementacion,cap:pruebas}.
 
 \section{Supuestos del Proyecto}\label{sec:supuestos}
@@ -199,3 +199,24 @@ El desarrollo del prototipo parte de los siguientes supuestos. La falsación de 
 
   \item Los socios del despacho caso de estudio están dispuestos a participar en pruebas de usabilidad de los flujos de firma y verificación.
 \end{itemize}
+
+\section{Organización del documento}\label{sec:organizacion}
+
+El \cref{cap:marco} reúne el marco teórico: el proceso penal acusatorio
+conforme al CNPP, la normatividad mexicana de firma electrónica y datos
+personales, y las primitivas criptográficas que sustentan la integridad, la
+confidencialidad, el no repudio y la autenticación. El \cref{cap:analisis}
+presenta el análisis y el diseño: la metodología, las historias de usuario,
+los casos de uso, los requerimientos, los costos y riesgos, la arquitectura
+del sistema y el diseño criptográfico. El \cref{cap:implementacion} describe
+la implementación del prototipo, desde los servicios criptográficos hasta la
+gestión procesal, la interfaz Qadra y el despliegue. El \cref{cap:pruebas}
+reporta las pruebas y sus resultados contra los criterios de éxito, incluida
+la verificación independiente de la evidencia y la evaluación de usabilidad.
+El \cref{cap:conclusiones} expone las conclusiones y el
+\cref{cap:trabajo-futuro}, el trabajo a futuro. Los apéndices contienen el
+catálogo de formatos canónicos y migraciones (\cref{anexo:A}), el manual de
+la interfaz de línea de comandos (\cref{anexo:cli}), la guía de verificación
+con OpenSSL (\cref{anexo:verificacion}), los scripts de la autoridad
+certificadora interna (\cref{anexo:pki}) y la matriz de pruebas con su
+evidencia de ejecución (\cref{anexo:matriz}).
