@@ -40,8 +40,11 @@ impl PostgresCaseReportStore {
         protector: Arc<dyn CaseReportProtector>,
     ) -> Result<Self, ApplicationError> {
         let mut client = crate::postgres::open(url)?;
+        // Report pages open right after the agenda and dashboard, which hold the
+        // shared audit lock for seconds; wait as the alert inbox does, below the
+        // statement timeout.
         client
-            .batch_execute("SET lock_timeout='2s'; SET statement_timeout='15s'")
+            .batch_execute("SET lock_timeout='4s'; SET statement_timeout='15s'")
             .map_err(port)?;
         Ok(Self {
             client: Mutex::new(client),
