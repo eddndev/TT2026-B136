@@ -5,16 +5,16 @@
 \thispagestyle{empty}
 \pdfbookmark[0]{Portada}{portada}
 
-% ---- Logos en el margen izquierdo, unidos por líneas verticales dobles ----
+% ---- Logos en el margen izquierdo, unidos por tres líneas verticales ----
 \begin{tikzpicture}[remember picture,overlay]
-  \coordinate (ipn) at ([xshift=1.55cm,yshift=-2cm]current page.north west);
-  \coordinate (escom) at ([xshift=1.55cm,yshift=2cm]current page.south west);
+  \coordinate (ipn) at ([xshift=2.3cm,yshift=-2cm]current page.north west);
+  \coordinate (escom) at ([xshift=2.3cm,yshift=2cm]current page.south west);
   \node[anchor=north,inner sep=0pt] (logoipn) at (ipn)
     {\includegraphics[height=3.0cm]{image1.png}};
   \node[anchor=south,inner sep=0pt] (logoescom) at (escom)
     {\includegraphics[width=2.4cm]{image2.png}};
-  \foreach \dx in {-0.07cm,0.07cm}
-    \draw[ESCOMAzul,line width=1.4pt]
+  \foreach \dx/\lw in {-0.1cm/0.8pt,0cm/1.4pt,0.1cm/0.8pt}
+    \draw[ESCOMAzul,line width=\lw]
       ([xshift=\dx,yshift=-0.15cm]logoipn.south) --
       ([xshift=\dx,yshift=0.15cm]logoescom.north);
 \end{tikzpicture}

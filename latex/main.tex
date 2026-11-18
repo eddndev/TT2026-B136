@@ -51,10 +51,10 @@
 \phantomsection
 \addcontentsline{toc}{chapter}{Referencias}
 \printbibliography[title={Referencias}]
+\glsaddall   % antes del salto: sus \write abrían una página en blanco
 
 % ---------------- Glosario -----------------------------------------
 \cleardoublepage
-\glsaddall
 {\sloppy\printglossary[title={Glosario de Términos},toctitle={Glosario de Términos}]}
 
 % ---------------- Anexos -------------------------------------------

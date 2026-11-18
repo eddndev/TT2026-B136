@@ -101,7 +101,7 @@
   commentstyle=\color{codecmt}\itshape,
   stringstyle=\color{codestr},
   numberstyle=\tiny\color{codecmt},
-  numbers=left,numbersep=8pt,
+  numbers=none,numbersep=8pt,
   frame=single,rulecolor=\color{codecmt!30},
   breaklines=true,showstringspaces=false,
   tabsize=2,captionpos=b,
@@ -137,7 +137,9 @@
   {\sffamily\Large\bfseries\color{ipnvino!70}\MakeUppercase{\chaptertitlename}\ \thechapter}
   {12pt}{\Huge}
 \titlespacing*{\chapter}{0pt}{10pt}{30pt}
-\titleformat{\section}{\sffamily\Large\bfseries\color{ipnvino}}{\thesection}{1em}{}
+% El color va en la etiqueta y el título, no en el formato: un \color en el
+% formato separa el ancla del encabezado y el enlace del índice cae una página antes.
+\titleformat{\section}{\sffamily\Large\bfseries}{\textcolor{ipnvino}{\thesection}}{1em}{\color{ipnvino}}
 \titleformat{\subsection}{\sffamily\large\bfseries}{\thesubsection}{1em}{}
 \titleformat{\subsubsection}{\sffamily\normalsize\bfseries}{\thesubsubsection}{1em}{}
 
