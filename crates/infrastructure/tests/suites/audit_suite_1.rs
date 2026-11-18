@@ -5,6 +5,8 @@ mod audit_access_postgres;
 mod audit_context_file;
 #[path = "../audit_context_postgres.rs"]
 mod audit_context_postgres;
+#[path = "../audit_event_lookups.rs"]
+mod audit_event_lookups;
 #[path = "../audit_log.rs"]
 mod audit_log;
 #[path = "../audit_query_postgres.rs"]

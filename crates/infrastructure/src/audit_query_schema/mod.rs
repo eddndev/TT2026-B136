@@ -12,6 +12,8 @@ pub(crate) const MIGRATION: &str =
     include_str!("../../../../migrations/0027_audit_query_projection.sql");
 pub(crate) const CONTEXT_MIGRATION: &str =
     include_str!("../../../../migrations/0048_audit_event_context.sql");
+pub(crate) const LOOKUP_MIGRATION: &str =
+    include_str!("../../../../migrations/0054_audit_event_lookups.sql");
 
 pub(crate) fn validate_inventory<C: postgres::GenericClient>(
     client: &mut C,

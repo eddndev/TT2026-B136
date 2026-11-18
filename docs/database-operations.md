@@ -78,6 +78,63 @@ latencia de esta extensión se mantiene separada en
 [la matriz de auditoría](access-audit-matrix.md). Esta descripción no acredita
 integración ni despliegue.
 
+## Índices de búsqueda en la auditoría
+
+La [migración 0054](../migrations/0054_audit_event_lookups.sql) crea dos índices
+btree sobre `audit_events`: `audit_events_action_resource (action, resource)` y
+`audit_events_resource (resource)`. Las comprobaciones de cobertura de las
+audiencias cautelares, de las audiencias propias de recursos y de las medidas
+buscan su evento por recurso exacto, por prefijo de recurso o por acción
+mientras retienen el bloqueo común de auditoría. Sin estos índices cada búsqueda
+recorre la tabla completa y el bloqueo dura más que la espera de un segundo de
+agenda, despacho de plazos y consulta de auditoría, que entonces responden
+`500 internal_error` ([ADR 0090](adr/0090-audit-event-lookup-indexes.md)).
+
+Ambos índices usan la clase de operadores y la intercalación predeterminadas.
+Las bases se inicializan con `--no-locale` (intercalación `C`), de modo que un
+`LIKE` con prefijo fijo se resuelve como rango del índice. La migración no
+modifica filas, hashes ni permisos, y repetirla no cambia nada.
+
+La apertura exige exactamente cuatro índices en `audit_events`: la clave
+primaria, `audit_events_chronological` y los dos nuevos, cada uno btree,
+ascendente, sin predicado, expresiones ni columnas incluidas y con su lista
+exacta de columnas. Un binario anterior cuenta dos índices y se niega a abrir la
+base migrada; el binario nuevo se niega a abrir una base sin la migración. Por
+eso los índices no se crean a mano: con el binario anterior, los consumidores de
+alertas y de plazos fallan al reconectar y la API no vuelve a arrancar.
+
+`database migrate --runtime-role` aplica todas las migraciones en una sola
+transacción, por lo que `CREATE INDEX CONCURRENTLY` no está disponible. La
+construcción toma un bloqueo `SHARE` sobre `audit_events` que detiene cada
+anexado de auditoría hasta confirmar; se ejecuta con ingreso, API y web
+detenidos. Sobre una copia sintética de 4,47 millones de eventos, con
+`maintenance_work_mem` de 64 MB, construir ambos índices tardó unos 13 s y cada
+uno ocupó unos 34 MB. El procedimiento sigue el mantenimiento explícito de
+[despliegue](deployment.md#recuperación-y-esquema):
+
+1. Preparar el paquete con `deploy.yml` y `prepare_version`, y validar su
+   checksum. La huella del esquema cambia, así que la activación automática se
+   rechaza.
+2. Ensayar sobre una restauración del último respaldo en un clúster
+   PostgreSQL 16 desechable: medir `database migrate --runtime-role` con el
+   binario candidato y la conexión admin, ejecutar `database check` con el rol de
+   ejecución y comprobar que el binario anterior rechaza la base migrada.
+3. En la ventana: detener ingreso, API y web; respaldar base, roles y material
+   privado; migrar con el binario nuevo y la conexión admin; ejecutar
+   `database check`; registrar la nueva huella y apuntar la versión nueva;
+   arrancar y comprobar salud, versión y una lectura de agenda.
+4. Comprobar en la base que las búsquedas usan los índices: `EXPLAIN` de
+   `SELECT 1 FROM audit_events WHERE action='resource_hearing.registered' AND resource='x'`
+   debe mostrar `audit_events_action_resource` y ningún `Seq Scan`.
+
+Volver al binario anterior es también mantenimiento explícito: con escritores
+detenidos, eliminar ambos índices con la conexión admin
+(`DROP INDEX audit_events_action_resource, audit_events_resource`) y reactivar
+la versión anterior con su huella. Los eventos escritos entre tanto se
+conservan. Las
+[pruebas de los índices](../crates/infrastructure/tests/audit_event_lookups.rs)
+requieren `CASE_TEST_DATABASE_URL` sobre PostgreSQL desechable.
+
 ## Capacidades internas de recuperación de contraseña
 
 Las migraciones `0028_password_reset_*.sql` añaden capacidades privadas y sus

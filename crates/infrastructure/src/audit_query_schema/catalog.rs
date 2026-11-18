@@ -86,6 +86,13 @@ pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), Applicati
             false,
             &["timestamp_seconds", "timestamp_nanos", "sequence"][..],
         ),
+        (
+            "audit_events_action_resource",
+            false,
+            false,
+            &["action", "resource"][..],
+        ),
+        ("audit_events_resource", false, false, &["resource"][..]),
     ] {
         index(client, name, primary, unique, columns)?;
     }
@@ -96,7 +103,7 @@ pub(crate) fn validate<C: CatalogClient>(client: &mut C) -> Result<(), Applicati
         )
         .map_err(port)?
         .get(0);
-    if count != 2 {
+    if count != 4 {
         return Err(incomplete());
     }
     let rows = client

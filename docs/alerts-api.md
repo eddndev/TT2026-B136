@@ -239,8 +239,13 @@ reclamo de entrega; una modificación de configuración no reescribe ese envío.
 `--alert-page-limit` limita a 1–100 las acciones de reconciliación o activación
 por ciclo; su valor predeterminado es 20. `--alert-poll-ms` fija la pausa positiva
 entre ciclos, por defecto 1000 ms. Cada ciclo puede reclamar un correo si hay
-transporte. El consumidor de alertas y el de reevaluación de plazos comparten la
-parada supervisada por INT/TERM. El servidor espera sus operaciones bloqueantes
+transporte. El recorrido del escáner registra `alert.reconciled` solamente
+cuando cambia la evidencia de alertas: el estado del sujeto o un plan creado,
+sustituido o reescrito con otros valores. Un recorrido sin cambios y el fin de
+cada pasada sólo avanzan el cursor y no añaden eventos a la auditoría
+([ADR 0091](adr/0091-alert-scans-audit-only-changes.md)). El consumidor de
+alertas y el de reevaluación de plazos comparten la parada supervisada por
+INT/TERM. El servidor espera sus operaciones bloqueantes
 en curso antes de cerrar los adaptadores; un fallo fatal también solicita
 la parada de ambos consumidores y HTTP.
 
