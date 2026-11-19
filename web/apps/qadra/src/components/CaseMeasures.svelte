@@ -5,6 +5,7 @@
   import MeasureDecisionDetail from './MeasureDecisionDetail.svelte';
   import CaseMeasureRecords from './CaseMeasureRecords.svelte';
   import { caseState } from '../lib/case-state.mjs';
+  import { precautionaryContextOrMissing } from '../lib/precautionary-context-readiness.mjs';
   import { canFacts, factDenied } from '../lib/procedural-fact-errors.mjs';
   import { decisionEditorFailure } from './measure-decision-editor-values.mjs';
   import { pendingMeasureDecisionDrafts } from '../lib/measure-decision-draft.mjs';
@@ -17,6 +18,7 @@
   let alive = true,
     generation = 0,
     context = null,
+    contextMissing = false,
     rows = [],
     selected = null,
     busy = false,
@@ -56,9 +58,13 @@
     try {
       const query = { limit: 10 };
       if (cursors[position] !== undefined) query.afterId = cursors[position];
-      const [current, page] = await Promise.all([contextApi.context(), scoped.list(query)]);
+      const [current, page] = await Promise.all([
+        precautionaryContextOrMissing(() => contextApi.context()),
+        scoped.list(query),
+      ]);
       if (!alive || request !== generation) return;
       context = current;
+      contextMissing = current === null;
       rows = page.items;
       more = page.has_more;
       nextId = page.next_after_id;
@@ -133,6 +139,9 @@
     determina la vigencia jur&#237;dica.
   </p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
+  {#if contextMissing && !error}<p class="notice">
+      Completa la ficha penal y registra la etapa para registrar decisiones cautelares.
+    </p>{/if}
   {#if !editing}{#each drafts as saved (saved.key)}<Button
         variant="secondary"
         disabled={locked}
