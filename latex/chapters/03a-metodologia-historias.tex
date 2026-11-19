@@ -17,21 +17,21 @@ El plan abarca diez semanas, con una iteración por semana, en dos fases de cinc
 
 Las historias de usuario son el instrumento de captura de requerimientos de XP. Cada una se redacta desde la perspectiva de un actor y en lenguaje del dominio jurídico, e indica quién la plantea, qué necesita y para qué. El socio del despacho corresponde al perfil Owner del sistema, nombre que se usa desde los casos de uso en adelante. Las cuarenta historias se agrupan en siete módulos funcionales, desde la gestión de identidad hasta la operación del despacho (\cref{tab:historias-usuario}); la HU-34 se refina además en cuatro historias derivadas, de la HU-34a a la HU-34d, que separan la solicitud, la firma del Cliente, su alta con clave propia y la contrafirma del despacho. Forman el primer eslabón de una cadena de trazabilidad: cada historia se formaliza en un caso de uso (\cref{sec:casos-uso}), que fija actores, flujos, precondiciones y postcondiciones, y cada caso de uso se traduce a su vez en requerimientos funcionales y no funcionales verificables (\cref{sec:requerimientos}). La última columna de la tabla indica el caso de uso que formaliza cada historia.
 
-{\small
+{
 \setlength{\tabcolsep}{4pt}
-\begin{longtable}{@{}p{1.05cm}L{2.35cm}L{11.15cm}p{1.15cm}@{}}
+\begin{longtable}{@{}p{1.6cm}L{2.35cm}L{10.25cm}>{\raggedright\arraybackslash}p{1.5cm}@{}}
   \caption{Historias de usuario agrupadas por módulo y caso de uso que las formaliza.}\label{tab:historias-usuario}\\
   \toprule
   \textbf{ID} & \textbf{Actor} & \textbf{Necesidad (qué y para qué)} & \textbf{CU} \\
   \midrule
   \endfirsthead
-  \multicolumn{4}{@{}l}{\footnotesize\itshape Continuación de la \cref{tab:historias-usuario}}\\
+  \multicolumn{4}{@{}l}{\itshape Continuación de la \cref{tab:historias-usuario}}\\
   \toprule
   \textbf{ID} & \textbf{Actor} & \textbf{Necesidad (qué y para qué)} & \textbf{CU} \\
   \midrule
   \endhead
   \midrule
-  \multicolumn{4}{@{}r}{\footnotesize\itshape Continúa en la página siguiente}\\
+  \multicolumn{4}{@{}r}{\itshape Continúa en la página siguiente}\\
   \endfoot
   \bottomrule
   \endlastfoot

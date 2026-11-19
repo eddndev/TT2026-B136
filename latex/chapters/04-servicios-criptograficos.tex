@@ -17,19 +17,19 @@ Esta sección implementa el diseño de la \cref{sec:diseno-cripto} como diez ser
   \centering
   \caption{Servicios criptográficos: biblioteca y puerto del dominio con su adaptador.}
   \label{tab:impl-servicios}
-  \footnotesize
+  
   \begin{tabularx}{\linewidth}{@{}l L{3.5cm} >{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{Servicio} & \textbf{Biblioteca} & \textbf{Puerto $\rightarrow$ adaptador} \\
     \midrule
-    S1 Hash & \texttt{ring} 0.17 & \texttt{DocumentHasher} $\rightarrow$ \texttt{RingSha256Hasher} \\
-    S2 Cifrado & \texttt{ring} 0.17 & \texttt{AuthenticatedCipher}, \texttt{KeyManager} $\rightarrow$ \texttt{RingAesGcmCipher}, \texttt{EnvelopeKeyManager} \\
-    S3 PKI & OpenSSL; \texttt{x509-cert} 0.2, \texttt{der} 0.7 & \texttt{CertificateAuthority}, \texttt{CertificateValidator} $\rightarrow$ \texttt{OpensslCaAdapter}, \texttt{X509ChainValidator} \\
-    S4 Firma & \texttt{rsa} 0.9, \texttt{sha2} 0.10 & \texttt{DocumentSigner}, \texttt{SignatureVerifier} $\rightarrow$ \texttt{RsaPkcs1Signer}, \texttt{RsaPkcs1Verifier} \\
-    S5 Sello & OpenSSL; \texttt{cms} 0.2, \texttt{x509-tsp} 0.1, \texttt{reqwest} 0.12 & \texttt{TimestampService}, \texttt{TimestampVerifier} $\rightarrow$ \texttt{LocalOpensslTsa}, \texttt{CincelTsaAdapter}, \texttt{Rfc3161Verifier} \\
+    S1 Hash & \texttt{ring}~0.17 & \texttt{DocumentHasher} $\rightarrow$ \texttt{RingSha256Hasher} \\
+    S2 Cifrado & \texttt{ring}~0.17 & \texttt{AuthenticatedCipher}, \texttt{KeyManager} $\rightarrow$ \texttt{RingAesGcmCipher}, \texttt{EnvelopeKeyManager} \\
+    S3 PKI & OpenSSL; \texttt{x509-cert}~0.2, \texttt{der}~0.7 & \texttt{CertificateAuthority}, \texttt{CertificateValidator} $\rightarrow$ \texttt{OpensslCaAdapter}, \texttt{X509ChainValidator} \\
+    S4 Firma & \texttt{rsa}~0.9, \texttt{sha2}~0.10 & \texttt{DocumentSigner}, \texttt{SignatureVerifier} $\rightarrow$ \texttt{RsaPkcs1Signer}, \texttt{RsaPkcs1Verifier} \\
+    S5 Sello & OpenSSL; \texttt{cms}~0.2, \texttt{x509-tsp}~0.1, \texttt{reqwest}~0.12 & \texttt{TimestampService}, \texttt{TimestampVerifier} $\rightarrow$ \texttt{LocalOpensslTsa}, \texttt{CincelTsaAdapter}, \texttt{Rfc3161Verifier} \\
     S6 Verificación & S1, S3, S4 y S5 & Caso de uso \texttt{VerifyDocument} \\
-    S7 Contraseñas & \texttt{argon2} 0.5, \texttt{getrandom} & \texttt{PasswordHasher} $\rightarrow$ \texttt{Argon2idHasher} \\
-    S8 TOTP & \texttt{totp-rs} 5 & \texttt{TotpProvider}, \texttt{RecoveryCodeGenerator} $\rightarrow$ \texttt{TotpRsProvider}, \texttt{RandomRecoveryCodeGenerator} \\
+    S7 Contraseñas & \texttt{argon2}~0.5, \texttt{getrandom} & \texttt{PasswordHasher} $\rightarrow$ \texttt{Argon2idHasher} \\
+    S8 TOTP & \texttt{totp-rs}~5 & \texttt{TotpProvider}, \texttt{RecoveryCodeGenerator} $\rightarrow$ \texttt{TotpRsProvider}, \texttt{RandomRecoveryCodeGenerator} \\
     S9 Auditoría & vía S1 & \texttt{AuditLog}, \texttt{Clock} $\rightarrow$ \texttt{PostgresAuditLog}, \texttt{FileAuditLog}, \texttt{SystemClock} \\
     S10 ZIP & propia & \texttt{ArchiveWriter} $\rightarrow$ \texttt{StoredZipWriter} \\
     \bottomrule

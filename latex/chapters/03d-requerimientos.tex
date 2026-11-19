@@ -2,7 +2,7 @@
 
 % Ancho de las dos columnas de texto de las tablas de requerimientos.
 \newlength{\ReqAncho}
-\setlength{\ReqAncho}{\dimexpr(\linewidth-1.25cm-4\tabcolsep)/2\relax}
+\setlength{\ReqAncho}{\dimexpr(\linewidth-1.55cm-4\tabcolsep)/2\relax}
 
 Los requerimientos se derivan de los objetivos del proyecto y de las historias de usuario de la \cref{sec:historias-usuario}, y precisan lo que los casos de uso describen como escenarios. Se dividen en funcionales, que fijan los servicios que el sistema presta, y no funcionales, que fijan atributos de calidad y restricciones transversales. La \cref{fig:req-trazabilidad} muestra esa cadena por categoría. Cada requerimiento lleva un criterio de aceptación verificable, expresado con un umbral medible cuando es posible.
 
@@ -17,8 +17,8 @@ Los requerimientos se derivan de los objetivos del proyecto y de las historias d
 
 Los veinte requerimientos funcionales se agrupan en seis categorías. Cinco coinciden con los grupos de casos de uso de la \cref{sec:casos-uso}; la sexta, servicios criptográficos, reúne las capacidades que sostienen tanto la gestión documental (CU-11 y CU-12) como la firma de contratos (CU-13, CU-14 y CU-18). Cada fila resume qué debe hacer el sistema y la condición observable que demuestra que lo hace.
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos funcionales de autenticación y control de acceso.}\label{tab:rf-acceso}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
@@ -38,8 +38,8 @@ Los veinte requerimientos funcionales se agrupan en seis categorías. Cinco coin
     RF-03 & \textbf{Gestión de equipos.} Invitación de miembros por correo, aceptación de la invitación y alta y baja de usuarios del despacho. & Si el invitado acepta dentro de la vigencia del enlace, queda registrado con el rol indicado; si el enlace vence, la invitación se desactiva sola. \\
 \end{longtable}}
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos funcionales de gestión procesal penal.}\label{tab:rf-procesal}\label{tab:rf-06}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
@@ -61,8 +61,8 @@ Los veinte requerimientos funcionales se agrupan en seis categorías. Cinco coin
 
 El directorio de RF-06 no acredita por sí solo identidad civil ni representación procesal.
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos funcionales de calendario, plazos y alertas.}\label{tab:rf-calendario}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
@@ -85,8 +85,8 @@ El directorio de RF-06 no acredita por sí solo identidad civil ni representaci�
 
 En el prototipo, el plazo derivado de una audiencia se registra con su resultado por instrucción explícita del operador, que revisa el cálculo antes de confirmarlo; la activación automática de términos que plantea RF-07 sigue pendiente.
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos funcionales de gestión documental y evidencias.}\label{tab:rf-documental}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
@@ -105,8 +105,8 @@ En el prototipo, el plazo derivado de una audiencia se registra con su resultado
     RF-12 & \textbf{Repositorio documental.} Carga, clasificación, consulta, intercambio y control de versiones de documentos procesales (PDF, DOCX, multimedia) asociados a expedientes; cada archivo se guarda cifrado y con su huella SHA-256. & Un Paralegal no accede a documentos de expedientes que no tiene asignados; un archivo de hasta 10 MB se recupera en menos de 3 s. \\
 \end{longtable}}
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos funcionales de servicios criptográficos.}\label{tab:rf-cripto}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
@@ -130,8 +130,8 @@ En el prototipo, el plazo derivado de una audiencia se registra con su resultado
 
 La firma de RF-15 es una firma electrónica simple: demuestra el control de la clave y fija la versión firmada, pero no acredita por sí misma identidad civil ni representación procesal. El alta del Cliente con clave propia (CU-18) se traza a RF-15 sin añadir otro requerimiento, de modo que los requerimientos funcionales siguen siendo veinte. La TSA local de demostración de RF-16 emite sellos técnicos verificables; no equivale a un prestador de servicios de certificación (PSC) ni produce la constancia NOM-151; la prueba con un PSC externo queda fuera del alcance.
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos funcionales de operación y monitoreo.}\label{tab:rf-operacion}\label{tab:rf-19}\label{tab:rf-20}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
@@ -158,8 +158,8 @@ RF-19 mide la actividad por cuenta con cantidades (documentos, actuaciones y pla
 
 Los catorce requerimientos no funcionales se expresan como atributos de calidad, no como tecnologías.
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos no funcionales de seguridad y protección de datos.}\label{tab:rnf-seguridad}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
@@ -181,8 +181,8 @@ Los catorce requerimientos no funcionales se expresan como atributos de calidad,
     RNF-05 & \textbf{Privacidad.} Ninguna fuga de información hacia usuarios no autorizados ni fuera de la instancia del despacho. & En el entorno de ensayo, el 100\,\% de los accesos simulados fuera del ámbito autorizado termina en error de autorización. \\
 \end{longtable}}
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos no funcionales de rendimiento y operación.}\label{tab:rnf-rendimiento}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
@@ -201,8 +201,8 @@ Los catorce requerimientos no funcionales se expresan como atributos de calidad,
     RNF-07 & \textbf{Tiempo de respuesta.} Respuesta perceptiblemente inmediata, con actualizaciones que no recargan la página completa. & Con una red de más de 10 Mbps, toda operación interactiva no asíncrona da retroalimentación visual en menos de 300 ms. \\
 \end{longtable}}
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos no funcionales de usabilidad y experiencia de usuario.}\label{tab:rnf-usabilidad}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\
@@ -221,8 +221,8 @@ Los catorce requerimientos no funcionales se expresan como atributos de calidad,
     RNF-09 & \textbf{Localización.} Español de México por omisión: fechas DD/MM/AAAA y montos en pesos con separador de miles y dos decimales. & Todo módulo muestra fechas y montos en ese formato sin que el usuario configure su región. \\
 \end{longtable}}
 
-{\footnotesize
-\begin{longtable}{@{}L{1.25cm}L{\ReqAncho}L{\ReqAncho}@{}}
+{
+\begin{longtable}{@{}L{1.55cm}L{\ReqAncho}L{\ReqAncho}@{}}
   \caption{Requerimientos no funcionales de cumplimiento normativo y mantenibilidad.}\label{tab:rnf-cumplimiento}\\
   \toprule
   \textbf{ID} & \textbf{Requerimiento} & \textbf{Criterio de aceptación} \\

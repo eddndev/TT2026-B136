@@ -10,7 +10,7 @@
 \newcommand{\CUcFicha}[2][7]{\par\medskip\Needspace{#1\baselineskip}\begingroup
   \captionof{table}{#2}}
 \newcommand{\CUcFila}[3][]{\par\ifx b#1\nopagebreak[4]\fi\ifx p#1\nopagebreak[4]\fi
-  \noindent\footnotesize
+  \noindent
   \begin{tabularx}{\linewidth}{@{}>{\bfseries}L{2.65cm} X@{}}
     \ifx t#1\toprule\fi #2 & #3 \\ \ifx b#1\bottomrule\fi
   \end{tabularx}\par}
@@ -98,7 +98,7 @@ ambas comprobaciones se repiten antes de entregar un solo byte
 \CUcFila[b]{Trazabilidad}{HU-27, HU-29, HU-31, HU-33; RF-11, RF-12, RF-13, RF-14; RNF-03, RNF-04.}
 \CUcFin
 
-\begin{figure}[htb]
+\begin{figure}[p]
   \centering
   \input{figures/fig-03c-documentos-secuencia}
   \caption{Carga y consulta de un documento (CU-11 y CU-12). Las flechas guindas
@@ -138,19 +138,11 @@ autorizado conforme a la NOM-151.
 \CUcFila[t]{Actores}{Litigante asignado u Owner, que solicita; Cliente designado, que firma primero; firmante del despacho designado (Owner o Litigante asignado), que firma después; apoyo: TSA configurada (local en la demostración) y servicio de correo transaccional.}
 \CUcFila{Precondición}{Existe un contrato sobre una versión PDF exacta, sin sello ni firma individual, en un expediente activo. El Cliente tiene una cuenta creada por invitación aceptada (CU-18) y ambas partes, sesión con segundo factor y un vínculo vigente con su propio certificado de firma de la autoridad certificadora interna. Existe la hoja de huella firmada a mano.}
 \CUcFila{Flujo principal}{1. El solicitante elige la versión, indica el correo del Cliente, el firmante del despacho, la vigencia (de 1 a 30 días) y el folio de la hoja de huella. 2. El sistema comprueba partes, vínculos y versión, fija la solicitud con ambas huellas de certificado y la fecha límite, y registra el aviso al Cliente. 3. El aviso llega al espacio restringido del Cliente y, si el correo está habilitado, también por correo, sin enlace con autoridad. 4. El Cliente revisa el PDF; su navegador recalcula las huellas y lee la contraparte y la vigencia de los bytes de la solicitud. 5. El sistema prepara la declaración del Cliente; el navegador la compara campo por campo y el Cliente la firma con su clave local o con OpenSSL. 6. El sistema verifica la firma y el certificado, pide un sello sobre esa firma, comprueba que sea anterior a la fecha límite y registra firma y evento; el Cliente descarga el acuse parcial. 7. El firmante del despacho revisa el PDF y valida el acuse parcial. 8. Firma su declaración, que incluye las huellas de la firma y del sello del Cliente. 9. El sistema verifica la firma, comprueba que el certificado del Cliente no aparezca revocado en la CRL vigente, pide un sello sobre el PDF y otro sobre el manifiesto, exige su orden y la vigencia, y confirma firma, compleción y evento en una transacción. 10. Ambas partes descargan el paquete completo.}
-\CUcFila{Flujos alternos}{2a. Una parte o la versión no está lista: se rechaza con el motivo (Cliente, firmante o documento) sin distinguir si la cuenta del Cliente existe. 4a. El Cliente rechaza antes de firmar: la solicitud se cierra y se avisa al solicitante y al firmante; el solicitante o un Owner también pueden cancelar con motivo mientras la solicitud está abierta. 5a. Existe una versión posterior, cambió un certificado o venció la vigencia: la firma se rechaza y hay que solicitar de nuevo; el proceso interno registra la expiración. 6a. La TSA falla o no responde: no queda estado y la persona reenvía los mismos bytes por acción explícita, sin reintento automático; una respuesta perdida se concilia con el recibo de la operación. 9a. El certificado del Cliente aparece revocado en la CRL publicada: la contrafirma se rechaza. 9b. El firmante declina tras la firma del Cliente: la solicitud se cierra y el Cliente conserva el acuse parcial.}
+\CUcFila{Flujos alternos}{2a. Una parte o la versión no está lista: se rechaza con el motivo (Cliente, firmante o documento) sin distinguir si la cuenta del Cliente existe. 4a. El Cliente rechaza antes de firmar: la solicitud se cierra y se avisa al solicitante y al firmante; el solicitante o un Owner también pueden cancelar con motivo mientras la solicitud está abierta. 5a. Existe una versión posterior, cambió un certificado o venció la vigencia: la firma se rechaza y hay que solicitar de nuevo; el proceso interno registra la expiración.}
+\CUcFila{}{6a. La TSA falla o no responde: no queda estado y la persona reenvía los mismos bytes por acción explícita, sin reintento automático; una respuesta perdida se concilia con el recibo de la operación. 9a. El certificado del Cliente aparece revocado en la CRL publicada: la contrafirma se rechaza. 9b. El firmante declina tras la firma del Cliente: la solicitud se cierra y el Cliente conserva el acuse parcial.}
 \CUcFila[p]{Postcondición}{El contrato queda firmado y su evidencia vive en las tablas del contrato, no como sello del documento; la versión no admite sello ni firma individual. Sin la segunda firma no hay contrato completo, y una firma registrada del Cliente no formaliza el contrato. Rechazo, cancelación, declinación y expiración son registros de la aplicación que el paquete no refuta.}
 \CUcFila[b]{Trazabilidad}{HU-34a, HU-34b, HU-34d, HU-35; RF-15, RF-16; RNF-03, RNF-11.}
 \CUcFin
-
-\begin{figure}[tbp]
-  \centering
-  \input{figures/fig-03c-firma-secuencia}
-  \caption{Firma individual de un contrato (CU-13a). El titular produce dos
-  firmas en su equipo; el servidor solo recibe material público, pide el sello
-  sobre la huella del PDF y confirma todo en una transacción. Las firmas nuevas piden además un sello sobre el manifiesto de evidencia (\cref{fig:impl-manifiesto-aceptacion}).}
-  \label{fig:cu-13a}
-\end{figure}
 
 La firma individual separa tres cosas: quién es la cuenta, qué certificado
 usa y qué versión autoriza. El titular firma en su propio equipo
@@ -167,6 +159,15 @@ simple.
 \CUcFila[p]{Postcondición}{La versión conserva la prueba de su contenido y del consentimiento de la cuenta. El instante de aceptación consta en el registro auditado; el sello del documento cubre solo la huella del PDF; en las firmas aceptadas desde que se incorporó el manifiesto sellado, el sello del manifiesto ata además la firma, el consentimiento y el material de confianza a un instante de la TSA.}
 \CUcFila[b]{Trazabilidad}{HU-34, HU-35; RF-15, RF-16; RNF-03, RNF-11.}
 \CUcFin
+
+\begin{figure}[tbp]
+  \centering
+  \input{figures/fig-03c-firma-secuencia}
+  \caption{Firma individual de un contrato (CU-13a). El titular produce dos
+  firmas en su equipo; el servidor solo recibe material público, pide el sello
+  sobre la huella del PDF y confirma todo en una transacción. Las firmas nuevas piden además un sello sobre el manifiesto de evidencia (\cref{fig:impl-manifiesto-aceptacion}).}
+  \label{fig:cu-13a}
+\end{figure}
 
 \CUcFicha[18]{CU-14: Verificación de firma digital y sello de tiempo.}\label{tab:cu-14}\nopagebreak[4]
 \CUcFila[t]{Actores}{Usuario autenticado con acceso al contrato (Owner, Litigante o Paralegal asignado); Cliente designado, sobre los paquetes de sus propias solicitudes.}
@@ -197,7 +198,8 @@ cuentas, la generación local de la clave y una hoja de huella firmada a mano.
 \CUcFila[t]{Actores}{Owner, que invita; Cliente; Litigante, que captura el correo en la solicitud; operador de la CA interna; servicio de correo transaccional.}
 \CUcFila{Precondición}{El Owner tiene sesión activa y las invitaciones están habilitadas en la instancia. El Cliente no tiene cuenta.}
 \CUcFila{Flujo principal}{1. El Litigante captura el correo del Cliente al preparar la solicitud; si no hay una cuenta elegible, la preparación lo indica. 2. El Owner invita ese correo con perfil Cliente. 3. El correo entrega el enlace, válido 24 horas. 4. El Cliente elige su contraseña y confirma su segundo factor; el sistema crea la cuenta. 5. En su espacio de firma, el Cliente genera en su equipo una clave cifrada y una solicitud de certificado, o usa OpenSSL, y ve la huella SHA-256 de su clave pública. 6. Entrega la solicitud por un canal externo y lee la huella al operador de la CA, que la coteja en la vista previa, emite el certificado y anota el folio. 7. El Cliente sube el certificado y firma la declaración de vínculo. 8. Cliente y despacho firman a mano dos ejemplares de la hoja de huella.}
-\CUcFila{Flujos alternos}{3a. El enlace venció: el Owner lo reenvía y el anterior deja de valer. 4a. El correo ya tiene cuenta: se rechaza la invitación; una cuenta Cliente ya elegible se selecciona en la solicitud sin reinvitar, y una cuenta de alta directa nunca es elegible. 5a. Se pierde la clave o su contraseña: Qadra no la recupera; antes de firmar, el Cliente retira su vínculo, pide la revocación y repite el alta, y después de firmar sus firmas se conservan. 6a. La huella leída no coincide con la de la vista previa: el operador no emite. 7a. El certificado se acerca a su vencimiento: el espacio de firma avisa con 30 días de anticipación y la renovación repite los pasos 5 a 7, y el 8 si la clave cambia, sin tocar la cuenta; una solicitud abierta con el certificado anterior se rehace.}
+\CUcFila{Flujos alternos}{3a. El enlace venció: el Owner lo reenvía y el anterior deja de valer. 4a. El correo ya tiene cuenta: se rechaza la invitación; una cuenta Cliente ya elegible se selecciona en la solicitud sin reinvitar, y una cuenta de alta directa nunca es elegible. 5a. Se pierde la clave o su contraseña: Qadra no la recupera; antes de firmar, el Cliente retira su vínculo, pide la revocación y repite el alta, y después de firmar sus firmas se conservan.}
+\CUcFila{}{6a. La huella leída no coincide con la de la vista previa: el operador no emite. 7a. El certificado se acerca a su vencimiento: el espacio de firma avisa con 30 días de anticipación y la renovación repite los pasos 5 a 7, y el 8 si la clave cambia, sin tocar la cuenta; una solicitud abierta con el certificado anterior se rehace.}
 \CUcFila[p]{Postcondición}{El Cliente tiene una cuenta con segundo factor y un vínculo propio, sin pertenecer a ningún expediente ni recibir permisos de rol. El certificado lleva la organización de la raíz por política de la CA, lo que no significa afiliación. La hoja de huella es la única medida que ata persona y clave fuera del control técnico del despacho; no acredita identidad civil.}
 \CUcFila[b]{Trazabilidad}{HU-34c, HU-07; RF-15, RF-02, RF-03; RNF-01, RNF-03.}
 \CUcFin

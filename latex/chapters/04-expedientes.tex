@@ -23,8 +23,8 @@ Los permisos siguen la \cref{tab:permisos-implementados}: Litigante crea, queda 
   \centering
   \caption{Contrato HTTP de expedientes, administración penal y directorio, bajo \texttt{/api/v1}. Los parámetros entre ángulos son UUID, salvo \texttt{<rev>} y \texttt{<paso>}; \texttt{\ldots} abrevia \texttt{/cases/<case>}.}
   \label{tab:impl-http-expedientes}\label{tab:impl-http-administracion}\label{tab:impl-http-participantes}
-  \footnotesize
-  \begin{tabularx}{\linewidth}{@{}l L{5.3cm} X@{}}
+  
+  \begin{tabularx}{\linewidth}{@{}l L{6.3cm} >{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{Método} & \textbf{Ruta} & \textbf{Resultado confirmado} \\
     \midrule
@@ -44,7 +44,7 @@ Los permisos siguen la \cref{tab:permisos-implementados}: Litigante crea, queda 
     POST, GET & (sin sufijo) & Crea revisión 1 activa (\texttt{201}); lista cabezas con cursor \\
     PUT, GET & \texttt{/<id>} & Reemplazo con \texttt{expected\_revision}; revisión actual \\
     PUT & \texttt{/<id>/directory-status} & Solo estado, con revisión esperada \\
-    GET & \texttt{/<id>/history}, \texttt{/<id>/revisions/<rev>} & Historia con cursor; revisión exacta de ambas familias y, con \texttt{/credential}, su evidencia pública \\
+    GET & \texttt{/<id>/history},\newline\texttt{/<id>/revisions/<rev>} & Historia con cursor; revisión exacta de ambas familias y, con \texttt{/credential}, su evidencia pública \\
     POST & \texttt{/proposals/<paso>} & \texttt{review}, \texttt{prepare}, \texttt{commit} (\cref{fig:impl-propuesta}); \texttt{201} o \texttt{200} \\
     GET, POST, PUT & \texttt{\ldots/subjects} & Identidades: índice, detalle, revisión exacta, historia; revisa y reemplaza con revisión esperada \\
     \bottomrule
@@ -70,7 +70,7 @@ La edición exige \texttt{expected\_revision} y conserva estado y etapa; el camb
   \centering
   \caption{Límites en escalares Unicode o bytes. Título, referencia, nombre y rol son obligatorios; un opcional vacío queda ausente. Se rechazan controles antes de recortar y se conservan mayúsculas, acentos, forma Unicode y espacios interiores.}
   \label{tab:impl-limites-expedientes}
-  \footnotesize
+  
   \begin{tabularx}{\linewidth}{@{}L{2.9cm} X L{3.15cm} X@{}}
     \toprule
     \textbf{Elemento} & \textbf{Límite} & \textbf{Elemento} & \textbf{Límite} \\
@@ -83,7 +83,7 @@ La edición exige \texttt{expected\_revision} y conserva estado y etapa; el camb
     Otros identificadores & 300, una línea & Cert. y raíz; CRL & 16~KiB; 1~MiB y 10\,000 entradas \\
     \bottomrule
   \end{tabularx}
-  \par\smallskip{\raggedright\footnotesize $^\dagger$ En el orden recibido, sin duplicados literales tras recortar. $^\ddagger$ CRLF pasa a LF; se rechaza CR aislado. $^\ast$ Por operación, dos versiones distintas, incluidas las decisiones de candidatos.\par}
+  \par\smallskip{\raggedright$^\dagger$ En el orden recibido, sin duplicados literales tras recortar. $^\ddagger$ CRLF pasa a LF; se rechaza CR aislado. $^\ast$ Por operación, dos versiones distintas, incluidas las decisiones de candidatos.\par}
 \end{table}
 
 Las peticiones tienen tamaño máximo (64~KiB en administración, 8~KiB en el directorio manual y 256~KiB en rutas tipificadas), rechazan campos desconocidos o repetidos (límites por campo en la \cref{tab:impl-limites-expedientes}) y nunca aceptan del cliente autor, fecha, huella ni etapa. Los errores distinguen entrada mal formada, cuerpo excesivo, valores fuera de contrato o revisión cero en el directorio y conflicto (revisión obsoleta o agotada, cierre, identificador ocupado o retiro de un perfil completo); una inconsistencia persistida se informa sin detalles.

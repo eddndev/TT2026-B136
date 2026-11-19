@@ -5,7 +5,7 @@
 % última fila nunca queda sola: no se permite salto de página antes de ella.
 \newcommand{\CUbFicha}[1]{\par\medskip\Needspace{7\baselineskip}\begingroup
   \captionof{table}{#1}}
-\newcommand{\CUbFila}[3][]{\par\ifx b#1\nopagebreak[4]\fi\noindent\footnotesize
+\newcommand{\CUbFila}[3][]{\par\ifx b#1\nopagebreak[4]\fi\noindent
   \begin{tabularx}{\linewidth}{@{}>{\bfseries}L{2.65cm} X@{}}
     \ifx t#1\toprule\fi #2 & #3 \\ \ifx b#1\bottomrule\fi
   \end{tabularx}\par}
@@ -83,6 +83,13 @@ El token de sesión es un valor aleatorio sin datos de la cuenta: en cada solici
 
 Este grupo sigue el ciclo de vida del expediente penal: su registro con los identificadores oficiales, el directorio de personas e instituciones que intervienen y el avance entre las etapas de Investigación, Intermedia y Juicio oral. Owner y Litigante asignado gestionan; Paralegal asignado consulta y Cliente no accede a estas funciones ni puede asignarse al expediente. Cada cambio se guarda como una revisión nueva, sin borrar la anterior, y se confirma junto con su evento de bitácora. Si dos personas editan a la vez, la segunda recibe un conflicto y conserva su borrador para revisarlo. La \cref{fig:cu-seq-expediente} resume los tres flujos.
 
+\begin{figure}[!t]
+  \centering
+  \input{figures/fig-03b-seq-expediente}
+  \caption{Registro del expediente (CU-05), alta de un participante (CU-06) y transición de etapa (CU-07). Los recuadros guinda muestran los rechazos principales.}
+  \label{fig:cu-seq-expediente}
+\end{figure}
+
 \CUbFicha{CU-05: Registro y administración de expediente penal.}\label{tab:cu-05}\nopagebreak[4]
 \CUbFila[t]{Actores}{Litigante, o bien Owner; Paralegal asignado consulta.}
 \CUbFila{Precondición}{El usuario tiene sesión activa con perfil Owner o Litigante.}
@@ -100,13 +107,6 @@ Este grupo sigue el ciclo de vida del expediente penal: su registro con los iden
 \CUbFila{Postcondición}{Participante vinculado con su rol procesal, sin acceso al sistema; una persona puede tener roles distintos en expedientes diferentes. Que no aparezcan coincidencias no descarta duplicados reales. La firma interna no equivale a FIREL ni acredita identidad civil o nombramiento; el criterio FIREL del RF-06 (\cref{tab:rf-06}) sigue pendiente.}
 \CUbFila[b]{Trazabilidad}{HU-13; RF-06; RNF-10.}
 \CUbFin
-
-\begin{figure}[!t]
-  \centering
-  \input{figures/fig-03b-seq-expediente}
-  \caption{Registro del expediente (CU-05), alta de un participante (CU-06) y transición de etapa (CU-07). Los recuadros guinda muestran los rechazos principales.}
-  \label{fig:cu-seq-expediente}
-\end{figure}
 
 \CUbFicha{CU-07: Transición de etapa procesal.}\label{tab:cu-07}\nopagebreak[4]
 \CUbFila[t]{Actores}{Litigante asignado, o bien Owner; Paralegal asignado consulta el historial.}

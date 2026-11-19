@@ -47,7 +47,7 @@ El binario carga un archivo \texttt{.env} del directorio de trabajo cuando exist
   \centering
   \caption{Variables de entorno leídas por \texttt{despacho-cli}. En las variables del proveedor remoto de sellado, un valor en blanco cuenta como ausente.}
   \label{tab:cli-variables-entorno}
-  \begin{tabularx}{\linewidth}{@{}l X l@{}}
+  \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X l@{}}
     \toprule
     \textbf{Variable} & \textbf{Propósito} & \textbf{Default} \\
     \midrule
@@ -254,7 +254,7 @@ Los tres subcomandos de \texttt{vault} materializan el cifrado autenticado en re
   \centering
   \caption{Opciones de los subcomandos del grupo \texttt{vault}.}
   \label{tab:cli-vault-opciones}
-  \begin{tabularx}{\linewidth}{@{}l l l X@{}}
+  \begin{tabularx}{\linewidth}{@{}l l l >{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{Opción} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
     \midrule
@@ -303,7 +303,7 @@ El grupo \texttt{pki} administra la autoridad certificadora interna ejecutando c
   \centering
   \caption{Opciones de los subcomandos del grupo \texttt{pki}.}
   \label{tab:cli-pki-opciones}
-  \begin{tabularx}{\linewidth}{@{}l l l X@{}}
+  \begin{tabularx}{\linewidth}{@{}l l l >{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{Opción} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
     \midrule
@@ -399,7 +399,7 @@ Produce un reporte de cuatro componentes sobre el documento: integridad (el resu
   \centering
   \caption{Opciones del comando \texttt{verify}.}
   \label{tab:cli-verify-opciones}
-  \begin{tabularx}{\linewidth}{@{}l l l X@{}}
+  \begin{tabularx}{\linewidth}{@{}l l l >{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{Opción} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
     \midrule
@@ -469,7 +469,7 @@ El grupo \texttt{auth} cubre el hashing de contraseñas con Argon2id, su calibra
   \centering
   \caption{Opciones de los subcomandos del grupo \texttt{auth}.}
   \label{tab:cli-auth-opciones}
-  \begin{tabularx}{\linewidth}{@{}l l l X@{}}
+  \begin{tabularx}{\linewidth}{@{}l l l >{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{Opción} & \textbf{Tipo} & \textbf{Default} & \textbf{Descripción} \\
     \midrule
@@ -493,7 +493,8 @@ El grupo \texttt{auth} cubre el hashing de contraseñas con Argon2id, su calibra
 
 \texttt{calibrate} mide el costo real de un hash nuevo en el hardware local: ejecuta cinco corridas de Argon2id sobre una muestra fija y clasifica la media contra la banda objetivo inclusiva de 500 a 1\,000 milisegundos, con veredicto por debajo, dentro o por encima de la banda. La configuración vigente es $m=262144$ KiB, $t=3$, $p=1$; la media debe medirse en cada entorno. La salida de 529.4 ms reproducida abajo corresponde a la corrida histórica con dos pasadas y no constituye una medición de la configuración actual. \texttt{hash-password} emite una cadena PHC con los parámetros utilizados para ese hash. El ejemplo histórico \texttt{\$argon2id\$v=19\$m=262144,t=2,p=1\$\ldots} conserva sus dos pasadas; los hashes nuevos registran tres. \texttt{verify-password} toma los parámetros del PHC almacenado y responde \texttt{match} o \texttt{mismatch} (con código de salida distinto de cero en el segundo caso), sin reescribir los hashes históricos; un hash almacenado ilegible es un error, nunca un \texttt{mismatch}. \texttt{totp enroll} genera el secreto compartido, imprime el URI de aprovisionamiento \texttt{otpauth} y los ocho códigos de recuperación de un solo uso, y escribe el secreto base32 en el archivo indicado. \texttt{totp verify} acepta un desfase de un paso de 30 segundos a cada lado; la CLI conserva verificación sin estado, mientras la API rechaza la reutilización mediante un reclamo atómico en Redis.
 
-\begin{lstlisting}[numbers=none]
+% El URI otpauth no tiene espacios: aquí se permite cortarlo dentro del token.
+\begin{lstlisting}[numbers=none,breakatwhitespace=false]
 + $REPO/target/debug/despacho-cli auth calibrate
 mean over 5 runs: 529.4 ms (inside the 500-1000 ms target band)
 + $REPO/target/debug/despacho-cli auth totp enroll --user demo@example.com --secret-out totp-secret.b32

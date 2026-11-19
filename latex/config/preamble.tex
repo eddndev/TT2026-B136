@@ -67,7 +67,7 @@
 \input{config/diagramas}  % estilos de diagramas de bloques y secuencia
 \usepackage{float}
 \usepackage{subcaption}
-\usepackage[font=small,labelfont=bf,margin=1cm]{caption}
+\usepackage[labelfont=bf,margin=1cm]{caption}
 
 % ---------- Tablas ---------------------------------------------------
 \usepackage{booktabs}
@@ -95,15 +95,15 @@
 \definecolor{codestr}{HTML}{0A7D33}
 \definecolor{ipnvino}{HTML}{6B1E3C}   % guinda IPN
 \lstset{
-  basicstyle=\ttfamily\small,
+  basicstyle=\ttfamily,
   backgroundcolor=\color{codebg},
   keywordstyle=\color{codekw}\bfseries,
   commentstyle=\color{codecmt}\itshape,
   stringstyle=\color{codestr},
-  numberstyle=\tiny\color{codecmt},
+  numberstyle=\footnotesize\color{codecmt},
   numbers=none,numbersep=8pt,
   frame=single,rulecolor=\color{codecmt!30},
-  breaklines=true,showstringspaces=false,
+  breaklines=true,breakatwhitespace=true,showstringspaces=false,
   tabsize=2,captionpos=b,
   literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
            {ñ}{{\~n}}1 {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1
@@ -128,7 +128,7 @@
 % móviles (captions).
 \newcommand{\rutarepo}[1]{{\def\UrlBreaks{\do\/\do\-\do\.\do\_}\path{#1}}}
 % Línea de fuentes del repositorio al cierre de una sección.
-\newcommand{\Fuentes}[1]{\par\smallskip{\raggedright\small\interlinepenalty=10000\noindent\textit{Fuentes:} #1\par}}
+\newcommand{\Fuentes}[1]{\par\smallskip{\raggedright\interlinepenalty=10000\noindent\textit{Fuentes:} #1\par}}
 
 % ---------- Estilo de títulos (titlesec) ----------------------------
 \usepackage{titlesec}
@@ -147,10 +147,10 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\sffamily\small\nouppercase{\leftmark}}
-\fancyhead[R]{\sffamily\small\thepage}
+\fancyhead[L]{\sffamily\nouppercase{\leftmark}}
+\fancyhead[R]{\sffamily\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
-\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\sffamily\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\sffamily\thepage}\renewcommand{\headrulewidth}{0pt}}
 
 % ---------- Bibliografía (biblatex / biber, estilo IEEE) -------------
 \usepackage[backend=biber,style=ieee,sorting=none,maxbibnames=6,giveninits=true]{biblatex}

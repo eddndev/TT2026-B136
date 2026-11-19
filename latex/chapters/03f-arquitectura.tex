@@ -6,9 +6,9 @@ Esta sección describe cómo se organiza el prototipo para cumplir los requerimi
 
 La norma ISO/IEC 25010:2011 \cite{iso25010} clasifica la calidad del software en ocho características. El prototipo prioriza las que más pesan en un dominio jurídico y criptográfico, como resume la \cref{tab:atributos-calidad}. Ante un conflicto entre dos atributos se favorece el de mayor prioridad.
 
-\begin{table}[H]
+\begin{table}[!htbp]
   \centering
-  \small
+  
   \caption{Atributos de calidad priorizados, su motivación y la respuesta de la arquitectura.}
   \label{tab:atributos-calidad}
   \begin{tabularx}{\linewidth}{@{}L{0.22\linewidth}L{0.25\linewidth}>{\raggedright\arraybackslash}X@{}}
@@ -46,10 +46,10 @@ El estilo arquitectónico condiciona la organización del código, el manejo de 
 
 \begin{table}[H]
   \centering
-  \small
+  
   \caption{Comparativa de estilos arquitectónicos frente a los atributos priorizados.}
   \label{tab:comparativa-estilos}
-  \begin{tabularx}{\linewidth}{@{}L{0.3\linewidth}C{0.13\linewidth}C{0.14\linewidth}>{\raggedright\arraybackslash}X@{}}
+  \begin{tabularx}{\linewidth}{@{}L{0.3\linewidth}C{0.145\linewidth}C{0.16\linewidth}>{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{Estilo} & \textbf{Testabilidad} & \textbf{Evolvabilidad} & \textbf{Adecuación al alcance} \\
     \midrule
@@ -178,11 +178,11 @@ Las decisiones cuya reversión implicaría una refactorización amplia se regist
 
 \begin{table}[htbp]
   \centering
-  \small
+  
   \caption{Decisiones arquitectónicas significativas.}
   \label{tab:adrs}
   \renewcommand{\arraystretch}{1.1}
-  \begin{tabularx}{\linewidth}{@{}L{0.05\linewidth}L{0.2\linewidth}L{0.22\linewidth}>{\raggedright\arraybackslash}X@{}}
+  \begin{tabularx}{\linewidth}{@{}L{0.06\linewidth}L{0.2\linewidth}L{0.22\linewidth}>{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{ADR} & \textbf{Decisión} & \textbf{Alternativas} & \textbf{Consecuencias} \\
     \midrule
@@ -202,7 +202,7 @@ La \cref{tab:trazabilidad} completa, del lado del diseño, la cadena de la \cref
 
 \begin{table}[!htbp]
   \centering
-  \small
+  
   \caption{Componentes de la arquitectura y requerimientos que atienden.}
   \label{tab:trazabilidad}
   \begin{tabularx}{\linewidth}{@{}L{0.26\linewidth}L{0.21\linewidth}L{0.26\linewidth}>{\raggedright\arraybackslash}X@{}}

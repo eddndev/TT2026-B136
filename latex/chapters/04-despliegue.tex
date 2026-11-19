@@ -42,10 +42,10 @@ La renovación coordina tres estados: archivos de la CA, revisión de confianza 
 Cada pieza de la \cref{tab:impl-controladores} reintenta con su identificador, observa el estado real aunque exista recibo y, si falla, mantiene la barrera: así se cierra, publica y reabre sin perder evidencia. El procedimiento operativo está en la \cref{sec:anexo-despliegue}; la parada y la aprobación, en \rutarepo{docs/deployment-restore-quiesce.md} y \rutarepo{docs/deployment-controller-approval.md}.
 
 \begingroup
-\footnotesize
+
 \setlength{\tabcolsep}{4pt}
 \setlength{\LTpre}{6pt}\setlength{\LTpost}{0pt}
-\begin{longtable}{@{}L{2.05cm}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-2.05cm-4\tabcolsep)*70/100\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-2.05cm-4\tabcolsep)*30/100\relax}@{}}
+\begin{longtable}{@{}L{2.75cm}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-2.75cm-4\tabcolsep)*70/100\relax}>{\raggedright\arraybackslash}p{\dimexpr(\linewidth-2.75cm-4\tabcolsep)*30/100\relax}@{}}
   \caption{Piezas de mantenimiento: qué garantiza cada una y qué deja fuera.}
   \label{tab:impl-controladores} \\
   \toprule

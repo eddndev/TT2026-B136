@@ -54,6 +54,7 @@ verdict:     valid
 
 El segundo es la verificación del paquete de evidencia exportado usando únicamente OpenSSL, sin el software que lo generó (el mismo procedimiento que seguiría un perito o la contraparte procesal, reproducido paso a paso en el Anexo~\ref{anexo:verificacion}):
 
+\Needspace{17\baselineskip}
 \begin{lstlisting}[language={},numbers=none,caption={Verificación del paquete de evidencia con solo OpenSSL (extracto de \texttt{docs/demo-transcript.md}).},label={lst:pruebas-openssl}]
 + openssl dgst -sha256 document.txt
 SHA2-256(document.txt)= fb5c0a6097be9246860fa82c89db3576...

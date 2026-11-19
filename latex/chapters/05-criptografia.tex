@@ -14,7 +14,7 @@ Todos los vectores oficiales adoptados están en verde. La \cref{tab:pruebas-vec
   \centering
   \caption{Vectores oficiales reproducidos por la suite de pruebas.}
   \label{tab:pruebas-vectores}
-  \begin{tabularx}{\linewidth}{@{}L{4.4cm} X C{1.9cm}@{}}
+  \begin{tabularx}{\linewidth}{@{}L{3.8cm} >{\raggedright\arraybackslash}X C{2.5cm}@{}}
     \toprule
     \textbf{Estándar y fuente} & \textbf{Vectores reproducidos} & \textbf{Pruebas} \\
     \midrule
@@ -22,9 +22,9 @@ Todos los vectores oficiales adoptados están en verde. La \cref{tab:pruebas-vec
     \addlinespace
     Casos TC13--TC16 del modo GCM \cite{mcgrewviega2004,dworkin2007} & AES-256-GCM: cifrado de los cuatro casos con criptograma y tag exactos; descifrado autenticado de TC14 y TC16; caso negativo con el último byte del tag volteado. & 7 \\
     \addlinespace
-    RFC 6238, apéndice B \cite{mraihi2011} & Los seis vectores TOTP SHA-1 de ocho dígitos ($T$ desde 59 hasta 20\,000\,000\,000, secreto ASCII de referencia). & 1 (6 vectores) \\
+    RFC 6238, apéndice B \cite{mraihi2011} & Los seis vectores TOTP SHA-1 de ocho dígitos ($T$ desde 59 hasta 20\,000\,000\,000, secreto ASCII de referencia). & 1~(6~vectores) \\
     \addlinespace
-    RFC 4226, apéndice D \cite{mraihi2005} & Los diez vectores HOTP de seis dígitos (contadores 0 a 9), como verificación cruzada del conteo de dígitos de producción. & 1 (10 vectores) \\
+    RFC 4226, apéndice D \cite{mraihi2005} & Los diez vectores HOTP de seis dígitos (contadores 0 a 9), como verificación cruzada del conteo de dígitos de producción. & 1~(10~vectores) \\
     \addlinespace
     CRC-32 del formato ZIP & Valor de comprobación estándar: \texttt{crc32} de \texttt{"123456789"} igual a \texttt{0xCBF43926}, y \texttt{crc32} de la cadena vacía igual a 0. & 1 \\
     \bottomrule

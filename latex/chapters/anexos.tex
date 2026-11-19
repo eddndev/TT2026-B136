@@ -25,9 +25,10 @@ La \cref{tab:anexo-canones} reúne los 82 prefijos binarios presentes en el cód
 \begingroup
 \renewcommand{\_}{\textunderscore\allowbreak}
 \newcommand*{\sepdominio}[1]{{\def\UrlBreaks{\do\:\do\-\do\.}\path{#1}}}
-\small
+\renewcommand{\rutarepo}[1]{{\def\UrlBreaks{\do\/\do\-\do\_}\path{#1}}}
+
 \setlength{\tabcolsep}{4pt}
-\begin{longtable}{@{}L{0.17\linewidth}L{0.43\linewidth}L{0.34\linewidth}@{}}
+\begin{longtable}{@{}L{0.21\linewidth}L{0.37\linewidth}L{0.36\linewidth}@{}}
   \caption[Catálogo de prefijos canónicos, marcos y separadores de dominio]{Catálogo de prefijos canónicos, contenedores, marcos entre procesos y separadores textuales de dominio, agrupados por dominio.}
   \label{tab:anexo-canones} \\
   \toprule
@@ -171,7 +172,7 @@ El directorio \rutarepo{migrations/} contiene 148 archivos SQL numerados de 0001
 
 \begingroup
 \renewcommand{\_}{\textunderscore\allowbreak}
-\small
+
 \setlength{\tabcolsep}{4pt}
 \begin{longtable}{@{}C{0.06\linewidth}L{0.29\linewidth}L{0.59\linewidth}@{}}
   \caption[Familias de migraciones PostgreSQL]{Familias de migraciones PostgreSQL por número, con su raíz de nombre y su propósito.}

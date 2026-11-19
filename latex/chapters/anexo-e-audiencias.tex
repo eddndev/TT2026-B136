@@ -8,11 +8,11 @@
 
 {\raggedright La interfaz se comprueba mediante \rutarepo{web/apps/qadra/tests/hearings.test.mjs}, \rutarepo{hearings-api.test.mjs}, \rutarepo{hearing-time.test.mjs} y \rutarepo{hearing-errors.test.mjs}. Los escenarios bajo \rutarepo{web/apps/qadra/tests/browser/} separan flujo, referencias, permisos, conflictos, respuestas inciertas, contextos obsoletos, agenda y composición en los archivos \texttt{hearing-*.spec.mjs}, distintos de los prefijos \texttt{hearing-result-} y \texttt{hearing-derived-deadline-} de los resultados y del plazo derivado. Los recorridos \rutarepo{web/apps/qadra/tests/live/hearings.spec.mjs}, \rutarepo{hearing-permissions.spec.mjs} y \rutarepo{hearing-sentencing.spec.mjs} requieren servicios reales y fixtures aislados. Sus resultados se registran separados de los escenarios simulados.\par}
 
-\begin{table}[H]
+\begin{table}[tbp]
   \centering
   \caption{Cobertura funcional parcial de la programación de audiencias.}
   \label{tab:matriz-alcance-audiencias}
-  \begin{tabularx}{\linewidth}{@{}L{2.6cm} X X@{}}
+  \begin{tabularx}{\linewidth}{@{}L{2.6cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
     \toprule
     \textbf{Criterio} & \textbf{Base implementada} & \textbf{Alcance restante} \\
     \midrule

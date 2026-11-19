@@ -235,15 +235,19 @@ Cada PSC es responsable de mantener mecanismos de revocación de certificados co
 
 La Secretaría de Economía mantiene un directorio público de entidades que han superado las evaluaciones de cumplimiento para operar como PSC \cite{economia2026}. Es fundamental distinguir que las acreditaciones son específicas por servicio: una entidad puede estar autorizada para emitir certificados digitales, pero no necesariamente para emitir constancias de conservación NOM-151 \cite{economia2026}. La \cref{tab:psc-acreditados} sintetiza los principales PSC acreditados relevantes para el contexto del prototipo:
 
-\begin{table}[H]
-  \centering
+\begin{longtable}{@{}L{0.19\linewidth}L{0.22\linewidth}L{\dimexpr0.43\linewidth-6\tabcolsep\relax}L{0.16\linewidth}@{}}
   \caption{Principales PSC acreditados por la Secretaría de Economía relevantes para el prototipo.}
-  \label{tab:psc-acreditados}
-  \small
-  \begin{tabularx}{\linewidth}{@{}L{0.16\linewidth}L{0.22\linewidth}X L{0.16\linewidth}@{}}
-    \toprule
-    \textbf{PSC Acreditado} & \textbf{Servicios acreditados relevantes} & \textbf{Perfil tecnológico} & \textbf{Acreditación (Diario Oficial de la Federación, DOF)} \\
-    \midrule
+  \label{tab:psc-acreditados} \\
+  \toprule
+  \textbf{PSC Acreditado} & \textbf{Servicios acreditados relevantes} & \textbf{Perfil tecnológico} & \textbf{Acreditación (DOF)} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{PSC Acreditado} & \textbf{Servicios acreditados relevantes} & \textbf{Perfil tecnológico} & \textbf{Acreditación (DOF)} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endlastfoot
     \textbf{CECOBAN, S.A. de C.V.} & NOM-151, sellos de tiempo, digitalización. & Infraestructura bancaria sistémica; rigor metrológico con sincronización CENAM. Orientado a transacciones financieras de alta frecuencia \cite{economia2026}. & 2008, 2010, 2021 \\
     \addlinespace
     \textbf{EDICOM (Edicomunicaciones México)} & NOM-151, sellos de tiempo, digitalización, certificados digitales. & Plataforma global de intercambio electrónico de datos (EDI); integración con eIDAS europeo y Dropbox Sign. Orientado a corporativos multinacionales \cite{economia2026}. & 2009, 2010, 2018 \\
@@ -259,9 +263,7 @@ La Secretaría de Economía mantiene un directorio público de entidades que han
     \textbf{INCODE PSC, S. de R.L. de C.V.} & NOM-151, sellos de tiempo. & Convergencia de verificación biométrica de identidad (IDV/KYC) con emisión criptográfica; API RESTful con validación contra INE \cite{economia2026}. & 2024 \\
     \addlinespace
     \textbf{Cincel Certificadora Digital S.A.P.I. de C.V.} & NOM-151, sellos de tiempo. & Primer PSC nativo de nube en México y América Latina; infraestructura AWS con modelo Zero Trust; integración orientada a API y entorno de sandbox sujeto a contratación. La información pública disponible no fue suficiente para presupuestar una campaña reproducible \cite{economia2026,comparasoftware2026}. & 2023 \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+\end{longtable}
 
 \paragraph{Criterios de selección del PSC para el prototipo}
 

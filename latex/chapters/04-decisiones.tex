@@ -7,9 +7,9 @@
 Las decisiones técnicas se registran como Architecture Decision Records en \rutarepo{docs/adr/}, con el formato de Nygard \cite{nygard2011}: contexto, decisión, estatus y consecuencias. El directorio contiene 85 registros numerados de 0001 a 0085, dos de ellos con el número 0048 y ninguno con el 0084. La \cref{tab:impl-adrs} complementa las cinco decisiones de la \cref{sec:adrs} con una selección: 0001 a 0016, 0022 a 0024, 0064, 0065 y 0085. Los registros de despliegue se citan en la \cref{sec:impl-despliegue} y el resto, en la sección del dominio que fundamentan.
 
 \begingroup
-\footnotesize
+
 \setlength{\tabcolsep}{3pt}
-\begin{longtable}{@{}C{0.8cm}L{6.0cm}L{3.9cm}>{\raggedright\arraybackslash}p{\dimexpr\linewidth-10.7cm-6\tabcolsep\relax}@{}}
+\begin{longtable}{@{}C{0.95cm}L{5.85cm}L{3.9cm}>{\raggedright\arraybackslash}p{\dimexpr\linewidth-10.7cm-6\tabcolsep\relax}@{}}
   \caption{Selección de Architecture Decision Records de \texttt{docs/adr/}.}
   \label{tab:impl-adrs} \\
   \toprule
@@ -20,10 +20,10 @@ Las decisiones técnicas se registran como Architecture Decision Records en \rut
   \textbf{ADR} & \textbf{Decisión} & \textbf{Motivo} & \textbf{Consecuencia} \\
   \midrule
   \endhead
-  \multicolumn{4}{@{}l}{\textit{Toolchain y dependencias}} \\
+  \multicolumn{4}{@{}l}{\textit{Toolchain y dependencias}} \\*
   0001 & Fijar \texttt{der}~0.7 (\texttt{x509-cert}~0.2, \texttt{cms}~0.2, \texttt{x509-tsp}~0.1), \texttt{rsa}~0.9 y \texttt{ring} $\geq$ 0.17.12 & Versiones nuevas exigían un compilador más reciente & Se revisa al elevar la MSRV \\
   0013 & MSRV Rust 1.88 obligatoria & Correcciones de seguridad & \texttt{cargo deny} sin excepciones para esas vulnerabilidades \\
-  \multicolumn{4}{@{}l}{\textit{Núcleo criptográfico y evidencia}} \\
+  \multicolumn{4}{@{}l}{\textit{Núcleo criptográfico y evidencia}} \\*
   0002 & Firmar con \texttt{rsa}, \texttt{x509-cert} y \texttt{sha2} & Interoperar con los PEM de la CA & RUSTSEC-2023-0071 \cite{rustsec2023_0071} aceptado bajo amenaza local \\
   0003 & Secretos en buffers \texttt{Zeroizing} & Borrar sin E/S ni framework & El dominio solo suma \texttt{zeroize} \\
   0004 & Validar X.509 recodificando a DER el contenido firmado del certificado & Decodificar no verifica firmas & Solo \texttt{sha256WithRSA\allowbreak Encryption} \\
@@ -33,13 +33,13 @@ Las decisiones técnicas se registran como Architecture Decision Records en \rut
   0008 & Puerto TOTP sin estado & Un código vale una vez & El llamador debe impedir reutilizar un código \\
   0009 & TSA local de OpenSSL (\cref{sec:impl-spike-tsa}) & Campaña externa no reproducible & Sin equivalencia jurídica; la TSA remota solo se prueba con un simulador \\
   0085 & Validar paquetes en el navegador con un motor puro en WebAssembly y sellar un manifiesto en la aceptación (\cref{sec:impl-validador}) & Revisar evidencia sin terminal ni enviarla al servidor; atar todas las piezas a un sello & Raíces fijas en cada versión; perfiles estrictos; la raíz de credenciales debe emitir el certificado de la TSA \\
-  \multicolumn{4}{@{}l}{\textit{Entrada HTTP y sesiones}} \\
+  \multicolumn{4}{@{}l}{\textit{Entrada HTTP y sesiones}} \\*
   0010 & Axum como adaptador HTTP de entrada & Fijar primero una frontera probada & La API se construye a partir del contrato de salud \\
   0012 & Tokens opacos revocables & Revocación inmediata & RBAC sin Cincel (\cref{sec:impl-identidad}) \\
   0015 & MFA atómico; trabajo bloqueante acotado & Argon2id usa 256~MiB & Clientes síncronos (\cref{sec:impl-http-limites}) \\
   0064 & Límite absoluto; inactividad explícita & No revivir sesiones & Fallo de Redis no autoriza \\
   0065 & Cerrar al vencer y recuperar borradores & No perder trabajo & Sin contraseñas ni secretos \\
-  \multicolumn{4}{@{}l}{\textit{Persistencia y casos de uso}} \\
+  \multicolumn{4}{@{}l}{\textit{Persistencia y casos de uso}} \\*
   0011 & Flujo tras un puerto; solo contenido cifrado; TSA local elegida en la aplicación & Web independiente de la infraestructura & La evidencia se captura al sellar \\
   0014 & Persistir expedientes y asignaciones & El rol global no aísla expedientes & Lecturas filtradas por pertenencia \\
   0016 & Cambio y auditoría en una transacción & Ningún cambio sin evento & Importación con reconciliación \\

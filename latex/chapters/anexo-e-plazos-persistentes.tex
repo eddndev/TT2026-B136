@@ -2,15 +2,18 @@
 
 La \cref{tab:matriz-plazos-persistentes} relaciona la implementación persistente con sus comprobaciones. La presencia de un caso en el repositorio identifica la propiedad exigida; su ejecución y resultado pertenecen al informe técnico. Los casos sintéticos no certifican reglas jurídicas, y la comprobación del transporte no sustituye la aceptación de una interfaz de usuario.
 
-\begin{table}[H]
-  \centering
-  \caption{Fronteras de comprobación del seguimiento persistente de plazos.}
-  \label{tab:matriz-plazos-persistentes}
-  \small
-  \begin{tabularx}{\textwidth}{p{3.2cm} X}
-    \toprule
-    \textbf{Frontera} & \textbf{Propiedad comprobada} \\
-    \midrule
+\begin{longtable}{@{}L{3.8cm}L{\dimexpr\linewidth-3.8cm-2\tabcolsep\relax}@{}}
+  \caption{Fronteras de comprobación del seguimiento persistente de plazos.}\label{tab:matriz-plazos-persistentes}\\
+  \toprule
+  \textbf{Frontera} & \textbf{Propiedad comprobada} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Frontera} & \textbf{Propiedad comprobada} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
     Entrada \texttt{DEVI1} & Selección, condiciones, cantidad opcional y precisión reversibles; rechazo de representaciones inválidas. \\
     Resultado \texttt{DRES1} & Candidata, bloqueos y traza conservados sin recalcular el historial. \\
     Preparación y recibo & Vinculación de contenido revisado, contexto capturado y envío; ausencia de fechas fabricadas. \\
@@ -26,9 +29,7 @@ La \cref{tab:matriz-plazos-persistentes} relaciona la implementación persistent
     Catálogo y respaldo & Restricciones y proyecciones verificadas; restauración sujeta a contraste de todas las revisiones. \\
     HTTP y Qadra & V1/V2, autoría, causa, observaciones, decisión explícita y conciliación sin reenvío automático. \\
     Servidor compuesto & Lotes secuenciales, alternancia, pausa, errores y cierre coordinado de HTTP y consumidor. \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+\end{longtable}
 
 \begingroup
 \raggedright

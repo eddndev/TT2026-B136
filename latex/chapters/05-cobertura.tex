@@ -12,10 +12,10 @@ La \cref{tab:pruebas-cobertura-evolucion} reúne los cortes del 12 al 16 de sept
   \centering
   \caption[Evolución de la cobertura global por corte]{Pruebas Rust aprobadas y cobertura global de líneas por corte, del 12 al 16 de septiembre de 2026.}
   \label{tab:pruebas-cobertura-evolucion}
-  \small
-  \begin{tabularx}{\linewidth}{@{}l X r r r@{}}
+  
+  \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X r r r@{}}
     \toprule
-    \textbf{Fecha} & \textbf{Alcance del corte} & \makecell[r]{\textbf{Pruebas aprobadas}\\\textbf{(+ ignoradas)}} & \makecell[r]{\textbf{Líneas cubiertas /}\\\textbf{instrumentadas}} & \makecell[r]{\textbf{Cobertura}\\\textbf{global}} \\
+    \textbf{Fecha} & \textbf{Alcance del corte} & \makecell[r]{\textbf{Pruebas}\\\textbf{aprobadas}\\\textbf{(+ ignoradas)}} & \makecell[r]{\textbf{Líneas cubiertas /}\\\textbf{instrumentadas}} & \makecell[r]{\textbf{Cobertura}\\\textbf{global}} \\
     \midrule
     12 sep. & Autorización documental por expediente y auditoría transaccional & 519 (+1) & 8\,026 / 8\,845 & 90.7\,\% \\
     14 sep. & Consultas documentales autorizadas & 539 (+1) & 8\,256 / 9\,071 & 91.0\,\% \\
@@ -23,19 +23,19 @@ La \cref{tab:pruebas-cobertura-evolucion} reúne los cortes del 12 al 16 de sept
     14 sep. & Clasificación documental auditada & 644 (+1) & 9\,854 / 10\,670 & 92.4\,\% \\
     14 sep. & Directorio de participantes & 704 (+1) & 10\,994 / 11\,838 & 92.9\,\% \\
     14 sep. & Administración penal auditada & 770 (+1) & 12\,613 / 13\,506 & 93.4\,\% \\
-    15 sep. & Adopción y transiciones de etapa; admisión de soportes PDF/DOCX & 933 (+1) & 15\,817 / 17\,064 & 92.7\,\% \\
+    15 sep. & Adopción y transiciones de etapa; admisión de soportes \mbox{PDF/DOCX} & 933 (+1) & 15\,817 / 17\,064 & 92.7\,\% \\
     15 sep. & Identidades y participantes tipificados & 1\,066 (+1) & 21\,968 / 23\,773\textsuperscript{a} & 92.4\,\% \\
     16 sep. & Programación de audiencias & 1\,183 (+1) & 25\,201 / 27\,226 & 92.6\,\% \\
     \bottomrule
   \end{tabularx}
 
   \smallskip
-  {\footnotesize\raggedright \textsuperscript{a}\,Primera campaña instrumentada del corte. Su repetición de cierre aprobó las mismas 1\,066 pruebas y cubrió 21\,967 de 23\,773 líneas, también 92.4\,\% (\cref{sec:pruebas-participantes-tipificados}).\par}
+  {\raggedright \textsuperscript{a}\,Primera campaña instrumentada del corte. Su repetición de cierre aprobó las mismas 1\,066 pruebas y cubrió 21\,967 de 23\,773 líneas, también 92.4\,\% (\cref{sec:pruebas-participantes-tipificados}).\par}
 \end{table}
 
 La \cref{fig:pruebas-evolucion-cobertura} representa las mismas nueve filas en el orden de la tabla: las barras muestran las pruebas Rust aprobadas de cada corte y la línea une sus coberturas globales, cada una medida sobre su propio denominador, junto con la referencia del umbral del 90\,\% que integración continua exige por separado a \texttt{domain}, \texttt{application} e \texttt{infrastructure} y no a la cobertura global.
 
-\begin{figure}[H]
+\begin{figure}[htbp]
   \centering
   \input{figures/evolucion-cobertura}
   \caption{Pruebas Rust aprobadas y cobertura global de líneas en los nueve cortes del 12 al 16 de septiembre de 2026, con el umbral del 90\,\% por crate como referencia.}
@@ -86,7 +86,7 @@ Sobre los umbrales conviene una precisión: el criterio de éxito del objetivo O
 
 La \cref{tab:pruebas-criterios} confronta los resultados con los criterios de éxito verificables que el Capítulo~\ref{cap:introduccion} fijó para los objetivos específicos OE-3 a OE-6 (\cref{tab:criterios-exito}), desglosados por subcriterio y con un estado explícito: cumplido o fuera del alcance actual.
 
-\begin{longtable}{@{}l L{0.40\linewidth} L{0.36\linewidth} L{0.10\linewidth}@{}}
+\begin{longtable}{@{}l L{0.38\linewidth} L{0.36\linewidth} L{0.12\linewidth}@{}}
   \caption{Resultados contra los criterios de éxito de los objetivos OE-3 a OE-6.}
   \label{tab:pruebas-criterios} \\
   \toprule
@@ -214,7 +214,7 @@ se presenta el valor observado en cada sesión, sin estadísticos de resumen.
   \centering
   \caption{Sesiones de la evaluación de usabilidad del 8 de noviembre de 2026.}
   \label{tab:pruebas-usabilidad-sesiones}
-  \small
+  
   \begin{tabularx}{\linewidth}{@{}l l X l r@{}}
     \toprule
     \textbf{Sesión} & \textbf{Persona} & \textbf{Perfil} & \textbf{Expediente} & \makecell[r]{\textbf{Tiempo}\\\textbf{activo}} \\
@@ -235,7 +235,7 @@ pausas ajenas a las tareas. Se registraron ocho errores y cuatro ayudas. La
   \centering
   \caption[Resultado por tarea de la evaluación de usabilidad]{Resultado por tarea y sesión: tiempo activo, terminación, errores y ayudas.}
   \label{tab:pruebas-usabilidad-tareas}
-  \small
+  
   \begin{tabular}{@{}l r r l l r r r r@{}}
     \toprule
      & \multicolumn{2}{c}{\textbf{Tiempo activo (s)}} & \multicolumn{2}{c}{\textbf{Terminación}} & \multicolumn{2}{c}{\textbf{Errores}} & \multicolumn{2}{c@{}}{\textbf{Ayudas}} \\
@@ -261,7 +261,7 @@ observados. Ninguno tiene una corrección registrada.
   \centering
   \caption{Problemas observados en la evaluación de usabilidad.}
   \label{tab:pruebas-usabilidad-problemas}
-  \small
+  
   \begin{tabularx}{\linewidth}{@{}l l X L{0.25\linewidth} L{0.16\linewidth}@{}}
     \toprule
     \textbf{N.º} & \textbf{Tarea} & \textbf{Problema observado} & \textbf{Impacto por sesión} & \textbf{Corrección y comprobación} \\

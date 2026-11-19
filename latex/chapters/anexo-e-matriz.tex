@@ -60,9 +60,9 @@ La \cref{tab:matriz-resumen} resume la distribución de las 520 funciones por cr
 
 \begingroup
 \renewcommand{\_}{\textunderscore\allowbreak}
-\small
+
 \setlength{\tabcolsep}{4pt}
-\begin{longtable}{@{}L{0.27\linewidth}C{0.05\linewidth}L{0.13\linewidth}L{0.45\linewidth}@{}}
+\begin{longtable}{@{}L{0.285\linewidth}C{0.05\linewidth}L{0.115\linewidth}L{0.47\linewidth}@{}}
   \caption[Matriz de pruebas del prototipo, una fila por archivo o módulo de prueba]{Matriz de pruebas del prototipo: una fila por archivo o módulo de prueba, con el número de funciones (N), el tipo conforme a la \cref{tab:matriz-tipos} y casos representativos.}
   \label{tab:matriz-pruebas} \\
   \toprule
@@ -356,14 +356,18 @@ Estas pruebas acompañan el contrato y la decisión de \rutarepo{docs/adr/0020-a
 
 Los resultados de estos dos incrementos están en las \cref{sec:pruebas-firma-bilateral,sec:pruebas-validador}. La \cref{tab:matriz-firma-bilateral} relaciona sus fuentes con un caso positivo y uno negativo, sin repetir conteos.
 
-\begin{table}[H]
-  \centering
-  \caption{Fuentes de prueba de la firma bilateral y del validador de evidencia.}
-  \label{tab:matriz-firma-bilateral}
-  \begin{tabularx}{\linewidth}{@{}p{0.34\linewidth} X X@{}}
-    \toprule
-    \textbf{Fuente} & \textbf{Caso positivo} & \textbf{Caso negativo} \\
-    \midrule
+\begin{longtable}{@{}L{0.34\linewidth}L{0.30\linewidth}L{0.30\linewidth}@{}}
+  \caption{Fuentes de prueba de la firma bilateral y del validador de evidencia.}\label{tab:matriz-firma-bilateral}\\
+  \toprule
+  \textbf{Fuente} & \textbf{Caso positivo} & \textbf{Caso negativo} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{Fuente} & \textbf{Caso positivo} & \textbf{Caso negativo} \\
+  \midrule
+  \endhead
+  \bottomrule
+  \endfoot
     \rutarepo{crates/domain/tests/contract_statements.rs} & La solicitud y las declaraciones de ambas partes se codifican y se leen con el vector compartido, y se encadenan a la solicitud y a la primera firma. & Sólo se admiten como firmantes cuentas activas con rol Owner, Litigante o Cliente. \\
     \rutarepo{crates/evidence-verify/tests/contract-fixtures} & Los paquetes parcial y completo de un contrato se validan como tales. & Las variantes alteradas producen el hallazgo correspondiente. \\
     \rutarepo{crates/evidence-verify/tests/validate/hostile.rs} & Un paquete íntegro conserva su resultado. & Ninguna entrada alterada provoca un fallo del motor ni pasa inadvertida. \\
@@ -372,9 +376,7 @@ Los resultados de estos dos incrementos están en las \cref{sec:pruebas-firma-bi
     \rutarepo{web/apps/qadra/tests/browser/contract-firm.spec.mjs} & El firmante del despacho valida el acuse parcial y contrafirma. & El solicitante cancela una solicitud abierta con motivo. \\
     \rutarepo{web/apps/qadra/tests/browser/evidence-validation.spec.mjs} y \rutarepo{web/apps/qadra/tests/browser/evidence-validation-wasm.spec.mjs} & Los cuatro resultados globales se muestran sin enviar el archivo. & Un ZIP reempaquetado y un archivo que excede el límite se explican como tales. \\
     \rutarepo{scripts/api-contract-demo.sh} & Recorrido completo por la API hasta el contrato firmado. & No aplica: es un recorrido de aceptación. \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+\end{longtable}
 
 \section{Trazabilidad de etapas y audiencias}\label{sec:matriz-grupo-actuaciones}
 
@@ -464,7 +466,7 @@ La cobertura de líneas se mide con \texttt{cargo-llvm-cov} y se aplica como umb
   \centering
   \caption[Cobertura por crate del 12 de septiembre de 2026]{Cobertura de líneas por crate medida con \texttt{cargo-llvm-cov} el 12 de septiembre de 2026 y umbral aplicado en integración continua.}
   \label{tab:pruebas-cobertura}
-  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.9cm} R{2.0cm} X@{}}
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
@@ -485,7 +487,7 @@ La medición del 14 de septiembre de 2026 registró 8\,256 líneas cubiertas de 
   \centering
   \caption[Cobertura de consultas documentales]{Cobertura de líneas reproducida el 14 de septiembre de 2026 con consultas documentales.}
   \label{tab:pruebas-cobertura-consultas}
-  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.9cm} R{2.0cm} X@{}}
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
@@ -506,7 +508,7 @@ La ejecución instrumentada de versiones inmutables del mismo día aprobó 577 p
   \centering
   \caption{Cobertura de líneas del 14 de septiembre de 2026 con versiones documentales inmutables.}
   \label{tab:pruebas-cobertura-versiones}
-  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.9cm} R{2.0cm} X@{}}
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
@@ -527,7 +529,7 @@ La clasificación registra 9\,854 de 10\,670 líneas cubiertas, equivalentes a 9
   \centering
   \caption[Cobertura de clasificación documental]{Cobertura de líneas del 14 de septiembre de 2026 con clasificación documental auditada.}
   \label{tab:pruebas-cobertura-clasificacion}
-  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.9cm} R{2.0cm} X@{}}
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
@@ -548,7 +550,7 @@ La cobertura del directorio registra 10\,994 de 11\,838 líneas, equivalentes a 
   \centering
   \caption{Cobertura de líneas del 14 de septiembre de 2026 con directorio de participantes.}
   \label{tab:pruebas-cobertura-participantes}
-  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.9cm} R{2.0cm} X@{}}
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
@@ -569,7 +571,7 @@ La administración penal cubre 12\,613 de 13\,506 líneas, equivalentes a 93.4\,
   \centering
   \caption{Cobertura del 14 de septiembre de 2026 con administración penal auditada.}
   \label{tab:pruebas-cobertura-administracion}
-  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.9cm} R{2.0cm} X@{}}
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
@@ -590,7 +592,7 @@ El corte de etapas del 15 de septiembre de 2026 aprobó 933 pruebas, con una ext
   \centering
   \caption{Cobertura de líneas del registro procesal y admisión documental, 15 de septiembre de 2026.}
   \label{tab:pruebas-cobertura-etapas}
-  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.9cm} R{2.0cm} X@{}}
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule
@@ -611,7 +613,7 @@ La primera campaña instrumentada de identidades y participantes tipificados, de
   \centering
   \caption{Cobertura de líneas de identidades y perfiles, 15 de septiembre de 2026.}
   \label{tab:pruebas-cobertura-identidades}
-  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.5cm} R{2.0cm} X@{}}
+  \begin{tabularx}{\linewidth}{@{}l R{2.2cm} R{2.9cm} R{2.0cm} X@{}}
     \toprule
     \textbf{Crate} & \textbf{Líneas cubiertas} & \textbf{Líneas instrumentadas} & \textbf{Cobertura} & \textbf{Umbral en CI} \\
     \midrule

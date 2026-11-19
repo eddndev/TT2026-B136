@@ -10,19 +10,19 @@ El prototipo adopta un nivel de fortaleza de 128 bits conforme a NIST SP 800-57 
   \centering
   \caption{Primitivas criptográficas, uso, parámetros, fuerza y norma.}
   \label{tab:cripto-primitivas}
-  \footnotesize
-  \begin{tabularx}{\linewidth}{@{}L{2.55cm} X L{3.3cm} L{1.75cm} L{2.0cm}@{}}
+  
+  \begin{tabularx}{\linewidth}{@{}L{2.8cm} X L{3.3cm} L{1.75cm} L{2.3cm}@{}}
     \toprule
     \textbf{Primitiva} & \textbf{Uso en el sistema} & \textbf{Parámetros} & \textbf{Fuerza (bits)} & \textbf{Norma} \\
     \midrule
-    SHA-256 & Huella de cada versión, de las firmas, de los consentimientos y de las declaraciones de contrato; digest que sella la TSA & Salida de 32 B & 128 (colisión) & FIPS 180-4 \cite{nist2015fips1804} \\
-    RSA-3072, PKCS\#1 v1.5 con SHA-256 & Firma del PDF y del consentimiento, declaraciones de contrato, certificados, CRL, tokens de la TSA y acceso del Owner por certificado & Clave de 3072 bits; firma de 384 B & 128 & SP 800-57 \cite{barker2020} \\
-    X.509 v3 y CRL & Certificados de la CA interna y su revocación & Raíz de 5 años, finales de 1 año, CRL obligatoria & 128 & RFC 5280 \cite{cooper2008} \\
-    Sello RFC 3161 & Existencia del digest del PDF, de la firma del Cliente o de un manifiesto en un instante & SHA-256; firma RSA-3072 de la TSA & 128 & RFC 3161 \cite{adams2001} \\
-    AES-256-GCM & Cifrado de cada versión documental, envoltura de las DEK y secretos TOTP & Clave de 32 B, nonce aleatorio de 12 B, etiqueta de 16 B & 256 & SP 800-38D \cite{dworkin2007} \\
-    Envoltura KEK/DEK & Separar la clave de cada versión de la clave maestra; rotar sin recifrar & Una DEK de 32 B por versión & 256 & SP 800-38F \cite{dworkin2012} \\
-    Argon2id & Contraseñas y códigos de recuperación & $m = 256$ MiB, $t = 3$, $p = 1$; sal de 16 B; salida de 32 B; resistente a memoria & Depende de la contraseña & RFC 9106 \cite{biryukov2021} \\
-    TOTP con HMAC-SHA1 & Segundo factor de acceso & 6 dígitos, periodo de 30~s, secreto de 20 B & No aplica & RFC 6238 \cite{mraihi2011}; SP 800-107 \cite{dang2012} \\
+    SHA-256 & Huella de cada versión, de las firmas, de los consentimientos y de las declaraciones de contrato; digest que sella la TSA & Salida de 32 B & 128 (colisión) & FIPS~180-4 \cite{nist2015fips1804} \\
+    RSA-3072, PKCS\#1 v1.5 con SHA-256 & Firma del PDF y del consentimiento, declaraciones de contrato, certificados, CRL, tokens de la TSA y acceso del Owner por certificado & Clave de 3072 bits; firma de 384 B & 128 & SP~800-57 \cite{barker2020} \\
+    X.509 v3 y CRL & Certificados de la CA interna y su revocación & Raíz de 5 años, finales de 1 año, CRL obligatoria & 128 & RFC~5280 \cite{cooper2008} \\
+    Sello RFC 3161 & Existencia del digest del PDF, de la firma del Cliente o de un manifiesto en un instante & SHA-256; firma RSA-3072 de la TSA & 128 & RFC~3161 \cite{adams2001} \\
+    AES-256-GCM & Cifrado de cada versión documental, envoltura de las DEK y secretos TOTP & Clave de 32 B, nonce aleatorio de 12 B, etiqueta de 16 B & 256 & SP~800-38D \cite{dworkin2007} \\
+    Envoltura KEK/DEK & Separar la clave de cada versión de la clave maestra; rotar sin recifrar & Una DEK de 32 B por versión & 256 & SP~800-38F \cite{dworkin2012} \\
+    Argon2id & Contraseñas y códigos de recuperación & $m = 256$ MiB, $t = 3$, $p = 1$; sal de 16 B; salida de 32 B; resistente a memoria & Depende de la contraseña & RFC~9106 \cite{biryukov2021} \\
+    TOTP con HMAC-SHA1 & Segundo factor de acceso & 6 dígitos, periodo de 30~s, secreto de 20 B & No aplica & RFC~6238 \cite{mraihi2011}; SP~800-107 \cite{dang2012} \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -35,7 +35,7 @@ Las zonas y sus cruces se describen en la \cref{fig:zonas-confianza}; aquí se p
   \centering
   \caption{Qué recibe o conserva cada parte del sistema y qué queda fuera de su alcance.}
   \label{tab:cripto-visibilidad}
-  \footnotesize
+  
   \begin{tabularx}{\linewidth}{@{}L{2.4cm} X L{4.6cm}@{}}
     \toprule
     \textbf{Parte} & \textbf{Recibe o conserva} & \textbf{No recibe ni conserva} \\
@@ -177,7 +177,7 @@ certificado y se rotula como declarado.
   \centering
   \caption{Estructura de la solicitud \texttt{CTRTREQ1}, de 240 bytes. Los enteros van en orden de bytes mayor primero.}
   \label{tab:cripto-ctrtreq}
-  \footnotesize
+  
   \begin{tabularx}{\linewidth}{@{}r r X@{}}
     \toprule
     \textbf{Desplazamiento} & \textbf{Longitud} & \textbf{Campo} \\
@@ -217,7 +217,7 @@ módulo del navegador se contrastan contra un único vector compartido.
   \centering
   \caption{Estructura de la declaración de cada parte \texttt{CTRTSIG1}, de 303 bytes.}
   \label{tab:cripto-ctrtsig}
-  \footnotesize
+  
   \begin{tabularx}{\linewidth}{@{}r r X@{}}
     \toprule
     \textbf{Desplazamiento} & \textbf{Longitud} & \textbf{Campo} \\
@@ -245,17 +245,17 @@ exactitud daría al despacho un margen adicional. La TSA se consulta fuera de
 toda transacción, una vez por envío y sin reintento automático: una falla no
 deja estado y la persona reenvía los mismos bytes por acción explícita.
 
-\begin{table}[!htbp]
+\begin{table}[!ht]
   \centering
   \caption{Sellos de tiempo del contrato bilateral.}
   \label{tab:cripto-sellos-contrato}
-  \footnotesize
+  
   \begin{tabularx}{\linewidth}{@{}l L{3.4cm} X L{3.0cm}@{}}
     \toprule
     \textbf{Sello} & \textbf{Huella sellada} & \textbf{Qué dice} & \textbf{Qué no dice} \\
     \midrule
     T1 & Firma del Cliente & La firma del Cliente existía a esa hora & Nada sobre la posición 2 \\
-    Td & \texttt{contrato.pdf} & El PDF existía a esa hora; \texttt{openssl ts -verify -data} sigue funcionando & Nada bilateral \\
+    Td & \texttt{contrato.pdf} & El PDF existía a esa hora; \mbox{\texttt{openssl ts -verify -data}} sigue funcionando & Nada bilateral \\
     Tf & Manifiesto del contrato & Ambas declaraciones y firmas, T1, Td, certificados y CRL existían a esa hora & Que alguien leyera el contrato \\
     \bottomrule
   \end{tabularx}
@@ -269,11 +269,11 @@ clave vinculada aceptó esa versión frente a esa contraparte y en ese orden; su
 fuerza frente a un tercero depende de la ceremonia de alta y de lo que cada
 parte conserve fuera del sistema.
 
-\begin{table}[!htbp]
+\begin{table}[!ht]
   \centering
   \caption{Alcance de la evidencia del contrato bilateral.}
   \label{tab:cripto-prueba-contrato}
-  \footnotesize
+  
   \begin{tabularx}{\linewidth}{@{}X X@{}}
     \toprule
     \textbf{Prueba} & \textbf{No prueba} \\
@@ -282,7 +282,7 @@ parte conserve fuera del sistema.
     La posición 2 firmó sobre lo que firmó la posición 1, en ese orden & Qué instante es verdadero: la TSA pertenece al despacho \\
     Nadie cambió contenido, contraparte, certificado o vigencia sin romper firmas & Que el nombre declarado sea verdadero \\
     Según T1 y Tf, ambas firmas ocurrieron antes de la fecha límite, con la reserva de que la TSA pertenece al despacho & Un rechazo, una cancelación o una expiración \\
-    Sin la segunda firma no hay contrato completo & Validez jurídica del contrato ni constancia NOM-151 \\
+    Sin la segunda firma no hay contrato completo & Validez jurídica del contrato ni constancia \mbox{NOM-151} \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -407,7 +407,7 @@ El alta inicial crea al primer Owner solo mientras no existan usuarios; las alta
   \centering
   \caption{Permisos por rol sobre administración, documentos, etapas y directorio.}
   \label{tab:permisos-implementados}
-  \footnotesize
+  
   \begin{tabularx}{\linewidth}{@{}X C{0.14\linewidth} C{0.16\linewidth} C{0.16\linewidth}@{}}
     \toprule
     \textbf{Operación} & \textbf{Owner} & \textbf{Litigante} & \textbf{Paralegal} \\
@@ -429,7 +429,7 @@ El alta inicial crea al primer Owner solo mientras no existan usuarios; las alta
   \end{tabularx}
 
   \smallskip
-  \parbox{\linewidth}{\footnotesize Cliente no tiene ninguna de estas operaciones ni pertenece a expedientes; solo opera sus propias solicitudes de contrato, por relación (\cref{sec:diseno-firma-bilateral}).}
+  \parbox{\linewidth}{Cliente no tiene ninguna de estas operaciones ni pertenece a expedientes; solo opera sus propias solicitudes de contrato, por relación (\cref{sec:diseno-firma-bilateral}).}
 \end{table}
 
 La autorización usa el rol y el estado vigentes de cada cuenta. Owner ve todos los expedientes; Litigante y Paralegal, solo los asignados. Una cuenta Cliente no puede asignarse a un expediente: el servicio, un disparador de la base y los selectores de miembros la rechazan u omiten. Owner y Litigante administran perfiles y estado; las asignaciones quedan reservadas a Owner. En documentos, Litigante y Paralegal necesitan asignación vigente además del permiso de la \cref{tab:permisos-implementados}; Cliente queda denegado salvo la versión exacta de sus propias solicitudes de contrato, y la asociación exacta entre documento y expediente se comprueba también para Owner. Una revocación surte efecto en la siguiente operación documental que aún no se haya confirmado.

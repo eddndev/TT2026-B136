@@ -11,7 +11,7 @@ Esta sección implementa los crates de la \cref{sec:workspace-cargo} y las fitne
 Las dependencias siguen el grafo de la \cref{fig:workspace} y la \cref{tab:impl-crates} fija la responsabilidad de cada crate. HTTP consume un puerto de flujo por dominio (identidad, expedientes, documentos, participantes, etapas, audiencias, plazos, recursos, alertas, tablero e informes) sin conocer los adaptadores concretos. Las pruebas unitarias viven junto al código y las de integración aparte; por convención del proyecto, ningún archivo de código llega a 400 líneas.
 
 \begin{table}[!htbp]
-  \centering\small
+  \centering
   \caption{Responsabilidades de los crates del workspace.}
   \label{tab:impl-crates}
   \begin{tabularx}{\linewidth}{@{}l X@{}}
@@ -65,10 +65,10 @@ La \cref{fig:impl-ci} resume los workflows; el criterio de cada job y la prepara
 Las cinco fitness functions verifican los atributos de calidad del diseño \cite{ford2023} (\cref{tab:impl-fitness}). FF-1 detecta además que el manifiesto de \texttt{domain} declare \texttt{application}, \texttt{infrastructure} o \texttt{web}, algo que el compilador no reportaría; FF-3 usa puertos centinela (\texttt{AuditLog}, \texttt{DocumentHasher}, \texttt{KeyManager}) para delatar un escáner degradado. La fitness function que exigiría una traza (span de \texttt{tracing}) por cada handler HTTP no se implementó y queda como ampliación (\cref{sec:fitness-functions}); el umbral de cobertura (FF-4) ocupa su lugar.
 
 \begin{table}[t]
-  \centering\small
+  \centering
   \caption{Fitness functions implementadas y su ubicación en el repositorio. Los umbrales son criterios configurados, no mediciones.}
   \label{tab:impl-fitness}
-  \begin{tabularx}{\linewidth}{@{}l X l@{}}
+  \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X l@{}}
     \toprule
     \textbf{Id} & \textbf{Propiedad verificada} & \textbf{Verificación} \\
     \midrule
