@@ -17,11 +17,20 @@
 \input{config/preamble}
 \input{config/glossary}      % definiciones de acrónimos y términos
 
+% Portada firmada: al compilar con
+%   lualatex "\def\PortadaFirmada{ruta/al/escaneo.pdf}\input{main}"
+% la portada se sustituye por el escaneo firmado por la directora.
+\ifdefined\PortadaFirmada\usepackage{pdfpages}\fi
+
 \begin{document}
 
 % ---------------- Hojas institucionales (formato CATT) -------------
 \input{frontmatter/datos-tt}
-\input{frontmatter/portada}
+\ifdefined\PortadaFirmada
+  \includepdf[pages=1,pagecommand={\thispagestyle{empty}\pdfbookmark[0]{Portada}{portada}}]{\PortadaFirmada}
+\else
+  \input{frontmatter/portada}
+\fi
 \pagenumbering{roman}
 \input{frontmatter/documento-tecnico}
 \input{frontmatter/carta-responsiva}
