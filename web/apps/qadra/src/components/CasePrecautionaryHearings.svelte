@@ -4,6 +4,7 @@
   import PrecautionaryHearingEditor from './PrecautionaryHearingEditor.svelte';
   import PrecautionaryHearingDetail from './PrecautionaryHearingDetail.svelte';
   import { caseState } from '../lib/case-state.mjs';
+  import { precautionaryContextOrMissing } from '../lib/precautionary-context-readiness.mjs';
   import { canFacts, factDenied } from '../lib/procedural-fact-errors.mjs';
   import { precautionaryEditorFailure } from './precautionary-hearing-editor-values.mjs';
   import { precautionaryHearingPurposes } from '../lib/precautionary-hearing-presentation.mjs';
@@ -21,6 +22,7 @@
   let alive = true,
     generation = 0,
     context = null,
+    contextMissing = false,
     rows = [],
     selected = null,
     busy = false,
@@ -61,9 +63,13 @@
     try {
       const query = { limit: 10 };
       if (cursors[position] !== undefined) query.afterId = cursors[position];
-      const [current, page] = await Promise.all([scoped.context(), scoped.list(query)]);
+      const [current, page] = await Promise.all([
+        precautionaryContextOrMissing(() => scoped.context()),
+        scoped.list(query),
+      ]);
       if (!alive || request !== generation) return;
       context = current;
+      contextMissing = current === null;
       rows = page.items;
       more = page.has_more;
       nextId = page.next_after_id;
@@ -134,6 +140,9 @@
   </div>
   <p>Convocatorias de imposici&#243;n y revisi&#243;n con soporte declarado.</p>
   {#if error}<p class="notice error" role="alert">{error}</p>{/if}
+  {#if contextMissing && !error}<p class="notice">
+      Completa la ficha penal y registra la etapa para programar una audiencia cautelar.
+    </p>{/if}
   {#if !action}{#each drafts as saved (saved.key)}<Button
         variant="secondary"
         disabled={locked}
